@@ -60,11 +60,11 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
     const target = targetStr ? parseInt(targetStr, 10) : undefined;
 
     let failed = false;
-    if (/fumble|pech/i.test(details)) {
+    if (/fumble|pech|💀|💥/i.test(details)) {
       failed = true;
     } else if (/niezdany|porażka|porazka|fail|❌/i.test(details)) {
       failed = true;
-    } else if (/sukces|success|zdany|✅|✨/i.test(details)) {
+    } else if (/sukces|success|zdany|✅|✨|🌟|👍/i.test(details)) {
       failed = false;
     } else {
       const rollMatch = /Wynik:\s*(\d+)/i.exec(details);
@@ -87,7 +87,7 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
   // match[3]: target (%)
   // match[4]: total
   // match[5]: outcome
-  const diceRollRegex = /\[DICE_ROLL\]\s*(?:(?:@?([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż.\s]+?)(?::|\s+wykonał)\s+)?)test\s+umiejętności\s+"([^"]+)"(?:\s*\((\d+)%\))?:\s*wynik\s*(\d+),\s*([^\n]+)/gi;
+  const diceRollRegex = /\[DICE_ROLL\]\s*(?:(?:@?([^:\n]+?)(?::|\s+wykona[łl](?:a|o)?|\s+rolled)\s+)?)test\s+(?:umiejętności|of\s+skill)?\s*["']?([^"'\(\]\n:]+?)["']?(?:\s*\((\d+)%\))?:\s*wynik\s*(\d+),\s*([^\n]+)/gi;
 
   while ((match = diceRollRegex.exec(trimmed)) !== null) {
     const rawSkill = match[2]?.trim() || '';
@@ -101,11 +101,11 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
     const total = totalStr ? parseInt(totalStr, 10) : undefined;
 
     let failed = false;
-    if (/fumble|pech/i.test(outcome)) {
+    if (/fumble|pech|💀|💥/i.test(outcome)) {
       failed = true;
     } else if (/porażka|porazka|fail|niezdany|❌/i.test(outcome)) {
       failed = true;
-    } else if (/sukces|success|zdany|✅/i.test(outcome)) {
+    } else if (/sukces|success|zdany|✅|✨|🌟|👍/i.test(outcome)) {
       failed = false;
     } else if (total !== undefined && target !== undefined) {
       failed = total > target;
@@ -135,9 +135,17 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
 
 /**
  * Sprawdza czy tekst zawiera już znacznik [SANITY: ...] (ogólny lub dla danej postaci).
+ * W trybie jednoosobowym dowolny tag SANITY oznacza rozstrzygnięcie przez model.
+ * W trybie Duet tag z @Imię pasuje do danej postaci; tag bez @Imię pasuje wyłącznie
+ * do postaci aktywnej (zgodnie z regułą resolveCharacterByName) i nie może być współdzielony.
  * match[1]: who (@...)
  */
-export function hasSanityTagForCharacter(text: string, characterName?: string): boolean {
+export function hasSanityTagForCharacter(
+  text: string,
+  characterName?: string,
+  isDuet: boolean = false,
+  activeCharacterName?: string
+): boolean {
   if (!text) return false;
 
   const sanityTagRegex = /\[SANITY:\s*(?:@([^:\]]+?)\s*:\s*)?[+-]?\s*(?:\d+[dDkK]\d+(?:[+-]\d+)?|\d+)(?:\s*:[^\]]*)?\]/gi;
@@ -157,11 +165,19 @@ export function hasSanityTagForCharacter(text: string, characterName?: string): 
       }
     } else {
       // Model wyemitował tag bez prefiksu @
-      return true;
+      if (!isDuet) return true;
+      // W trybie Duet tag bez @ trafia do postaci aktywnej (fallback)
+      if (activeCharacterName) {
+        const normActive = activeCharacterName.toLowerCase();
+        const normChar = characterName.toLowerCase();
+        if (normActive === normChar || normActive.includes(normChar) || normChar.includes(normActive)) {
+          return true;
+        }
+      }
     }
   }
 
-  if (!characterName && /\[SANITY:\s*[-+]?[^\]]+\]/i.test(text)) {
+  if (!characterName && !isDuet && /\[SANITY:\s*[-+]?[^\]]+\]/i.test(text)) {
     return true;
   }
 
@@ -178,22 +194,39 @@ export function hasSanityTagForCharacter(text: string, characterName?: string): 
 export function generateSanityFallbacks(
   fullText: string,
   resolutions: PendingSanityResolution[],
-  isDuet: boolean = false
+  isDuet: boolean = false,
+  activeCharacterName?: string
 ): string[] {
   const fallbacks: string[] = [];
+  let untaggedConsumed = false;
 
   for (const res of resolutions) {
     // Fallback działa WYŁĄCZNIE przy porażce i fumble
     if (!res.failed) continue;
 
-    if (hasSanityTagForCharacter(fullText, res.characterName)) {
+    const charName = res.characterName || (isDuet ? activeCharacterName : undefined);
+
+    const hasTag = hasSanityTagForCharacter(
+      fullText,
+      charName,
+      isDuet,
+      untaggedConsumed ? undefined : activeCharacterName
+    );
+
+    if (hasTag) {
+      const hasNamedTag = charName
+        ? new RegExp(`\\[SANITY:\\s*@${charName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s:]`, 'i').test(fullText)
+        : false;
+      if (!hasNamedTag) {
+        untaggedConsumed = true;
+      }
       continue;
     }
 
-    if (res.characterName && isDuet) {
-      fallbacks.push(`[SANITY: @${res.characterName}: -1: Szok psychiczny (auto-sędzia)]`);
-    } else if (res.characterName && !isDuet) {
-      fallbacks.push(`[SANITY: @${res.characterName}: -1: Szok psychiczny (auto-sędzia)]`);
+    if (charName && isDuet) {
+      fallbacks.push(`[SANITY: @${charName}: -1: Szok psychiczny (auto-sędzia)]`);
+    } else if (charName && !isDuet) {
+      fallbacks.push(`[SANITY: @${charName}: -1: Szok psychiczny (auto-sędzia)]`);
     } else {
       fallbacks.push(`[SANITY: -1: Szok psychiczny (auto-sędzia)]`);
     }

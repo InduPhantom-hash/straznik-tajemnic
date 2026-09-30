@@ -124,7 +124,8 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           const fallbacks = generateSanityFallbacks(
             fullText,
             effectiveSanityResolutions,
-            isDuet
+            isDuet,
+            character?.name
           );
 
           for (const fallback of fallbacks) {
