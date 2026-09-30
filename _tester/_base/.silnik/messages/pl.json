@@ -5491,7 +5491,12 @@
     "refreshPricing": "Odśwież cennik",
     "healthTimeout": "Przekroczono limit czasu połączenia (8s)",
     "pricingTimeout": "Przekroczono limit czasu (25s)",
-    "networkError": "Błąd połączenia sieciowego"
+    "networkError": "Błąd połączenia sieciowego",
+    "selectedModelStatus": "Stan wybranego modelu",
+    "modelPingAvailable": "Dostępny ({ms} ms)",
+    "modelPingOverloaded": "Przeciążony (503 High Demand)",
+    "modelPingRateLimited": "Limit zapytań (429 Quota)",
+    "modelPingUnavailable": "Niedostępny (błąd klucza lub modelu)"
   },
   "QualityPresets": {
     "eyebrow": "Wydajność vs. głębia",
@@ -5581,7 +5586,12 @@
     "model37Flash": "Gemini 3.7 Flash",
     "model36Flash": "Gemini 3.6 Flash",
     "model31FlashLite": "Gemini 3.1 Flash-Lite (lekki)",
-    "modelDeprecated": "wycofany przez Google"
+    "modelDeprecated": "wycofany przez Google",
+    "modelStatusChecking": "Sprawdzam model…",
+    "modelStatusAvailable": "Dostępny ({ms} ms)",
+    "modelStatusOverloaded": "Przeciążony (503 High Demand)",
+    "modelStatusRateLimited": "Limit zapytań (429 Quota)",
+    "modelStatusUnavailable": "Niedostępny (sprawdź klucz/model)"
   },
   "GeminiCacheSection": {
     "stateOn": "✓ włączony",

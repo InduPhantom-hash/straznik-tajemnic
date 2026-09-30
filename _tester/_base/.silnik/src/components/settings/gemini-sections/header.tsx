@@ -1,8 +1,11 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import type { SetStateAction, Dispatch } from 'react';
 import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
+import { getApiKeyHeaders } from '@/lib/api-keys-service';
+import type { GeminiHealth, ModelPingResult } from '@/app/api/health/gemini/route';
 import { HelpIcon } from '../../ui/tooltip';
 import { Button } from '../../ui/button';
 
@@ -28,6 +31,79 @@ export function HeaderSection({
 }: HeaderSectionProps) {
   const t = useTranslations('GeminiHeaderSection');
   const g = settings.geminiSettings;
+  const [modelPing, setModelPing] = useState<ModelPingResult | null>(null);
+  const [pingLoading, setPingLoading] = useState(false);
+
+  const checkModelAvailability = useCallback(
+    async (modelId: string, apiKeyOverride?: string) => {
+      if (!modelId) return;
+      setPingLoading(true);
+      try {
+        const headers: Record<string, string> = {
+          ...getApiKeyHeaders(),
+        };
+        const trimmedKey = apiKeyOverride?.trim();
+        if (trimmedKey) {
+          headers['X-Gemini-Api-Key'] = trimmedKey;
+        }
+        const res = await fetch(
+          `/api/health/gemini?model=${encodeURIComponent(modelId)}`,
+          { headers }
+        );
+        const data = (await res.json()) as GeminiHealth;
+        if (data.modelPing) {
+          setModelPing(data.modelPing);
+        } else {
+          setModelPing({
+            model: modelId,
+            state: data.status === 'ok' ? 'available' : 'unavailable',
+            latencyMs: null,
+            reason: data.status === 'ok' ? 'ok' : 'invalid_key',
+          });
+        }
+      } catch {
+        setModelPing({
+          model: modelId,
+          state: 'unavailable',
+          latencyMs: null,
+          reason: 'error',
+        });
+      } finally {
+        setPingLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    void checkModelAvailability(g.model, settings.geminiApiKey);
+  }, [g.model, settings.geminiApiKey, checkModelAvailability]);
+
+  const dotClass = pingLoading
+    ? 'bg-brass/70 animate-pulse'
+    : modelPing?.state === 'available'
+      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]'
+      : modelPing?.state === 'overloaded'
+        ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]'
+        : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]';
+
+  const statusText = pingLoading
+    ? t('modelStatusChecking')
+    : modelPing?.state === 'available'
+      ? t('modelStatusAvailable', { ms: modelPing.latencyMs ?? 1 })
+      : modelPing?.state === 'overloaded'
+        ? modelPing.reason === 'rate_limited'
+          ? t('modelStatusRateLimited')
+          : t('modelStatusOverloaded')
+        : t('modelStatusUnavailable');
+
+  const statusTextColor = pingLoading
+    ? 'text-muted-foreground'
+    : modelPing?.state === 'available'
+      ? 'text-emerald-300'
+      : modelPing?.state === 'overloaded'
+        ? 'text-amber-300'
+        : 'text-red-400';
 
   return (
     <>
@@ -42,7 +118,10 @@ export function HeaderSection({
           </span>
           <Button
             size="sm"
-            onClick={() => testAPI('gemini')}
+            onClick={() => {
+              void checkModelAvailability(g.model, settings.geminiApiKey);
+              void testAPI('gemini');
+            }}
             disabled={isLoading}
             className="bg-primary hover:brightness-110 text-primary-foreground font-display uppercase tracking-[0.12em]"
           >
@@ -86,10 +165,30 @@ export function HeaderSection({
         </div>
 
         <div className="md:col-span-2">
-          <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
-            {t('modelLabel')}
-            <HelpIcon content={t('modelHelp')} />
-          </label>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground">
+              {t('modelLabel')}
+              <HelpIcon content={t('modelHelp')} />
+            </label>
+            <button
+              type="button"
+              onClick={() =>
+                void checkModelAvailability(g.model, settings.geminiApiKey)
+              }
+              disabled={pingLoading}
+              data-testid="gemini-model-status-indicator"
+              data-state={
+                pingLoading ? 'checking' : (modelPing?.state ?? 'unavailable')
+              }
+              className="inline-flex items-center gap-2 rounded border border-brass/25 bg-[#1f1a14] px-2.5 py-1 text-xs font-special-elite transition-colors hover:border-brass/60"
+            >
+              <span
+                data-testid="gemini-model-status-dot"
+                className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${dotClass}`}
+              />
+              <span className={statusTextColor}>{statusText}</span>
+            </button>
+          </div>
           <select
             value={g.model}
             onChange={(e) =>
@@ -144,3 +243,4 @@ export function HeaderSection({
     </>
   );
 }
+
