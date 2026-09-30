@@ -85,7 +85,7 @@ export function SettingsModal({
           />
 
           {/* IND-273 T6: widoczny panel zdrowia klucza/modeli */}
-          <HealthStatusPanel />
+          <HealthStatusPanel selectedModel={m.settings.geminiSettings.model} />
           <UpdateSettings />
 
           {/* IND-265 A: progressive disclosure - zaawansowane ustawienia w

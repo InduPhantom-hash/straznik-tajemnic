@@ -232,22 +232,39 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
       });
     });
 
-    it('zwraca czerwony stan unavailable (not_found) przy błędzie 404 dla wycofanego modelu', async () => {
-      mockGenerateContent.mockRejectedValue({
+    it('zwraca czerwony stan unavailable (not_found) przy błędzie 404 lub 400 dla nieobsługiwanego modelu', async () => {
+      mockGenerateContent.mockRejectedValueOnce({
         status: 404,
         message: '404 NOT_FOUND: Model gemini-2.0-flash is not found',
       });
 
-      const req = makeNextRequest(
+      const req404 = makeNextRequest(
         'http://localhost:3000/api/health/gemini?model=gemini-2.0-flash',
         { 'X-Gemini-Api-Key': 'test-valid-key' }
       );
 
-      const res = await GET(req);
-      const body = (await res.json()) as GeminiHealth;
+      const res404 = await GET(req404);
+      const body404 = (await res404.json()) as GeminiHealth;
 
-      expect(body.modelPing?.state).toBe('unavailable');
-      expect(body.modelPing?.reason).toBe('not_found');
+      expect(body404.modelPing?.state).toBe('unavailable');
+      expect(body404.modelPing?.reason).toBe('not_found');
+
+      mockGenerateContent.mockRejectedValueOnce({
+        status: 400,
+        message:
+          '400 INVALID_ARGUMENT: Model gemini-legacy is not supported for generateContent',
+      });
+
+      const req400 = makeNextRequest(
+        'http://localhost:3000/api/health/gemini?model=gemini-legacy',
+        { 'X-Gemini-Api-Key': 'test-valid-key' }
+      );
+
+      const res400 = await GET(req400);
+      const body400 = (await res400.json()) as GeminiHealth;
+
+      expect(body400.modelPing?.state).toBe('unavailable');
+      expect(body400.modelPing?.reason).toBe('not_found');
     });
   });
 
@@ -298,7 +315,114 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
       expect(screen.getByText(/Dostępny \(128 ms\)/i)).toBeInTheDocument();
     });
 
-    it('wyświetla żółtą kropkę przeciążenia (503 High Demand) w HealthStatusPanel', async () => {
+    it('ignoruje spóźnioną odpowiedź fetch przy szybkiej zmianie modelu w HeaderSection (brak wyścigu)', async () => {
+      let resolveFirst!: (value: unknown) => void;
+      const firstPromise = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+
+      global.fetch = jest.fn().mockImplementation((url: string) => {
+        if (String(url).includes('gemini-3.8-flash')) {
+          return firstPromise;
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () =>
+            ({
+              status: 'ok',
+              keyValid: true,
+              availableModels: ['gemini-2.5-pro'],
+              registry: {
+                chatModelsPresent: ['gemini-2.5-pro'],
+                chatModelsMissing: [],
+                embeddingPresent: true,
+              },
+              checkedAt: '2026-09-30T19:00:00.000Z',
+              modelPing: {
+                model: 'gemini-2.5-pro',
+                state: 'available',
+                latencyMs: 95,
+                reason: 'ok',
+              },
+            }) satisfies GeminiHealth,
+        });
+      }) as unknown as typeof fetch;
+
+      const { rerender } = render(
+        <HeaderSection
+          settings={{
+            ...defaultAISettings,
+            geminiApiKey: 'test-key',
+            geminiSettings: {
+              ...defaultAISettings.geminiSettings,
+              model: 'gemini-3.8-flash',
+            },
+          }}
+          setSettings={jest.fn()}
+          testResults={{ gemini: null }}
+          isLoading={false}
+          testAPI={jest.fn()}
+          getTestResultColor={() => ''}
+          getTestResultIcon={() => ''}
+        />
+      );
+
+      // Szybka zmiana modelu zanim pierwszy request się zakończy
+      rerender(
+        <HeaderSection
+          settings={{
+            ...defaultAISettings,
+            geminiApiKey: 'test-key',
+            geminiSettings: {
+              ...defaultAISettings.geminiSettings,
+              model: 'gemini-2.5-pro',
+            },
+          }}
+          setSettings={jest.fn()}
+          testResults={{ gemini: null }}
+          isLoading={false}
+          testAPI={jest.fn()}
+          getTestResultColor={() => ''}
+          getTestResultIcon={() => ''}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/Dostępny \(95 ms\)/i)).toBeInTheDocument();
+      });
+
+      // Teraz spóźniony pierwszy request zwraca błąd 503 - powinien zostać zignorowany
+      resolveFirst({
+        ok: true,
+        json: async () =>
+          ({
+            status: 'ok',
+            keyValid: true,
+            availableModels: ['gemini-3.8-flash'],
+            registry: {
+              chatModelsPresent: ['gemini-3.8-flash'],
+              chatModelsMissing: [],
+              embeddingPresent: true,
+            },
+            checkedAt: '2026-09-30T19:00:00.000Z',
+            modelPing: {
+              model: 'gemini-3.8-flash',
+              state: 'overloaded',
+              latencyMs: null,
+              reason: 'high_demand',
+            },
+          }) satisfies GeminiHealth,
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('gemini-model-status-indicator')
+        ).toHaveAttribute('data-state', 'available');
+      });
+      expect(screen.getByText(/Dostępny \(95 ms\)/i)).toBeInTheDocument();
+    });
+
+    it('wyświetla żółtą kropkę przeciążenia (503 High Demand) w HealthStatusPanel i reaguje na zmianę selectedModel', async () => {
       global.fetch = jest.fn().mockImplementation((url: string) => {
         if (String(url).includes('/api/pricing/refresh')) {
           return Promise.resolve({
@@ -309,30 +433,40 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
             }),
           });
         }
+        const isPro = String(url).includes('gemini-2.5-pro');
         return Promise.resolve({
           ok: true,
           json: async () =>
             ({
               status: 'ok',
               keyValid: true,
-              availableModels: ['gemini-3.8-flash'],
+              availableModels: ['gemini-3.8-flash', 'gemini-2.5-pro'],
               registry: {
                 chatModelsPresent: ['gemini-3.8-flash'],
                 chatModelsMissing: [],
                 embeddingPresent: true,
               },
               checkedAt: '2026-09-30T19:00:00.000Z',
-              modelPing: {
-                model: 'gemini-3.8-flash',
-                state: 'overloaded',
-                latencyMs: null,
-                reason: 'high_demand',
-              },
+              modelPing: isPro
+                ? {
+                    model: 'gemini-2.5-pro',
+                    state: 'available',
+                    latencyMs: 140,
+                    reason: 'ok',
+                  }
+                : {
+                    model: 'gemini-3.8-flash',
+                    state: 'overloaded',
+                    latencyMs: null,
+                    reason: 'high_demand',
+                  },
             }) satisfies GeminiHealth,
         });
       }) as unknown as typeof fetch;
 
-      render(<HealthStatusPanel selectedModel="gemini-3.8-flash" />);
+      const { rerender } = render(
+        <HealthStatusPanel selectedModel="gemini-3.8-flash" />
+      );
 
       await waitFor(() => {
         expect(
@@ -345,6 +479,16 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
       expect(
         screen.getByText(/Przeciążony \(503 High Demand\)/i)
       ).toBeInTheDocument();
+
+      rerender(<HealthStatusPanel selectedModel="gemini-2.5-pro" />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('health-panel-model-status')
+        ).toHaveAttribute('data-state', 'available');
+      });
+      expect(screen.getByText(/gemini-2\.5-pro:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dostępny \(140 ms\)/i)).toBeInTheDocument();
     });
   });
 });

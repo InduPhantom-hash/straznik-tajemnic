@@ -98,17 +98,30 @@ function classifyModelPingError(err: unknown): {
   reason: ModelPingReason;
   message?: string;
 } {
-  if (isInvalidKeyError(err)) {
-    return {
-      state: 'unavailable',
-      reason: 'invalid_key',
-      message: err instanceof Error ? err.message : undefined,
-    };
-  }
   if (err && typeof err === 'object') {
     const e = err as { status?: number; code?: number; message?: string };
     const status = e.status ?? e.code;
     const msg = e.message ?? '';
+    if (
+      status === 404 ||
+      (/404|NOT_FOUND|not found|not supported|unknown model|invalid model/i.test(
+        msg
+      ) &&
+        !/API[_ ]key|PERMISSION_DENIED/i.test(msg))
+    ) {
+      return {
+        state: 'unavailable',
+        reason: 'not_found',
+        message: msg || '404 Model Not Found',
+      };
+    }
+    if (isInvalidKeyError(err)) {
+      return {
+        state: 'unavailable',
+        reason: 'invalid_key',
+        message: msg || undefined,
+      };
+    }
     if (
       status === 503 ||
       /503|UNAVAILABLE|high[_ ]demand|overloaded|model is overloaded/i.test(msg)
@@ -127,13 +140,6 @@ function classifyModelPingError(err: unknown): {
         state: 'overloaded',
         reason: 'rate_limited',
         message: msg || '429 Rate Limit / Quota Exhausted',
-      };
-    }
-    if (status === 404 || /404|NOT_FOUND|not found|not supported/i.test(msg)) {
-      return {
-        state: 'unavailable',
-        reason: 'not_found',
-        message: msg || '404 Model Not Found',
       };
     }
     return {
