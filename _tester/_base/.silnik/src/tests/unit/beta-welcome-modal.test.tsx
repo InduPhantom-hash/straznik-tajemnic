@@ -28,7 +28,7 @@ jest.mock('next-intl', () => ({
       readyItem7Title: 'Scenariusze i Handouty Strefy 11',
       readyItem7Desc: '4 autorskie scenariusze',
       readyItem8Title: 'Czat Narracyjny i Audio TTS',
-      readyItem8Desc: 'Mistrz Gry i SFX',
+      readyItem8Desc: 'Mistrz Gry i lektor TTS',
       inProgressItem1Title: 'Pościgi Wielopojazdowe',
       inProgressItem1Desc: 'Piesze aktywne',
       inProgressItem2Title: 'Zaawansowane Rytuały i Magia',
@@ -93,4 +93,38 @@ describe('BetaWelcomeModal', () => {
     expect(handleOpenChange).toHaveBeenCalledWith(false);
     expect(handleFeedback).toHaveBeenCalledTimes(1);
   });
+
+  it('ustawia wymiary 85vw x 85vh w układzie flex-col ze stałym nagłówkiem, przewijaną listą modułów i stałą stopką (#530)', () => {
+    render(<BetaWelcomeModal open={true} onOpenChange={() => {}} />);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.className).toContain('w-[85vw]');
+    expect(dialog.className).toContain('max-w-[85vw]');
+    expect(dialog.className).toContain('h-[85vh]');
+    expect(dialog.className).toContain('max-h-[85vh]');
+    expect(dialog.className).toContain('flex-col');
+
+    const scrollRegion = screen.getByTestId('beta-welcome-scroll-body');
+    expect(scrollRegion.className).toContain('flex-1');
+    expect(scrollRegion.className).toContain('overflow-y-auto');
+    expect(scrollRegion.className).toContain('min-h-0');
+  });
+
+  it('utrzymuje czyste tłumaczenia BetaWelcome PL/EN bez wzmianek o wyłączonym SFX ani wydawcy Chaosium (#530)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const plMessages = require('../../../messages/pl.json');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const enMessages = require('../../../messages/en.json');
+
+    const plDump = JSON.stringify(plMessages.BetaWelcome);
+    const enDump = JSON.stringify(enMessages.BetaWelcome);
+
+    expect(plDump).not.toMatch(/Chaosium/i);
+    expect(enDump).not.toMatch(/Chaosium/i);
+    expect(plDump).not.toMatch(/\bSFX\b/i);
+    expect(enDump).not.toMatch(/\bSFX\b/i);
+    expect(plMessages.BetaWelcome.readySectionDesc).toMatch(/d100 RAW/i);
+    expect(enMessages.BetaWelcome.readySectionDesc).toMatch(/d100 RAW/i);
+  });
 });
+

@@ -59,8 +59,11 @@ export function BetaWelcomeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="max-w-4xl border-brass/50 bg-[#0d0f12]/95 backdrop-blur-md">
-        <DialogHeader className="space-y-2 pb-3 border-b border-brass/20">
+      <DialogContent
+        size="wide"
+        className="w-[85vw] max-w-[85vw] h-[85vh] max-h-[85vh] flex flex-col overflow-hidden border-brass/50 bg-[#0d0f12]/95 backdrop-blur-md"
+      >
+        <DialogHeader className="shrink-0 space-y-2 pb-3 border-b border-brass/20">
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"
@@ -70,129 +73,178 @@ export function BetaWelcomeModal({
               {t('badge')}
             </Badge>
           </div>
-          <DialogTitle className="font-display text-2xl font-bold tracking-wide text-foreground uppercase">
+          <DialogTitle className="font-display text-2xl md:text-3xl font-bold tracking-wide text-foreground uppercase">
             {t('title')}
           </DialogTitle>
-          <DialogDescription className="text-sm font-special-elite text-muted-foreground">
+          <DialogDescription className="text-sm md:text-base font-special-elite text-muted-foreground">
             {t('subtitle')}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-4 pr-1">
-          {/* Kolumna 1: Gotowe moduły (100% CoC 7e RAW & Strefa 11) */}
-          <div className="space-y-3 rounded-lg p-4 bg-emerald-950/20 border border-emerald-500/30">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-              <h3 className="font-display font-bold text-sm tracking-wider uppercase text-emerald-300">
-                {t('readySectionTitle')}
-              </h3>
+        <div
+          data-testid="beta-welcome-scroll-body"
+          className="flex-1 overflow-y-auto min-h-0 my-3 pr-2"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Kolumna 1: Gotowe moduły (100% d100 RAW & Strefa 11) */}
+            <div className="space-y-3.5 rounded-lg p-5 bg-emerald-950/20 border border-emerald-500/30">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <h3 className="font-display font-bold text-base tracking-wider uppercase text-emerald-300">
+                  {t('readySectionTitle')}
+                </h3>
+              </div>
+              <p className="text-xs md:text-sm text-muted-foreground font-special-elite">
+                {t('readySectionDesc')}
+              </p>
+              <ul className="space-y-3.5 pt-2 text-sm leading-relaxed">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem1Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem1Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem2Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem2Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem3Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem3Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem4Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem4Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem5Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem5Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem6Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem6Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem7Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem7Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem8Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem8Desc')}
+                    </span>
+                  </div>
+                </li>
+              </ul>
             </div>
-            <p className="text-xs text-muted-foreground font-special-elite">
-              {t('readySectionDesc')}
-            </p>
-            <ul className="space-y-3 pt-2 text-xs">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem1Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem1Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem2Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem2Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem3Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem3Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem4Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem4Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem5Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem5Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem6Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem6Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem7Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem7Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div>
-                  <strong className="text-foreground block">{t('readyItem8Title')}</strong>
-                  <span className="text-muted-foreground">{t('readyItem8Desc')}</span>
-                </div>
-              </li>
-            </ul>
-          </div>
 
-          {/* Kolumna 2: Moduły w budowie */}
-          <div className="space-y-3 rounded-lg p-4 bg-amber-950/20 border border-amber-500/30">
-            <div className="flex items-center gap-2">
-              <Hammer className="w-5 h-5 text-amber-400 shrink-0" />
-              <h3 className="font-display font-bold text-sm tracking-wider uppercase text-amber-300">
-                {t('inProgressSectionTitle')}
-              </h3>
+            {/* Kolumna 2: Moduły w budowie */}
+            <div className="space-y-3.5 rounded-lg p-5 bg-amber-950/20 border border-amber-500/30">
+              <div className="flex items-center gap-2">
+                <Hammer className="w-5 h-5 text-amber-400 shrink-0" />
+                <h3 className="font-display font-bold text-base tracking-wider uppercase text-amber-300">
+                  {t('inProgressSectionTitle')}
+                </h3>
+              </div>
+              <p className="text-xs md:text-sm text-muted-foreground font-special-elite">
+                {t('inProgressSectionDesc')}
+              </p>
+              <ul className="space-y-3.5 pt-2 text-sm leading-relaxed">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-amber-400 font-bold mt-0.5">🚧</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('inProgressItem1Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('inProgressItem1Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-amber-400 font-bold mt-0.5">🚧</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('inProgressItem2Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('inProgressItem2Desc')}
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-amber-400 font-bold mt-0.5">🚧</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('inProgressItem3Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('inProgressItem3Desc')}
+                    </span>
+                  </div>
+                </li>
+              </ul>
             </div>
-            <p className="text-xs text-muted-foreground font-special-elite">
-              {t('inProgressSectionDesc')}
-            </p>
-            <ul className="space-y-3 pt-2 text-xs">
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">🚧</span>
-                <div>
-                  <strong className="text-foreground block">{t('inProgressItem1Title')}</strong>
-                  <span className="text-muted-foreground">{t('inProgressItem1Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">🚧</span>
-                <div>
-                  <strong className="text-foreground block">{t('inProgressItem2Title')}</strong>
-                  <span className="text-muted-foreground">{t('inProgressItem2Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">🚧</span>
-                <div>
-                  <strong className="text-foreground block">{t('inProgressItem3Title')}</strong>
-                  <span className="text-muted-foreground">{t('inProgressItem3Desc')}</span>
-                </div>
-              </li>
-            </ul>
           </div>
         </div>
 
         {/* Pasek wskazówki zgłoszeń z adresem e-mail */}
-        <div className="rounded p-2.5 bg-black/40 border border-brass/20 text-xs font-special-elite text-muted-foreground">
+        <div className="shrink-0 rounded p-2.5 bg-black/40 border border-brass/20 text-xs md:text-sm font-special-elite text-muted-foreground">
           <span>{t('betaFeedbackHint')}</span>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-brass/20">
+        <DialogFooter className="shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-brass/20">
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -203,7 +255,7 @@ export function BetaWelcomeModal({
             />
             <label
               htmlFor="beta-dont-show"
-              className="text-xs font-special-elite text-muted-foreground cursor-pointer select-none"
+              className="text-xs md:text-sm font-special-elite text-muted-foreground cursor-pointer select-none"
             >
               {t('dontShowAgain')}
             </label>
@@ -214,7 +266,7 @@ export function BetaWelcomeModal({
               <Button
                 variant="ghost"
                 onClick={handleFeedbackClick}
-                className="text-xs text-brass hover:text-brass hover:bg-brass/10 border border-brass/30"
+                className="text-xs md:text-sm text-brass hover:text-brass hover:bg-brass/10 border border-brass/30"
               >
                 <Bug className="w-4 h-4 mr-2 text-primary" />
                 {t('openFeedback')}
@@ -222,7 +274,7 @@ export function BetaWelcomeModal({
             )}
             <Button
               onClick={handleClose}
-              className="font-display uppercase tracking-wider text-xs px-6 bg-primary text-primary-foreground hover:brightness-110"
+              className="font-display uppercase tracking-wider text-xs md:text-sm px-6 bg-primary text-primary-foreground hover:brightness-110"
             >
               {t('enterGame')}
             </Button>
