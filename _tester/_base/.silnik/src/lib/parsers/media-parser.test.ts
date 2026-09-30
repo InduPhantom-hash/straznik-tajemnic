@@ -99,7 +99,7 @@ describe('media-parser: extractImages', () => {
         expect(result).toHaveLength(1);
         expect(result[0].type).toBe('item');
         expect(result[0].style).toBe('item');
-        expect(result[0].aspectRatio).toBe('1:1');
+        expect(result[0].aspectRatio).toBe('16:9');
         expect(result[0].itemName).toBe('Srebrny Klucz');
     });
 
