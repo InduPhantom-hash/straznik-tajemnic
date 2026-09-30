@@ -4,19 +4,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '../ui/button';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
+import { loadAISettings } from '@/lib/ai-settings';
+import { settingsEmitter } from '@/lib/settings-event-emitter';
 import type { GeminiHealth } from '@/app/api/health/gemini/route';
 import type { PricingRefreshResponse } from '@/app/api/pricing/refresh/route';
 
 interface HealthStatusPanelProps {
   className?: string;
+  selectedModel?: string;
 }
 
 /**
- * IND-273 T6: panel „Zdrowie Strażnika" - widoczny payoff self-checku.
- *
- * Gracz (nie-techniczny) otwiera Ustawienia i WIDZI czy jego klucz Gemini działa
- * i jakie modele są żywe. Czyta `GET /api/health/gemini` (T2) z nagłówkiem BYOK
- * (route ma env-fallback gdy brak). Auto-sprawdza na mount + przycisk „Sprawdź teraz".
+ * IND-273 T6 + #521: panel „Zdrowie Strażnika" - widoczny payoff self-checku
+ * oraz 3-stanowy wskaźnik dostępności wybranego modelu Gemini.
  */
 /** Pomocnicza funkcja wykonująca fetch z limitem czasowym (timeout). */
 async function fetchWithTimeout(
@@ -36,14 +36,34 @@ async function fetchWithTimeout(
   }
 }
 
-export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
+export function HealthStatusPanel({
+  className,
+  selectedModel,
+}: HealthStatusPanelProps) {
   const t = useTranslations('HealthStatusPanel');
+  const [activeModel, setActiveModel] = useState<string>(
+    () => selectedModel || loadAISettings().geminiSettings.model
+  );
   const [health, setHealth] = useState<GeminiHealth | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingRefreshResponse | null>(null);
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingError, setPricingError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedModel) {
+      setActiveModel(selectedModel);
+      return;
+    }
+    setActiveModel(loadAISettings().geminiSettings.model);
+    const unsubscribe = settingsEmitter.subscribe((updated) => {
+      if (updated?.geminiSettings?.model) {
+        setActiveModel(updated.geminiSettings.model);
+      }
+    });
+    return unsubscribe;
+  }, [selectedModel]);
 
   /** Etykieta + kolor statusu klucza wg `GeminiHealth.status`. */
   const STATUS_LABELS: Record<
@@ -82,7 +102,10 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchWithTimeout('/api/health/gemini', {
+      const query = activeModel
+        ? `?model=${encodeURIComponent(activeModel)}`
+        : '';
+      const res = await fetchWithTimeout(`/api/health/gemini${query}`, {
         headers: getApiKeyHeaders(),
       });
       const data = (await res.json()) as GeminiHealth;
@@ -97,7 +120,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [activeModel, t]);
 
   // IND-273 T5b: świeżość cennika. Bez `force` tanio (serwer zwraca cache, bez LLM);
   // przycisk „Odśwież cennik" woła z `force=true` (Tier A LLM-extraction).
@@ -132,6 +155,30 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
   const status = health ? STATUS_LABELS[health.status] : null;
   const present = health?.registry.chatModelsPresent ?? [];
   const missing = health?.registry.chatModelsMissing ?? [];
+  const modelPing = health?.modelPing;
+
+  const modelPingDotClass =
+    modelPing?.state === 'available'
+      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]'
+      : modelPing?.state === 'overloaded'
+        ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]'
+        : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]';
+
+  const modelPingTextClass =
+    modelPing?.state === 'available'
+      ? 'text-emerald-300'
+      : modelPing?.state === 'overloaded'
+        ? 'text-amber-300'
+        : 'text-red-400';
+
+  const modelPingLabel =
+    modelPing?.state === 'available'
+      ? t('modelPingAvailable', { ms: modelPing.latencyMs ?? 1 })
+      : modelPing?.state === 'overloaded'
+        ? modelPing.reason === 'rate_limited'
+          ? t('modelPingRateLimited')
+          : t('modelPingOverloaded')
+        : t('modelPingUnavailable');
 
   return (
     <div
@@ -183,9 +230,27 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
         )}
       </div>
 
-      {/* Modele + embeddingi (tylko gdy mamy odpowiedź) */}
+      {/* Modele + ping wybranego modelu + embeddingi (tylko gdy mamy odpowiedź) */}
       {health && (
         <div className="mt-4 space-y-3">
+          {modelPing && (
+            <div data-testid="health-panel-model-status" data-state={modelPing.state}>
+              <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
+                {t('selectedModelStatus')}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 font-special-elite text-sm">
+                <span
+                  data-testid="health-panel-model-status-dot"
+                  className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${modelPingDotClass}`}
+                />
+                <span className="text-foreground font-semibold">
+                  {modelPing.model}:
+                </span>
+                <span className={modelPingTextClass}>{modelPingLabel}</span>
+              </div>
+            </div>
+          )}
+
           <div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
               {t('narrationModels')}
@@ -270,3 +335,4 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
     </div>
   );
 }
+

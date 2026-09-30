@@ -5491,7 +5491,12 @@
     "refreshPricing": "Refresh pricing",
     "healthTimeout": "Connection timed out (8s)",
     "pricingTimeout": "Timed out (25s)",
-    "networkError": "Network connection error"
+    "networkError": "Network connection error",
+    "selectedModelStatus": "Selected model status",
+    "modelPingAvailable": "Available ({ms} ms)",
+    "modelPingOverloaded": "High demand (503 UNAVAILABLE)",
+    "modelPingRateLimited": "Rate limited (429 Quota)",
+    "modelPingUnavailable": "Unavailable (key or model error)"
   },
   "QualityPresets": {
     "eyebrow": "Performance vs. depth",
@@ -5581,7 +5586,12 @@
     "model37Flash": "Gemini 3.7 Flash",
     "model36Flash": "Gemini 3.6 Flash",
     "model31FlashLite": "Gemini 3.1 Flash-Lite (light)",
-    "modelDeprecated": "deprecated by Google"
+    "modelDeprecated": "deprecated by Google",
+    "modelStatusChecking": "Checking model…",
+    "modelStatusAvailable": "Available ({ms} ms)",
+    "modelStatusOverloaded": "High demand (503 UNAVAILABLE)",
+    "modelStatusRateLimited": "Rate limited (429 Quota)",
+    "modelStatusUnavailable": "Unavailable (check key/model)"
   },
   "GeminiCacheSection": {
     "stateOn": "✓ enabled",
