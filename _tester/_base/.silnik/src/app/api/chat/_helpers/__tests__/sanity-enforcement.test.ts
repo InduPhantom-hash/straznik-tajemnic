@@ -1,6 +1,8 @@
 import { createSseStream } from '../create-sse-stream';
 import { detectPendingSanityTestResolution } from '../sanity-resolution';
 import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
+import { parseAIResponse } from '@/lib/parsers';
+import { rollDiceFormula } from '@/lib/dice-utils';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import type { StreamChunk } from '@/lib/ai-providers/types';
@@ -255,6 +257,12 @@ describe('Issue #564: Automatyczne egzekwowanie utraty Poczytalności (SAN)', ()
 
       expect(fullText).not.toContain('(auto-sędzia)');
       expect(fullText).toContain('[SANITY: -1k4: makabryczne zwłoki]');
+
+      // Weryfikacja: polska notacja 1k4 musi faktycznie odliczyć punkty z karty badacza!
+      const statResult = applyStatChangesToParty([baseCharacter], baseCharacter, fullText);
+      expect(statResult.changed).toBe(true);
+      expect(statResult.activeCharacter.san).toBeLessThanOrEqual(49);
+      expect(statResult.activeCharacter.san).toBeGreaterThanOrEqual(46);
     });
 
     it('w trybie Duet gdy obaj oblali, ale model obsłużył tylko jednego, uzupełnia fallback wyłącznie dla drugiego', async () => {
@@ -294,6 +302,145 @@ describe('Issue #564: Automatyczne egzekwowanie utraty Poczytalności (SAN)', ()
       const updatedDyer = statResult.characters.find((c) => c.name === 'Prof. William Dyer');
       expect(updatedMargaret?.san).toBe(47); // 50 - 3 (z narracji modelu)
       expect(updatedDyer?.san).toBe(59); // 60 - 1 (z auto-sędziego)
+    });
+
+    it('w trybie Duet gdy obaj oblali, a model wyemitował tylko jeden generyczny tag bez @, drugi gracz otrzymuje fallback', async () => {
+      const char1: Character = { ...baseCharacter, id: 'char-1', name: 'Margaret Sullivan', san: 50 };
+      const char2: Character = { ...baseCharacter, id: 'char-2', name: 'Prof. William Dyer', san: 60 };
+
+      const playerMessage = `Wyniki testów obojga badaczy:
+[DICE_ROLL] @Margaret Sullivan: test umiejętności "Poczytalność" (50%): wynik 75, PORAŻKA - PORAŻKA
+[DICE_ROLL] @Prof. William Dyer: test umiejętności "Poczytalność" (40%): wynik 80, PORAŻKA - PORAŻKA`;
+
+      // Model AI wygenerował tag bez prefiksu @: [SANITY: -2: strach]
+      const stream = createSseStream({
+        providerStream: streamChunks('Widok potwora mrozi krew w żyłach obu badaczy. [SANITY: -2: strach]'),
+        getUsage: async () => null,
+        getFinishReason: () => 'STOP',
+        message: playerMessage,
+        modelId: 'gemini-test',
+        traceId: 'trace-test',
+        timer: { elapsed: () => 0 },
+        ragVersion: 'v1',
+        embeddingDim: 768,
+        userId: 'local',
+        character: char1,
+        characters: [char1, char2],
+      });
+
+      const sseOutput = await readStream(stream);
+      const fullText = extractFullTextFromSse(sseOutput);
+
+      // Dyer nie może zostać pominięty - musi otrzymać fallback
+      expect(fullText).toContain('[SANITY: @Prof. William Dyer: -1: Szok psychiczny (auto-sędzia)]');
+
+      const statResult = applyStatChangesToParty([char1, char2], char1, fullText);
+      expect(statResult.changed).toBe(true);
+      const updatedMargaret = statResult.characters.find((c) => c.name === 'Margaret Sullivan');
+      const updatedDyer = statResult.characters.find((c) => c.name === 'Prof. William Dyer');
+      expect(updatedMargaret?.san).toBe(48); // 50 - 2 (przypisany do aktywnej postaci)
+      expect(updatedDyer?.san).toBe(59); // 60 - 1 (z auto-sędziego)
+    });
+
+    it('w trybie Duet gdy Tacka wyśle rzut bez prefiksu @, fallback używa imienia aktywnego badacza', async () => {
+      const char1: Character = { ...baseCharacter, id: 'char-1', name: 'Margaret Sullivan', san: 50 };
+      const char2: Character = { ...baseCharacter, id: 'char-2', name: 'Prof. William Dyer', san: 60 };
+
+      const playerMessage = `[🎲 Test: Poczytalność (50%)]\nWynik: 67 → ❌ Porażka\n(Rzut wirtualny)`;
+
+      const stream = createSseStream({
+        providerStream: streamChunks('Ciemność zdaje się szeptać.'),
+        getUsage: async () => null,
+        getFinishReason: () => 'STOP',
+        message: playerMessage,
+        modelId: 'gemini-test',
+        traceId: 'trace-test',
+        timer: { elapsed: () => 0 },
+        ragVersion: 'v1',
+        embeddingDim: 768,
+        userId: 'local',
+        character: char1,
+        characters: [char1, char2],
+      });
+
+      const sseOutput = await readStream(stream);
+      const fullText = extractFullTextFromSse(sseOutput);
+
+      expect(fullText).toContain('[SANITY: @Margaret Sullivan: -1: Szok psychiczny (auto-sędzia)]');
+      const statResult = applyStatChangesToParty([char1, char2], char1, fullText);
+      expect(statResult.characters.find((c) => c.name === 'Margaret Sullivan')?.san).toBe(49);
+      expect(statResult.characters.find((c) => c.name === 'Prof. William Dyer')?.san).toBe(60);
+    });
+
+    it('obsługuje rzuty z polskimi znakami diakrytycznymi, myślnikami i apostrofami oraz żeńską formą "wykonała"', () => {
+      const msg1 = `[DICE_ROLL] @Stanisław-Żółkiewski: test umiejętności "Poczytalność" (50%): wynik 75, PORAŻKA - PORAŻKA`;
+      const msg2 = `[DICE_ROLL] Mary-Ann O'Connor wykonał test umiejętności "Poczytalność" (45%): wynik 82, PORAŻKA - PORAŻKA`;
+      const msg3 = `[DICE_ROLL] Stanisława Żółkiewska wykonała test umiejętności "Poczytalność" (55%): wynik 90, PORAŻKA - PORAŻKA`;
+      const msg4 = `[🎲 Test: Poczytalność (50%)]\nWynik: 100 → 💀 Pech (Fumble)\n(Rzut wirtualny)`;
+
+      const res1 = detectPendingSanityTestResolution(msg1);
+      expect(res1[0].characterName).toBe('Stanisław-Żółkiewski');
+      expect(res1[0].failed).toBe(true);
+
+      const res2 = detectPendingSanityTestResolution(msg2);
+      expect(res2[0].characterName).toBe("Mary-Ann O'Connor");
+      expect(res2[0].failed).toBe(true);
+
+      const res3 = detectPendingSanityTestResolution(msg3);
+      expect(res3[0].characterName).toBe('Stanisława Żółkiewska');
+      expect(res3[0].failed).toBe(true);
+
+      const res4 = detectPendingSanityTestResolution(msg4);
+      expect(res4[0].failed).toBe(true);
+    });
+
+    it('obsługuje sytuację brzegową 1 SAN -> redukcja do 0 SAN odpala "Na krawędzi otchłani"', async () => {
+      const dyingSanChar: Character = {
+        ...baseCharacter,
+        san: 1,
+        dayStartSan: 50,
+      };
+
+      const playerMessage = `[🎲 Test: Poczytalność (50%)]\nWynik: 77 → ❌ Porażka\n(Rzut wirtualny)`;
+      const stream = createSseStream({
+        providerStream: streamChunks('Koszmar pochłania ostatnie resztki twojego spokoju.'),
+        getUsage: async () => null,
+        getFinishReason: () => 'STOP',
+        message: playerMessage,
+        modelId: 'gemini-test',
+        traceId: 'trace-test',
+        timer: { elapsed: () => 0 },
+        ragVersion: 'v1',
+        embeddingDim: 768,
+        userId: 'local',
+        character: dyingSanChar,
+        characters: [dyingSanChar],
+      });
+
+      const sseOutput = await readStream(stream);
+      const fullText = extractFullTextFromSse(sseOutput);
+
+      expect(fullText).toContain('[SANITY: -1: Szok psychiczny (auto-sędzia)]');
+
+      const statResult = applyStatChangesToParty([dyingSanChar], dyingSanChar, fullText);
+      expect(statResult.changed).toBe(true);
+      // Sprawdzamy czy odpalono zdarzenie graniczne edge_of_the_abyss
+      const abyssEvent = statResult.sanityEvents.find((e) => e.type === 'edge_of_the_abyss');
+      expect(abyssEvent).toBeDefined();
+      expect(statResult.activeCharacter.edgeOfTheAbyss).toBe(true);
+    });
+
+    it('rollDiceFormula oraz parsery poprawnie wspierają polską notację kości (1k4, 1k6)', () => {
+      const rolled = rollDiceFormula('1k4');
+      expect(rolled).not.toBeNull();
+      expect(rolled!.total).toBeGreaterThanOrEqual(1);
+      expect(rolled!.total).toBeLessThanOrEqual(4);
+
+      const parsedDuet = parseAIResponse('Krzyk. [SANITY: @Margaret Sullivan: -1: Szok psychiczny]');
+      expect(parsedDuet.events.some((e) => e.title.includes('Margaret Sullivan'))).toBe(true);
+
+      const parsedDice = parseAIResponse('Krzyk. [SANITY: -1k4: Koszmar]');
+      expect(parsedDice.events.some((e) => e.title.includes('-1k4'))).toBe(true);
     });
 
     it('obsługuje synonimy Poczytalności (SAN, Sanity, Rozsądek)', () => {

@@ -25,8 +25,8 @@ export const TAG_NARRATIVE_GOAL_PATTERN = /\[CEL_NARRACYJNY:\s*([^\]]+)\]/gi;
 /** [WALKA: START] lub [WALKA: KONIEC] */
 export const TAG_COMBAT_PATTERN = /\[WALKA:\s*(START|KONIEC)\]/gi;
 
-/** [SANITY: liczba: powód] */
-export const TAG_SANITY_PATTERN = /\[SANITY:\s*(-?\d+):\s*([^\]]+)\]/gi;
+/** [SANITY: (-N|NdM): powód] lub [SANITY: @Imię: (-N|NdM): powód] */
+export const TAG_SANITY_PATTERN = /\[SANITY:\s*(?:@([^:\]]+):\s*)?([+-]?(?:\d+[dDkK]\d+(?:[+-]\d+)?|\d+))(?:\s*:\s*([^\]]+))?\]/gi;
 
 // ============================================================================
 // LEGACY PATTERNS (Fallback - wykrywanie z języka naturalnego)
