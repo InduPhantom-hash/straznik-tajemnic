@@ -36,6 +36,11 @@ import { buildGeminiOptions } from './build-gemini-options';
 import { buildPdfStrategy, PdfMemoryAttachments } from './build-pdf-strategy';
 import { buildTimeContext } from './build-time-context';
 import { createSseStream } from './create-sse-stream';
+import {
+  detectPendingSanityTestResolution,
+  type PendingSanityResolution,
+} from './sanity-resolution';
+export { detectPendingSanityTestResolution, type PendingSanityResolution };
 import { resolveGeminiCache } from './resolve-gemini-cache';
 import { runRAGAndSummary } from './run-rag-summary';
 import { resolveSettings } from './resolve-settings';
@@ -853,6 +858,8 @@ export async function runChatPipeline({
   }
   const { stream: providerStream, getUsage, getFinishReason } = streamResult;
 
+  const pendingSanityResolutions = detectPendingSanityTestResolution(message);
+
   // === SSE STREAM + POST-STREAM SIDE EFFECTS - IND-71 micro 3/3 ===
   const sseStream = createSseStream({
     providerStream,
@@ -876,6 +883,7 @@ export async function runChatPipeline({
     npcs: npcs ?? [],
     combatMechanicsEnabled,
     memoryScope,
+    pendingSanityResolutions,
   });
 
   return new Response(sseStream, {

@@ -36,6 +36,11 @@ import { commitMemoryTurn, retainFailedTurn } from '@/core/memory/commit-turn';
 import { extractRevealedTurn } from '@/core/memory/revealed-facts';
 import type { MemoryCommit } from '@/core/memory/types';
 import { beginAiGeneration } from '@/lib/desktop/generation-state';
+import {
+  detectPendingSanityTestResolution,
+  generateSanityFallbacks,
+  type PendingSanityResolution,
+} from './sanity-resolution';
 
 export interface CreateSseStreamOpts {
   providerStream: AsyncIterable<StreamChunk>;
@@ -62,6 +67,7 @@ export interface CreateSseStreamOpts {
   npcs?: NPC[];
   combatMechanicsEnabled?: boolean;
   memoryScope?: CampaignMemoryScope | null;
+  pendingSanityResolutions?: PendingSanityResolution[];
 }
 
 export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
@@ -85,6 +91,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
     npcs = [],
     combatMechanicsEnabled = false,
     memoryScope,
+    pendingSanityResolutions,
   } = opts;
 
   const encoder = new TextEncoder();
@@ -101,6 +108,32 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ type: 'text', content: chunk.text })}\n\n`
+              )
+            );
+          }
+        }
+
+        // Auto-sędzia: automatyczne egzekwowanie utraty Poczytalności (SAN) po oblanym teście kości CoC RAW (Issue #564)
+        const effectiveSanityResolutions =
+          pendingSanityResolutions ?? detectPendingSanityTestResolution(message);
+        if (effectiveSanityResolutions.length > 0) {
+          const isDuet = Boolean(
+            (characters && characters.length > 1) ||
+            effectiveSanityResolutions.some((r) => Boolean(r.characterName))
+          );
+          const fallbacks = generateSanityFallbacks(
+            fullText,
+            effectiveSanityResolutions,
+            isDuet
+          );
+
+          for (const fallback of fallbacks) {
+            const separator = fullText.length > 0 && !fullText.endsWith('\n') ? '\n' : '';
+            const fallbackChunk = `${separator}${fallback}`;
+            fullText += fallbackChunk;
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: 'text', content: fallbackChunk })}\n\n`
               )
             );
           }
