@@ -14,8 +14,8 @@ export interface NPCEntity {
 }
 
 export interface SensoryContext {
-  primarySense: 'olfactory' | 'auditory' | 'tactile' | 'gustatory';
-  secondarySense?: 'auditory' | 'tactile' | 'olfactory' | 'gustatory';
+  primarySense: 'olfactory' | 'auditory' | 'tactile' | 'gustatory' | 'visual';
+  secondarySense?: 'auditory' | 'tactile' | 'olfactory' | 'gustatory' | 'visual';
   voidVariable?: string; // Czego w scenie brakuje (Zmienna Próżni)
   gritDetails: string[]; // Materialne zużycie, retro-ziarno epoki
   temperatureOrWeather?: string;
