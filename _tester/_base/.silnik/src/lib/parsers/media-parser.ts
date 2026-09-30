@@ -52,7 +52,7 @@ export function extractImages(text: string): ImageRequest[] {
         } else if (/^(PRZEDMIOT|ARTEFAKT|ITEM|ARTIFACT)$/i.test(tagName)) {
             imgType = 'item';
             style = 'item';
-            aspectRatio = '1:1';
+            aspectRatio = '16:9';
             itemName = extractEntityName(prompt);
         } else if (/^(POTWÓR|POTWOR|MONSTRUM|MONSTER|CREATURE|BEAST)$/i.test(tagName)) {
             imgType = 'monster';

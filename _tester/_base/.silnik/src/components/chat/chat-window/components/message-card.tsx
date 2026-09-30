@@ -230,7 +230,7 @@ export function MessageCard({
                   const imgType = message.generatedImageTypes?.[idx];
                   const isPortrait = imgType === 'portrait';
                   const isItem = imgType === 'item';
-                  const isCompact = isPortrait || isItem;
+                  const isCompact = isPortrait;
                   return (
                   <div
                     key={idx}
@@ -257,9 +257,7 @@ export function MessageCard({
                       className={`w-full cursor-pointer hover:opacity-90 transition-opacity ${
                         isPortrait
                           ? 'aspect-[3/4] object-cover object-top'
-                          : isItem
-                            ? 'aspect-square object-contain bg-black/40 p-2'
-                            : 'h-auto max-h-[70vh] object-contain bg-black/30'
+                          : 'h-auto max-h-[70vh] object-contain bg-black/30'
                       }`}
                       style={{
                         filter: getEraImageFilter(currentEra),

@@ -905,9 +905,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           img.aspectRatio ||
           (img.type === 'portrait'
             ? '3:4'
-            : img.type === 'item'
-              ? '1:1'
-              : '16:9');
+            : '16:9');
 
         try {
           const response = await fetchWithRetry('/api/imagen', {
