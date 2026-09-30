@@ -2557,6 +2557,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           createAcquiredEquipmentSeed(proposal),
           'acquired'
         ),
+        acquiredFrom: 'acquired' as const,
         // Znalezisko z sesji jest unikalnym egzemplarzem, nawet jeżeli jego nazwa
         // odpowiada katalogowi. Katalog pozostaje zarezerwowany dla stałej bazy.
         visualSource: 'generated' as const,
@@ -2574,29 +2575,65 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         isBookmarked: false,
       };
 
-      const afterAdd = characters.map((character) =>
+      const appendItemToCharacter = (character: Character): Character =>
         character.id === recipient.id
           ? {
               ...character,
               equipment: [...(character.equipment ?? []), item],
               journal: [...(character.journal ?? []), journalEntry],
             }
-          : character
-      );
-      setCharacters(afterAdd);
-      const nextActive =
-        afterAdd.find((character) => character.id === activeCharacter.id) ??
-        activeCharacter;
-      setActiveCharacter(nextActive);
-      if (typeof window !== 'undefined') persistCharacters(afterAdd);
+          : character;
+
+      setCharacters((prevList) => {
+        const baseList = prevList.length > 0 ? prevList : characters;
+        const updatedList = baseList.map(appendItemToCharacter);
+        if (typeof window !== 'undefined') persistCharacters(updatedList);
+        return updatedList;
+      });
+      setActiveCharacter((prevActive) => {
+        const baseActive = prevActive ?? activeCharacter;
+        return baseActive ? appendItemToCharacter(baseActive) : baseActive;
+      });
+
+      if (
+        isPureTextMode() ||
+        options.aiSettings?.imageGenerationEnabled === false
+      ) {
+        return;
+      }
+
+      const applyFallbackSource = () => {
+        const markFallback = (character: Character): Character =>
+          character.id !== recipient.id
+            ? character
+            : {
+                ...character,
+                equipment: (character.equipment ?? []).map((candidate) =>
+                  candidate.id === item.id
+                    ? { ...candidate, visualSource: 'fallback' as const }
+                    : candidate
+                ),
+              };
+        setCharacters((prevList) => {
+          const baseList = prevList.length > 0 ? prevList : characters;
+          const updatedList = baseList.map(markFallback);
+          if (typeof window !== 'undefined') persistCharacters(updatedList);
+          return updatedList;
+        });
+        setActiveCharacter((prevActive) => {
+          const baseActive = prevActive ?? activeCharacter;
+          return baseActive ? markFallback(baseActive) : baseActive;
+        });
+      };
 
       // Obraz nie blokuje kliknięcia ani gry. Nieudana generacja zostawia ważny
-      // egzemplarz bez renderu - można go później wygenerować z modalu ekwipunku.
+      // egzemplarz z fallbackiem - można go później wygenerować z modalu ekwipunku.
       try {
+        const era = resolveEquipmentVisualEra(adventureContext);
         const prompt = buildEquipmentImagePrompt(
           item,
-          resolveEquipmentVisualEra(adventureContext),
-          undefined,
+          era,
+          adventureContext?.title,
           recipient
         );
         const usePortraitReference = Boolean(
@@ -2609,10 +2646,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               prompt,
-              style:
-                proposal.visualTreatment === 'supernatural'
+              style: usePortraitReference
+                ? 'realistic'
+                : proposal.visualTreatment === 'supernatural' ||
+                    item.category === 'artifact'
                   ? 'horror'
-                  : 'realistic',
+                  : 'item',
+              era,
               aspectRatio: '1:1',
               seed: `${recipient.id}-${item.id}`,
               ...(usePortraitReference
@@ -2621,11 +2661,17 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }),
           }
         );
-        if (!response.ok) return;
+        if (!response.ok) {
+          applyFallbackSource();
+          return;
+        }
         const data = (await response.json()) as { imageUrl?: string };
-        if (!data.imageUrl) return;
+        if (!data.imageUrl) {
+          applyFallbackSource();
+          return;
+        }
 
-        const afterImage = afterAdd.map((character) =>
+        const applyGeneratedImage = (character: Character): Character =>
           character.id !== recipient.id
             ? character
             : {
@@ -2636,22 +2682,33 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                         ...candidate,
                         imageUrl: data.imageUrl,
                         imagePrompt: prompt,
+                        visualSource: 'generated' as const,
                       }
                     : candidate
                 ),
-              }
-        );
-        setCharacters(afterImage);
-        setActiveCharacter(
-          afterImage.find((character) => character.id === activeCharacter.id) ??
-            activeCharacter
-        );
-        if (typeof window !== 'undefined') persistCharacters(afterImage);
+                journal: (character.journal ?? []).map((entry) =>
+                  entry.id === journalEntry.id
+                    ? { ...entry, imageUrl: data.imageUrl }
+                    : entry
+                ),
+              };
+
+        setCharacters((prevList) => {
+          const baseList = prevList.length > 0 ? prevList : characters;
+          const updatedList = baseList.map(applyGeneratedImage);
+          if (typeof window !== 'undefined') persistCharacters(updatedList);
+          return updatedList;
+        });
+        setActiveCharacter((prevActive) => {
+          const baseActive = prevActive ?? activeCharacter;
+          return baseActive ? applyGeneratedImage(baseActive) : baseActive;
+        });
       } catch (error) {
         console.warn(
           'Nie udało się wygenerować renderu zdobytego przedmiotu:',
           error
         );
+        applyFallbackSource();
       }
     },
     [
@@ -2659,6 +2716,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       adventureContext,
       characters,
       messages,
+      options.aiSettings?.imageGenerationEnabled,
       setActiveCharacter,
       setCharacters,
     ]

@@ -77,7 +77,8 @@ async function generateOneThumbnail(
           prompt,
           style: usePortraitReference
             ? 'realistic'
-            : item.category === 'artifact'
+            : item.visualTreatment === 'supernatural' ||
+                item.category === 'artifact'
               ? 'horror'
               : 'item',
           era,

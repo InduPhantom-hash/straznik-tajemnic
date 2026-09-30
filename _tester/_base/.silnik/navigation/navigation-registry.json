@@ -233,8 +233,8 @@
       "id": "equipment",
       "kind": "modal",
       "label": {
-        "pl": "Ekwipunek",
-        "en": "Equipment"
+        "pl": "Ekwipunek (Broń, Wyposażenie, Fabularne)",
+        "en": "Equipment (Weapons, Gear, Story Items)"
       }
     },
     {

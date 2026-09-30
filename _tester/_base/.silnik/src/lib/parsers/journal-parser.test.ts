@@ -9,6 +9,7 @@ import {
   extractSceneCardTag,
   extractLocationExhaustedTag,
   extractActReportTag,
+  isBanalSensoryObservation,
 } from './journal-parser';
 import { extractLatestTagLocation } from './event-parser';
 import { appendJournalFromText, appendJournalToParty } from '../journal/apply-journal-tags';
@@ -800,4 +801,44 @@ describe('Reżyseria scen i Karta Akt Śledczych (Issue #402)', () => {
     });
   });
 });
+
+describe('Filtr anty-inflacyjny poszlak (Issue #568)', () => {
+  it('odrzuca banalne obserwacje zmysłowe i atmosferyczne z tagów [DZIENNIK:trop:...]', () => {
+    const raw = [
+      '[DZIENNIK:trop:Zapach karbolu]W korytarzu czuć silny zapach karbolu i starego papieru.[/DZIENNIK]',
+      '[DZIENNIK:trop:Brak dymu z komina]Z komina na dachu nie unosi się żaden dym.[/DZIENNIK]',
+      '[DZIENNIK:trop:Przenikliwe zimno]W piwnicy panuje lodowaty chłód i wilgoć.[/DZIENNIK]',
+      '[DZIENNIK:trop:Martwa cisza]W całym domu panuje grobowa cisza.[/DZIENNIK]',
+      '[DZIENNIK:trop:Uchylone drzwi]Drzwi na końcu korytarza są lekko uchylone.[/DZIENNIK]',
+      '[DZIENNIK:trop:Skrzypiąca podłoga]Drewniane deski podłogi cicho skrzypią pod stopami.[/DZIENNIK]',
+    ].join('\n');
+
+    expect(extractJournalTags(raw)).toEqual([]);
+  });
+
+  it('przepuszcza twarde dowody śledcze nawet jeśli wspominają o drzwiach lub zapachu', () => {
+    expect(
+      isBanalSensoryObservation(
+        'Wyłamany zamek w drzwiach',
+        'Drzwi gabinetu mają wyłamany zamek i ślady łomu na futrynie.'
+      )
+    ).toBe(false);
+
+    expect(
+      isBanalSensoryObservation(
+        'Zapach gorzkich migdałów przy kieliszku',
+        'Analiza chemiczna wykazała truciznę - cyjanek potasu w kieliszku ofiary.'
+      )
+    ).toBe(false);
+
+    const raw =
+      '[DZIENNIK:trop:Zapach karbolu]W korytarzu czuć zapach karbolu.[/DZIENNIK]\n' +
+      '[DZIENNIK:trop:Kalka techniczna z R-1]Skradziona dokumentacja techniczna z pieczęcią ściśle tajne.[/DZIENNIK]';
+
+    const extracted = extractJournalTags(raw);
+    expect(extracted).toHaveLength(1);
+    expect(extracted[0].title).toBe('Kalka techniczna z R-1');
+  });
+});
+
 

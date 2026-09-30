@@ -20,7 +20,10 @@ import {
   isPlayerNoteEntry,
   linkClueNpcLocation,
 } from './dossier-types';
-import { inferClueProvenance } from '../parsers/journal-parser';
+import {
+  inferClueProvenance,
+  isBanalSensoryObservation,
+} from '../parsers/journal-parser';
 import {
   isVisualPromptLeak,
   sanitizeLocationName,
@@ -61,7 +64,8 @@ interface LegacyEntryLike {
 const FORENSIC_PATTERNS = [
   'autopsj', 'sekcj', 'zwłok', 'ciał', 'krew', 'krwi', 'odcisk', 'ślad',
   'rany', 'rana', 'ranion', 'trucizn', 'toksyn', 'medycyn', 'oględzin',
-  'obrażen', 'forensic', 'autopsy', 'blood', 'fingerprint', 'wound', 'poison', 'corpse', 'body'
+  'obrażen', 'klucz', 'próbk', 'probk', 'forensic', 'autopsy', 'blood',
+  'fingerprint', 'wound', 'poison', 'corpse', 'body', 'key', 'sample'
 ];
 
 const DOCUMENT_PATTERNS = [
@@ -176,6 +180,7 @@ export function migrateLegacyJournalToDossier(
     for (const c of existingDossier.clues) {
       if (!isClueEntry(c)) continue;
       if (isVisualPromptLeak(c.title) || isVisualPromptLeak(c.description)) continue;
+      if (isBanalSensoryObservation(c.title, c.description)) continue;
       const norm = normalizeEntityTitle(c.title);
       if (norm && seenClueTitles.has(norm)) continue;
       if (norm) seenClueTitles.add(norm);
@@ -350,7 +355,8 @@ export function migrateLegacyJournalToDossier(
 
     if (
       isVisualPromptLeak(entry.title || '') ||
-      isVisualPromptLeak(entry.content || '')
+      isVisualPromptLeak(entry.content || '') ||
+      isBanalSensoryObservation(entry.title || '', entry.content || '')
     ) {
       return;
     }
@@ -442,6 +448,7 @@ export function ensureCharacterDossier<
     for (const c of character.investigatorDossier.clues) {
       if (!isClueEntry(c)) continue;
       if (isVisualPromptLeak(c.title) || isVisualPromptLeak(c.description)) continue;
+      if (isBanalSensoryObservation(c.title, c.description)) continue;
       const norm = normalizeEntityTitle(c.title);
       if (norm && seenClueTitles.has(norm)) continue;
       if (norm) seenClueTitles.add(norm);
