@@ -7,8 +7,8 @@ import {
   injectDepthInjection,
   injectDepthInjectionInPlace,
   isDepthInjectionMessage,
-  buildDynamicScenePacingInjection,
 } from '../build-context';
+import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
 
@@ -247,7 +247,7 @@ describe('buildPlayerVisualProfileSection', () => {
     expect(buildPlayerVisualProfileSection({ name: 'Nijaki' } as unknown as Character)).toBe('');
   });
 
-  it('wstrzykuje komplet cech fizycznych Badacza do promptu', () => {
+  it('wstrzykuje komplet cech fizycznych Badacza wyłącznie dla narracji tekstowej i zakazuje wplatania twarzy/sylwetki gracza do tagów obrazów (FPP)', () => {
     const character = {
       id: 'char_visual_1',
       name: 'Arthur Pendelton',
@@ -260,14 +260,70 @@ describe('buildPlayerVisualProfileSection', () => {
 
     const section = buildPlayerVisualProfileSection(character);
 
-    expect(section).toContain('## PROFIL WIZUALNY BADACZA (VISUAL DNA)');
+    expect(section).toContain('## PROFIL WIZUALNY BADACZA (VISUAL DNA - TYLKO DLA NARRACJI TEKSTOWEJ)');
     expect(section).toContain('Badacz gracza to **Arthur Pendelton**');
     expect(section).toContain('Płeć: mężczyzna');
     expect(section).toContain('Wiek: 42 lat');
     expect(section).toContain('Zawód / Profesja: Archeolog');
     expect(section).toContain('drucianych okularach');
     expect(section).toContain('blizna na lewym policzku');
-    expect(section).toContain('ZAWSZE wplataj powyższe cechy fizyczne');
+    expect(section).toContain('WYŁĄCZNIE do opisów w prozie narracyjnej i reakcji postaci niezależnych (NPC)');
+    expect(section).toContain('ABSOLUTNY ZAKAZ wplatania twarzy, sylwetki, dłoni ani ubioru Badacza do tagów obrazów');
+    expect(section).toContain('Pure Subjective Camera POV');
+    expect(section).toContain('Tag [PORTRET:] jest zarezerwowany WYŁĄCZNIE dla napotkanych postaci niezależnych (NPC)');
+    expect(section).toContain('NIGDY nie generuj [PORTRET:] dla postaci gracza (Arthur Pendelton)');
+    expect(section).not.toContain('ZAWSZE wplataj powyższe cechy fizyczne');
+  });
+
+  it('odfiltrowuje postać gracza (isPlayer: true) z dyrektywy VisualBeliefGraph w buildAdditionalContext, zachowując kotwice NPC i stan lokacji', () => {
+    const vbg = new VisualBeliefGraph();
+    vbg.registerPlayer(
+      {
+        id: 'player_arthur',
+        name: 'Arthur Pendelton',
+        age: 42,
+        gender: 'male',
+        occupation: 'Archeolog',
+        appearance: 'druciane okulary i blizna',
+      } as unknown as Character,
+      '1920s'
+    );
+    vbg.registerNPC(
+      {
+        id: 'npc_armitage',
+        name: 'Henry Armitage',
+        occupation: 'Bibliotekarz',
+        appearance: 'siwa broda i kamizelka z tweedu',
+      },
+      '1920s'
+    );
+    vbg.updateLocation('Biblioteka Miskatonic', {
+      lighting: 'zielone lampy bankierskie',
+    });
+
+    const result = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: {
+        mode: 'investigation',
+        hasNPCs: true,
+        recentSANLoss: false,
+        findingDocument: false,
+        inDarkness: false,
+        nightTime: false,
+      },
+      resolvedCachedContent: null,
+      visualBeliefGraph: vbg,
+      locale: 'pl',
+    });
+
+    const vbgSection = result.find((s) =>
+      s.includes('VISUAL BELIEF GRAPH')
+    );
+    expect(vbgSection).toBeDefined();
+    expect(vbgSection).toContain('Henry Armitage');
+    expect(vbgSection).toContain('Biblioteka Miskatonic');
+    expect(vbgSection).not.toContain('Arthur Pendelton');
   });
 });
 
@@ -932,7 +988,7 @@ Progi: Zwykły ≤50 | Trudny ≤25 | Ekstremalny ≤10
         { role: 'assistant', content: 'Dalsza narracja' },
       ];
 
-      const result = buildAdditionalContext({
+      buildAdditionalContext({
         timePromptSection: 'Time',
         gmProtocol: 'Protocol',
         gameContext: dummyGameContext,
