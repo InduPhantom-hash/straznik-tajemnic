@@ -164,6 +164,7 @@ export function normalizeEquipmentCategory(rawCategory?: string, isHandout?: boo
   if (['ochrona', 'pancerz', 'armor'].includes(c)) return 'armor';
   if (['medycyna', 'medyczny', 'medical', 'apteczka', 'first_aid'].includes(c)) return 'medical';
   if (['okultyzm', 'okultystyczny', 'occult'].includes(c)) return 'occult';
+  if (['fabularny', 'fabularne', 'story', 'dowód', 'dowod', 'poszlaka'].includes(c)) return 'story';
   if (['personal', 'osobisty', 'osobiste'].includes(c)) return 'personal';
   return isHandout ? 'document' : 'personal';
 }

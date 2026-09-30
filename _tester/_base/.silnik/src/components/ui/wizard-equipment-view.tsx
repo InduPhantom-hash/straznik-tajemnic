@@ -64,6 +64,7 @@ function CategoryIcon({
     case 'tool':
       return <Wrench className={className} />;
     case 'document':
+    case 'story':
       return <FileText className={className} />;
     case 'artifact':
       return <Sparkles className={className} />;

@@ -145,6 +145,7 @@ export interface AcquiredItemProposal {
   description: string;
   /** Postać wskazana przez MG w tagu; brak = aktualnie aktywny badacz. */
   recipientName?: string;
+  category?: EquipmentCategory;
   visualTreatment: EquipmentVisualTreatment;
   status: 'pending' | 'accepted' | 'dismissed';
   audioUrl?: string;
@@ -336,7 +337,8 @@ export type EquipmentCategory =
   | 'artifact' // Artefakty mythos (amulety, księgi)
   | 'personal' // Przedmioty osobiste (zegarek, obrączka)
   | 'medical' // Medyczne (apteczka, morfina)
-  | 'occult'; // Okultystyczne (świece, kreda, kadzidło)
+  | 'occult' // Okultystyczne (świece, kreda, kadzidło)
+  | 'story'; // Przedmioty fabularne śledztwa (rekwizyty, dowody, tropy materialne)
 
 /** Profil wizualny, według którego wybieramy lokalny render katalogowy. */
 export type EquipmentVisualEra =
@@ -433,6 +435,7 @@ export interface EquipmentItem {
   value?: number; // Wartość w dolarach 1920s
   condition?: 'new' | 'used' | 'damaged' | 'broken' | 'working' | 'depleted';
   source?: 'starting' | 'acquired' | 'found';
+  acquiredFrom?: 'starting' | 'acquired' | 'found';
   obtainedAt?: Date;
   quantity?: number; // Liczba sztuk / dawek dla przedmiotów zużywalnych
   maxQuantity?: number; // Pojemność maksymalna (np. 5 dawek)

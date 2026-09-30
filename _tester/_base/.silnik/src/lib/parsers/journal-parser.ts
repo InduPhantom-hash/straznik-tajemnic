@@ -97,6 +97,33 @@ export function inferClueProvenance(
   return 'observed';
 }
 
+const INVESTIGATIVE_EVIDENCE_PATTERNS =
+  /(?:list|pism|dokument|notatk|dziennik|pamiętnik|pamietnik|książ|ksieg|księg|rejestr|raport|wycinek|gazet|artykuł|artykul|bilet|kopert|telegram|faktur|kwit|rachun|umow|testament|akt|akta|szyfr|kod|inskrypcj|napis|inicjał|inicjal|podpis|piecząt|pieczat|pieczęć|pieczec|znak|symbol|runa|runy|glify|hieroglif|mapa|plan|szkic|rysunek|fotografi|zdjęci|zdjeci|taśm|tasm|nagran|handout|document|letter|note|diary|journal|book|ledger|report|clipping|ticket|cipher|code|inscription|signature|seal|symbol|rune|glyph|map|photograph|photo|recording|zeznan|świadek|swiadek|świadk|swiadk|powiedział|powiedzial|twierdzi|przyznał|przyznal|kłam|klam|alibi|motyw|rozmow|wywiad|relacj|wspomniał|wspomnial|zdradził|zdradzil|informator|podejrzan|sprawc|ofiar|zabój|zaboj|morder|testimony|witness|said|claimed|confess|suspect|victim|murder|krew|krwi|krwaw|odcisk|ślad|slad|buta|butów|opon|pazur|bruzd|zadrapan|ran|postrzał|postrzal|pocisk|łusk|lusk|proch|trucizn|jad|zwłok|zwlok|trup|ciał|cial|kości|kosci|czaszk|popiół|popiol|spalenizn|klucz|zamek|zamkni|zapieczętow|zapieczetow|zamurow|ukryt|schowek|sejf|szuflad|kufer|kufr|skrzyn|sztylet|nóż|noz|rewolwer|pistolet|broń|bron|medalion|amulet|pierścień|pierscien|sygnet|zegarek|fiolk|butelk|ampułk|ampulk|próbk|probk|mechanizm|pułapk|pulapk|ołtarz|oltarz|rytuał|rytual|pentagram|krąg|krag|świec|swiec|wosk|śluz|sluz|ichor|siark|ozon|chloroform|cyjanek|arszenik|eter|kwas|formaldehyd|właman|wlaman|łom|lom|blood|fingerprint|footprint|track|claw|scratch|wound|bullet|shell|casing|gunpowder|poison|corpse|body|bone|skull|ash|key|lock|locked|sealed|walled|hidden|compartment|safe|drawer|chest|dagger|knife|revolver|pistol|weapon|medallion|amulet|ring|vial|sample|altar|ritual|sulfur|sulphur|slime)/iu;
+
+const BANAL_SENSORY_PATTERNS =
+  /(?:zapach\s+(?:karbolu|stęchlizny|stechlizny|wilgoci|kurzu|pleśni|plesni|starości|starosci|dymu|tytoniu|potu|zgnilizny)|woń\s+(?:karbolu|stęchlizny|stechlizny|wilgoci|kurzu|pleśni|plesni)|środk(?:i|ów)\s+czyszcząc|smell\s+of\s+(?:carbolic|mustiness|damp|dust|mold|mould)|brak\s+dymu(?:\s+z\s+komina)?|nie\s+unosi\s+się\s+(?:żaden\s+)?dym|zimny\s+komin|wygasł[ey]\s+(?:komin|piec|palenisk)|no\s+smoke\s+from\s+(?:the\s+)?chimney|przenikliw[ey]\s+(?:chłód|chlod|zimno|mróz|mroz)|lodowat[ey]\s+(?:chłód|chlod|powietrze|wiatr)|panuje\s+(?:przenikliwy\s+)?(?:chłód|chlod|zaduch|wilgoć|wilgoc|półmrok|polmrok|mrok|ciemność|ciemnosc)|piercing\s+cold|freezing\s+air|damp\s+air|gęst[ae]\s+mgł[ae]|zimn[ae]\s+mgł[ae]|deszcz\s+bębni|wiatr\s+wyje|thick\s+fog|heavy\s+rain|martw[ae]\s+cisza|grobow[ae]\s+cisza|absolutn[ae]\s+cisza|panuje\s+(?:absolutna\s+|głęboka\s+|gleboka\s+)?cisza|dead\s+silence|grave\s+silence|utter\s+silence|skrzypiąc[ae]\s+(?:podłog|podlog|desk|schod|drzwi)|deski\s+(?:podłogi\s+)?(?:cicho\s+)?skrzypi|creaking\s+(?:floor|boards|stairs)|lekko\s+uchylon[ey]\s+(?:drzwi|okno|okiennic|furtk)|uchylon[ey]\s+drzwi|drzwi\s+(?:są\s+|sa\s+|były\s+|byly\s+)?(?:lekko\s+)?uchylone|slightly\s+(?:open|ajar)\s+door|door\s+is\s+(?:slightly\s+)?(?:open|ajar)|ciemny\s+korytarz|mroczny\s+korytarz|półmrok\s+w\s+korytarzu|korytarz\s+tonie\s+w\s+(?:głębokim\s+)?(?:mroku|półmroku|ciemności)|warstwa\s+kurzu|grub[ae]\s+warstw[ae]\s+kurzu|wszędzie\s+pełno\s+kurzu|pokryt[ey]\s+kurzem\s+mebl)/iu;
+
+/**
+ * Issue #568: Filtruje banalne obserwacje zmysłowe i atmosferyczne tła,
+ * które nie niosą twardego faktu śledczego (np. zapach karbolu, brak dymu z komina,
+ * przenikliwy chłód, martwa cisza, lekko uchylone drzwi bez śladów włamania).
+ */
+export function isBanalSensoryObservation(
+  title: string,
+  content?: string
+): boolean {
+  const cleanTitle = (title || '').trim();
+  const cleanContent = (content || '').trim();
+  if (!cleanTitle && !cleanContent) return false;
+
+  const combined = `${cleanTitle} ${cleanContent}`.toLowerCase();
+  if (INVESTIGATIVE_EVIDENCE_PATTERNS.test(combined)) {
+    return false;
+  }
+
+  return BANAL_SENSORY_PATTERNS.test(combined);
+}
+
 // Wykrywanie wpisów dziennika (AI TAGS)
 export function extractJournalTags(text: string): JournalTagEntry[] {
   const entries: JournalTagEntry[] = [];
@@ -210,6 +237,14 @@ export function extractJournalTags(text: string): JournalTagEntry[] {
       for (let i = 1; i < contentParts.length; i++) {
         parseSegment(contentParts[i]);
       }
+    }
+
+    // Issue #568: Odfiltruj banalne obserwacje zmysłowe i atmosferyczne z poszlak
+    if (
+      (type === 'clue' || type === 'discovery') &&
+      isBanalSensoryObservation(title, `${headerRest} ${content}`)
+    ) {
+      continue;
     }
 
     if (title && content) {

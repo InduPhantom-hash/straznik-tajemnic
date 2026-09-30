@@ -72,6 +72,12 @@ const CATEGORY_VISUALS: Record<
     accent: 'text-yellow-400/60',
     label: 'Ochrona',
   },
+  story: {
+    Icon: FileText,
+    gradient: 'from-[#1f1911] to-[#0f0c08]',
+    accent: 'text-brass/70',
+    label: 'Fabularne',
+  },
 };
 
 const DEFAULT_VISUAL = {

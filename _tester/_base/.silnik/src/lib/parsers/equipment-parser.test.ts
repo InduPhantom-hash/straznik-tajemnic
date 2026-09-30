@@ -74,4 +74,19 @@ describe('equipment-parser', () => {
     const text = 'Zwykły opis sceny bez żadnych znaczników.';
     expect(extractEquipmentEvents(text)).toEqual([]);
   });
+
+  it('parses fabularny/story category in DODAJ tags (Issue #566)', () => {
+    const text = '[EKWIPUNEK: DODAJ | Klucz z herbem | fabularny | Klucz do krypty]';
+    const events = extractEquipmentEvents(text);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual({
+      action: 'add',
+      itemName: 'Klucz z herbem',
+      category: 'story',
+      description: 'Klucz do krypty',
+      characterName: undefined,
+      rawText: '[EKWIPUNEK: DODAJ | Klucz z herbem | fabularny | Klucz do krypty]',
+    });
+  });
 });
+

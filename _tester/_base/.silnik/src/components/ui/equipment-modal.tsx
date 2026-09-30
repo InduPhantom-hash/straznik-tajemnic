@@ -50,6 +50,20 @@ import { getEraImageFilter } from '@/lib/era-visual-style';
 import { migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
 import { resolveGameEraContext, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
 
+export function isStoryEquipmentItem(item: EquipmentItem): boolean {
+  if (item.category === 'weapon') return false;
+  return (
+    item.category === 'story' ||
+    item.category === 'document' ||
+    item.category === 'artifact' ||
+    item.isStoryItem === true ||
+    item.source === 'acquired' ||
+    item.source === 'found' ||
+    item.acquiredFrom === 'acquired' ||
+    item.acquiredFrom === 'found'
+  );
+}
+
 interface EquipmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -166,7 +180,8 @@ export function EquipmentModal({
               prompt,
               style: usePortraitReference
                 ? 'realistic'
-                : item.category === 'artifact'
+                : item.visualTreatment === 'supernatural' ||
+                    item.category === 'artifact'
                   ? 'horror'
                   : 'item',
               era,
@@ -208,7 +223,9 @@ export function EquipmentModal({
   // (fire-and-forget po starcie gry w useGameStart). Drugi useEffect w modalu
   // powodował wyścig stanów (closure vs. functional update) i kasowanie imageUrl.
 
-  const [activeTab, setActiveTab] = useState<'weapon' | 'gear'>('weapon');
+  const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'story'>(
+    'weapon'
+  );
 
   // Ekonomia CoC 7e (RAW): zamożność z Credit Rating (character.creditRating lub skills['Majętność']).
   const characterWithCreditRating = useMemo(() => {
@@ -237,12 +254,15 @@ export function EquipmentModal({
     (locale === 'en' ? 'en' : 'pl') as 'pl' | 'en'
   );
 
-  // Déco: rozdziel broń od reszty wyposażenia (układ kolumnowy wg makiety 21).
+  // Déco: rozdziel broń, wyposażenie użytkowe oraz rekwizyty fabularne śledztwa (Issue #566).
   const weaponItems = filteredEquipment.filter(
     (item) => item.category === 'weapon'
   );
+  const storyItems = filteredEquipment.filter(
+    (item) => item.category !== 'weapon' && isStoryEquipmentItem(item)
+  );
   const gearItems = filteredEquipment.filter(
-    (item) => item.category !== 'weapon'
+    (item) => item.category !== 'weapon' && !isStoryEquipmentItem(item)
   );
 
   return (
@@ -345,6 +365,7 @@ export function EquipmentModal({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-brass/25 pb-4">
           <div className="flex bg-[#120b07] p-1 border border-brass/35 rounded-none">
             <button
+              data-testid="equipment-tab-weapon"
               onClick={() => setActiveTab('weapon')}
               className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
                 activeTab === 'weapon'
@@ -355,6 +376,7 @@ export function EquipmentModal({
               {t('weaponsTab', { count: weaponItems.length })}
             </button>
             <button
+              data-testid="equipment-tab-gear"
               onClick={() => setActiveTab('gear')}
               className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
                 activeTab === 'gear'
@@ -363,6 +385,17 @@ export function EquipmentModal({
               }`}
             >
               {t('gearTab', { count: gearItems.length })}
+            </button>
+            <button
+              data-testid="equipment-tab-story"
+              onClick={() => setActiveTab('story')}
+              className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
+                activeTab === 'story'
+                  ? 'bg-primary text-[#04110f]'
+                  : 'text-brass/70 hover:text-brass'
+              }`}
+            >
+              {t('storyTab', { count: storyItems.length })}
             </button>
           </div>
 
@@ -451,6 +484,37 @@ export function EquipmentModal({
             </div>
           )}
 
+          {/* === KARTA: FABULARNE === */}
+          {activeTab === 'story' && (
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {storyItems.map((item) => (
+                  <GearCard
+                    key={item.id}
+                    item={item}
+                    generatingImage={generatingImage}
+                    onGenerateImage={generateImage}
+                    onOpenDetail={setSelectedItem}
+                    era={era}
+                    character={character}
+                  />
+                ))}
+              </div>
+
+              {storyItems.length === 0 && (
+                <div className="text-center py-16 text-muted-foreground border border-brass/20 bg-card mt-2">
+                  <FileText className="w-12 h-12 mx-auto mb-4 text-brass/30" />
+                  <p className="font-serif italic text-base">
+                    {t('storyEmptyTitle')}
+                  </p>
+                  <p className="mt-2 font-serif italic text-sm text-muted-foreground/70">
+                    {t('storyEmptyDesc')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
 
         </div>
 
@@ -525,6 +589,7 @@ function CategoryIcon({
     case 'tool':
       return <Wrench className={className} />;
     case 'document':
+    case 'story':
       return <FileText className={className} />;
     case 'artifact':
       return <Sparkles className={className} />;
@@ -792,6 +857,7 @@ function GearCard({
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
 
   const isDoc = item.category === 'document' || item.isReadable;
+  const isStoryProp = !isDoc && isStoryEquipmentItem(item);
   const quantity = item.quantity && item.quantity > 1 ? item.quantity : null;
 
   return (
@@ -823,6 +889,12 @@ function GearCard({
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-special-elite uppercase tracking-wider bg-brass/15 text-brass border border-brass/35 rounded-sm flex-none">
                 <FileText className="w-3 h-3" />
                 {t('documentBadge')}
+              </span>
+            )}
+            {isStoryProp && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-special-elite uppercase tracking-wider bg-brass/15 text-brass border border-brass/35 rounded-sm flex-none">
+                <FileText className="w-3 h-3" />
+                {t('storyBadge')}
               </span>
             )}
           </div>
