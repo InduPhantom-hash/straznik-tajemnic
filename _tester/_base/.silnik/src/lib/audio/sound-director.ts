@@ -1,17 +1,19 @@
 /**
- * Sound Director Service (Issue #162 + Issue #463)
+ * Sound Director Service (Issue #162 + Issue #463 + Issue #561)
  *
  * Integruje stan gry (Poczytalność / SAN, nastrój sceny [NASTRÓJ:], lokację,
- * treść konkretnego zdania oraz rolę mówcy) w precyzyjne dyrektywy wokalne (Audio Prompting)
+ * zdarzenia regułowe oraz rolę mówcy) w precyzyjne dyrektywy wokalne (Audio Prompting)
  * dla Gemini TTS API (gemini-3.1-flash-tts-preview / gemini-2.5-flash-preview-tts).
  *
- * Filozofia Hybrydowego Narratora Radiowego:
+ * Filozofia Narratora Radiowego z Histerezą Sceny (Issue #561):
  * 1. Zrównoważony, dynamiczny ton bazowy (Audiobook Baseline):
  *    Klarowna, zaangażowana narracja radiowa w naturalnym tempie i z wyrazistą dykcją,
  *    która nie usypia i nie nuży gracza przy dłuższych sesjach.
- * 2. Punktowa modulacja emocji zdań (Sentence-Level Pacing):
- *    Szepty, paraliżujący lęk, nagłe zrywy akcji czy złowrogie odkrycia są aplikowane
- *    wyłącznie do pojedynczych zdań o skrajnym ładunku dramatycznym.
+ * 2. Wygładzanie tempa na poziomie akapitu/sceny (Scene-Level Hysteresis):
+ *    Ton i tempo lektora pozostają spójne w obrębie całego akapitu/sceny. Gwałtowne
+ *    przejścia w szept ('whisper') lub bieg akcji ('action') są zastrzeżone wyłącznie
+ *    dla krytycznych zdarzeń regułowych (szok SAN >= 5, SAN <= 25%, walka/pościg),
+ *    a nie pojedynczych słów w prozie.
  * 3. Subtelne tło nastroju sceny ([NASTRÓJ:]):
  *    Nadaje ogólny koloryt i klimat opowieści (noir / cosmic mystery), bez spowalniania
  *    tempa i bez narzucania monotonnego szeptu na cały blok tekstu.
@@ -33,47 +35,71 @@ export interface SoundDirectorContext {
   npcPersonality?: string;
   recentSanLoss?: number;
   sentenceText?: string;
+  hasActiveCombat?: boolean;
 }
 
-export type SentencePacing = 'whisper' | 'action' | 'revelation' | 'baseline';
+export type SentencePacing = 'whisper' | 'action' | 'baseline';
+
+export interface SentencePacingContext {
+  san?: number;
+  maxSan?: number;
+  mood?: string;
+  hasActiveCombat?: boolean;
+}
 
 /**
- * Rozpoznaje ładunek dramatyczny konkretnego zdania.
- * Zwraca kategorię tempa / emocji dla lektora.
+ * Sprawdza, czy tekst zawiera jawny znacznik walki lub pościgu GM Protocol.
  */
-export function classifySentencePacing(text?: string, recentSanLoss?: number): SentencePacing {
-  if (!text) {
-    if (recentSanLoss && recentSanLoss >= 5) return 'whisper';
-    return 'baseline';
-  }
+export function hasCombatOrChaseTag(text?: string): boolean {
+  return (
+    !!text &&
+    /\[\s*(?:WALKA|WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|COMBAT|ATAK_WRĘCZ|ATAK_WRECZ|MELEE_ATTACK|OPPOSED_MELEE|MELEE_DEFENSE|POŚCIG|POSCIG|CHASE)\s*:/i.test(
+      text
+    )
+  );
+}
 
-  // 1. Bezpośredni szok SAN, paraliżujący lęk lub ciche skradanie
-  const isWhisperTrigger =
-    (recentSanLoss && recentSanLoss >= 5) ||
-    /\[SANITY:\s*-[5-9]\d*:/i.test(text) ||
-    /(?:paraliżując|wstrzymujesz\s+oddech|na\s+palcach|szeptem|w\s+absolutnej\s+ciszy|zaciska\s+gardło|dusi\s+cię|zamierasz\s+w\s+bezruchu|bezszelestnie|paniczny\s+strach|potworny\s+widok)/iu.test(
+/**
+ * Rozpoznaje tryb tempa (histereza na poziomie akapitu/sceny - Issue #561).
+ * Zastrzega tryb 'whisper' i 'action' wyłącznie dla krytycznych zdarzeń regułowych
+ * (utrata SAN >= 5, krytycznie niskie SAN <= 25%, jawny tag walki/pościgu lub nastrój starcia/pościgu).
+ * Pojedyncze słowa w prozie ('mrok', 'chłód', 'dusi', 'wstrzymujesz oddech', 'zwłoki')
+ * NIGDY nie wywracają tempa pojedynczego zdania (zwracają 'baseline').
+ */
+export function classifySentencePacing(
+  text?: string,
+  recentSanLoss?: number,
+  context?: SentencePacingContext
+): SentencePacing {
+  const san = context?.san;
+  const maxSan = context?.maxSan ?? 100;
+  const sanPercentage =
+    typeof san === 'number' ? san / Math.max(maxSan, 1) : 1;
+
+  // 1. Krytyczny szok SAN (utrata >= 5 pkt, jawny tag [SANITY: -5...] lub krytycznie niskie SAN <= 25%)
+  const hasCriticalSanTag =
+    !!text &&
+    /\[SANITY:\s*-(?:[5-9]|\d{2,}|1[dk](?:6|8|10|20|100)|[2-9][dk]\d+)\b/i.test(
       text
     );
-  if (isWhisperTrigger) {
+  if (
+    (recentSanLoss && recentSanLoss >= 5) ||
+    hasCriticalSanTag ||
+    sanPercentage <= 0.25
+  ) {
     return 'whisper';
   }
 
-  // 2. Nagły zryw akcji / adrenalina / starcie / ucieczka
-  const isActionTrigger =
-    /(?:rzuca\s+się|skacze|atakuje|strzela|wystrzał|eksplozj|uciekaj|uciekasz|biegniesz|dopada\s+cię|błyskawicznie|gwałtownie|krzyk\s+bólu)/iu.test(
-      text
-    );
-  if (isActionTrigger) {
+  // 2. Krytyczne zdarzenie bojowe / pościg (jawny tag regułowy lub aktywny nastrój walki/pościgu)
+  const hasCombatOrChaseMood =
+    !!context?.mood &&
+    /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(context.mood);
+  if (
+    context?.hasActiveCombat ||
+    hasCombatOrChaseTag(text) ||
+    hasCombatOrChaseMood
+  ) {
     return 'action';
-  }
-
-  // 3. Złowrogie makabryczne odkrycie / kulminacja
-  const isRevelationTrigger =
-    /(?:rozczłonkowan|zmasakrowan|pradawn(?:y|e|a|ych|ym)\s+symbol|monolit|krwaw(?:y|e|a|ych)\s+ślad|makabryczn|martw(?:e|y|ego)\s+ciał|bezwładn(?:e|ych)\s+zwłok)/iu.test(
-      text
-    );
-  if (isRevelationTrigger) {
-    return 'revelation';
   }
 
   return 'baseline';
@@ -99,6 +125,7 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     npcOccupation,
     recentSanLoss,
     sentenceText,
+    hasActiveCombat,
   } = context;
 
   // 1. Kwestie NPC (zachowują aktorskie zróżnicowanie ról)
@@ -124,34 +151,25 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     return 'Read the following in a natural, conversational character voice:';
   }
 
-  // 2. Punktowa modulacja emocji na poziomie konkretnego zdania
-  if (sentenceText) {
-    const pacing = classifySentencePacing(sentenceText, recentSanLoss);
-    if (pacing === 'whisper') {
-      return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror, breathless panic, and cosmic dread:';
-    }
-    if (pacing === 'action') {
-      return 'Read the following in an urgent and intense cadence with sharp, punchy diction:';
-    }
-    if (pacing === 'revelation') {
-      return 'Read the following in a measured, ominous, and deliberate voice of dark revelation:';
-    }
-  }
-
-  // 3. Kwestie Narratora - ogólny kontekst (gdy brak zdania lub zdanie to baseline)
+  // 2. Wygładzanie tempa na poziomie akapitu/sceny (Histereza - Issue #561)
   const currentSan = typeof san === 'number' ? san : 60;
   const sanPercentage = currentSan / Math.max(maxSan, 1);
+  const pacing = classifySentencePacing(sentenceText, recentSanLoss, {
+    san: currentSan,
+    maxSan,
+    mood,
+    hasActiveCombat,
+  });
 
-  // Bezpośredni szok SAN w kontekście (gdy nie przekazano sentenceText)
-  if ((recentSanLoss && recentSanLoss >= 5) || (!sentenceText && sanPercentage <= 0.25)) {
+  if (pacing === 'whisper') {
     return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror, breathless panic, and cosmic dread:';
   }
 
-  // Sceny dynamicznej akcji, pościgu, walki i bezpośredniego zagrożenia w nastroju sceny
-  if (mood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(mood)) {
+  if (pacing === 'action') {
     return 'Read the following in an intense, thrilling cadence with dynamic momentum and crisp diction:';
   }
 
+  // 3. Kwestie Narratora - ogólny kontekst sceny (spójny ton audiobooka w całym akapicie)
   // Obniżona poczytalność (< 50%) - trzyma napięcie i atmosferę, ale zachowuje płynne tempo audiobooka
   if (sanPercentage <= 0.5) {
     if (mood && /klaustrofob|dusząc|ciemn|mrocz/i.test(mood)) {
@@ -219,10 +237,18 @@ export function extractMoodFromText(text: string): string | undefined {
  */
 export function extractSanLossFromText(text: string): number | undefined {
   if (!text) return undefined;
-  const tagMatch = /\[SANITY:\s*(-?\d+):/i.exec(text);
+  const criticalDiceMatch =
+    /\[SANITY:\s*-\s*(?:1[dk](?:6|8|10|20|100)|[2-9][dk]\d+)\b/i.exec(text);
+  if (criticalDiceMatch) {
+    return 6;
+  }
+  const minorDiceMatch = /\[SANITY:\s*-\s*1[dk](?:2|3|4)\b/i.exec(text);
+  if (minorDiceMatch) {
+    return 2;
+  }
+  const tagMatch = /\[SANITY:\s*-\s*(\d+)\b/i.exec(text);
   if (tagMatch) {
-    const val = parseInt(tagMatch[1], 10);
-    return Math.abs(val);
+    return parseInt(tagMatch[1], 10);
   }
   const naturalMatch =
     /tracisz\s+(\d+)\s+(?:punkt(?:ów|y|u)?\s+)?poczytalności/i.exec(text) ||

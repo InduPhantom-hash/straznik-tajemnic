@@ -69,6 +69,26 @@ describe('sse-parser', () => {
       });
     });
 
+    it('poprawnie przetwarza zdarzenia tekstowe w formacie {"text": "..."}', async () => {
+      const chunks = [
+        'data: {"text":"Rozglądasz się po "}\n\n',
+        'data: {"text":"gabinecie."}\n\n',
+        'data: {"type":"metadata","finishReason":"STOP","illustrations":[]}\n\n',
+      ];
+      const response = createMockStreamResponse(chunks);
+
+      const onText = jest.fn();
+      const onMetadata = jest.fn();
+
+      const fullText = await parseSSEStream(response, { onText, onMetadata });
+
+      expect(fullText).toBe('Rozglądasz się po gabinecie.');
+      expect(onText).toHaveBeenCalledTimes(2);
+      expect(onText).toHaveBeenNthCalledWith(1, 'Rozglądasz się po ');
+      expect(onText).toHaveBeenNthCalledWith(2, 'Rozglądasz się po gabinecie.');
+      expect(onMetadata).toHaveBeenCalledTimes(1);
+    });
+
     it('radzi sobie z podziałem linii i tokenów JSON na granicy chunków TCP', async () => {
       const chunks = [
         'data: {"type":"text","con',

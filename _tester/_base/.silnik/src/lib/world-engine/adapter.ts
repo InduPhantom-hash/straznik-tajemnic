@@ -75,6 +75,196 @@ export interface WorldEngineAdapterParams {
   playerMessage?: string | null;
   activeEngines?: Partial<Record<WorldEngineId, boolean>> | null;
   sceneTechniqueSelection?: SceneTechniqueSelection | null;
+  turnsInCurrentLocation?: number;
+  visitedMacroLocations?: string[];
+  isNewMacroLocation?: boolean;
+}
+
+const FACILITY_GROUPS: Array<{ id: string; pattern: RegExp }> = [
+  { id: 'hospital', pattern: /\b(szpital[a-ząćęłńóśźż]*|klinik[a-ząćęłńóśźż]*|lazaret[a-ząćęłńóśźż]*|hospital|clinic|infirmary)\b/i },
+  { id: 'asylum', pattern: /\b(sanatori[a-ząćęłńóśźż]*|azyl[a-ząćęłńóśźż]*|psychiatryczn[a-ząćęłńóśźż]*|asylum|sanitarium)\b/i },
+  { id: 'manor', pattern: /\b(rezydencj[a-ząćęłńóśźż]*|posiadłoś[a-ząćęłńóśźż]*|posiadlos[a-ząćęłńóśźż]*|dwór|dwor[a-ząćęłńóśźż]*|pałac[a-ząćęłńóśźż]*|palac[a-ząćęłńóśźż]*|will[aieąęy]|manor|mansion|estate)\b/i },
+  { id: 'university', pattern: /\b(uniwersytet[a-ząćęłńóśźż]*|uczelni[a-ząćęłńóśźż]*|kampus[a-ząćęłńóśźż]*|university|campus|college)\b/i },
+  { id: 'police', pattern: /\b(posterun[a-ząćęłńóśźż]*|komisariat[a-ząćęłńóśźż]*|areszt[a-ząćęłńóśźż]*|więzien[a-ząćęłńóśźż]*|wiezien[a-ząćęłńóśźż]*|police|precinct|jail|prison)\b/i },
+  { id: 'church', pattern: /\b(kościół|kościoł[a-ząćęłńóśźż]*|kościach|kościele|kosciol[a-ząćęłńóśźż]*|kosciel[a-ząćęłńóśźż]*|parafi[a-ząćęłńóśźż]*|katedr[a-ząćęłńóśźż]*|świątyn[a-ząćęłńóśźż]*|swiatyn[a-ząćęłńóśźż]*|church|cathedral|parish|temple)\b/i },
+  { id: 'hotel', pattern: /\b(hotel[a-ząćęłńóśźż]*|pensjonat[a-ząćęłńóśźż]*|zajazd[a-ząćęłńóśźż]*|gospod[a-ząćęłńóśźż]*|karczm[a-ząćęłńóśźż]*|inn|boarding\s+house)\b/i },
+  { id: 'museum', pattern: /\b(muzeum|muzealn[a-ząćęłńóśźż]*|museum)\b/i },
+  { id: 'cemetery', pattern: /\b(cmentarz[a-ząćęłńóśźż]*|nekropoli[a-ząćęłńóśźż]*|cemetery|graveyard)\b/i },
+  { id: 'lighthouse', pattern: /\b(latarni[a-ząćęłńóśźż]*|lighthouse)\b/i },
+  { id: 'tenement', pattern: /\b(kamienic[a-ząćęłńóśźż]*|czynszów[a-ząćęłńóśźż]*|tenement)\b/i },
+  { id: 'docks', pattern: /\b(port[a-ząćęłńóśźż]*|dok(?:ach|ami|[iyów])?|przystań|przystani[a-ząćęłńóśźż]*|stoczni[a-ząćęłńóśźż]*|harbor|docks?|shipyard)\b/i },
+];
+
+const ROOM_PREFIX_REGEX =
+  /^(sala(?:\s+chorych|\s+operacyjna|\s+sekcyjna|\s+wykładowa)?|gabinet(?:\s+ordynatora|\s+dyrektora|\s+dziekana|\s+lekarski)?|kostnica|prosektorium|piwnica|podziemia|strych|poddasze|korytarz|hol|recepcja|poczekalnia|archiwum|czytelnia|kaplica|kuchnia|jadalnia|sypialnia|cela|pokój(?:\s+gościnny|\s+przesłuchań|\s+nr\s*\d+)?|pokoj(?:\s+nr\s*\d+)?|biuro|magazyn(?:\s+nr\s*\d+)?|laboratorium|kotłownia|kotlownia|izolatka|dyżurka|dyzurka|szatnia|ward|morgue|office|cellar|basement|attic|corridor|hallway|reception|archive|reading\s+room|chapel|kitchen|dining\s+room|bedroom|cell|room|storage|laboratory|boiler\s+room)\s+(?:w\s+|we\s+|na\s+|pod\s+|w\s+gmachu\s+|in\s+the\s+|in\s+|at\s+the\s+|at\s+|of\s+the\s+|of\s+)?(.+)$/i;
+
+function detectFacilityGroup(location: string): string | undefined {
+  if (!location) return undefined;
+  for (const group of FACILITY_GROUPS) {
+    if (group.pattern.test(location)) {
+      return group.id;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Wyodrębnia nadrzędną strefę / obiekt (makrolokację) z nazwy lokacji.
+ * Rozpoznaje prefiksy przed myślnikami, dwukropkami, ukośnikami, przecinkami, nawiasami
+ * oraz konstrukcje typu "Kostnica w Szpitalu Miejskim" / "Kostnica Szpitala Miejskiego".
+ */
+export function extractMacroLocation(location: string): string {
+  if (!location) return '';
+  const trimmed = location.trim();
+  const splitMatch = trimmed.match(/^(.+?)\s*(?:[-–—:/]|,)\s*(.+)$/);
+  if (splitMatch && splitMatch[1].trim().length >= 3) {
+    return splitMatch[1].trim();
+  }
+  const parenMatch = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+  if (parenMatch && parenMatch[1].trim().length >= 3) {
+    return parenMatch[1].trim();
+  }
+  const roomMatch = trimmed.match(ROOM_PREFIX_REGEX);
+  if (roomMatch && roomMatch[2].trim().length >= 4 && detectFacilityGroup(roomMatch[2])) {
+    return roomMatch[2].trim();
+  }
+  return trimmed;
+}
+
+/**
+ * Wyodrębnia podlokację / nazwę pokoju.
+ */
+export function extractSubLocation(location: string): string | undefined {
+  if (!location) return undefined;
+  const trimmed = location.trim();
+  const splitMatch = trimmed.match(/^.+?\s*(?:[-–—:/]|,)\s*(.+)$/);
+  if (splitMatch && splitMatch[1].trim()) {
+    return splitMatch[1].trim();
+  }
+  const parenMatch = trimmed.match(/^.+?\s*\(([^)]+)\)\s*$/);
+  if (parenMatch && parenMatch[1].trim()) {
+    return parenMatch[1].trim();
+  }
+  const roomMatch = trimmed.match(ROOM_PREFIX_REGEX);
+  if (roomMatch && roomMatch[1].trim() && detectFacilityGroup(roomMatch[2])) {
+    return roomMatch[1].trim();
+  }
+  return undefined;
+}
+
+/**
+ * Sprawdza czy dwie lokacje należą do tej samej nadrzędnej strefy / makrolokacji.
+ * Obsługuje zarówno jawne separatory ("Szpital - Sala" vs "Szpital - Kostnica"),
+ * jak i odmianę fleksyjną tego samego obiektu ("Szpital Miejski" vs "Kostnica Szpitala Miejskiego").
+ */
+export function isSameMacroLocation(locA: string, locB: string): boolean {
+  if (!locA || !locB) return false;
+  const macroA = extractMacroLocation(locA).toLowerCase().trim();
+  const macroB = extractMacroLocation(locB).toLowerCase().trim();
+  if (!macroA || !macroB) return false;
+  if (macroA === macroB) return true;
+
+  const groupA = detectFacilityGroup(locA);
+  const groupB = detectFacilityGroup(locB);
+  if (groupA && groupB) {
+    return groupA === groupB;
+  }
+
+  return false;
+}
+
+export interface DerivedSceneSensoryMemory {
+  currentLocation: string;
+  turnsInCurrentLocation: number;
+  visitedMacroLocations: string[];
+}
+
+function addVisitedMacro(list: string[], locationName: string): void {
+  const macro = extractMacroLocation(locationName);
+  if (!macro) return;
+  const alreadyPresent = list.some(
+    (existing) =>
+      existing.toLowerCase().trim() === macro.toLowerCase().trim() ||
+      isSameMacroLocation(existing, macro)
+  );
+  if (!alreadyPresent) {
+    list.push(macro);
+  }
+}
+
+function extractLastLocationTagFromContent(content: string): string | undefined {
+  if (!content) return undefined;
+  const regex = /\[(?:LOKACJA|LOCATION):\s*([^:\]\n]+)/gi;
+  let lastMatch: string | undefined;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(content)) !== null) {
+    const candidate = match[1]?.trim();
+    if (candidate && candidate.length <= 45) {
+      lastMatch = candidate;
+    }
+  }
+  return lastMatch;
+}
+
+/**
+ * Odtwarza deterministycznie stan pamięci sensorycznej sceny (bieżącą lokację,
+ * liczbę tur spędzonych w bieżącej lokacji oraz listę odwiedzonych makrolokacji)
+ * na podstawie historii wiadomości i opcjonalnej lokacji bieżącej.
+ */
+export function deriveSceneSensoryMemoryFromMessages(
+  messages?: Array<{ role?: string; content?: string }> | null,
+  fallbackLocation?: string | null
+): DerivedSceneSensoryMemory {
+  const visitedMacroLocations: string[] = [];
+  let activeLocation = '';
+  let turnsInCurrentLocation = 0;
+
+  if (Array.isArray(messages)) {
+    for (const msg of messages) {
+      if (!msg || msg.role !== 'assistant' || typeof msg.content !== 'string') {
+        continue;
+      }
+      const tagLoc = extractLastLocationTagFromContent(msg.content);
+      if (tagLoc) {
+        if (!activeLocation || activeLocation.toLowerCase() === tagLoc.toLowerCase()) {
+          activeLocation = tagLoc;
+          turnsInCurrentLocation += 1;
+          addVisitedMacro(visitedMacroLocations, tagLoc);
+        } else {
+          addVisitedMacro(visitedMacroLocations, activeLocation);
+          activeLocation = tagLoc;
+          turnsInCurrentLocation = 0;
+          if (isSameMacroLocation(visitedMacroLocations[visitedMacroLocations.length - 1] || '', tagLoc)) {
+            addVisitedMacro(visitedMacroLocations, tagLoc);
+          }
+        }
+      } else {
+        const effectiveLoc = activeLocation || fallbackLocation?.trim() || '';
+        if (effectiveLoc) {
+          activeLocation = effectiveLoc;
+          turnsInCurrentLocation += 1;
+          addVisitedMacro(visitedMacroLocations, effectiveLoc);
+        }
+      }
+    }
+  }
+
+  const trimmedFallback = fallbackLocation?.trim() || '';
+  if (trimmedFallback) {
+    if (!activeLocation) {
+      activeLocation = trimmedFallback;
+    } else if (activeLocation.toLowerCase() !== trimmedFallback.toLowerCase()) {
+      addVisitedMacro(visitedMacroLocations, activeLocation);
+      activeLocation = trimmedFallback;
+      turnsInCurrentLocation = 0;
+    }
+  }
+
+  return {
+    currentLocation: activeLocation,
+    turnsInCurrentLocation,
+    visitedMacroLocations,
+  };
 }
 
 /**
@@ -139,25 +329,67 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
   const currentLocation = params.currentLocation?.trim() || '';
 
   const isDialogueScene = params.sceneTechniqueSelection?.sceneState === 'dialogue';
+  const turnsInCurrentLocation = params.turnsInCurrentLocation ?? 0;
+  const isSubsequentTurn = turnsInCurrentLocation > 0;
+  const rawMacroLocation = currentLocation ? extractMacroLocation(currentLocation) : undefined;
 
-  // 1. SensoryEngine (02) - zawsze aktywne, mikrosensoryka
-  const isDesertedOrSpooky = !isDialogueScene && /cmentarz|ruin|strych|piwnic|opuszcz|mgł|las|noc|krypt|cemetery|ruins|attic|abandoned|fog|crypt/.test(
-    currentLocation.toLowerCase()
-  );
+  const matchedVisitedMacro =
+    rawMacroLocation && params.visitedMacroLocations
+      ? params.visitedMacroLocations.find(
+          (v) =>
+            v.toLowerCase().trim() === rawMacroLocation.toLowerCase().trim() ||
+            isSameMacroLocation(v, currentLocation)
+        )
+      : undefined;
+
+  const macroLocation =
+    matchedVisitedMacro && rawMacroLocation === currentLocation
+      ? matchedVisitedMacro
+      : rawMacroLocation;
+
+  let isNewMacroLocation = true;
+  if (params.isNewMacroLocation !== undefined) {
+    isNewMacroLocation = params.isNewMacroLocation;
+  } else if (macroLocation && params.visitedMacroLocations) {
+    isNewMacroLocation = !matchedVisitedMacro;
+  } else if (isSubsequentTurn) {
+    isNewMacroLocation = false;
+  }
+
+  // 1. SensoryEngine (02) - mikrosensoryka z pamięcią sceny
+  const isDesertedOrSpooky =
+    !isSubsequentTurn &&
+    isNewMacroLocation &&
+    !isDialogueScene &&
+    /cmentarz|ruin|strych|piwnic|opuszcz|mgł|las|noc|krypt|cemetery|ruins|attic|abandoned|fog|crypt/.test(
+      currentLocation.toLowerCase()
+    );
 
   const sensory: SensoryContext = {
-    primarySense: 'olfactory',
-    secondarySense: 'auditory',
+    primarySense: isSubsequentTurn || !isNewMacroLocation ? 'tactile' : 'olfactory',
+    secondarySense: isSubsequentTurn ? 'visual' : 'auditory',
     gritDetails: isDialogueScene
       ? [
           locale === 'en'
             ? 'Nervous micro-gestures, facial tension, and subtle physical reactions of the speaker'
             : 'Subtelne mikrogesty, napięcie mimiki i fizyczna reakcja rozmówcy na słowa gracza',
         ]
+      : isSubsequentTurn
+      ? [
+          locale === 'en'
+            ? 'Inspected objects, tangible props, and physical evidence in the hands of the investigator'
+            : 'Badane obiekty, rekwizyty i namacalne ślady w dłoniach badacza',
+        ]
+      : !isNewMacroLocation
+      ? [
+          locale === 'en'
+            ? `Unique furnishings, objects, and distinctive props specific to this room only: ${currentLocation}`
+            : `Unikalne wyposażenie, przedmioty i detale właściwe wyłącznie dla tego pomieszczenia: ${currentLocation}`,
+        ]
       : [
           currentLocation
             ? (locale === 'en' ? `Atmosphere and age of the place: ${currentLocation}` : `Ślady zużycia i atmosfera miejsca: ${currentLocation}`)
-            : (locale === 'en' ? 'Patina of time and period retro-grain' : 'Patyna czasu i retro-ziarno epoki'),
+            : (locale === 'en' ? 'Patina of time and period retro-grain' : 'Patina czasu i retro-ziarno epoki'),
         ],
     voidVariable: isDesertedOrSpooky
       ? (locale === 'en' ? 'Unsettling silence or absence of natural human bustle' : 'Złowroga cisza lub brak zwyczajnego ludzkiego gwaru')
@@ -317,9 +549,62 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     return Boolean(params.activeEngines[id]);
   };
 
-  const baseDirectives = director.compileDirectives({
+  const headerPl = '## DYREKTYWY SILNIKA ŚWIATA (SYSTEMY RUNTIME)';
+  const headerEn = '## WORLD ENGINE DIRECTIVES (IN-FLIGHT RUNTIME)';
+  const activeHeader = locale === 'en' ? headerEn : headerPl;
+
+  const finalLines: string[] = [];
+
+  // 1. Sensory Directive (PO Decision 1: Anti-Habituation on subsequent turns)
+  if (isEngineEnabled('sensory')) {
+    const senses = [sensory.primarySense, sensory.secondarySense].filter(Boolean).join('+');
+    if (isSubsequentTurn) {
+      finalLines.push(
+        locale === 'en'
+          ? `[SENSORY_DIRECTIVE: ANTI-HABITUATION (Turn in current location: ${turnsInCurrentLocation + 1} | Dynamic senses rotation: ${senses}). STRICTLY FORBID repeating static ambient backdrop, persistent smells or baseline cold/weather (sensory habituation: carbolic acid, cold, dead silence, tiled stoves are already established). Describe ONLY dynamic environmental shifts (e.g. flickering candle, sudden sound) or focus 100% on examined details]`
+          : `[SENSORY_DYREKTYWA: ANTY-HABITUACJA (Tura w tej samej lokacji: ${turnsInCurrentLocation + 1} | Rotacja na zmysły dynamiczne: dotyk+wzrok (${senses})). ZAKAZ powtarzania stałego tła, zapachu i chłodu/mrozu lokacji (habituacja zmysłów: karbol, mróz, cisza, piece kaflowe zostały już zarejestrowane). Opisuj WYŁĄCZNIE dynamiczne zmiany otoczenia (np. dopalająca się świeca, nagły dźwięk) lub skup się w 100% na badanych detalach]`
+      );
+    } else {
+      const voidPart = sensory.voidVariable ? ` | Void: ${sensory.voidVariable}` : '';
+      const gritPart = sensory.gritDetails.length > 0 ? ` | Grit: ${sensory.gritDetails[0]}` : '';
+      finalLines.push(
+        locale === 'en'
+          ? `[SENSORY_DIRECTIVE: Focus senses (${senses})${voidPart}${gritPart} | Avoid generic visuals, describe somatic body response]`
+          : `[SENSORY_DYREKTYWA: Oprzyj kadr na zmysłach (${senses})${voidPart}${gritPart} | Zero etykiet emocji, opisz somatykę ciała]`
+      );
+    }
+  }
+
+  // 2. Two-Level Zone / Macro-Location Memory (PO Decision 2)
+  if (macroLocation) {
+    if (isNewMacroLocation) {
+      finalLines.push(
+        locale === 'en'
+          ? `[ZONE_MEMORY: Entering new facility "${macroLocation}". You may introduce the overall building scent and static backdrop once]`
+          : `[PAMIĘĆ_STREFY: Wejście do nowego obiektu "${macroLocation}". Możesz jednorazowo zarysować ogólny zapach i stałe tło całego budynku]`
+      );
+    } else {
+      finalLines.push(
+        locale === 'en'
+          ? `[ZONE_MEMORY: Known zone "${macroLocation}" (subsequent room / continuation). Building smell and static backdrop are already introduced - forbid repeating whole-building traits or scent. In this room focus solely on unique room props and details]`
+          : `[PAMIĘĆ_STREFY: Znana strefa "${macroLocation}" (kolejny pokój / kontynuacja). Zapach i stałe tło budynku zostały już opisane - nie powtarzaj zapachu ani cech całego budynku (np. karbolu). W tym pokoju skup się wyłącznie na jego unikalnym wyposażeniu i detalach]`
+      );
+    }
+  }
+
+  // 3. Investigation-First / Fiction-First Directive (PO Decision 3)
+  if (isSubsequentTurn) {
+    finalLines.push(
+      locale === 'en'
+        ? `[INVESTIGATION_DIRECTIVE: FICTION-FIRST / NO FILLER. Zero repeated exposition. Focus 100% on examined details, tactile object interactions, NPC micro-reactions, and progressing the investigation]`
+        : `[AKCJA_ŚLEDCZA: FICTION-FIRST / NO FILLER. Zero powtarzania ekspozycji. Skup się w 100% na badanych detalach, fizycznych interakcjach z obiektami, mimice/reakcjach NPC i posuwaniu śledztwa]`
+    );
+  }
+
+  // Pozostałe silniki świata (NPC, Graph, Friction, Clue, Geography, Occult)
+  const otherDirectivesRaw = director.compileDirectives({
     locale,
-    sensory: isEngineEnabled('sensory') ? sensory : undefined,
+    sensory: undefined, // obsłużone wyżej z Anti-Habituation
     activeNPC: isEngineEnabled('npc') ? activeNPC : undefined,
     graph: isEngineEnabled('graph') ? graphDirectiveParam : undefined,
     friction: isEngineEnabled('friction') ? frictionParam : undefined,
@@ -327,6 +612,16 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     geography: isEngineEnabled('geography') ? geographyParam : undefined,
     occult: isEngineEnabled('occult') ? occultParam : undefined,
   });
+
+  if (otherDirectivesRaw) {
+    const rawLines = otherDirectivesRaw
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0 && !l.startsWith('##'));
+    finalLines.push(...rawLines);
+  }
+
+  const baseDirectives = finalLines.length > 0 ? `\n\n${activeHeader}\n${finalLines.join('\n')}\n` : '';
 
   if (params.sceneTechniqueSelection) {
     const sceneDirective = formatSceneDirective(params.sceneTechniqueSelection, locale);

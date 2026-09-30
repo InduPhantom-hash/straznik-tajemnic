@@ -41,6 +41,7 @@ export const CATEGORY_FALLBACK_ASSETS: Record<EquipmentCategory, string> = {
   personal: '/equipment/predefined/personal.svg',
   medical: '/equipment/predefined/medical.svg',
   occult: '/equipment/predefined/occult.svg',
+  story: '/equipment/predefined/document.svg',
 };
 
 export const EQUIPMENT_VISUAL_ERAS: EquipmentVisualEra[] = [

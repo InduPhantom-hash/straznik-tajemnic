@@ -54,6 +54,10 @@ import {
   isPureTextMode,
 } from '@/lib/api-keys-service';
 import { timeManager } from '@/lib/time-manager';
+import {
+  generateSessionEndSaveName,
+  performFullGameSave,
+} from '@/lib/save/auto-save-service';
 import { parseSSEStream, createSseParseErrorHandler } from '@/lib/sse-parser';
 import { trackEvent } from '@/lib/posthog';
 import type { AISettings } from '@/lib/ai-settings/types';
@@ -101,6 +105,11 @@ import {
   type CombatDefenseWeaponOption,
 } from '@/lib/combat/weapon-context';
 import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
+import {
+  deriveSceneSensoryMemoryFromMessages,
+  extractMacroLocation,
+  isSameMacroLocation,
+} from '@/lib/world-engine';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 const ACTIVE_CHASE_STORAGE_KEY = 'zew_active_chase_state';
@@ -149,6 +158,7 @@ async function fetchWithRetry(
       return await fetchWithApiKeys(url, options);
     } catch (error) {
       lastError = error;
+      if (options?.signal?.aborted) throw error;
       // Ponawiamy tylko chwilowe błędy sieci; reszta (np. przerwany abort, bugi
       // kodu) leci od razu do callera.
       if (!isNetworkBlip(error) || attempt === retries) throw error;
@@ -380,6 +390,10 @@ export interface UseChatReturn {
   isSessionEnded: boolean;
   /** Dwuetapowy stan końca sesji (idle | awaiting_player_closure | ended) */
   sessionEndStatus: SessionEndStatus;
+  /** Stan autozapisu kroniki po zakończeniu sesji: 'idle' | 'saving' | 'saved' | 'error' */
+  sessionSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  /** Funkcja ponowienia autozapisu kroniki po błędzie */
+  retrySessionSave: () => Promise<void>;
   // Retro Cheats
   cheatCombatModal: {
     attackerName: string;
@@ -403,6 +417,8 @@ export interface UseChatReturn {
   setCheatChaseModal: React.Dispatch<React.SetStateAction<boolean>>;
   activeChaseState: ChaseState | null;
   setActiveChaseState: React.Dispatch<React.SetStateAction<ChaseState | null>>;
+  /** Issue #571: Przerywa aktywne generowanie odpowiedzi AI (AbortController) i cofa ostatnią turę */
+  stopGeneration: () => void;
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
@@ -549,6 +565,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
   const [sessionEndStatus, setSessionEndStatus] =
     useState<SessionEndStatus>('idle');
+  const [sessionSaveStatus, setSessionSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle');
   const [lastImageTime, setLastImageTime] = useState(0);
 
   const activeChaseStateRef = useRef<ChaseState | null>(activeChaseState);
@@ -556,6 +575,55 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     strikeCount: 0,
     turnsSinceLastViolation: 0,
   });
+
+  // Issue #571: AbortController oraz śledzenie wiadomości bieżącej tury do bezpiecznego cofnięcia (Stop)
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const lastSentUserMessageRef = useRef<string | null>(null);
+  const currentAssistantMessageIdRef = useRef<string | null>(null);
+  const currentUserMessageIdRef = useRef<string | null>(null);
+
+  const stopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    if (stopCurrentAudio) {
+      stopCurrentAudio();
+    }
+
+    const assistantId = currentAssistantMessageIdRef.current;
+    const userId = currentUserMessageIdRef.current;
+    const userText = lastSentUserMessageRef.current;
+
+    if (assistantId || userId) {
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== assistantId && msg.id !== userId)
+      );
+    }
+    if (userText) {
+      setNewMessage(userText);
+    }
+
+    currentAssistantMessageIdRef.current = null;
+    currentUserMessageIdRef.current = null;
+    lastSentUserMessageRef.current = null;
+  }, [setNewMessage, stopCurrentAudio]);
+
+  const messagesRef = useRef<Message[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const activeCharacterRef = useRef<Character | null>(activeCharacter);
+  useEffect(() => {
+    activeCharacterRef.current = activeCharacter;
+  }, [activeCharacter]);
+
+  const charactersRef = useRef<Character[]>(characters);
+  useEffect(() => {
+    charactersRef.current = characters;
+  }, [characters]);
 
   useEffect(() => {
     activeChaseStateRef.current = activeChaseState;
@@ -574,12 +642,85 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     if (messages.length === 0) {
       setIsSessionEnded(false);
       setSessionEndStatus('idle');
+      setSessionSaveStatus('idle');
       guardrailStateRef.current = { strikeCount: 0, turnsSinceLastViolation: 0 };
       lastIllustratedLocationRef.current = '';
       lastTrackedSceneRef.current = '';
       sceneImageCountRef.current = 0;
+      turnsInCurrentLocationRef.current = 0;
+      visitedMacroLocationsRef.current = [];
     }
   }, [messages.length]);
+
+  const isSavingSessionRef = useRef<boolean>(false);
+  const executeSessionAutoSave = useCallback(
+    async (
+      messagesOverride?: Message[],
+      characterOverride?: Character | null,
+      charactersOverride?: Character[]
+    ) => {
+      if (isSavingSessionRef.current) return;
+      isSavingSessionRef.current = true;
+      setSessionSaveStatus('saving');
+      try {
+        const msgs =
+          messagesOverride ||
+          (messagesRef.current.length > 0 ? messagesRef.current : messages);
+        const activeChar =
+          characterOverride !== undefined
+            ? characterOverride
+            : (activeCharacter || activeCharacterRef.current);
+        const allChars =
+          charactersOverride ||
+          (characters.length > 0 ? characters : charactersRef.current);
+        const currentGameTime = timeManager?.getTime ? timeManager.getTime() : null;
+        const autoSaveName = generateSessionEndSaveName(
+          activeChar?.name,
+          currentGameTime
+        );
+
+        await performFullGameSave({
+          saveName: autoSaveName,
+          saveNotes: 'Autozapis po zakończeniu sesji',
+          saveImages: true,
+          saveSettings: true,
+          currentLocale: locale,
+          data: {
+            messages: msgs,
+            locale,
+            aiSettings: options.aiSettings,
+            equipmentVisualEra: resolveEquipmentVisualEra(adventureContext),
+            characters: allChars,
+            activeCharacterId: activeChar?.id,
+            hotSeatConfig: hotSeatConfig,
+            investigatorBoard: activeChar?.investigatorBoard,
+            pdfMemory: pdfMemory,
+            currentLocationId: currentLocationRef.current || undefined,
+          },
+        });
+        setSessionSaveStatus('saved');
+      } catch (err) {
+        console.error('Błąd automatycznego zapisu kroniki:', err);
+        setSessionSaveStatus('error');
+      } finally {
+        isSavingSessionRef.current = false;
+      }
+    },
+    [
+      locale,
+      options.aiSettings,
+      adventureContext,
+      hotSeatConfig,
+      pdfMemory,
+      activeCharacter,
+      characters,
+      messages,
+    ]
+  );
+
+  const retrySessionSave = useCallback(async () => {
+    await executeSessionAutoSave();
+  }, [executeSessionAutoSave]);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
   const [pendingDeclarations, setPendingDeclarations] = useState<
     PendingDeclaration[]
@@ -589,6 +730,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   // wysłał ją do promptu (build-context.ts) BEZ wpisywania jej w tablicę zależności callbacka.
   const [currentLocation, setCurrentLocation] = useState('');
   const currentLocationRef = useRef('');
+  // Issue #563: Scene Sensory Memory & Dwupoziomowa Pamięć Strefowa
+  const turnsInCurrentLocationRef = useRef(0);
+  const visitedMacroLocationsRef = useRef<string[]>([]);
   // 2026-06-28: licznik obrazów per scena (scena = lokacja). Cap MAX_IMAGES_PER_SCENE
   // OGRANICZA serię obrazów w jednej lokacji; resetuje się przy zmianie lokacji.
   // `lastTrackedSceneRef` pamięta lokację, dla której liczymy, by wykryć zmianę sceny.
@@ -672,6 +816,27 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setCurrentLocation(loc);
     }
   }, [adventureContext?.location]);
+
+  // Issue #563: Odtwórz stan pamięci sensorycznej z historii messages (np. po F5, wczytaniu zapisu lub starcie przez useGameStart)
+  useEffect(() => {
+    if (
+      messages.length > 0 &&
+      turnsInCurrentLocationRef.current === 0 &&
+      visitedMacroLocationsRef.current.length === 0 &&
+      messages.some((m) => m.role === 'assistant' && m.content)
+    ) {
+      const derived = deriveSceneSensoryMemoryFromMessages(
+        messages,
+        currentLocationRef.current || adventureContext?.location
+      );
+      if (derived.currentLocation) {
+        currentLocationRef.current = derived.currentLocation;
+        setCurrentLocation(derived.currentLocation);
+      }
+      turnsInCurrentLocationRef.current = derived.turnsInCurrentLocation;
+      visitedMacroLocationsRef.current = derived.visitedMacroLocations;
+    }
+  }, [messages, adventureContext?.location]);
 
   // Visual Belief Graph: synchronizuj profil Badacza, NPC z Dossier i epokę
   useEffect(() => {
@@ -771,9 +936,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           img.aspectRatio ||
           (img.type === 'portrait'
             ? '3:4'
-            : img.type === 'item'
-              ? '1:1'
-              : '16:9');
+            : '16:9');
 
         try {
           const response = await fetchWithRetry('/api/imagen', {
@@ -1180,6 +1343,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
+      abortControllerRef.current?.abort();
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      lastSentUserMessageRef.current = message;
+      currentAssistantMessageIdRef.current = assistantMessageId;
+      currentUserMessageIdRef.current = userMessage.id;
+
       try {
         // Doktryna Czystego Emulatora BYOB - Dwuskładnikowy Bloker Sesji (Runtime Hard Guard)
         const hasKey = typeof hasRequiredKeys === 'function' ? hasRequiredKeys() : true;
@@ -1224,9 +1394,30 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           return false;
         }
 
+        if (
+          turnsInCurrentLocationRef.current === 0 &&
+          visitedMacroLocationsRef.current.length === 0 &&
+          messages.some((m) => m.role === 'assistant' && m.content)
+        ) {
+          const derived = deriveSceneSensoryMemoryFromMessages(
+            messages,
+            currentLocationRef.current || adventureContext?.location
+          );
+          if (derived.currentLocation) {
+            currentLocationRef.current = derived.currentLocation;
+            setCurrentLocation(derived.currentLocation);
+          }
+          turnsInCurrentLocationRef.current = derived.turnsInCurrentLocation;
+          visitedMacroLocationsRef.current = derived.visitedMacroLocations;
+        }
+
+        const prevLocationBeforeTurn = currentLocationRef.current;
+        const hadVisitedAnyMacroBeforeTurn = visitedMacroLocationsRef.current.length > 0;
+
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: abortController.signal,
           body: JSON.stringify({
             message: outgoingApiMessage,
             messages: sanitizeHistoryForApi([...messages, userMessage]),
@@ -1242,6 +1433,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
+            turnsInCurrentLocation: turnsInCurrentLocationRef.current,
+            visitedMacroLocations: visitedMacroLocationsRef.current,
             aiSettings: options.aiSettings,
             locale,
             hotSeatConfig: resolveHotSeatCharacterNames(
@@ -1273,6 +1466,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
         let isGuardrailResponse = false;
         let streamedFullText = '';
+        let hasSessionEndConfirmation = false;
+        let lastFinishReason: string | undefined;
+        let lastCostData: Message['costData'];
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
             let cleanText = stripMeleeAttackTags(text);
@@ -1282,6 +1478,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 .trimEnd();
               setSessionEndStatus('ended');
               setIsSessionEnded(true);
+              setSessionSaveStatus('saving');
+              hasSessionEndConfirmation = true;
             }
             streamedFullText = cleanText;
             setMessages((prev) =>
@@ -1349,6 +1547,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             // finishReason z metadanych (MAX_TOKENS/STOP) trafia na wiadomość -
             // steruje przyciskiem "Kontynuuj narrację" i logiką urwanych scen.
             if (metadata.finishReason) {
+              lastFinishReason = String(metadata.finishReason);
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
@@ -1375,6 +1574,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
             // Metadane costData zapisz do wiadomości
             if (metadata.costData) {
+              lastCostData = metadata.costData;
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
@@ -1455,7 +1655,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     }
                   } else if (ev.type === 'location' && ev.title) {
                     const name = sanitizeLocationName(ev.title);
-                    if (name && !isVisualPromptLeak(name)) {
+                    if (name && name.length <= 45 && !isVisualPromptLeak(name)) {
                       visualBeliefGraphRef.current.updateLocation(name, {
                         atmosphere: ev.description || undefined,
                       });
@@ -1475,7 +1675,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               const rawTitle = locEvent?.title;
               if (typeof rawTitle === 'string' && rawTitle.trim()) {
                 const name = sanitizeLocationName(rawTitle);
-                if (name && !isVisualPromptLeak(name)) {
+                if (name && name.length <= 45 && !isVisualPromptLeak(name)) {
                   currentLocationRef.current = name;
                   setCurrentLocation(name);
                   visualBeliefGraphRef.current.updateLocation(name, {
@@ -1586,6 +1786,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         // surowej narracji MG do character.journal (modal sesji). fullText jest
         // surowy (tagi czyszczone dopiero w renderze), więc niesie [DZIENNIK:].
         // appendJournalFromText jest idempotentne (dedup po messageId).
+        let finalActiveChar = activeCharacter;
+        let finalCharacters = characters;
         if (activeCharacter) {
           const currentEra =
             adventureContext?.yearRange ||
@@ -1698,6 +1900,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           if (j.changed || s.changed || eq.changed) {
             setActiveCharacter(eq.activeCharacter);
             setCharacters(eq.characters);
+            finalActiveChar = eq.activeCharacter;
+            finalCharacters = eq.characters;
             if (typeof window !== 'undefined') {
               persistCharacters(eq.characters);
             }
@@ -1792,13 +1996,45 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         // w headerze (currentLocation) i jest odsyłany do promptu w kolejnej turze
         // (currentLocationRef). Wpis dziennika typu `location` powstaje już w
         // appendJournalFromText - ten sam tor [LOKACJA:].
+        const pushMacroIfAbsent = (locName: string) => {
+          const macro = extractMacroLocation(locName);
+          if (
+            macro &&
+            !visitedMacroLocationsRef.current.some(
+              (existing) =>
+                existing.toLowerCase().trim() === macro.toLowerCase().trim() ||
+                isSameMacroLocation(existing, macro)
+            )
+          ) {
+            visitedMacroLocationsRef.current.push(macro);
+          }
+        };
+
         const latestLocation = extractLatestTagLocation(fullText);
-        if (latestLocation) {
+        if (latestLocation && latestLocation.name.length <= 45 && !isVisualPromptLeak(latestLocation.name)) {
+          const prevLoc = prevLocationBeforeTurn.trim().toLowerCase();
+          const nextLoc = latestLocation.name.trim().toLowerCase();
+          if (!prevLoc || !hadVisitedAnyMacroBeforeTurn || prevLoc === nextLoc) {
+            turnsInCurrentLocationRef.current += 1;
+            pushMacroIfAbsent(latestLocation.name);
+          } else {
+            pushMacroIfAbsent(prevLocationBeforeTurn);
+            turnsInCurrentLocationRef.current = 0;
+            if (isSameMacroLocation(prevLocationBeforeTurn, latestLocation.name)) {
+              pushMacroIfAbsent(latestLocation.name);
+            }
+          }
           currentLocationRef.current = latestLocation.name;
           setCurrentLocation(latestLocation.name);
           visualBeliefGraphRef.current.updateLocation(latestLocation.name, {
             atmosphere: latestLocation.description || undefined,
           });
+        } else {
+          // Brak nowego tagu [LOKACJA:] - tura upłynęła w tej samej lokacji
+          turnsInCurrentLocationRef.current += 1;
+          if (currentLocationRef.current) {
+            pushMacroIfAbsent(currentLocationRef.current);
+          }
         }
 
         // IND-230: Faza Rozwoju CoC. Po pełnym streamie wyłuskaj wyniki testów
@@ -1812,8 +2048,61 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             onSkillResults(skillResults);
           }
         }
+
+        if (
+          hasSessionEndConfirmation ||
+          fullText.includes('[KONIEC_SESJI:POTWIERDZENIE]')
+        ) {
+          setSessionEndStatus('ended');
+          setIsSessionEnded(true);
+          const finalAssistantMsg: Message = {
+            ...assistantMessage,
+            content: streamedFullText,
+            ...(lastFinishReason ? { finishReason: lastFinishReason } : {}),
+            ...(lastCostData ? { costData: lastCostData } : {}),
+            ...(acquiredItems.length > 0 ? { acquiredItems } : {}),
+            ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
+            ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),
+            ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
+            ...(opposedMagicEvents.length > 0 ? { opposedMagicEvents } : {}),
+            ...(opposedMeleeEvents.length > 0 ? { opposedMeleeEvents } : {}),
+            ...(refereeVetoEvents.length > 0 ? { refereeVetoEvents } : {}),
+            ...(gameOverEvents.length > 0 ? { gameOverEvents } : {}),
+          };
+          const messagesToSave: Message[] = [
+            ...messages,
+            userMessage,
+            finalAssistantMsg,
+          ];
+          messagesRef.current = messagesToSave;
+          activeCharacterRef.current = finalActiveChar;
+          charactersRef.current = finalCharacters;
+
+          await executeSessionAutoSave(
+            messagesToSave,
+            finalActiveChar,
+            finalCharacters
+          );
+        }
+
+        if (currentAssistantMessageIdRef.current === assistantMessageId) {
+          currentAssistantMessageIdRef.current = null;
+          currentUserMessageIdRef.current = null;
+          lastSentUserMessageRef.current = null;
+        }
+
         return true;
       } catch (error) {
+        const isAborted =
+          abortController.signal.aborted ||
+          (error instanceof DOMException && error.name === 'AbortError') ||
+          (error instanceof Error &&
+            (error.name === 'AbortError' || error.message.includes('aborted')));
+
+        if (isAborted) {
+          return false;
+        }
+
         console.error('Błąd:', error);
         trackEvent('ai_error', {
           endpoint: '/api/chat',
@@ -1851,6 +2140,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         );
         return false;
       } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
         setIsLoading(false);
       }
     },
@@ -2068,12 +2360,20 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // Kontynuacja NIE tworzy dymku gracza - instrukcja leci tylko w payloadzie.
       setMessages((prev) => [...prev, assistantMessage]);
 
+      abortControllerRef.current?.abort();
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      currentAssistantMessageIdRef.current = assistantMessageId;
+      currentUserMessageIdRef.current = null;
+      lastSentUserMessageRef.current = null;
+
       const markedTarget: Message = { ...target, continuationRequested: true };
 
       try {
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: abortController.signal,
           body: JSON.stringify({
             message:
               locale === 'en'
@@ -2086,6 +2386,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
+            turnsInCurrentLocation: turnsInCurrentLocationRef.current,
+            visitedMacroLocations: visitedMacroLocationsRef.current,
             aiSettings: options.aiSettings,
             locale,
             guardrailState: guardrailStateRef.current,
@@ -2138,11 +2440,22 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
         void fullText;
       } catch (error) {
-        console.error('Błąd kontynuacji narracji:', error);
+        const isAborted =
+          abortController.signal.aborted ||
+          (error instanceof DOMException && error.name === 'AbortError') ||
+          (error instanceof Error &&
+            (error.name === 'AbortError' || error.message.includes('aborted')));
+
+        if (!isAborted) {
+          console.error('Błąd kontynuacji narracji:', error);
+        }
         setMessages((prev) =>
           prev.filter((msg) => msg.id !== assistantMessageId)
         );
       } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
         continuationInFlightRef.current = false;
         setIsLoading(false);
       }
@@ -2329,6 +2642,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           createAcquiredEquipmentSeed(proposal),
           'acquired'
         ),
+        acquiredFrom: 'acquired' as const,
         // Znalezisko z sesji jest unikalnym egzemplarzem, nawet jeżeli jego nazwa
         // odpowiada katalogowi. Katalog pozostaje zarezerwowany dla stałej bazy.
         visualSource: 'generated' as const,
@@ -2346,29 +2660,65 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         isBookmarked: false,
       };
 
-      const afterAdd = characters.map((character) =>
+      const appendItemToCharacter = (character: Character): Character =>
         character.id === recipient.id
           ? {
               ...character,
               equipment: [...(character.equipment ?? []), item],
               journal: [...(character.journal ?? []), journalEntry],
             }
-          : character
-      );
-      setCharacters(afterAdd);
-      const nextActive =
-        afterAdd.find((character) => character.id === activeCharacter.id) ??
-        activeCharacter;
-      setActiveCharacter(nextActive);
-      if (typeof window !== 'undefined') persistCharacters(afterAdd);
+          : character;
+
+      setCharacters((prevList) => {
+        const baseList = prevList.length > 0 ? prevList : characters;
+        const updatedList = baseList.map(appendItemToCharacter);
+        if (typeof window !== 'undefined') persistCharacters(updatedList);
+        return updatedList;
+      });
+      setActiveCharacter((prevActive) => {
+        const baseActive = prevActive ?? activeCharacter;
+        return baseActive ? appendItemToCharacter(baseActive) : baseActive;
+      });
+
+      if (
+        isPureTextMode() ||
+        options.aiSettings?.imageGenerationEnabled === false
+      ) {
+        return;
+      }
+
+      const applyFallbackSource = () => {
+        const markFallback = (character: Character): Character =>
+          character.id !== recipient.id
+            ? character
+            : {
+                ...character,
+                equipment: (character.equipment ?? []).map((candidate) =>
+                  candidate.id === item.id
+                    ? { ...candidate, visualSource: 'fallback' as const }
+                    : candidate
+                ),
+              };
+        setCharacters((prevList) => {
+          const baseList = prevList.length > 0 ? prevList : characters;
+          const updatedList = baseList.map(markFallback);
+          if (typeof window !== 'undefined') persistCharacters(updatedList);
+          return updatedList;
+        });
+        setActiveCharacter((prevActive) => {
+          const baseActive = prevActive ?? activeCharacter;
+          return baseActive ? markFallback(baseActive) : baseActive;
+        });
+      };
 
       // Obraz nie blokuje kliknięcia ani gry. Nieudana generacja zostawia ważny
-      // egzemplarz bez renderu - można go później wygenerować z modalu ekwipunku.
+      // egzemplarz z fallbackiem - można go później wygenerować z modalu ekwipunku.
       try {
+        const era = resolveEquipmentVisualEra(adventureContext);
         const prompt = buildEquipmentImagePrompt(
           item,
-          resolveEquipmentVisualEra(adventureContext),
-          undefined,
+          era,
+          adventureContext?.title,
           recipient
         );
         const usePortraitReference = Boolean(
@@ -2381,10 +2731,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               prompt,
-              style:
-                proposal.visualTreatment === 'supernatural'
+              style: usePortraitReference
+                ? 'realistic'
+                : proposal.visualTreatment === 'supernatural' ||
+                    item.category === 'artifact'
                   ? 'horror'
-                  : 'realistic',
+                  : 'item',
+              era,
               aspectRatio: '1:1',
               seed: `${recipient.id}-${item.id}`,
               ...(usePortraitReference
@@ -2393,11 +2746,17 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }),
           }
         );
-        if (!response.ok) return;
+        if (!response.ok) {
+          applyFallbackSource();
+          return;
+        }
         const data = (await response.json()) as { imageUrl?: string };
-        if (!data.imageUrl) return;
+        if (!data.imageUrl) {
+          applyFallbackSource();
+          return;
+        }
 
-        const afterImage = afterAdd.map((character) =>
+        const applyGeneratedImage = (character: Character): Character =>
           character.id !== recipient.id
             ? character
             : {
@@ -2408,22 +2767,33 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                         ...candidate,
                         imageUrl: data.imageUrl,
                         imagePrompt: prompt,
+                        visualSource: 'generated' as const,
                       }
                     : candidate
                 ),
-              }
-        );
-        setCharacters(afterImage);
-        setActiveCharacter(
-          afterImage.find((character) => character.id === activeCharacter.id) ??
-            activeCharacter
-        );
-        if (typeof window !== 'undefined') persistCharacters(afterImage);
+                journal: (character.journal ?? []).map((entry) =>
+                  entry.id === journalEntry.id
+                    ? { ...entry, imageUrl: data.imageUrl }
+                    : entry
+                ),
+              };
+
+        setCharacters((prevList) => {
+          const baseList = prevList.length > 0 ? prevList : characters;
+          const updatedList = baseList.map(applyGeneratedImage);
+          if (typeof window !== 'undefined') persistCharacters(updatedList);
+          return updatedList;
+        });
+        setActiveCharacter((prevActive) => {
+          const baseActive = prevActive ?? activeCharacter;
+          return baseActive ? applyGeneratedImage(baseActive) : baseActive;
+        });
       } catch (error) {
         console.warn(
           'Nie udało się wygenerować renderu zdobytego przedmiotu:',
           error
         );
+        applyFallbackSource();
       }
     },
     [
@@ -2431,6 +2801,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       adventureContext,
       characters,
       messages,
+      options.aiSettings?.imageGenerationEnabled,
       setActiveCharacter,
       setCharacters,
     ]
@@ -2465,11 +2836,14 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     dismissAcquiredItem,
     isSessionEnded,
     sessionEndStatus,
+    sessionSaveStatus,
+    retrySessionSave,
     cheatCombatModal,
     setCheatCombatModal,
     cheatChaseModal,
     setCheatChaseModal,
     activeChaseState,
     setActiveChaseState,
+    stopGeneration,
   };
 }

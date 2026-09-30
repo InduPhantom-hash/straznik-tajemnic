@@ -84,7 +84,7 @@ export function extractEquipmentEvents(text: string): EquipmentEvent[] {
       const itemName = param1;
       if (!itemName) continue;
 
-      let category: EquipmentCategory = 'personal';
+      let category: EquipmentCategory = 'story';
       const catCandidate = param2.toLowerCase();
       const validCategories: EquipmentCategory[] = [
         'weapon',
@@ -95,9 +95,12 @@ export function extractEquipmentEvents(text: string): EquipmentEvent[] {
         'personal',
         'medical',
         'occult',
+        'story',
       ];
       if (validCategories.includes(catCandidate as EquipmentCategory)) {
         category = catCandidate as EquipmentCategory;
+      } else if (catCandidate === 'fabularny' || catCandidate === 'fabularne') {
+        category = 'story';
       }
 
       const description = param3 || undefined;

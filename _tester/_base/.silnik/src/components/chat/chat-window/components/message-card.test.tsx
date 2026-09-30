@@ -132,6 +132,104 @@ describe('MessageCard - ręczna kontynuacja narracji', () => {
       filter: 'sepia(0.5) saturate(0.58) contrast(1.06) brightness(0.96)',
     });
   });
+
+  it('renderuje obrazy typu item na pełną szerokość w-full zamiast miniatury w-48 (Issue #569)', () => {
+    const { container } = render(
+      <MessageCard
+        {...baseProps}
+        message={{
+          ...baseMessage,
+          content: 'Odnaleziony artefakt w ciemnościach.',
+          generatedImages: ['https://example.com/silver-key.jpg'],
+          generatedImageTypes: ['item'],
+        }}
+      />
+    );
+
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    const imageContainer = img!.parentElement;
+    expect(imageContainer).toHaveClass('w-full');
+    expect(imageContainer).not.toHaveClass('w-48');
+    expect(imageContainer).not.toHaveClass('flex-shrink-0');
+    expect(img).toHaveClass('h-auto', 'max-h-[70vh]', 'object-contain', 'bg-black/30');
+    expect(img).not.toHaveClass('aspect-square');
+  });
+
+  it('renderuje obrazy typu portrait w formacie kompaktowym w-48 sm:w-56 flex-shrink-0', () => {
+    const { container } = render(
+      <MessageCard
+        {...baseProps}
+        message={{
+          ...baseMessage,
+          content: 'Spotykasz profesora Armitage.',
+          generatedImages: ['https://example.com/armitage.jpg'],
+          generatedImageTypes: ['portrait'],
+        }}
+      />
+    );
+
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    const imageContainer = img!.parentElement;
+    expect(imageContainer).toHaveClass('w-48', 'sm:w-56', 'flex-shrink-0');
+    expect(imageContainer).not.toHaveClass('w-full');
+    expect(img).toHaveClass('aspect-[3/4]', 'object-cover', 'object-top');
+  });
+
+  it('renderuje obraz bez podanego generatedImageTypes na pełną szerokość w-full (bezpieczny fallback)', () => {
+    const { container } = render(
+      <MessageCard
+        {...baseProps}
+        message={{
+          ...baseMessage,
+          content: 'Tajemniczy widok na wrzosowiska.',
+          generatedImages: ['https://example.com/moors.jpg'],
+        }}
+      />
+    );
+
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    const imageContainer = img!.parentElement;
+    expect(imageContainer).toHaveClass('w-full');
+    expect(imageContainer).not.toHaveClass('w-48');
+    expect(img).toHaveClass('h-auto', 'max-h-[70vh]', 'object-contain', 'bg-black/30');
+  });
+
+  it('poprawnie obsługuje mieszaną listę obrazów (portrait + item) w jednej wiadomości', () => {
+    const { container } = render(
+      <MessageCard
+        {...baseProps}
+        message={{
+          ...baseMessage,
+          content: 'Profesor podaje ci starożytny sztylet.',
+          generatedImages: [
+            'https://example.com/armitage.jpg',
+            'https://example.com/dagger.jpg',
+          ],
+          generatedImageTypes: ['portrait', 'item'],
+        }}
+      />
+    );
+
+    const images = container.querySelectorAll('img');
+    expect(images).toHaveLength(2);
+
+    // Pierwszy obraz: portrait (kompaktowy)
+    const portraitImg = images[0];
+    const portraitContainer = portraitImg.parentElement;
+    expect(portraitContainer).toHaveClass('w-48', 'sm:w-56', 'flex-shrink-0');
+    expect(portraitContainer).not.toHaveClass('w-full');
+    expect(portraitImg).toHaveClass('aspect-[3/4]', 'object-cover', 'object-top');
+
+    // Drugi obraz: item (pełna szerokość)
+    const itemImg = images[1];
+    const itemContainer = itemImg.parentElement;
+    expect(itemContainer).toHaveClass('w-full');
+    expect(itemContainer).not.toHaveClass('w-48');
+    expect(itemImg).toHaveClass('h-auto', 'max-h-[70vh]', 'object-contain', 'bg-black/30');
+  });
 });
 
 describe('MessageCard - zagrożenia', () => {
@@ -569,4 +667,63 @@ describe('MessageCard - Bliskie starcie wręcz (CombatCard)', () => {
     expect(screen.queryByRole('button', { name: /Wykonaj zwinny unik/i })).not.toBeInTheDocument();
   });
 });
+
+describe('MessageCard - zakończenie sesji i autozapis (Issue #559)', () => {
+  const sessionEndMessage: Message = {
+    ...baseMessage,
+    id: 'session-end-msg',
+    content: 'Sesja została oficjalnie zakończona.\n[KONIEC_SESJI:POTWIERDZENIE]',
+  };
+
+  it('wyświetla wskaźnik zapisu, gdy sessionSaveStatus to saving', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="saving"
+      />
+    );
+
+    expect(
+      screen.getByText('Zapisywanie kroniki w archiwum...')
+    ).toBeInTheDocument();
+  });
+
+  it('wyświetla błąd zapisu z przyciskiem ponowienia, gdy sessionSaveStatus to error', () => {
+    const onRetry = jest.fn();
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="error"
+        onRetrySessionSave={onRetry}
+      />
+    );
+
+    expect(
+      screen.getByText('Nie udało się zapisać kroniki w archiwum.')
+    ).toBeInTheDocument();
+
+    const retryBtn = screen.getByRole('button', { name: /Spróbuj zapisać ponownie/i });
+    expect(retryBtn).toBeInTheDocument();
+
+    fireEvent.click(retryBtn);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('wyświetla potwierdzenie zapisu, gdy sessionSaveStatus to saved', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="saved"
+      />
+    );
+
+    expect(
+      screen.getByText('𓂀 KRONIKA ZAPISANA 𓂀')
+    ).toBeInTheDocument();
+  });
+});
+
 

@@ -119,6 +119,8 @@ export interface ChatWindowProps {
 
   // Loading
   isLoading?: boolean;
+  /** Issue #571: Callback przerwania generowania odpowiedzi AI (Stop button) */
+  onStopGeneration?: () => void;
   isInitialBuffering?: boolean;
   isStarting?: boolean;
   startProgress?: number;
@@ -161,6 +163,8 @@ export interface ChatWindowProps {
   onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
   isSessionEnded?: boolean;
   sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
+  sessionSaveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  onRetrySessionSave?: () => void;
   onCharacterUpdate?: (char: Character) => void;
   /** Kontynuacja uciętej narracji MG - deklaruje caller; pole opcjonalne dla
    *  zgodności z page.tsx (przekazywane dalej tylko gdy podane). */

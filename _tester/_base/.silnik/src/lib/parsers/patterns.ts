@@ -7,8 +7,8 @@ import { SFXRequest } from './types';
 /** [NPC: Imię: Opis] */
 export const TAG_NPC_PATTERN = /\[NPC:\s*([^:\]]+):\s*([^\]]+)\]/gi;
 
-/** [LOKACJA: Nazwa: Opis] or [LOCATION: Name: Description] (opis opcjonalny) */
-export const TAG_LOCATION_PATTERN = /\[(?:LOKACJA|LOCATION):\s*([^:\]]+)(?::\s*([^\]]+))?\]/gi;
+/** [LOKACJA: Nazwa: Opis] or [LOKACJA: Nazwa | Opis] or [LOCATION: Name: Description] (opis opcjonalny) */
+export const TAG_LOCATION_PATTERN = /\[(?:LOKACJA|LOCATION):\s*([^:\]|]+)(?:[:|]\s*([^\]]+))?\]/gi;
 
 /** [PRZEDMIOT: Nazwa: Opis] */
 export const TAG_ITEM_PATTERN = /\[PRZEDMIOT:\s*([^:\]]+):\s*([^\]]+)\]/gi;
@@ -25,8 +25,8 @@ export const TAG_NARRATIVE_GOAL_PATTERN = /\[CEL_NARRACYJNY:\s*([^\]]+)\]/gi;
 /** [WALKA: START] lub [WALKA: KONIEC] */
 export const TAG_COMBAT_PATTERN = /\[WALKA:\s*(START|KONIEC)\]/gi;
 
-/** [SANITY: liczba: powód] */
-export const TAG_SANITY_PATTERN = /\[SANITY:\s*(-?\d+):\s*([^\]]+)\]/gi;
+/** [SANITY: (-N|NdM): powód] lub [SANITY: @Imię: (-N|NdM): powód] */
+export const TAG_SANITY_PATTERN = /\[SANITY:\s*(?:@([^:\]]+):\s*)?([+-]?(?:\d+[dDkK]\d+(?:[+-]\d+)?|\d+))(?:\s*:\s*([^\]]+))?\]/gi;
 
 // ============================================================================
 // LEGACY PATTERNS (Fallback - wykrywanie z języka naturalnego)

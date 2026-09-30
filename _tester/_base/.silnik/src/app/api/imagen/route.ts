@@ -42,8 +42,14 @@ const MYTHOS_OVERT_MONSTER_KEYWORDS = [
   '\\balien god\\b', '\\beldritch monstrosity\\b',
 ];
 
+const FPP_SCENE_DIRECTIVE =
+  "subjective first-person camera POV, view through investigator's eyes, archival noir photography";
+
+const FPP_NO_PLAYER_EXCLUSIONS =
+  'no player character face, no protagonist body or hands in frame, no third-person view, no over-the-shoulder shot';
+
 const NEGATIVE_SUFFIX =
-  ', strictly realistic period photograph, authentic moody lighting, cinematic film-grain, no cartoonish monsters, no oversized tentacles, no cheap CGI creatures, no fantasy tropes';
+  `, strictly realistic period photograph, authentic moody lighting, cinematic film-grain, no cartoonish monsters, no oversized tentacles, no cheap CGI creatures, no fantasy tropes, ${FPP_NO_PLAYER_EXCLUSIONS}`;
 
 function sanitizePrompt(prompt: string): string {
   let cleaned = prompt;
@@ -211,8 +217,11 @@ export async function POST(request: NextRequest) {
     // nadprzyrodzone wnosi TREŚĆ promptu MG (gdy scena tego wymaga), nie blanket-suffix.
     // Rozszerz prompt z uwzględnieniem wybranej epoki (Gaslight, 1920s, Modern itp.).
     // 2026-07-22: filtr mitów dla zwykłych scen (isMythos=false).
-    // Sceny oznaczone przez LLM jako | mythos pomijają filtrowanie.
-    const basePrompt = sceneIsMythos ? scenePrompt : sanitizePrompt(scenePrompt);
+    // Sceny oznaczone przez LLM jako | mythos pomijają filtrowanie, ale nadal
+    // otrzymują wykluczenia FPP (brak twarzy/ciała gracza, brak ujęcia TPP).
+    const basePrompt = sceneIsMythos
+      ? `${scenePrompt}, ${FPP_NO_PLAYER_EXCLUSIONS}`
+      : sanitizePrompt(scenePrompt);
     const effectiveEra = sceneSpec
       ? String(sceneSpec.eraContext.effectiveYear)
       : (era as string);
@@ -234,17 +243,17 @@ export async function POST(request: NextRequest) {
 
     let enhancedPrompt = eraPropsEnriched;
     if (style === 'horror') {
-      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}${FPP_SCENE_DIRECTIVE}, realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed, ${techGuardrails}`;
     } else if (style === 'portrait') {
-      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}period-accurate NPC portrait photography, realistic, head and shoulders shot facing camera, cinematic lighting, film-grain, highly detailed expression, ${techGuardrails}`;
     } else if (style === 'vintage') {
-      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}vintage archival photograph, authentic period textures, realistic, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}${FPP_SCENE_DIRECTIVE}, vintage archival photograph, authentic period textures, realistic, ${techGuardrails}`;
     } else if (style === 'item') {
       enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}photorealistic period object study, authentic physical materials, ${techGuardrails}`;
     } else if (style === 'location') {
-      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}atmospheric period establishing shot, realistic architectural details, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}${FPP_SCENE_DIRECTIVE}, atmospheric period establishing shot, realistic architectural details, ${techGuardrails}`;
     } else {
-      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}realistic, cinematic composition, authentic period details, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}${FPP_SCENE_DIRECTIVE}, realistic, cinematic composition, authentic period details, ${techGuardrails}`;
     }
 
 

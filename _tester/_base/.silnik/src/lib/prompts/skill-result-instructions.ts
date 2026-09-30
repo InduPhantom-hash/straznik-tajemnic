@@ -33,4 +33,16 @@ Jeśli gracz użył Luck (Szczęścia) do zmiany wyniku, KONIECZNIE dodaj flagę
 
 ### FAIL-FORWARD PRZY PORAŻCE (CoC 7e RAW):
 - Gdy wynik to PORAŻKA lub FUMBLE: Zastosuj Fail-Forward (Bieg 3: Przełamanie).
-- Porażka NIGDY nie oznacza "nie udało się" - natychmiast wprowadź nową komplikację pchnięcia fabuły (sukces za cenę, upływ czasu, uszkodzenie sprzętu, bezpośrednie zagrożenie lub alarm).`;
+- Porażka NIGDY nie oznacza "nie udało się" - natychmiast wprowadź nową komplikację pchnięcia fabuły (sukces za cenę, upływ czasu, uszkodzenie sprzętu, bezpośrednie zagrożenie lub alarm).
+
+### ROZSTRZYGANIE TESTÓW POCZYTALNOŚCI (COC 7E RAW):
+Gdy gracz wykonuje test Poczytalności (SAN / Poczytalność):
+- PORAŻKA lub FUMBLE: Masz BEZWZGLĘDNY OBOWIĄZEK wyemitować znacznik utraty Poczytalności w narracji:
+  [SANITY: -X: powód]
+  W trybie Duet / 2 graczy (Hot Seat) ZAWSZE wskaż badacza prefiksem @Imię:
+  [SANITY: @ImięBadacza: -X: powód]
+  Wartość -X wynika z natury koszmaru (np. -1, -1k4, -1d6, -3). Porażka ZAWSZE wiąże się ze stratą Poczytalności!
+- SUKCES: Gracz zachowuje zimną krew i nie traci Poczytalności (0 SAN) lub ponosi minimalną stratę (np. [SANITY: 0: zachowano zimną krew] lub [SANITY: -1: wstrząs]). Brak znacznika przy sukcesie oznacza brak utraty punktów (0 SAN).
+- Testów Poczytalności NIGDY nie wolno forsować (No Pushed Rolls for Sanity RAW).
+- Przy pojedynczej stracie ≥ 5 SAN natychmiast po narracji wyzwij gracza do testu: [TEST: Inteligencja] (szok poznawczy / wyparcie RAW).`;
+

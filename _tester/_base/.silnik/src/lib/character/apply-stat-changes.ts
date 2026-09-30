@@ -28,7 +28,7 @@ export type { SanityEvent };
 // prawie zawsze kościowe (szpony 1d6, upadek 1d4), więc MG emituje np. [HP: -1D6: ...].
 // Opcjonalny prefiks `@Imię:` wskazuje właściciela zmiany w duecie (fallback: aktywna
 // postać). Powód dowolny do ']'. Globalne - sumujemy wszystkie wystąpienia.
-const DELTA = String.raw`[+-]?(?:\d+[dD]\d+(?:[+-]\d+)?|\d+)`;
+const DELTA = String.raw`[+-]?(?:\d+[dDkK]\d+(?:[+-]\d+)?|\d+)`;
 const SANITY_TAG = new RegExp(
   `\\[SANITY:\\s*(?:@(?<who>[^:\\]]+?)\\s*:\\s*)?(?<delta>${DELTA})(?:\\s*:\\s*(?<reason>[^\\]]*))?\\]`,
   'gi'
@@ -39,12 +39,12 @@ const HP_TAG = new RegExp(
 );
 
 /**
- * Zamienia surową deltę na liczbę. Notacja kości (zawiera `d`/`D`) jest rzucana
+ * Zamienia surową deltę na liczbę. Notacja kości (zawiera `d`/`D` lub `k`/`K`) jest rzucana
  * przez `rollDiceFormula` ("Tacka liczy wszystko") - znak z przodu steruje kierunkiem
- * (`-1d6` = utrata), null z formuły → 0. Stała → `parseInt`.
+ * (`-1d6` / `-1k4` = utrata), null z formuły → 0. Stała → `parseInt`.
  */
 function parseDelta(raw: string): number {
-  if (/[dD]/.test(raw)) {
+  if (/[dDkK]/.test(raw)) {
     const sign = raw.trim().startsWith('-') ? -1 : 1;
     const formula = raw.replace(/^[+-]/, '');
     const rolled = rollDiceFormula(formula);

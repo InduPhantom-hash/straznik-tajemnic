@@ -356,6 +356,39 @@ describe('Diegetic Prose Cleaner & Tag Sanitizer (SillyTavern Adaptation)', () =
       expect(result.text).not.toContain(']');
       expect(result.text).toContain('Tylko w komórkach lokatorskich...');
     });
+
+    it('Issue #562: rozpoznaje polskie tagi emocji ([szept], [panika], [krzyk], [drżący głos], [westchnienie]) i mapuje na audioDirection', () => {
+      expect(extractEmotionTag('Waldemar: [szept] „Nie ruszaj się.”')?.audioDirection).toContain('whisper');
+      expect(extractEmotionAudioDirection('[szeptem] Ktoś idzie korytarzem.')).toContain('whisper');
+      expect(mapEmotionToAudioDirection('szepcze')).toContain('whisper');
+      expect(extractEmotionTag('[panika] Uciekajmy stąd natychmiast!')?.audioDirection).toContain('panicked');
+      expect(extractEmotionTag('[krzyk] Zostawcie mnie!')?.audioDirection).toContain('shouting');
+      expect(extractEmotionTag('[drżący głos] Widziałem to w lustrze.')?.audioDirection).toContain('trembling');
+      expect(extractEmotionTag('[westchnienie] Kolejna bezsenna noc.')?.audioDirection).toContain('sigh');
+      expect(extractEmotionTag('[śmiech] Naprawdę w to wierzysz?')?.audioDirection).toContain('laughing');
+      expect(extractEmotionTag('[płacz] On już nie wróci.')?.audioDirection).toContain('weeping');
+      expect(extractEmotionTag('[poważnie] To śmiertelne zagrożenie.')?.audioDirection).toContain('serious');
+      expect(extractEmotionTag('[bardzo szybko] Biegnij do drzwi!')?.audioDirection).toContain('very fast');
+      expect(extractEmotionTag('[bardzo wolno] Cień powoli gęstnieje.')?.audioDirection).toContain('very slow');
+    });
+
+    it('Issue #562: twardy filtr usuwa wszelkie znaczniki w nawiasach kwadratowych \\[.*?\\] oraz cudzysłowy typograficzne (“ ” « ») przed wysyłką do bufora audio', () => {
+      const input =
+        '[szept] Słyszysz kroki. [panika] “Drzwi drżą!” «Uciekaj!» [nieznany tag reżyserski] [cokolwiek: 123] Koniec.';
+      const clean = cleanResponseText(input);
+      expect(clean).not.toMatch(/\[.*?\]/);
+      expect(clean).not.toContain('[');
+      expect(clean).not.toContain(']');
+      expect(clean).not.toContain('“');
+      expect(clean).not.toContain('”');
+      expect(clean).not.toContain('«');
+      expect(clean).not.toContain('»');
+      expect(clean).not.toContain('szept');
+      expect(clean).not.toContain('panika');
+      expect(clean).not.toContain('nieznany tag');
+      expect(clean).toBe('Słyszysz kroki. Drzwi drżą! Uciekaj! Koniec.');
+    });
   });
 });
+
 

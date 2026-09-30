@@ -43,6 +43,27 @@ describe('zdobyte przedmioty', () => {
       )
     ).toEqual([]);
   });
+
+  it('rozpoznaje flagę fabularny/story i tworzy przedmiot w kategorii story z acquiredFrom=acquired (Issue #566)', () => {
+    const [proposal] = extractAcquiredItemProposals(
+      '[ZDOBYTY_PRZEDMIOT: Mosiężny klucz z herbem | Ciężki klucz znaleziony w szkatułce zmarłego kustosza. | fabularny]',
+      'msg-4'
+    );
+
+    expect(proposal).toMatchObject({
+      name: 'Mosiężny klucz z herbem',
+      category: 'story',
+      visualTreatment: 'mundane',
+    });
+
+    const seed = createAcquiredEquipmentSeed(proposal);
+    expect(seed).toMatchObject({
+      category: 'story',
+      source: 'acquired',
+      acquiredFrom: 'acquired',
+      isStoryItem: true,
+    });
+  });
 });
 
 describe('inferDocumentType', () => {

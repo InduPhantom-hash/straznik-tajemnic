@@ -1,4 +1,3 @@
-import { performance } from 'node:perf_hooks';
 import type { WorldEngineDirectives } from './types';
 import {
   determineSceneState,
@@ -70,6 +69,9 @@ export interface DispatcherInput {
   hasChaseContext?: boolean;
   hasSanityLossOrRoll?: boolean;
   locationChanged?: boolean;
+  turnsInCurrentLocation?: number;
+  macroLocation?: string;
+  isNewMacroLocation?: boolean;
 }
 
 /**
@@ -155,15 +157,18 @@ export function extractIntentFeatures(input: DispatcherInput): FeatureVector {
   }
 
   // 2. Sensory (Zmysły, atmosfera, cisza, chłód, ziarno)
-  // Issue #546: Gdy trwa dynamiczny dialog (socialScore >= 0.7), tłumimy stałą sensorykę tła do 0.25,
-  // zapobiegając dominacji 85-słownych opisów otoczenia przed odpowiedzią NPC.
-  let sensoryScore = socialScore >= 0.7 ? 0.25 : 0.65;
+  // Issue #546 / #563: Gdy badacz spędza kolejną turę w tej samej lokacji (turnsInCurrentLocation > 0),
+  // obniżamy bazową wagę sensoryki do 0.1 (anty-habituacja wg kontraktu #563).
+  // W turze wejściowej (turnsInCurrentLocation === 0) przy dynamicznym dialogu (socialScore >= 0.7)
+  // tłumimy stałą sensorykę tła do 0.25 (z bazowego 0.65).
+  const turnsInLoc = input.turnsInCurrentLocation ?? 0;
+  let sensoryScore = turnsInLoc > 0 ? 0.1 : socialScore >= 0.7 ? 0.25 : 0.65;
   if (
     /\b(wącha|wacha|słucha|slucha|dotyka|ogląda|oglada|czuje|zapach|smród|smrod|dźwięk|dzwiek|szelest|ciemno|zimno|chłód|chlod|mrok|oczy|wsłuchuj|wsluchuj|zamykam oczy|smell|hear|listen|touch|taste|scent|cold|dark|shadow)[a-ząćęłńóśźż]*/i.test(
       rawMsg
     )
   ) {
-    sensoryScore += 0.5;
+    sensoryScore += 0.65;
   }
 
   // 3. Narrative Graph (Impas poznawczy, bottleneck, kierunek)
