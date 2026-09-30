@@ -106,15 +106,21 @@ function extractTagCombat(text: string): { isActive: boolean; trigger?: 'start' 
     return result;
 }
 
-/** Ekstrakcja utraty poczytalności z tagów [SANITY: -X: powód] */
+/** Ekstrakcja utraty poczytalności z tagów [SANITY: -X: powód] lub [SANITY: @Imię: -X: powód] */
 function extractTagSanity(text: string): ParsedEvent | null {
     const regex = new RegExp(TAG_SANITY_PATTERN.source, 'gi');
     const match = regex.exec(text);
-    if (match && match[1]) {
+    if (match && match[2]) {
+        const who = match[1]?.trim();
+        const delta = match[2].trim();
+        const reason = match[3]?.trim() || '';
+        const title = who
+            ? `Utrata poczytalności (${who}): ${delta} pkt`
+            : `Utrata poczytalności: ${delta} pkt`;
         return {
             type: 'sanity',
-            title: `Utrata poczytalności: ${match[1].trim()} pkt`,
-            description: match[2]?.trim() || '',
+            title,
+            description: reason,
             timestamp: new Date().toISOString(),
         };
     }

@@ -19,6 +19,7 @@ import {
   extractMoodFromText,
   extractSanLossFromText,
   getActiveCharacterSan,
+  hasCombatOrChaseTag,
 } from '@/lib/audio/sound-director';
 import { SFX_PATTERNS } from '@/lib/parsers/patterns';
 import { playSFX, SFX_ENABLED } from '@/lib/audio/sfx-catalog';
@@ -304,6 +305,17 @@ export function removeDidaskalia(text: string): string {
   return cleanResponseText(text);
 }
 
+/**
+ * Oczyszcza tekst i wycina wszelkie pozostałe znaczniki [...] oraz nawiasy kwadratowe
+ * przed wysyłką do bufora audio TTS (Issue #544 + Issue #562).
+ */
+function cleanForTtsBuffer(text: string): string {
+  return cleanResponseText(text)
+    .replace(/\[[\s\S]*?\]/g, '')
+    .replace(/[\[\]]/g, '')
+    .trim();
+}
+
 export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
@@ -421,6 +433,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const bufferTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownMoodRef = useRef<string | undefined>(undefined);
   const lastKnownSanLossRef = useRef<number | undefined>(undefined);
+  const lastKnownCombatTagRef = useRef<boolean>(false);
+  const pendingStandaloneMoodRef = useRef<string | undefined>(undefined);
 
   const stopCurrentAudio = useCallback(
     (preserveBuffering = false) => {
@@ -465,6 +479,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       hasDispatchedFirstSegmentRef.current = false;
       completedMessageIdsRef.current.clear(); // IND-200
       lastKnownSanLossRef.current = undefined;
+      lastKnownCombatTagRef.current = false;
+      pendingStandaloneMoodRef.current = undefined;
 
       if (!preserveBuffering) {
         if (bufferTimeoutRef.current) {
@@ -861,6 +877,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         prevSentenceEndRef.current = 0; // Issue #172: wyzeruj kursor zdań w stripped dla nowej wiadomości
         earlySpokenCharsRef.current = 0; // E1: nowy kursor wczesnego startu dla nowej wiadomości
         hasDispatchedFirstSegmentRef.current = false;
+        pendingStandaloneMoodRef.current = undefined;
       }
 
       // IND-200: wiadomość już w pełni zakolejkowana (po flush). Spóźniony streaming
@@ -882,7 +899,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         );
       }
 
-      // Ekstrakcja nastroju i strat SAN ze strumienia odpowiedzi MG
+      // Ekstrakcja nastroju, strat SAN oraz tagów walki/pościgu ze strumienia odpowiedzi MG
       const moodInChunk = extractMoodFromText(fullRawText);
       if (moodInChunk) {
         lastKnownMoodRef.current = moodInChunk;
@@ -891,17 +908,26 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       if (sanLossInChunk) {
         lastKnownSanLossRef.current = sanLossInChunk;
       }
+      if (hasCombatOrChaseTag(fullRawText)) {
+        lastKnownCombatTagRef.current = true;
+      }
       const currentMood = lastKnownMoodRef.current;
       const currentSanLoss = lastKnownSanLossRef.current;
+      const currentHasCombat = lastKnownCombatTagRef.current;
 
       // IND-193 (A'): usuń bloki WIELOLINIOWE (tagi/JSON/fence/DZIENNIK) ZACHOWUJĄC `\n`,
       // utnij niezamknięty blok z ogona (streaming), DOPIERO POTEM tnij na zdania i czyść
       // per-zdanie. Bloki nie są już rozcinane na fragmenty, więc nie przeżywają w audio.
       // `\n` zachowany → split jak dotąd → multi-voice marker @Imię: działa.
-      let stripped = stripMultilineArtifacts(fullRawText);
+      // Issue #562: zachowaj tagi emocji ([whispers], [szept], [panika] itp.) na etapie stripMultilineArtifacts,
+      // aby per-zdanie extractEmotionTag(raw) mógł odczytać emocję przed twardym wycięciem [...] w cleanResponseText.
+      let stripped = stripMultilineArtifacts(fullRawText, {
+        preserveEmotionTags: true,
+      });
       // Issue #551: Odcięcie niedomkniętych bloków code fences, nawiasów tagów oraz nagłówków GM Protocol z końca strumienia
+      stripped = stripped.replace(/```[^`]*$/g, '');
+      const hasUnclosedTrailingBracket = !flush && /\[[^\]]*$/.test(stripped);
       stripped = stripped
-        .replace(/```[^`]*$/g, '')
         .replace(/\[[^\]]*$/, '')
         .replace(/\{[^}]*$/, '')
         .replace(/(?:^|\n)\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\s*:[^\n]*$/gi, '');
@@ -929,9 +955,11 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
         const rawSentences: SentenceItem[] = [];
         let lastEnd = 0;
-        // Issue #172: sentenceRegex wchłania terminatory [.!?] wraz z cudzysłowami zamykającymi oraz \n,
-        // zapobiegając ucinaniu cudzysłowów w osobne śmieciowe tokeny i gubieniu znaków nowej linii.
-        const sentenceRegex = /[^.!?\n]+(?:[.!?]+["”'»\s]*|[\n]+)/g;
+        // Issue #172 + Issue #562: sentenceRegex wchłania terminatory [.!?] wraz z opcjonalnymi tagami [...]
+        // przed cudzysłowami zamykającymi oraz \n, zapobiegając ucinaniu cudzysłowów i tagów emocji w osobne tokeny,
+        // ale nie kradnąc otwierającego cudzysłowu ASCII " kolejnego zdania (np. `. [szept] "Kto tam?"`).
+        const sentenceRegex =
+          /[^.!?\n]+(?:[.!?]+(?:(?:\s*\[[^\].!?\n]+\])+\s*(?:[”»]+|["']+(?=\s|[,.;:!?—–-]|$))["”'»\s]*|(?:["”'»]+|\s+[”»]+)*\s*)|[\n]+)/g;
         let match;
         while ((match = sentenceRegex.exec(stripped)) !== null) {
           const raw = match[0];
@@ -955,7 +983,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           i++
         ) {
           const item = rawSentences[i];
-          if (item.clean && /[\p{L}\p{N}]/u.test(item.clean)) {
+          if (
+            (item.clean && /[\p{L}\p{N}]/u.test(item.clean)) ||
+            extractEmotionTag(item.raw)
+          ) {
             newSentences.push(item);
           }
         }
@@ -967,7 +998,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           if (lastEnd < stripped.length) {
             const rawRemainder = stripped.slice(lastEnd);
             const cleanRemainder = removeDidaskalia(rawRemainder).trim();
-            if (cleanRemainder && /[\p{L}\p{N}]/u.test(cleanRemainder)) {
+            if (
+              (cleanRemainder && /[\p{L}\p{N}]/u.test(cleanRemainder)) ||
+              extractEmotionTag(rawRemainder)
+            ) {
               newSentences.push({
                 raw: rawRemainder,
                 clean: cleanRemainder,
@@ -980,6 +1014,33 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
         const npcVoiceMap = loadNpcVoiceMap();
         const { san, maxSan } = getActiveCharacterSan();
+
+        const resolveNpcSegmentVoice = (
+          npcName: string,
+          segmentMoodDirection?: string
+        ): { voiceId: string; audioDirection: string } => {
+          const npcObj = resolveNpcObject(npcName);
+          const dynamicVoice = resolveDynamicNpcVoice(
+            npcName,
+            npcVoiceMap,
+            dynamicNpcVoiceMapRef.current,
+            {
+              occupation: npcObj?.occupation,
+              description: npcObj?.description,
+              personality: npcObj?.personality,
+              type: npcObj?.type,
+              mood: currentMood,
+            }
+          );
+          return {
+            voiceId: dynamicVoice.voiceId,
+            audioDirection: segmentMoodDirection
+              ? dynamicVoice.audioDirection
+                ? `${dynamicVoice.audioDirection} ${segmentMoodDirection}`
+                : segmentMoodDirection
+              : dynamicVoice.audioDirection,
+          };
+        };
 
         // demo 2026-06-22: scalamy kolejne zdania o tym SAMYM voiceId i audioDirection w jeden segment
         // TTS = jeden spójny głos (koniec resetu prozodii per zdanie). Run trzymany w
@@ -1000,6 +1061,45 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           openRunRef.current = null;
         };
 
+        const processBetweenGap = (
+          between: string,
+          isCurrentlyThrottled: boolean
+        ) => {
+          if (!between) return;
+          const quoteMatchInBetween = between.match(/[”"»]/);
+          const beforeQuote =
+            quoteMatchInBetween && quoteMatchInBetween.index !== undefined
+              ? between.slice(0, quoteMatchInBetween.index)
+              : between;
+          const betweenEmotion =
+            extractEmotionTag(beforeQuote)?.audioDirection;
+          if (betweenEmotion && openRunRef.current) {
+            const currentDir = openRunRef.current.audioDirection || '';
+            if (!currentDir.includes(betweenEmotion)) {
+              openRunRef.current.audioDirection = currentDir
+                ? `${currentDir} ${betweenEmotion}`
+                : betweenEmotion;
+            }
+          }
+          if (between.includes('\n') || /[”"»]/.test(between)) {
+            activeNpcSpeakerRef.current = null;
+            if (isCurrentlyThrottled && between.includes('\n')) {
+              closeRun();
+            }
+          }
+        };
+
+        if (newSentences.length === 0 && lastEnd > prevSentenceEndRef.current) {
+          const isCurrentlyThrottled =
+            isFreeTierThrottledRef.current &&
+            Date.now() < throttledUntilRef.current;
+          processBetweenGap(
+            stripped.slice(prevSentenceEndRef.current, lastEnd),
+            isCurrentlyThrottled
+          );
+          prevSentenceEndRef.current = lastEnd;
+        }
+
         for (const sentenceItem of newSentences) {
           const { raw, clean, startIndex, endIndex } = sentenceItem;
           // Detekcja SFX dla bieżącego zdania: najpierw jawny tag [SFX: id], potem wzorce słowne
@@ -1017,8 +1117,6 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             }
           }
 
-          // Issue #172: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
-          // znak nowej linii, linia dialogowa dotychczasowego NPC się skończyła.
           // Issue #544: Cooldown dla dławienia 15 RPM (automatyczny powrót po upływie okna)
           const isCurrentlyThrottled =
             isFreeTierThrottledRef.current &&
@@ -1030,15 +1128,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             isFreeTierThrottledRef.current = false;
           }
 
-          // Issue #172: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
-          // znak nowej linii, linia dialogowa dotychczasowego NPC się skończyła.
+          // Issue #172 + Issue #562: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
+          // znak nowej linii, zamknięcie cudzysłowu lub domknięty w kolejnym chunku tag emocji.
           const between = stripped.slice(prevSentenceEndRef.current, startIndex);
-          if (between.includes('\n')) {
-            activeNpcSpeakerRef.current = null;
-            if (isCurrentlyThrottled) {
-              closeRun();
-            }
-          }
+          processBetweenGap(between, isCurrentlyThrottled);
 
           // Marker: legacy `@Imię: dialog` lub `Imię: „dialog”` (gm-protocol).
           // trimStart() bo sentence regex może zwrócić zdanie z wiodącą spacją.
@@ -1049,6 +1142,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             .match(
               /^(@)?([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):\s*([\s\S]*?)$/
             );
+          let isTrailingSpeakerAttribution = false;
 
           // Alternatywna detekcja dla polskiego stylu dialogu: „kwestia” – mówi Imię / – kwestia – rzekł Imię
           if (!markerMatch) {
@@ -1056,6 +1150,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               /(?:^|[\s—–-])[„"«—–-]([^"”»—–-]+)[”"»—–-]?\s*[—–-]\s*(?:mówi|rzekł|odparł|krzyknął|szepnął|pyta|powiedział|zawołał)\s+([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+)/i
             );
             if (trailingSpeakerMatch) {
+              isTrailingSpeakerAttribution = true;
               markerMatch = [
                 raw,
                 '',
@@ -1070,65 +1165,119 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             /^(?:Raport policji|Wskazówka|Wskazowka|Uwaga|Notatka|System|Komentarz|Status|Wskazówki|Wskazowki)\b/i;
           if (markerMatch && TECHNICAL_NPC_PREFIXES.test(markerMatch[2].trim())) {
             markerMatch = null;
+            isTrailingSpeakerAttribution = false;
           }
 
           let voiceId: string | undefined;
           let audioDirection: string | undefined;
           let textForQueue = clean;
+          let shouldResetNpcAfterSentence = false;
+          let inlineNarratorTail = '';
+          let inlineNarratorMoodDirection: string | undefined;
+          let hasExplicitInsideQuoteOverride = false;
 
           const isNarratorOnlyMode =
             isNarratorOnly || !!settingsForQueue.voiceSettings?.narratorOnly;
 
-          // Issue #544: Ekstrakcja nastroju/emocji z surowego tekstu przed czyszczeniem
-          const emotionMood = extractEmotionTag(raw);
-          const moodDirection = emotionMood?.audioDirection;
+          // Issue #544 + Issue #562: Ekstrakcja nastroju/emocji z surowego tekstu przed czyszczeniem
+          const priorPendingMood = pendingStandaloneMoodRef.current;
+          pendingStandaloneMoodRef.current = undefined;
+          let emotionMood = extractEmotionTag(raw);
+          let moodDirection = emotionMood?.audioDirection || priorPendingMood;
+
+          if (
+            (markerMatch || activeNpcSpeakerRef.current) &&
+            !isNarratorOnlyMode
+          ) {
+            if (isTrailingSpeakerAttribution) {
+              shouldResetNpcAfterSentence = true;
+            } else {
+              // Issue #562: Wykryj znak zamykający cudzysłów dialogowy (”, ", ») po otwarciu kwestii.
+              // Pozwala to utrzymać głos NPC przez wielozdaniowy dialog wewnątrz „...”, ale natychmiast
+              // zresetować mówcę na zamknięciu cudzysłowu oraz oddzielić ewentualną prozę narratora w tej samej linii.
+              let rawSpokenBody = raw;
+              let rawPrefixBeforeBody = '';
+              let hasOpeningQuoteInMarker = false;
+              if (markerMatch) {
+                const speakerPrefixMatch = raw.match(
+                  /^(?:[\s*_-]*\[[^\]]*\][\s*_-]*)*\s*@?[A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?:/
+                );
+                if (speakerPrefixMatch) {
+                  const prefixEndIdx = speakerPrefixMatch[0].length;
+                  rawPrefixBeforeBody = raw.slice(0, prefixEndIdx);
+                  rawSpokenBody = raw.slice(prefixEndIdx);
+                } else {
+                  const colonIdx = raw.indexOf(':');
+                  rawPrefixBeforeBody =
+                    colonIdx !== -1 ? raw.slice(0, colonIdx + 1) : '';
+                  rawSpokenBody =
+                    colonIdx !== -1 ? raw.slice(colonIdx + 1) : raw;
+                }
+                const openQuoteMatch = rawSpokenBody.match(
+                  /^(?:[\s*_-]*\[[^\]]*\][\s*_-]*)*\s*[„"“«]\s*/
+                );
+                if (openQuoteMatch) {
+                  hasOpeningQuoteInMarker = true;
+                  rawPrefixBeforeBody += openQuoteMatch[0];
+                  rawSpokenBody = rawSpokenBody.slice(openQuoteMatch[0].length);
+                }
+              }
+              const closingQuoteRegex =
+                !markerMatch || hasOpeningQuoteInMarker ? /[”"»]/ : /[”»]/;
+              const closingQuoteMatch = rawSpokenBody.match(closingQuoteRegex);
+              if (closingQuoteMatch && closingQuoteMatch.index !== undefined) {
+                shouldResetNpcAfterSentence = true;
+                const rawInsideQuote = rawSpokenBody.slice(
+                  0,
+                  closingQuoteMatch.index
+                );
+                const rawAfterQuote = rawSpokenBody.slice(
+                  closingQuoteMatch.index + 1
+                );
+                emotionMood = extractEmotionTag(
+                  `${rawPrefixBeforeBody}${rawInsideQuote}`
+                );
+                moodDirection =
+                  emotionMood?.audioDirection || priorPendingMood;
+                inlineNarratorMoodDirection =
+                  extractEmotionTag(rawAfterQuote)?.audioDirection;
+                const cleanAfterQuote = cleanForTtsBuffer(rawAfterQuote)
+                  .replace(/^[\s,.;:–—-]+/, '')
+                  .trim();
+                if (
+                  cleanAfterQuote &&
+                  /[\p{L}\p{N}]/u.test(cleanAfterQuote)
+                ) {
+                  inlineNarratorTail = cleanAfterQuote;
+                  hasExplicitInsideQuoteOverride = true;
+                  const cleanInsideQuote = cleanForTtsBuffer(rawInsideQuote);
+                  const hasInsideWords = /[\p{L}\p{N}]/u.test(cleanInsideQuote);
+                  if (markerMatch) {
+                    markerMatch[3] = hasInsideWords ? cleanInsideQuote : '';
+                  } else {
+                    textForQueue = hasInsideWords ? cleanInsideQuote : '';
+                  }
+                }
+              }
+            }
+          }
 
           if (markerMatch && !isNarratorOnlyMode) {
             const npcName = markerMatch[2].trim();
             activeNpcSpeakerRef.current = npcName;
-            const npcObj = resolveNpcObject(npcName);
-            const dynamicVoice = resolveDynamicNpcVoice(
+            ({ voiceId, audioDirection } = resolveNpcSegmentVoice(
               npcName,
-              npcVoiceMap,
-              dynamicNpcVoiceMapRef.current,
-              {
-                occupation: npcObj?.occupation,
-                description: npcObj?.description,
-                personality: npcObj?.personality,
-                type: npcObj?.type,
-                mood: currentMood,
-              }
-            );
-            voiceId = dynamicVoice.voiceId;
-            audioDirection = moodDirection
-              ? (dynamicVoice.audioDirection
-                  ? `${dynamicVoice.audioDirection} ${moodDirection}`
-                  : moodDirection)
-              : dynamicVoice.audioDirection;
-            textForQueue = markerMatch[3].trim() || clean;
+              moodDirection
+            ));
+            textForQueue = hasExplicitInsideQuoteOverride
+              ? markerMatch[3].trim()
+              : markerMatch[3].trim() || clean;
           } else if (activeNpcSpeakerRef.current && !isNarratorOnlyMode) {
             // Issue #172: Kontynuacja dialogu tej samej postaci w obrębie tej samej linii/akapitu
-            const npcName = activeNpcSpeakerRef.current;
-            const npcObj = resolveNpcObject(npcName);
-            const dynamicVoice = resolveDynamicNpcVoice(
-              npcName,
-              npcVoiceMap,
-              dynamicNpcVoiceMapRef.current,
-              {
-                occupation: npcObj?.occupation,
-                description: npcObj?.description,
-                personality: npcObj?.personality,
-                type: npcObj?.type,
-                mood: currentMood,
-              }
-            );
-            voiceId = dynamicVoice.voiceId;
-            audioDirection = moodDirection
-              ? (dynamicVoice.audioDirection
-                  ? `${dynamicVoice.audioDirection} ${moodDirection}`
-                  : moodDirection)
-              : dynamicVoice.audioDirection;
-            textForQueue = clean;
+            ({ voiceId, audioDirection } = resolveNpcSegmentVoice(
+              activeNpcSpeakerRef.current,
+              moodDirection
+            ));
           } else {
             // Kwestia Narratora (lub wymuszony tryb Audiobook / narratorOnly) - modulacja SAN i nastrojem
             voiceId = settingsForQueue.voiceSettings?.voiceId || 'Kore';
@@ -1140,38 +1289,101 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               mood: currentMood,
               recentSanLoss: currentSanLoss,
               sentenceText: textForQueue,
+              hasActiveCombat: currentHasCombat,
             });
             audioDirection = moodDirection
               ? `${narratorBaseDirection} ${moodDirection}`
               : narratorBaseDirection;
           }
 
-          // Issue #544: Upewnij się, że tekst do wysłania jest całkowicie oczyszczony z tagów i nawiasów
-          textForQueue = cleanResponseText(textForQueue).trim();
-          if (!textForQueue) {
+          // Issue #544 + Issue #562: Twardy filtr usuwający wszelkie [...] przed wysyłką tekstu do bufora audio
+          textForQueue = cleanForTtsBuffer(textForQueue);
+          const hasSpokenWords =
+            !!textForQueue && /[\p{L}\p{N}]/u.test(textForQueue);
+          if (!hasSpokenWords && moodDirection) {
+            if (
+              shouldResetNpcAfterSentence &&
+              openRunRef.current &&
+              openRunRef.current.voiceId === voiceId
+            ) {
+              const currentDir = openRunRef.current.audioDirection || '';
+              if (!currentDir.includes(moodDirection)) {
+                openRunRef.current.audioDirection = currentDir
+                  ? `${currentDir} ${moodDirection}`
+                  : moodDirection;
+              }
+            } else {
+              pendingStandaloneMoodRef.current = moodDirection;
+            }
+          }
+          if (!hasSpokenWords && !inlineNarratorTail) {
+            if (shouldResetNpcAfterSentence || raw.includes('\n')) {
+              activeNpcSpeakerRef.current = null;
+            }
+            prevSentenceEndRef.current = endIndex;
             continue;
           }
 
-          // Zmiana mówcy lub zmiana dyrektywy zamyka bieżący run; ten sam voiceId + direction
-          // dokleja się do otwartego runu = jedno wywołanie TTS.
-          if (
-            openRunRef.current &&
-            (openRunRef.current.voiceId !== voiceId ||
-              openRunRef.current.audioDirection !== audioDirection)
-          ) {
+          if (hasSpokenWords) {
+            // Zmiana mówcy lub zmiana dyrektywy zamyka bieżący run; ten sam voiceId + direction
+            // dokleja się do otwartego runu = jedno wywołanie TTS.
+            if (
+              openRunRef.current &&
+              (openRunRef.current.voiceId !== voiceId ||
+                openRunRef.current.audioDirection !== audioDirection)
+            ) {
+              closeRun();
+            }
+            if (!openRunRef.current) {
+              openRunRef.current = {
+                voiceId,
+                audioDirection,
+                texts: [],
+                sfxPresetId: sentenceSfxId,
+              };
+            }
+            openRunRef.current.texts.push(textForQueue);
+          }
+
+          // Issue #562: Jeśli po zamknięciu cudzysłowu w tym samym zdaniu nastąpiła narracja,
+          // zamknij run NPC i dodaj ogon narracyjny głosem lektora.
+          if (inlineNarratorTail) {
             closeRun();
+            activeNpcSpeakerRef.current = null;
+            const narratorVoiceId =
+              settingsForQueue.voiceSettings?.voiceId || 'Kore';
+            const narratorTailBaseDirection = buildAudioDirection({
+              isNpc: false,
+              san,
+              maxSan,
+              mood: currentMood,
+              recentSanLoss: currentSanLoss,
+              sentenceText: inlineNarratorTail,
+              hasActiveCombat: currentHasCombat,
+            });
+            const narratorTailDirection = inlineNarratorMoodDirection
+              ? `${narratorTailBaseDirection} ${inlineNarratorMoodDirection}`
+              : narratorTailBaseDirection;
+            openRunRef.current = {
+              voiceId: narratorVoiceId,
+              audioDirection: narratorTailDirection,
+              texts: [inlineNarratorTail],
+              sfxPresetId: !hasSpokenWords ? sentenceSfxId : undefined,
+            };
           }
-          if (!openRunRef.current) {
-            openRunRef.current = { voiceId, audioDirection, texts: [], sfxPresetId: sentenceSfxId };
-          }
-          openRunRef.current.texts.push(textForQueue);
 
           // E1 / IND-104 + Issue #142 (Streaming audio chunks):
           // Pierwsze zdanie narracji wypychamy wcześnie (>= EARLY_FIRST_SEGMENT_MIN_CHARS).
           // Kolejne segmenty zamykamy sukcesywnie po osiągnięciu >= STREAMING_SEGMENT_TARGET_CHARS,
           // dzięki czemu worker TTS generuje kolejne zdania w tle podczas pisania tekstu przez AI.
           // Bezpiecznik 15 RPM (Decyzja 2A): przy dławieniu scalaj zdania w pełne akapity (zamykaj na \n)
-          if (!flush) {
+          const isLastSentenceWithUnclosedBracket =
+            hasUnclosedTrailingBracket && endIndex === stripped.length;
+          if (
+            !flush &&
+            openRunRef.current &&
+            !isLastSentenceWithUnclosedBracket
+          ) {
             if (!isCurrentlyThrottled) {
               const currentRunLength = openRunRef.current.texts.join(' ').length;
               const threshold = !hasDispatchedFirstSegmentRef.current
@@ -1190,8 +1402,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             }
           }
 
-          // Issue #172: Jeśli samo zdanie zawierało znak nowej linii, kończy ono linię dialogową
-          if (raw.includes('\n')) {
+          // Issue #172 + Issue #562: Zresetuj mówcę NPC natychmiast po znaku zamykającym cudzysłów (”, ", ») lub nowej linii (\n)
+          if (shouldResetNpcAfterSentence || raw.includes('\n')) {
             activeNpcSpeakerRef.current = null;
           }
           prevSentenceEndRef.current = endIndex;
@@ -1216,6 +1428,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           maxSan,
           mood: currentMood,
           recentSanLoss: currentSanLoss,
+          hasActiveCombat: currentHasCombat,
         });
 
         // E1 (start lektora): zanim akapity się domkną, oddaj wcześnie KOMPLETNE zdania
@@ -1244,7 +1457,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               earlySpokenCharsRef.current,
               lastSentenceEnd
             );
-            const cleanSpan = cleanResponseText(removeDidaskalia(newSpan)).trim();
+            const spanEmotionDirection = extractEmotionTag(newSpan)?.audioDirection;
+            const cleanSpan = cleanForTtsBuffer(newSpan);
             // Pierwszy segment musi mieć sensowną długość (próg), kolejne wczesne
             // segmenty domykają zdania bez limitu (płynna kontynuacja audio).
             const isFirstEarly = earlySpokenCharsRef.current === 0;
@@ -1254,7 +1468,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             if (cleanSpan && /[\p{L}\p{N}]/u.test(cleanSpan) && longEnough) {
               pendingItems.push({
                 text: cleanSpan,
-                audioDirection: narratorAudioDirection,
+                audioDirection: spanEmotionDirection
+                  ? `${narratorAudioDirection} ${spanEmotionDirection}`
+                  : narratorAudioDirection,
               });
               earlySpokenCharsRef.current = lastSentenceEnd;
             }
@@ -1278,7 +1494,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             i === 0 && earlySpokenCharsRef.current > 0
               ? paragraphs[0].slice(earlySpokenCharsRef.current)
               : paragraphs[i];
-          const cleanParagraph = cleanResponseText(removeDidaskalia(rawParagraph)).trim();
+          const paraEmotionDirection = extractEmotionTag(rawParagraph)?.audioDirection;
+          const cleanParagraph = cleanForTtsBuffer(rawParagraph);
           let paraSfxId: string | undefined;
           const explicitParaSfxMatch = rawParagraph.match(/\[(?:SFX|DŹWIĘK|DZWIEK):\s*([a-zA-Z0-9_-]+)\]/i);
           if (explicitParaSfxMatch) {
@@ -1293,14 +1510,18 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             }
           }
           if (cleanParagraph && /[\p{L}\p{N}]/u.test(cleanParagraph)) {
-            const paragraphAudioDirection = buildAudioDirection({
+            const paragraphBaseDirection = buildAudioDirection({
               isNpc: false,
               san,
               maxSan,
               mood: currentMood,
               recentSanLoss: currentSanLoss,
               sentenceText: cleanParagraph,
+              hasActiveCombat: currentHasCombat,
             });
+            const paragraphAudioDirection = paraEmotionDirection
+              ? `${paragraphBaseDirection} ${paraEmotionDirection}`
+              : paragraphBaseDirection;
             pendingItems.push({
               text: cleanParagraph,
               audioDirection: paragraphAudioDirection,

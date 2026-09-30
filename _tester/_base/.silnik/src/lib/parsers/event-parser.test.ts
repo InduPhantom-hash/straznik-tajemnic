@@ -36,6 +36,12 @@ describe('event-parser (Visual Prompt Leak & Location Sanitization)', () => {
       expect(
         sanitizeLocationName('Kawiarnia Śnieżka, 1990s authentic Poland, 35mm')
       ).toBe('Kawiarnia Śnieżka');
+      expect(
+        sanitizeLocationName('Miskatonic University Library, towering gothic bookshelves, dust motes')
+      ).toBe('Miskatonic University Library');
+      expect(
+        sanitizeLocationName('Wylot Doliny Białego | misty mountain path, dense pine trees')
+      ).toBe('Wylot Doliny Białego');
     });
   });
 
@@ -54,6 +60,22 @@ describe('event-parser (Visual Prompt Leak & Location Sanitization)', () => {
       expect(loc?.name).toBe('Kawiarnia Śnieżka w Kowarach');
       expect(loc?.description).toBe('Skromny lokal');
     });
+
+    it('obsługuje nowy format z separatorem pionowej kreski [LOKACJA: Nazwa | Prompt]', () => {
+      const text = 'Wchodzisz na szlak. [LOKACJA: Wylot Doliny Białego | misty mountain path, dense pine trees, ominous fog, vintage photograph] Co robisz?';
+      const loc = extractLatestTagLocation(text);
+      expect(loc).not.toBeNull();
+      expect(loc?.name).toBe('Wylot Doliny Białego');
+      expect(loc?.description).toBe('misty mountain path, dense pine trees, ominous fog, vintage photograph');
+    });
+
+    it('naprawia wyciek przy przecinku w tagu ze starego przykładu (Issue #570 repro)', () => {
+      const text = 'Docierasz na miejsce. [LOKACJA: Miskatonic University Library, towering gothic bookshelves, dust motes dancing in shafts of pale sunlight, dark mahogany study tables] Czekasz.';
+      const loc = extractLatestTagLocation(text);
+      expect(loc).not.toBeNull();
+      expect(loc?.name).toBe('Miskatonic University Library');
+      expect(loc?.name.length).toBeLessThanOrEqual(45);
+    });
   });
 
   describe('extractLocations', () => {
@@ -65,3 +87,4 @@ describe('event-parser (Visual Prompt Leak & Location Sanitization)', () => {
     });
   });
 });
+

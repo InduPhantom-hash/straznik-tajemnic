@@ -14,12 +14,21 @@ import { inferWeaponDamage, inferWeaponSkill, isWeapon } from '@/lib/combat/weap
  * `[ZDOBYTY_PRZEDMIOT: @Anna | Latarka | Stalowa, lekko obtłuczona | zwykly]`
  */
 const ACQUIRED_ITEM_TAG =
-  /\[ZDOBYTY_PRZEDMIOT:\s*(?:@([^|\]]+)\|\s*)?([^|\]]+)\|\s*([^|\]]+?)(?:\|\s*(zwykly|zwykły|mundane|nadprzyrodzony|supernatural))?\s*\]/gi;
+  /\[ZDOBYTY_PRZEDMIOT:\s*(?:@([^|\]]+)\|\s*)?([^|\]]+)\|\s*([^|\]]+?)(?:\|\s*(zwykly|zwykły|mundane|nadprzyrodzony|supernatural|fabularny|fabularne|story))?\s*\]/gi;
 
 function visualTreatment(value: string | undefined): 'mundane' | 'supernatural' {
   return /nadprzyrodzony|supernatural/i.test(value ?? '')
     ? 'supernatural'
     : 'mundane';
+}
+
+function explicitProposalCategory(
+  value: string | undefined
+): EquipmentCategory | undefined {
+  if (/fabularn[ye]|story/i.test(value ?? '')) {
+    return 'story';
+  }
+  return undefined;
 }
 
 /** Czyste parsowanie, celowo bez zgadywania na podstawie zwykłej prozy MG. */
@@ -34,11 +43,13 @@ export function extractAcquiredItemProposals(
     const name = match[2]?.trim();
     const description = match[3]?.trim();
     if (!name || !description) continue;
+    const category = explicitProposalCategory(match[4]);
     result.push({
       id: `${messageId}:acquired:${result.length}`,
       recipientName: match[1]?.trim() || undefined,
       name,
       description,
+      ...(category ? { category } : {}),
       visualTreatment: visualTreatment(match[4]),
       status: 'pending',
     });
@@ -63,30 +74,40 @@ export function inferDocumentType(item: { name: string; description?: string }):
 
 /** Bezpieczny fallback dla unikalnych znalezisk, których nie ma w katalogu. */
 export function inferAcquiredItemCategory(
-  proposal: Pick<AcquiredItemProposal, 'name' | 'description' | 'visualTreatment'>
+  proposal: Pick<
+    AcquiredItemProposal,
+    'name' | 'description' | 'visualTreatment' | 'category'
+  >
 ): EquipmentCategory {
-  const catalog = findEquipmentTemplate(proposal.name);
-  if (catalog) return catalog.category;
-  if (proposal.visualTreatment === 'supernatural') return 'artifact';
-
   const text = `${proposal.name} ${proposal.description}`.toLocaleLowerCase(
     'pl-PL'
   );
   if (/list|dziennik|notat|mapa|zdjęci|fotografi|dokument|telegram/.test(text))
     return 'document';
+  if (proposal.category) return proposal.category;
+  const catalog = findEquipmentTemplate(proposal.name);
+  if (catalog) return catalog.category;
+  if (proposal.visualTreatment === 'supernatural') return 'artifact';
+
   if (/aptecz|bandaż|opatrun|strzykawk|lek/.test(text)) return 'medical';
   if (/pistolet|rewolwer|karabin|strzelb|nóż|maczet/.test(text)) return 'weapon';
-  if (/latark|lina|klucz|aparat|lornet|kompas|wytrych|narzędzi/.test(text))
+  if (/latark|lina|aparat|lornet|kompas|wytrych|narzędzi/.test(text))
     return 'tool';
-  return 'personal';
+  return 'story';
 }
 
 export function createAcquiredEquipmentSeed(
   proposal: AcquiredItemProposal
 ): Partial<EquipmentItem> {
   const template = findEquipmentTemplate(proposal.name);
-  const category = template ? template.category : inferAcquiredItemCategory(proposal);
-  
+  const inferred = inferAcquiredItemCategory(proposal);
+  const category =
+    proposal.category === 'story' && inferred !== 'document' && template?.category !== 'weapon'
+      ? 'story'
+      : template
+        ? template.category
+        : inferred;
+
   const dummyItem: EquipmentItem = {
     id: proposal.id || 'seed',
     name: proposal.name,
@@ -102,18 +123,31 @@ export function createAcquiredEquipmentSeed(
 
   const text = `${proposal.name} ${proposal.description}`.toLocaleLowerCase('pl-PL');
   const isAudioMedia = /płyta gramofon|cylinder fonograf|nagranie|taśma|kaseta|audycja radiowa|audio/i.test(text);
+  const finalCategory = looksWeapon ? 'weapon' : category;
 
   return {
     ...(template
       ? {
           templateId: template.id,
-          category: template.category,
+          category: finalCategory,
         }
-      : { category: looksWeapon ? 'weapon' : category }),
+      : { category: finalCategory }),
     name: proposal.name,
     description: proposal.description,
     visualTreatment: proposal.visualTreatment,
-    ...(category === 'document' ? { documentType: inferDocumentType(proposal) } : {}),
+    source: 'acquired',
+    acquiredFrom: 'acquired',
+    ...(finalCategory === 'story' || proposal.category === 'story'
+      ? { isStoryItem: true }
+      : {}),
+    ...(finalCategory === 'document'
+      ? {
+          documentType: inferDocumentType(proposal),
+          isReadable: true,
+          readableContent: proposal.description,
+          readableContentStatus: 'ready' as const,
+        }
+      : {}),
     ...(isAudioMedia ? { audioUrl: proposal.audioUrl || undefined } : {}),
     ...(damageStr || skill || rangeStr
       ? {

@@ -5,8 +5,133 @@
 // też `\n`, więc multiline tagi są zachowane.
 const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
 
-export const GEMINI_TTS_EMOTION_TAGS =
-  'whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|sarcastically|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow';
+export const GEMINI_TTS_EMOTION_TAGS = [
+  // English emotion/delivery tags
+  'whispers',
+  'whispering',
+  'whisper',
+  'trembling',
+  'trembles',
+  'gasp',
+  'gasps',
+  'gasping',
+  'panicked',
+  'panic',
+  'serious',
+  'seriously',
+  'curious',
+  'curiously',
+  'sarcastic',
+  'sarcastically',
+  'tired',
+  'exhausted',
+  'weary',
+  'crying',
+  'sobbing',
+  'weeping',
+  'amazed',
+  'astonished',
+  'excited',
+  'excitedly',
+  'mischievously',
+  'mischievous',
+  'sighs',
+  'sigh',
+  'sighing',
+  'giggles',
+  'giggle',
+  'giggling',
+  'laughs',
+  'laugh',
+  'laughing',
+  'shouting',
+  'shouts',
+  'shout',
+  'screaming',
+  'screams',
+  'very fast',
+  'very slow',
+  // Polish emotion/delivery tags (Issue #562)
+  'szept',
+  'szeptem',
+  'szepcze',
+  'szepcząc',
+  'cicho',
+  'drżący głos',
+  'drżącym głosem',
+  'drżący',
+  'drżenie',
+  'z drżeniem',
+  'wstrzymany oddech',
+  'westchnienie grozy',
+  'łapie oddech',
+  'jęk',
+  'zachłyśnięcie',
+  'panika',
+  'panicznie',
+  'w panice',
+  'przerażenie',
+  'przerażony',
+  'przerażonym głosem',
+  'poważnie',
+  'poważny',
+  'poważnym głosem',
+  'grobowym głosem',
+  'surowo',
+  'zaciekawiony',
+  'zaciekawienie',
+  'z zaciekawieniem',
+  'ciekawie',
+  'sarkastycznie',
+  'sarkastyczny',
+  'sarkazm',
+  'ironicznie',
+  'kpina',
+  'zmęczony',
+  'zmęczonym głosem',
+  'zmęczenie',
+  'wycieńczony',
+  'ospale',
+  'płacz',
+  'płacze',
+  'płacząc',
+  'szloch',
+  'szlochając',
+  'przez łzy',
+  'zdumiony',
+  'zdumienie',
+  'ze zdumieniem',
+  'zaskoczony',
+  'podekscytowany',
+  'ekscytacja',
+  'z ekscytacją',
+  'gorączkowo',
+  'podstępnie',
+  'psotnie',
+  'złowieszczo',
+  'zjadliwie',
+  'ciężkie westchnienie',
+  'westchnienie',
+  'wzdycha',
+  'wzdychając',
+  'nerwowy śmiech',
+  'chichot',
+  'chichocze',
+  'śmieje się',
+  'śmiejąc się',
+  'śmiech',
+  'krzyk',
+  'krzyczy',
+  'krzycząc',
+  'wrzask',
+  'wołanie',
+  'głośno',
+  'bardzo szybko',
+  'szybko',
+  'bardzo wolno',
+  'wolno',
+  'powoli',
+].join('|');
 
 export interface ExtractedAudioMood {
   tag: string;
@@ -14,48 +139,151 @@ export interface ExtractedAudioMood {
 }
 
 /**
- * Mapuje tag emocji na instrukcję reżyserską dla Gemini TTS (Issue #544).
+ * Mapuje tag emocji na instrukcję reżyserską dla Gemini TTS (Issue #544 + Issue #562).
  */
 export function mapEmotionToAudioDirection(emotion: string): string {
   const normalized = emotion.toLowerCase().trim();
   switch (normalized) {
     case 'whispers':
     case 'whispering':
+    case 'whisper':
+    case 'szept':
+    case 'szeptem':
+    case 'szepcze':
+    case 'szepcząc':
+    case 'cicho':
       return 'Read the following in a soft, urgent, and tense whisper:';
     case 'trembling':
+    case 'trembles':
+    case 'drżący':
+    case 'drżący głos':
+    case 'drżącym głosem':
+    case 'drżenie':
+    case 'z drżeniem':
       return 'Read the following in a terrified, trembling, and emotional voice:';
     case 'gasp':
+    case 'gasps':
+    case 'gasping':
+    case 'wstrzymany oddech':
+    case 'westchnienie grozy':
+    case 'łapie oddech':
+    case 'jęk':
+    case 'zachłyśnięcie':
       return 'Read the following in a gasping, breathless voice:';
     case 'panicked':
+    case 'panic':
+    case 'panika':
+    case 'panicznie':
+    case 'w panice':
+    case 'przerażenie':
+    case 'przerażony':
+    case 'przerażonym głosem':
       return 'Read the following in a panicked, terrified, and breathless voice:';
     case 'serious':
+    case 'seriously':
+    case 'poważnie':
+    case 'poważny':
+    case 'poważnym głosem':
+    case 'grobowym głosem':
+    case 'surowo':
       return 'Read the following in a grave, serious, and measured tone:';
     case 'curious':
+    case 'curiously':
+    case 'zaciekawiony':
+    case 'zaciekawienie':
+    case 'z zaciekawieniem':
+    case 'ciekawie':
       return 'Read the following in an inquisitive and curious tone:';
     case 'sarcastic':
     case 'sarcastically':
+    case 'sarkastycznie':
+    case 'sarkastyczny':
+    case 'sarkazm':
+    case 'ironicznie':
+    case 'kpina':
       return 'Read the following in a dry, sarcastic, and cynical tone:';
     case 'tired':
+    case 'exhausted':
+    case 'weary':
+    case 'zmęczony':
+    case 'zmęczonym głosem':
+    case 'zmęczenie':
+    case 'wycieńczony':
+    case 'ospale':
       return 'Read the following in a weary, exhausted, and slow voice:';
     case 'crying':
+    case 'sobbing':
+    case 'weeping':
+    case 'płacz':
+    case 'płacze':
+    case 'płacząc':
+    case 'szloch':
+    case 'szlochając':
+    case 'przez łzy':
       return 'Read the following in a tearful, weeping, and trembling voice:';
     case 'amazed':
+    case 'astonished':
+    case 'zdumiony':
+    case 'zdumienie':
+    case 'ze zdumieniem':
+    case 'zaskoczony':
       return 'Read the following in an amazed and awestruck tone:';
     case 'excited':
+    case 'excitedly':
+    case 'podekscytowany':
+    case 'ekscytacja':
+    case 'z ekscytacją':
+    case 'gorączkowo':
       return 'Read the following in an excited, high-energy tone:';
     case 'mischievously':
+    case 'mischievous':
+    case 'podstępnie':
+    case 'psotnie':
+    case 'złowieszczo':
+    case 'zjadliwie':
       return 'Read the following in a sly, mischievous tone:';
     case 'sighs':
+    case 'sigh':
+    case 'sighing':
+    case 'westchnienie':
+    case 'ciężkie westchnienie':
+    case 'wzdycha':
+    case 'wzdychając':
       return 'Read the following with an audible, heavy sigh:';
     case 'giggles':
+    case 'giggle':
+    case 'giggling':
+    case 'chichot':
+    case 'chichocze':
+    case 'nerwowy śmiech':
       return 'Read the following with a nervous giggle:';
     case 'laughs':
+    case 'laugh':
+    case 'laughing':
+    case 'śmiech':
+    case 'śmieje się':
+    case 'śmiejąc się':
       return 'Read the following while laughing or chuckling:';
     case 'shouting':
+    case 'shouts':
+    case 'shout':
+    case 'screaming':
+    case 'screams':
+    case 'krzyk':
+    case 'krzyczy':
+    case 'krzycząc':
+    case 'wrzask':
+    case 'wołanie':
+    case 'głośno':
       return 'Read the following shouting in a loud, urgent voice:';
     case 'very fast':
+    case 'szybko':
+    case 'bardzo szybko':
       return 'Read the following at a very fast, rushed, and panicked pace:';
     case 'very slow':
+    case 'wolno':
+    case 'powoli':
+    case 'bardzo wolno':
       return 'Read the following at a very slow, deliberate, and ominous pace:';
     default:
       return `Read the following in an expressive voice reflecting ${normalized}:`;
@@ -63,14 +291,16 @@ export function mapEmotionToAudioDirection(emotion: string): string {
 }
 
 /**
- * Wyciąga tag emocji/nastroju z tekstu (np. [whispers], [trembling])
- * i mapuje go na dyrektywę audioDirection dla Gemini TTS (Issue #544).
+ * Wyciąga tag emocji/nastroju z tekstu (np. [whispers], [trembling], [szept], [panika])
+ * i mapuje go na dyrektywę audioDirection dla Gemini TTS (Issue #544 + Issue #562).
  */
 export function extractEmotionTag(text: string): ExtractedAudioMood | null {
   if (!text) return null;
-  const match = text.match(new RegExp(`\\[(${GEMINI_TTS_EMOTION_TAGS})\\]`, 'i'));
+  const match = text.match(
+    new RegExp(`\\[\\s*(${GEMINI_TTS_EMOTION_TAGS})\\s*\\]`, 'i')
+  );
   if (!match) return null;
-  const tag = match[1].toLowerCase();
+  const tag = match[1].toLowerCase().trim();
   return {
     tag,
     audioDirection: mapEmotionToAudioDirection(tag),
@@ -335,7 +565,8 @@ export function cleanResponseText(text: string): string {
       .replace(/\[(?:SFX|DŹWIĘK|DZWIEK):[^\]]*\]/gi, '')
       .replace(/\[(?:AUDIO|NAGRANIE):[^\]]*\]/gi, '')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-      // Catch-all: dowolny [TAG...] (w tym [whispers], [trembling]) wycinany przed syntezą TTS (Issue #544)
+      // Twardy filtr (Issue #544 + Issue #562): wycina wszelkie znaczniki w nawiasach kwadratowych \[.*?\] przed wysyłką do bufora audio
+      .replace(/\[[\s\S]*?\]/g, '')
       .replace(/\[[^\]]*\]/g, '')
       // Usunięcie wszelkich pozostałych nawiasów kwadratowych z tekstu lektora
       .replace(/[\[\]]/g, '')
@@ -347,7 +578,7 @@ export function cleanResponseText(text: string): string {
       .replace(/`/g, '')
       .replace(/^#{1,6}\s+/gm, '')
       // Usunięcie cudzysłowów (zapobiega czytaniu "cudzysłów")
-      .replace(/["„”«»]/g, '')
+      .replace(/["„“”«»]/g, '')
       // Emojis
       .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
       .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
@@ -360,6 +591,15 @@ export function cleanResponseText(text: string): string {
   );
 }
 
+export interface StripMultilineOptions {
+  /**
+   * Gdy true (używane w useTTS przed podziałem na zdania), zachowuje tagi emocji
+   * ([whispers], [szept], [panika] itp.) oraz [SFX:...], aby per-zdanie extractEmotionTag(raw)
+   * mógł wyznaczyć dyrektywę audioDirection, po czym cleanResponseText wycina wszystkie [...].
+   */
+  preserveEmotionTags?: boolean;
+}
+
 /**
  * IND-193: usuwa bloki TECHNICZNE mogące obejmować wiele zdań/linii (tagi [TAG:...],
  * DZIENNIK z treścią, code fences ```, multiline JSON {"..."}) z CAŁEGO tekstu PRZED
@@ -369,48 +609,71 @@ export function cleanResponseText(text: string): string {
  *
  * `{narration}` (bez cudzysłowu) NIE jest usuwane - per-zdanie cleanResponseText wyciągnie treść.
  */
-export function stripMultilineArtifacts(text: string): string {
+export function stripMultilineArtifacts(
+  text: string,
+  options?: StripMultilineOptions
+): string {
   if (!text) return '';
-  return (
-    text
-      .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
-      .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
-      .replace(/\[(?:KARTA_SCENY|SCENE_CARD):?[^\]]*\][\s\S]*?(?:\[\/(?:KARTA_SCENY|SCENE_CARD)\]|$)/gi, '') // blok karty sceny
-      .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE):[^\]]*\]/gi, '') // tag zmiany sceny
-      // Zamknięte bloki OBSERWACJA i SEKRETY_MG (z opcjonalnym nagłówkiem po dwukropku)
-      .replace(/\[(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
-      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
-      // Niezamknięte bloki OBSERWACJA i SEKRETY_MG podczas streamingu (|$ na końcu)
-      .replace(/\[(?:OBSERWACJA|OBSERVATION)\][\s\S]*$/gi, '')
-      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)\][\s\S]*$/gi, '')
-      // Issue #551: Zamknięte i wieloliniowe tagi GM Protocol (myśli, cele, nastrój, reżyseria, techniki)
+  let intermediate = text
+    .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
+    .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
+    .replace(/\[(?:KARTA_SCENY|SCENE_CARD):?[^\]]*\][\s\S]*?(?:\[\/(?:KARTA_SCENY|SCENE_CARD)\]|$)/gi, '') // blok karty sceny
+    .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE):[^\]]*\]/gi, '') // tag zmiany sceny
+    // Zamknięte bloki OBSERWACJA i SEKRETY_MG (z opcjonalnym nagłówkiem po dwukropku)
+    .replace(/\[(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
+    .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
+    // Niezamknięte bloki OBSERWACJA i SEKRETY_MG podczas streamingu (|$ na końcu)
+    .replace(/\[(?:OBSERWACJA|OBSERVATION)\][\s\S]*$/gi, '')
+    .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)\][\s\S]*$/gi, '')
+    // Issue #551: Zamknięte i wieloliniowe tagi GM Protocol (myśli, cele, nastrój, reżyseria, techniki)
+    .replace(
+      new RegExp(
+        `\\[\\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\\s*:${NESTED_TAG_BODY}\\]`,
+        'gi'
+      ),
+      ''
+    )
+    // Issue #551: Niezamknięte tagi GM Protocol na końcu strumienia (brak domknięcia `]`)
+    .replace(
+      /\[\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)[^\]]*$/gi,
+      ''
+    )
+    // Zamknięte bloki Depth Injection / Pacing Directive
+    .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\][\s\S]*?\[\s*\/\s*(?:PRZYPOMNIENIE DLA MG|PRZYPOMNIENIE|GM DIRECTIVE|DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PACING)[^\]]*\]/gi, '')
+    // Niezamknięte bloki z liniami dyrektyw (nie połykają dalszej narracji fabularnej)
+    .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\](?:\s*\n\s*(?:Atmosfera(?: sceny)?|Atmosphere|Cel narracyjny|Scene Goal|Pacing(?: i kadencja| & Cadence)?|Ton|Tone|Rygor CoC 7e RAW|CoC 7e RAW|RAW|BIEG|GEAR|Dynamic Cadence|Zmienna kadencja)\s*:[^\n]*)+/gi, '')
+    // Niezamknięte bloki Depth Injection podczas streamingu na samym końcu tekstu (|$ na końcu)
+    .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\][\s\S]*$/gi, '')
+    // Pojedyncze tagi dyrektyw
+    .replace(/\[\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING)[^\]]*\]/gi, '')
+    .replace(/\[\s*\/\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING|DIRECTIVE|PRZYPOMNIENIE)[^\]]*\]/gi, '');
+
+  if (options?.preserveEmotionTags) {
+    intermediate = intermediate
       .replace(
-        new RegExp(
-          `\\[\\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\\s*:${NESTED_TAG_BODY}\\]`,
-          'gi'
-        ),
-        ''
+        new RegExp(`\\[(\\s*(?:${GEMINI_TTS_EMOTION_TAGS})\\s*)\\]`, 'gi'),
+        '⟪TTS_EMOTION:$1⟫'
       )
-      // Issue #551: Niezamknięte tagi GM Protocol na końcu strumienia (brak domknięcia `]`)
       .replace(
-        /\[\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)[^\]]*$/gi,
-        ''
-      )
-      // Zamknięte bloki Depth Injection / Pacing Directive
-      .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\][\s\S]*?\[\s*\/\s*(?:PRZYPOMNIENIE DLA MG|PRZYPOMNIENIE|GM DIRECTIVE|DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PACING)[^\]]*\]/gi, '')
-      // Niezamknięte bloki z liniami dyrektyw (nie połykają dalszej narracji fabularnej)
-      .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\](?:\s*\n\s*(?:Atmosfera(?: sceny)?|Atmosphere|Cel narracyjny|Scene Goal|Pacing(?: i kadencja| & Cadence)?|Ton|Tone|Rygor CoC 7e RAW|CoC 7e RAW|RAW|BIEG|GEAR|Dynamic Cadence|Zmienna kadencja)\s*:[^\n]*)+/gi, '')
-      // Niezamknięte bloki Depth Injection podczas streamingu na samym końcu tekstu (|$ na końcu)
-      .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\][\s\S]*$/gi, '')
-      // Pojedyncze tagi dyrektyw
-      .replace(/\[\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING)[^\]]*\]/gi, '')
-      .replace(/\[\s*\/\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING|DIRECTIVE|PRZYPOMNIENIE)[^\]]*\]/gi, '')
-      // Każdy zamknięty [TAG...], w tym tagi emocji lektora ([whispers], [trembling]), usuwany z tekstu TTS (Issue #544)
-      .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'gi'), '')
-      // Issue #551: Ogólny bezpiecznik: dowolny niedomknięty tag techniczny [UPPERCASE... na końcu strumienia
-      .replace(/\[[A-ZŁŚŻŹĆŃ_]{2,}[^\]]*$/g, '')
-      .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')
-  ); // multiline JSON {"..."}
+        /\[(\s*(?:SFX|DŹWIĘK|DZWIEK):\s*[a-zA-Z0-9_-]+\s*)\]/gi,
+        '⟪TTS_SFX:$1⟫'
+      );
+  }
+
+  intermediate = intermediate
+    // Każdy zamknięty [TAG...], w tym tagi emocji lektora ([whispers], [trembling]), usuwany z tekstu TTS (Issue #544)
+    .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'gi'), '')
+    // Issue #551: Ogólny bezpiecznik: dowolny niedomknięty tag techniczny [UPPERCASE... na końcu strumienia
+    .replace(/\[[A-ZŁŚŻŹĆŃ_]{2,}[^\]]*$/g, '')
+    .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, ''); // multiline JSON {"..."}
+
+  if (options?.preserveEmotionTags) {
+    intermediate = intermediate
+      .replace(/⟪TTS_EMOTION:([^⟫]+)⟫/g, '[$1]')
+      .replace(/⟪TTS_SFX:([^⟫]+)⟫/g, '[$1]');
+  }
+
+  return intermediate;
 }
 
 /**

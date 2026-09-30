@@ -15,7 +15,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import OpenSeadragon from 'openseadragon';
+import type OpenSeadragon from 'openseadragon';
 import {
   ZoomIn,
   ZoomOut,
@@ -62,47 +62,64 @@ export function DocumentViewer({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    let isMounted = true;
     setIsLoading(true);
+    let viewerInstance: OpenSeadragon.Viewer | null = null;
 
-    const viewer = OpenSeadragon({
-      element: containerRef.current,
-      showNavigationControl: false, // Własny diegetyczny pasek sterowania
-      showNavigator: false,
-      tileSources: {
-        type: 'image',
-        url: imageUrl,
-      },
-      animationTime: 0.4,
-      blendTime: 0.1,
-      constrainDuringPan: true,
-      maxZoomPixelRatio: 4,
-      minZoomImageRatio: 0.8,
-      visibilityRatio: 1,
-      zoomPerScroll: 1.25,
-      gestureSettingsMouse: {
-        clickToZoom: false,
-        dblClickToZoom: true,
-      },
-    });
+    (async () => {
+      try {
+        const OpenSeadragon = (await import('openseadragon')).default;
+        if (!isMounted || !containerRef.current) return;
 
-    viewer.addHandler('open', () => {
-      setIsLoading(false);
-    });
+        const viewer = OpenSeadragon({
+          element: containerRef.current,
+          showNavigationControl: false, // Własny diegetyczny pasek sterowania
+          showNavigator: false,
+          tileSources: {
+            type: 'image',
+            url: imageUrl,
+          },
+          animationTime: 0.4,
+          blendTime: 0.1,
+          constrainDuringPan: true,
+          maxZoomPixelRatio: 4,
+          minZoomImageRatio: 0.8,
+          visibilityRatio: 1,
+          zoomPerScroll: 1.25,
+          gestureSettingsMouse: {
+            clickToZoom: false,
+            dblClickToZoom: true,
+          },
+        });
 
-    viewer.addHandler('open-failed', () => {
-      setIsLoading(false);
-    });
+        viewer.addHandler('open', () => {
+          if (isMounted) setIsLoading(false);
+        });
 
-    viewerRef.current = viewer;
+        viewer.addHandler('open-failed', () => {
+          if (isMounted) setIsLoading(false);
+        });
 
-    // Zasada Zero-Effort Ledger: badanie rekwizytu automatycznie rejestruje fakt w Dossier
-    if (evidenceFact && onFactDiscovered && !factLogged) {
-      onFactDiscovered(evidenceFact);
-      setFactLogged(true);
-    }
+        viewerInstance = viewer;
+        viewerRef.current = viewer;
+
+        // Zasada Zero-Effort Ledger: badanie rekwizytu automatycznie rejestruje fakt w Dossier
+        if (evidenceFact && onFactDiscovered && !factLogged) {
+          onFactDiscovered(evidenceFact);
+          setFactLogged(true);
+        }
+      } catch {
+        if (isMounted) setIsLoading(false);
+      }
+    })();
 
     return () => {
-      viewer.destroy();
+      isMounted = false;
+      if (viewerInstance) {
+        viewerInstance.destroy();
+      } else if (viewerRef.current) {
+        viewerRef.current.destroy();
+      }
       viewerRef.current = null;
     };
   }, [imageUrl, evidenceFact, onFactDiscovered, factLogged]);

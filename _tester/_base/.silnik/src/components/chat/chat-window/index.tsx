@@ -80,6 +80,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onSummarizeScene,
   isSummarizingScene = false,
   isLoading = false,
+  onStopGeneration,
   isInitialBuffering = false,
   isStarting = false,
   startProgress = 0,
@@ -104,6 +105,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onDismissAcquiredItem,
   isSessionEnded,
   sessionEndStatus,
+  sessionSaveStatus,
+  onRetrySessionSave,
   onCharacterUpdate,
   onContinueNarration,
   cheatCombatModal,
@@ -453,6 +456,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                     onConfirmAcquiredItem={onConfirmAcquiredItem}
                     onDismissAcquiredItem={onDismissAcquiredItem}
                     isSessionEnded={isSessionEnded}
+                    sessionSaveStatus={sessionSaveStatus}
+                    onRetrySessionSave={onRetrySessionSave}
                     isLastMessage={index === messages.length - 1}
                     onCharacterUpdate={onCharacterUpdate}
                     onSendHazardResult={handleSendMessage}
@@ -510,6 +515,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             isTurnReady={isTurnReady}
             onSendTurn={onSendTurn}
             isLoading={isLoading}
+            onStopGeneration={onStopGeneration}
             onSwitchPlayer={onSwitchPlayer}
             onDisableHotSeat={onDisableHotSeat}
             hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({

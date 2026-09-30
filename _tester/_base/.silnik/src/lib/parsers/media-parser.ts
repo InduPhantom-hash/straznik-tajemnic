@@ -30,30 +30,30 @@ export function extractImages(text: string): ImageRequest[] {
         let itemName: string | undefined = undefined;
         let locationName: string | undefined = undefined;
 
+        const extractEntityName = (str: string): string | undefined => {
+            const sepIndex = str.search(/[|:,]/);
+            if (sepIndex !== -1 && sepIndex < 40) {
+                const name = str.substring(0, sepIndex).trim();
+                return name.length > 0 ? name : undefined;
+            }
+            return undefined;
+        };
+
         if (/^(PORTRET|PORTRAIT)$/i.test(tagName)) {
             imgType = 'portrait';
             style = 'portrait';
             aspectRatio = '3:4';
-            const commaIndex = prompt.indexOf(',');
-            if (commaIndex !== -1 && commaIndex < 40) {
-                portraitName = prompt.substring(0, commaIndex).trim();
-            }
+            portraitName = extractEntityName(prompt);
         } else if (/^(LOKACJA|LOCATION)$/i.test(tagName)) {
             imgType = 'location';
             style = 'location';
             aspectRatio = '16:9';
-            const commaIndex = prompt.indexOf(',');
-            if (commaIndex !== -1 && commaIndex < 40) {
-                locationName = prompt.substring(0, commaIndex).trim();
-            }
+            locationName = extractEntityName(prompt);
         } else if (/^(PRZEDMIOT|ARTEFAKT|ITEM|ARTIFACT)$/i.test(tagName)) {
             imgType = 'item';
             style = 'item';
-            aspectRatio = '1:1';
-            const commaIndex = prompt.indexOf(',');
-            if (commaIndex !== -1 && commaIndex < 40) {
-                itemName = prompt.substring(0, commaIndex).trim();
-            }
+            aspectRatio = '16:9';
+            itemName = extractEntityName(prompt);
         } else if (/^(POTWÓR|POTWOR|MONSTRUM|MONSTER|CREATURE|BEAST)$/i.test(tagName)) {
             imgType = 'monster';
             style = 'horror';

@@ -232,9 +232,77 @@ describe('EquipmentModal catalog images', () => {
 
     expect(screen.getByText('Bandaże sterylne')).toBeInTheDocument();
     expect(screen.getByText('x4')).toBeInTheDocument();
+    // Dokumenty fabularne są odseparowane od zwykłego wyposażenia (Issue #566)
+    expect(screen.queryByText('Strona z pamiętnika cultysty')).not.toBeInTheDocument();
+
+    // Przełącz na zakładkę Fabularne
+    const storyTab = screen.getByTestId('equipment-tab-story');
+    fireEvent.click(storyTab);
 
     expect(screen.getByText('Strona z pamiętnika cultysty')).toBeInTheDocument();
     expect(screen.getByText('Dokument')).toBeInTheDocument();
+  });
+
+  it('prezentuje zakładkę Fabularne (📜 Fabularne) z rekwizytami śledztwa, dokumentami, artefaktami i przedmiotami zdobytymi (Issue #566)', () => {
+    const character = {
+      id: 'investigator-story-tab',
+      name: 'Dr Ewa Karska',
+      equipment: [
+        {
+          id: 'starting-flashlight',
+          name: 'Latarka kieszonkowa',
+          category: 'tool',
+          source: 'starting',
+          acquiredFrom: 'starting',
+        },
+        {
+          id: 'story-key',
+          name: 'Klucz do archiwum R-1',
+          category: 'story',
+          source: 'acquired',
+          acquiredFrom: 'acquired',
+          isStoryItem: true,
+        },
+        {
+          id: 'found-sample',
+          name: 'Próbka rudy uranowej',
+          category: 'tool',
+          source: 'found',
+          acquiredFrom: 'found',
+        },
+        {
+          id: 'occult-idol',
+          name: 'Bazaltowy posążek',
+          category: 'artifact',
+        },
+      ],
+    } as unknown as Character;
+
+    render(
+      <EquipmentModal
+        open
+        onOpenChange={jest.fn()}
+        character={character}
+        onCharacterUpdate={jest.fn()}
+        era="1946"
+      />
+    );
+
+    const gearTab = screen.getByTestId('equipment-tab-gear');
+    const storyTab = screen.getByTestId('equipment-tab-story');
+
+    expect(gearTab).toHaveTextContent('Wyposażenie (1)');
+    expect(storyTab).toHaveTextContent('Fabularne (3)');
+
+    fireEvent.click(gearTab);
+    expect(screen.getByText('Latarka kieszonkowa')).toBeInTheDocument();
+    expect(screen.queryByText('Klucz do archiwum R-1')).not.toBeInTheDocument();
+
+    fireEvent.click(storyTab);
+    expect(screen.getByText('Klucz do archiwum R-1')).toBeInTheDocument();
+    expect(screen.getByText('Próbka rudy uranowej')).toBeInTheDocument();
+    expect(screen.getByText('Bazaltowy posążek')).toBeInTheDocument();
+    expect(screen.getAllByText('Fabularny').length).toBeGreaterThanOrEqual(2);
   });
 
   it('prezentuje kompaktowy pasek finansów w nagłówku i nie wyświetla osobnej zakładki Finanse', () => {

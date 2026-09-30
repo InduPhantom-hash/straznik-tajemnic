@@ -850,6 +850,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   personal: '👤 Osobiste',
   medical: '💊 Medyczne',
   occult: '🕯️ Okultystyczne',
+  story: '📜 Fabularne',
 };
 
 // === WSZYSTKIE PRZEDMIOTY ===
@@ -945,17 +946,19 @@ export function createEquipmentItem(
       id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       templateId: template.templateId,
       name: finalName,
-      category: template.category || 'personal',
+      category: template.category || (source === 'acquired' || source === 'found' ? 'story' : 'personal'),
       description: template.description,
       modifiers: template.modifiers,
       weight: template.weight,
       value: template.value,
       condition: 'used',
       source,
+      acquiredFrom: template.acquiredFrom ?? source,
       obtainedAt: new Date(),
       quantity: template.quantity ?? consumableInfo.quantity,
       maxQuantity: template.maxQuantity ?? consumableInfo.maxQuantity,
       isConsumable: template.isConsumable ?? consumableInfo.isConsumable,
+      isStoryItem: template.isStoryItem ?? (template.category === 'story' ? true : undefined),
     },
     era
   );

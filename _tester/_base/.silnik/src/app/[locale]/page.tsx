@@ -1332,6 +1332,7 @@ export default function Home() {
           onSummarizeScene={handleSummarizeScene}
           isSummarizingScene={isSummarizingScene}
           isLoading={chat.isLoading}
+          onStopGeneration={chat.stopGeneration}
           isInitialBuffering={tts.isInitialBuffering}
           isDuet={chat.isDuet}
           pendingDeclarations={chat.pendingDeclarations}
@@ -1358,6 +1359,8 @@ export default function Home() {
           hotSeatConfig={hotSeat.config}
           isSessionEnded={chat.isSessionEnded}
           sessionEndStatus={chat.sessionEndStatus}
+          sessionSaveStatus={chat.sessionSaveStatus}
+          onRetrySessionSave={chat.retrySessionSave}
           onConfirmAcquiredItem={chat.confirmAcquiredItem}
           onDismissAcquiredItem={chat.dismissAcquiredItem}
           onCharacterUpdate={charMgmt.handleUpdateCharacter}

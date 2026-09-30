@@ -36,6 +36,11 @@ import { buildGeminiOptions } from './build-gemini-options';
 import { buildPdfStrategy, PdfMemoryAttachments } from './build-pdf-strategy';
 import { buildTimeContext } from './build-time-context';
 import { createSseStream } from './create-sse-stream';
+import {
+  detectPendingSanityTestResolution,
+  type PendingSanityResolution,
+} from './sanity-resolution';
+export { detectPendingSanityTestResolution, type PendingSanityResolution };
 import { resolveGeminiCache } from './resolve-gemini-cache';
 import { runRAGAndSummary } from './run-rag-summary';
 import { resolveSettings } from './resolve-settings';
@@ -59,7 +64,15 @@ import {
   isCampaignMemoryScope,
 } from '@/core/memory/campaign-scope';
 import type { CampaignMemoryScope } from '@/core/memory/types';
-import { buildWorldEngineDirectives, dispatchWorldEngines } from '@/lib/world-engine';
+import {
+  buildWorldEngineDirectives,
+  deriveSceneSensoryMemoryFromMessages,
+  dispatchWorldEngines,
+  extractMacroLocation,
+  isSameMacroLocation,
+} from '@/lib/world-engine';
+import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
+import { buildActiveTurnAntiHabituationSection } from '@/lib/prompts/narrative-style-instructions';
 
 function isChaseState(value: unknown): value is ChaseState {
   if (!value || typeof value !== 'object') return false;
@@ -230,6 +243,8 @@ export async function runChatPipeline({
     adventureId: explicitAdventureId,
     memoryScope: requestedMemoryScope,
     guardrailState: requestedGuardrailState,
+    turnsInCurrentLocation: requestedTurnsInCurrentLocation,
+    visitedMacroLocations: requestedVisitedMacroLocations,
   } = body as {
     message: string;
     adventureId?: string;
@@ -240,6 +255,8 @@ export async function runChatPipeline({
     pdfMemory?: PdfMemoryAttachments | null;
     npcs?: NPC[];
     currentLocation?: string;
+    turnsInCurrentLocation?: number;
+    visitedMacroLocations?: string[];
     gameContextPrompt?: string;
     skipContext?: boolean;
     adventureContext?: {
@@ -500,6 +517,41 @@ export async function runChatPipeline({
   const messageCount = messages?.length || 0;
   const gmProtocol = getContextAwareGMProtocol(messageCount);
 
+  // === ISSUE #563: SCENE SENSORY MEMORY & ZONE DETECTION ===
+  const derivedMemory = deriveSceneSensoryMemoryFromMessages(messages, currentLocation);
+  const hasUnhydratedClientState =
+    requestedTurnsInCurrentLocation === 0 &&
+    (!Array.isArray(requestedVisitedMacroLocations) || requestedVisitedMacroLocations.length === 0) &&
+    derivedMemory.turnsInCurrentLocation > 0;
+
+  const turnsInCurrentLocation =
+    typeof requestedTurnsInCurrentLocation === 'number' && !hasUnhydratedClientState
+      ? requestedTurnsInCurrentLocation
+      : derivedMemory.turnsInCurrentLocation;
+
+  const visitedMacroLocations: string[] =
+    Array.isArray(requestedVisitedMacroLocations) && requestedVisitedMacroLocations.length > 0
+      ? [...requestedVisitedMacroLocations]
+      : derivedMemory.visitedMacroLocations;
+
+  const effectiveLocation = currentLocation?.trim() || derivedMemory.currentLocation;
+  const rawMacroLocation = effectiveLocation ? extractMacroLocation(effectiveLocation) : undefined;
+  const matchedVisitedMacro = rawMacroLocation
+    ? visitedMacroLocations.find(
+        (m) =>
+          m.toLowerCase().trim() === rawMacroLocation.toLowerCase().trim() ||
+          isSameMacroLocation(m, effectiveLocation)
+      )
+    : undefined;
+  const macroLocation =
+    matchedVisitedMacro && rawMacroLocation === effectiveLocation
+      ? matchedVisitedMacro
+      : rawMacroLocation;
+
+  const isNewMacroLocation = macroLocation
+    ? !matchedVisitedMacro && turnsInCurrentLocation === 0
+    : true;
+
   // === ISSUE #506: WORLD ENGINE DISPATCHER & RAG STAGING ===
   const dispatcherDecision = dispatchWorldEngines({
     playerMessage: message,
@@ -509,6 +561,9 @@ export async function runChatPipeline({
     puzzles: (adventureContext?.puzzles ?? []).map((p) => ({ id: p.id || '', title: p.title })),
     adventureThemes: adventureContext?.themes,
     hasOccultElements: Boolean(character?.magic?.knownSpells && Object.keys(character.magic.knownSpells).length > 0),
+    turnsInCurrentLocation,
+    macroLocation,
+    isNewMacroLocation,
   });
 
   // === R3 (latencja): trzy niezalezne galezi sieciowe ROWNOLEGLE ===
@@ -705,8 +760,43 @@ export async function runChatPipeline({
       eraContext,
       playerMessage: message,
       activeEngines: dispatcherDecision.activeEngines,
+      turnsInCurrentLocation,
+      visitedMacroLocations,
+      isNewMacroLocation,
     }),
   });
+
+  if (turnsInCurrentLocation > 0 || (macroLocation && !isNewMacroLocation)) {
+    const eraGuidanceIdx = additionalContext.findIndex((ctx) =>
+      ctx.includes('## MATERIALNE USER STORY I KONTRAST EPOKI')
+    );
+    const updatedEraGuidance = buildLocationEraGuidanceSection(
+      eraContext,
+      currentLocation,
+      {
+        turnsInCurrentLocation,
+        macroLocationContext: {
+          macroLocation,
+          isNewMacro: isNewMacroLocation,
+        },
+        locale: (locale ?? 'pl') as 'pl' | 'en',
+      }
+    );
+    if (eraGuidanceIdx >= 0) {
+      additionalContext[eraGuidanceIdx] = updatedEraGuidance;
+    } else if (currentLocation) {
+      additionalContext.push(updatedEraGuidance);
+    }
+  }
+
+  if (turnsInCurrentLocation > 0) {
+    additionalContext.push(
+      buildActiveTurnAntiHabituationSection(
+        turnsInCurrentLocation,
+        (locale ?? 'pl') as 'pl' | 'en'
+      )
+    );
+  }
 
   if (isChaseState(mechanicsContext?.chase)) {
     additionalContext.push(
@@ -853,6 +943,8 @@ export async function runChatPipeline({
   }
   const { stream: providerStream, getUsage, getFinishReason } = streamResult;
 
+  const pendingSanityResolutions = detectPendingSanityTestResolution(message);
+
   // === SSE STREAM + POST-STREAM SIDE EFFECTS - IND-71 micro 3/3 ===
   const sseStream = createSseStream({
     providerStream,
@@ -876,6 +968,7 @@ export async function runChatPipeline({
     npcs: npcs ?? [],
     combatMechanicsEnabled,
     memoryScope,
+    pendingSanityResolutions,
   });
 
   return new Response(sseStream, {

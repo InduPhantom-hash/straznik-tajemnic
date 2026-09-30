@@ -39,6 +39,7 @@ const CATEGORY_STYLES: Record<EquipmentCategory, string> = {
   personal: 'well-used personal belonging, understated and believable, genuine patina and subtle signs of frequent handling',
   medical: 'period-appropriate medical instrument or kit, sterilized glass, brushed surgical steel, apothecary bottles and clean practical presentation',
   occult: 'ordinary liturgical or esoteric ritual supply, authentic historical crafts, believable physical materials, no implied magic or glowing energy',
+  story: 'tactile investigative prop or physical evidence item, authentic historical wear, grounded material realism',
 };
 
 const CATEGORY_MATERIALS: Record<EquipmentCategory, string> = {
@@ -50,6 +51,7 @@ const CATEGORY_MATERIALS: Record<EquipmentCategory, string> = {
   personal: 'tooled vegetable-tanned leather, polished nickel-silver, brushed brass, briar wood, woven wool, pressed amber or period bakelite',
   medical: 'sturdy leather medical bag, amber glass tincture vials with cork stoppers, nickel-plated surgical steel, folded cotton gauze and linen bandages',
   occult: 'natural yellow beeswax, carved chalk, untrimmed vellum, beaten tin or pewter, earthenware pottery, dried aromatic herbs and raw brass liturgical fixtures',
+  story: 'aged brass, tarnished metal, worn leather, rag paper, waxed twine or period glass with realistic investigative handling wear',
 };
 
 const MUNDANE_GUARDRAILS =

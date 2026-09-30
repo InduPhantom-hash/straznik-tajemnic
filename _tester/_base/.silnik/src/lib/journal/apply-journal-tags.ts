@@ -24,8 +24,7 @@ import {
   ensureCharacterDossier,
   inferClueCategory,
 } from '@/lib/journal/dossier-migration';
-import { createEquipmentItem } from '@/lib/equipment-data';
-import { safeResolveVisualEra } from '@/lib/equipment-catalog';
+
 import {
   linkClueNpcLocation,
   type InvestigatorDossier,
@@ -165,6 +164,7 @@ export function normalizeEquipmentCategory(rawCategory?: string, isHandout?: boo
   if (['ochrona', 'pancerz', 'armor'].includes(c)) return 'armor';
   if (['medycyna', 'medyczny', 'medical', 'apteczka', 'first_aid'].includes(c)) return 'medical';
   if (['okultyzm', 'okultystyczny', 'occult'].includes(c)) return 'occult';
+  if (['fabularny', 'fabularne', 'story', 'dowód', 'dowod', 'poszlaka'].includes(c)) return 'story';
   if (['personal', 'osobisty', 'osobiste'].includes(c)) return 'personal';
   return isHandout ? 'document' : 'personal';
 }
@@ -605,36 +605,14 @@ export function processCharacterJournalAndDossier(
         `${normName} ${item.description} ${item.category || ''}`
       );
 
-    // 2. Fizyczny rekwizyt w ekwipunku postaci (Karta Postaci / Torba / Kieszeń - Zero-Effort Ledger)
+    // 2. Fizyczny rekwizyt w ekwipunku postaci: NIE dodajemy samowolnie nowych rzeczy (Issue #565).
+    // Jeśli gracz ma już ten przedmiot w torbie, jedynie uzupełniamy treść do czytania.
     const normItemTitle = normalizeEntityTitle(normName);
     const existingEqIndex = existingEquipment.findIndex(
       (eq) => normalizeEntityTitle(eq.name || '') === normItemTitle
     );
 
-    const normCategory = normalizeEquipmentCategory(item.category, isHandout);
-
-    if (existingEqIndex === -1 && !isVisualPromptLeak(normName)) {
-      const era = safeResolveVisualEra(character.era || '1920s');
-      const baseEq = createEquipmentItem(
-        {
-          name: normName,
-          category: normCategory,
-          description: item.description,
-        },
-        'found',
-        era
-      );
-      const newEqItem: EquipmentItem = {
-        ...baseEq,
-        category: isHandout ? 'document' : baseEq.category,
-        condition: item.condition || baseEq.condition || 'used',
-        isReadable: isHandout ? true : baseEq.isReadable,
-        readableContent: isHandout ? item.description : baseEq.readableContent,
-        readableContentStatus: isHandout ? 'ready' : baseEq.readableContentStatus,
-      };
-      existingEquipment.push(newEqItem);
-      changed = true;
-    } else if (existingEqIndex !== -1 && isHandout) {
+    if (existingEqIndex !== -1 && isHandout) {
       const existingEq = existingEquipment[existingEqIndex];
       if (!existingEq.readableContent && item.description) {
         existingEquipment[existingEqIndex] = {
@@ -945,31 +923,13 @@ export function processCharacterJournalAndDossier(
         (explicitProvenance === 'handout' ||
           (isTitleDocument && (resolvedProvenance === 'handout' || resolvedCategory === 'document')));
 
+      // Poszlaki/Handouty: NIE dodajemy samowolnie nowych dokumentów do ekwipunku postaci (Issue #565).
+      // Dokument trafia do Dossier (dossier.clues). Jeśli gracz posiada już ten rekwizyt w torbie, jedynie uzupełniamy treść.
       if (isClueHandout) {
         const existingEqIndex = existingEquipment.findIndex(
           (eq) => normalizeEntityTitle(eq.name || '') === normClueTitle
         );
-        if (existingEqIndex === -1) {
-          const era = safeResolveVisualEra(character.era || '1920s');
-          const baseEq = createEquipmentItem(
-            {
-              name: cleanClueTitle,
-              category: 'document',
-              description: rawContent,
-            },
-            'found',
-            era
-          );
-          const newEqItem: EquipmentItem = {
-            ...baseEq,
-            category: 'document',
-            isReadable: true,
-            readableContent: rawContent,
-            readableContentStatus: 'ready',
-          };
-          existingEquipment.push(newEqItem);
-          changed = true;
-        } else {
+        if (existingEqIndex !== -1) {
           const existingEq = existingEquipment[existingEqIndex];
           if (!existingEq.readableContent && rawContent) {
             existingEquipment[existingEqIndex] = {

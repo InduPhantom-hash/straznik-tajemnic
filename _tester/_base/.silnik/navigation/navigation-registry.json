@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-29T10:00:00.000Z",
+  "updatedAt": "2026-09-29T21:38:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -233,8 +233,8 @@
       "id": "equipment",
       "kind": "modal",
       "label": {
-        "pl": "Ekwipunek",
-        "en": "Equipment"
+        "pl": "Ekwipunek (Broń, Wyposażenie, Fabularne)",
+        "en": "Equipment (Weapons, Gear, Story Items)"
       }
     },
     {
@@ -907,7 +907,16 @@
         "en": "Choose period engraving"
       },
       "component": "src/components/ui/character-wizard.tsx"
+    },
+    {
+      "source": "game",
+      "target": "game",
+      "label": {
+        "pl": "Ponów zapis kroniki po błędzie",
+        "en": "Retry chronicle save after error"
+      },
+      "component": "src/components/chat/chat-window/components/message-card.tsx"
     }
   ],
-  "lastUpdated": "2026-09-21T09:00:00.000Z"
+  "lastUpdated": "2026-09-30T13:48:42.612Z"
 }

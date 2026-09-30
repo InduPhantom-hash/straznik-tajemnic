@@ -306,4 +306,59 @@ describe('useEquipmentThumbnails', () => {
 
     expect(fetchWithApiKeys).toHaveBeenCalledTimes(1);
   });
+
+  it('przekazuje style="horror" dla przedmiotów nadprzyrodzonych oraz oznacza visualSource="fallback" przy błędzie API (Issue #567)', async () => {
+    const supernaturalCharacter = {
+      ...character,
+      equipment: [
+        {
+          id: 'cursed-stone',
+          name: 'Czarny kamień z piwnicy',
+          category: 'artifact',
+          source: 'acquired',
+          acquiredFrom: 'acquired',
+          visualTreatment: 'supernatural',
+          imageUrl: '/equipment/predefined/artifact.svg',
+        },
+      ],
+    } as Character;
+    let characters = [supernaturalCharacter];
+    let activeCharacter: Character | null = supernaturalCharacter;
+    const setCharacters = jest.fn((update) => {
+      characters = update(characters);
+    });
+    const setActiveCharacter = jest.fn((update) => {
+      activeCharacter = update(activeCharacter);
+    });
+
+    jest.mocked(fetchWithApiKeys).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    } as Response);
+
+    const { result } = renderHook(() =>
+      useEquipmentThumbnails({
+        activeCharacter: supernaturalCharacter,
+        adventureContext: { yearRange: '1920s' } as unknown as AdventureContext,
+        imageGenerationEnabled: true,
+        setActiveCharacter,
+        setCharacters,
+      })
+    );
+
+    await act(async () => {
+      await result.current.generateThumbnailsInBackground();
+    });
+
+    expect(fetchWithApiKeys).toHaveBeenCalledWith(
+      '/api/imagen',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"style":"horror"'),
+      })
+    );
+    expect(characters[0].equipment?.[0].visualSource).toBe('fallback');
+    expect(activeCharacter?.equipment?.[0].visualSource).toBe('fallback');
+  });
 });
+

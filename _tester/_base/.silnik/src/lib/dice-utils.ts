@@ -266,7 +266,7 @@ export function rollD100WithBonus(bonusDice: number): {
 export function rollDiceFormula(
   formula: string
 ): { results: number[]; total: number } | null {
-  const match = formula.match(/(\d+)d(\d+)([+-]\d+)?/i);
+  const match = formula.match(/(\d+)[dk](\d+)([+-]\d+)?/i);
   if (!match) return null;
 
   const numDice = parseInt(match[1]);

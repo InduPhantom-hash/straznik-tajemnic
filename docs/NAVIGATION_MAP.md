@@ -32,7 +32,7 @@ graph TD
     game["Aktywna sesja / Active session"]
     api_keys["Klucze API / API keys"]
     character_sheet["Karta badacza (Dark Art Déco d100 Weird Fiction) / Investigator sheet (Dark Art Déco d100 Weird Fiction)"]
-    equipment["Ekwipunek / Equipment"]
+    equipment["Ekwipunek (Broń, Wyposażenie, Fabularne) / Equipment (Weapons, Gear, Story Items)"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
     journal["Dziennik sesji i kronika śledztwa / Session journal and investigation chronicle"]
     idea_roll_modal["Test Pomysłu d100 Weird Fiction (Idea Roll) / Idea Roll d100 Weird Fiction"]
@@ -111,6 +111,7 @@ graph TD
     beta_welcome_modal -->|Zgłoś uwagę lub błąd / Report Issue or Feedback| beta_feedback_modal
     game -->|Kres postaci i epilog / Investigator end and epilogue| game_over_card
     character_new -->|Wybierz rycinę z epoki / Choose period engraving| retro_portrait_gallery_modal
+    game -->|Ponów zapis kroniki po błędzie / Retry chronicle save after error| game
 ```
 
 ## Routy
@@ -156,8 +157,8 @@ graph TD
 | Ekran ładowania (Dark Art Déco) | Wróć do wyboru (błąd startu) / Back to selection (start error) | Strona główna | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Ekran ładowania (Dark Art Déco) | Ustawienia API (błąd startu) / API settings (start error) | Klucze API | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco d100 Weird Fiction) | `src/components/sidebar/CthulhuSidebar.tsx` |
-| Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
-| Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
+| Aktywna sesja | Ekwipunek / Equipment | Ekwipunek (Broń, Wyposażenie, Fabularne) | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Ekwipunek (Broń, Wyposażenie, Fabularne) | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji i kronika śledztwa | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Dziennik sesji i kronika śledztwa | Cytuj cel ze sceny do pola wiadomości / Quote scene objective to message input | Aktywna sesja | `src/components/ui/session-journal.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
@@ -186,6 +187,7 @@ graph TD
 | Status wersji Beta | Zgłoś uwagę lub błąd / Report Issue or Feedback | Zgłoś błąd / uwagę | `src/components/dialogs/BetaWelcomeModal.tsx` |
 | Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (d100 Weird Fiction) | `src/components/chat/chat-window/components/game-over-card.tsx` |
 | Nowa postać | Wybierz rycinę z epoki / Choose period engraving | Kolekcja rycin noir z lat 20. | `src/components/ui/character-wizard.tsx` |
+| Aktywna sesja | Ponów zapis kroniki po błędzie / Retry chronicle save after error | Aktywna sesja | `src/components/chat/chat-window/components/message-card.tsx` |
 
 ## Zasady aktualizacji
 

@@ -337,15 +337,29 @@ export function enrichImagePromptWithEraProps(
   return `${cleaned}, ${eraProps}`;
 }
 
+export interface LocationEraGuidanceOptions {
+  turnsInCurrentLocation?: number;
+  macroLocationContext?: { macroLocation?: string; isNewMacro?: boolean; isZoneRevisit?: boolean };
+  locale?: 'pl' | 'en';
+}
+
 /**
  * Generuje blok instrukcji dla MG dotyczący materialnego User Story i kontrastu epoki.
  */
 export function buildLocationEraGuidanceSection(
   eraOrYear: string | ResolvedEraContext | undefined,
-  currentLocation?: string
+  currentLocation?: string,
+  options?: LocationEraGuidanceOptions
 ): string {
   const profile = resolveEraVisualProfile(eraOrYear);
   const locationTag = currentLocation ? ` w lokacji "${currentLocation}"` : '';
+  const turnsInLoc = options?.turnsInCurrentLocation ?? 0;
+  const isSubsequentTurn = turnsInLoc > 0;
+  const isKnownMacro = Boolean(
+    options?.macroLocationContext &&
+    options.macroLocationContext.isNewMacro === false &&
+    options.macroLocationContext.macroLocation
+  );
 
   // Z ResolvedEraContext kotwiczymy scenę w konkretnym roku i regionie -
   // bez tego wytyczne zostają ogólne i MG może dryfować poza erę przygody.
@@ -354,12 +368,29 @@ export function buildLocationEraGuidanceSection(
       ? `0. KONTEKST SCENY: ${eraOrYear.effectiveYear}, ${eraOrYear.countryCode} - wszystkie realia materialne, technologia i marki kotwicz w tym roku i regionie.\n`
       : '';
 
-  return (
+  const materialRule = isSubsequentTurn
+    ? `1. MATERIALNE TŁO (TURA KOLEJNA W LOKACJI: ANTY-HABITUACJA): Zakaz ponownego wymieniania pieców kaflowych, lamp i zapachów tła (karbol, stęchizna, chłód/mróz). Otoczenie zostało już zakotwiczone - opisuj wyłącznie dynamiczne zmiany otoczenia (np. dopalająca się świeca) i przejdź od razu do badanych rekwizytów lub reakcji NPC.\n`
+    : isKnownMacro
+    ? `1. MATERIALNE TŁO (KOLEJNY POKÓJ W ZNANYM OBIEKCIE: ANTY-HABITUACJA STREFOWA): Badacz przechodzi do pomieszczenia${locationTag} wewnątrz znanego już budynku ("${options?.macroLocationContext?.macroLocation}"). Zakaz ponownego wymieniania ogólnego ogrzewania (piece kaflowe), zapachu budynku (np. karbolu) i pogody. Opisz wyłącznie unikalne meble i rekwizyty wyróżniające ten pokój.\n`
+    : `1. MATERIALNE TŁO: Opisując przestrzeń${locationTag}, ZAWSZE zakotwicz scenę w realiach materialnych epoki (określ źródło światła: lampa naftowa/gazowa/żarówka, ogrzewanie: piec kaflowy/kaloryfer, oraz łączność: telefon naścienny/tarczowy/brak telefonu). W kolejnych turach w tej samej lokacji nie powtarzaj tych stałych cech (anty-habituacja).\n`;
+
+  let section =
     `\n## MATERIALNE USER STORY I KONTRAST EPOKI (${profile.toUpperCase()})\n` +
     contextAnchor +
-    `1. MATERIALNE TŁO: Opisując przestrzeń${locationTag}, ZAWSZE zakotwicz scenę w realiach materialnych epoki (określ źródło światła: lampa naftowa/gazowa/żarówka, ogrzewanie: piec kaflowy/kaloryfer, oraz łączność: telefon naścienny/tarczowy/brak telefonu).\n` +
+    materialRule +
     `2. ZASADA KONTRASTU: Zachowaj 80% realistycznego, namacalnego tła. Anomalię i niepokój wprowadzaj jako JEDEN wyraźny punkt zaczepienia (flagowy trop), zamiast zniekształcać każdy zwykły pokój.\n` +
     `3. STRAŻNIK ANACHRONIZMÓW: Bezwzględny zakaz wtrącania technologii późniejszych (dla lat 20. brak smartfonów, plastiku, komputerów, LED; dla lat 70. brak smartfonów i ekranów LCD).\n` +
-    `4. ECHO AKCJI: W [MYŚLI_MG] uwzględniaj, jak otoczenie, świadkowie i prasa zareagują na głośne czyny badacza.`
-  );
+    `4. ECHO AKCJI: W [MYŚLI_MG] uwzględniaj, jak otoczenie, świadkowie i prasa zareagują na głośne czyny badacza.\n`;
+
+  if (isKnownMacro) {
+    section += `5. PAMIĘĆ STREFOWA (STREFA: "${options?.macroLocationContext?.macroLocation}"): Badacz przebywa w znanym już obiekcie. Nie powtarzaj cech i zapachów całego budynku (np. karbolu w szpitalu) - opisz wyłącznie unikalne cechy tego pokoju.\n`;
+  }
+
+  if (isSubsequentTurn) {
+    section += `6. NASTAWIENIE NA AKCJĘ ŚLEDCZĄ: Zero zapychaczy (no filler). W kolejnych turach skup się w 100% na badanych detalach, fizycznych interakcjach z przedmiotami i posuwaniu śledztwa.`;
+  } else {
+    section = section.trimEnd();
+  }
+
+  return section;
 }

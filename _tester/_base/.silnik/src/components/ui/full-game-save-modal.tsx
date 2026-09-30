@@ -29,16 +29,8 @@ import type { InvestigatorBoardState } from '@/types/investigator-board';
 import { toast } from '@/components/ui/use-toast';
 import type { Message as LibMessage } from '@/lib/types';
 import type { PdfMemory } from '@/hooks/usePdfMemory';
-import {
-  collectSaveImages,
-  applySaveImageUrls,
-  dataUrlExtension,
-  sanitizeHistoryForApi,
-  sanitizeCharacterForApi,
-  sanitizeNpcForApi,
-} from '@/lib/chat-history-sanitizer';
-import { loadStoredWorldSetup } from '@/lib/world-setup';
-import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
+import { collectSaveImages } from '@/lib/chat-history-sanitizer';
+import { performFullGameSave } from '@/lib/save/auto-save-service';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -188,36 +180,6 @@ export function FullGameSaveModal({
     }
   };
 
-  /**
-   * Upload jednego base64 obrazu na dysk jako plik (multipart - omija limit body
-   * JSON, który dla base64 ~MB powodował HTTP 500 przy zapisie). Zwraca publiczny
-   * URL pliku albo null gdy upload się nie powiódł (best-effort, nie psuje zapisu).
-   */
-  const uploadSaveImage = async (
-    saveId: string,
-    userId: string,
-    name: string,
-    dataUrl: string
-  ): Promise<string | null> => {
-    try {
-      const blob = await (await fetch(dataUrl)).blob();
-      const fileName = `${name}.${dataUrlExtension(dataUrl)}`;
-      const formData = new FormData();
-      formData.append('images', blob, fileName);
-
-      const res = await fetch(
-        `/api/game-save/upload-images?saveId=${saveId}&userId=${userId}`,
-        { method: 'POST', body: formData }
-      );
-      if (!res.ok) return null;
-      const data = await res.json();
-      return data?.images?.[0]?.url ?? null;
-    } catch (e) {
-      console.warn(`Image upload ${name} failed:`, e);
-      return null;
-    }
-  };
-
   const handleSave = async () => {
     if (!saveName.trim()) {
       setError(t('nameRequired'));
@@ -233,111 +195,23 @@ export function FullGameSaveModal({
       setIsSaving(true);
       setError(null);
 
-      const userId = 'local';
-      // saveId generujemy klient-side, by uploadować obrazy do jego folderu PRZED
-      // zapisem save.json - wtedy w save.json są lekkie URL-e, nie ciężki base64.
-      const saveId = `save_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-
-      // 1. Zbierz base64 obrazy z historii (intro w content + obrazy scen w generatedImages).
-      const imageRefs = collectSaveImages(currentData.messages);
-
-      // 2. Upload best-effort (tylko gdy checkbox "zapisz obrazy"). Każdy osobno:
-      //    pojedynczy plik nie zbliża się do limitu body, a awaria jednego degraduje
-      //    tylko ten obraz zamiast wywalać cały zapis.
-      const urlByName: Record<string, string | null> = {};
-      if (saveImages) {
-        for (const ref of imageRefs) {
-          urlByName[ref.name] = await uploadSaveImage(
-            saveId,
-            userId,
-            ref.name,
-            ref.dataUrl
-          );
-        }
-      }
-
-      // 3. Podmień base64 na URL-e plików (lub usuń) + bezpiecznik wycinający wszelkie
-      //    pozostałe base64 - payload NIGDY nie niesie base64, więc zapis nie przekracza
-      //    limitu body. Wczytanie działa: markdown/generatedImages renderują z URL pliku.
-      const messagesWithUrls = applySaveImageUrls(
-        currentData.messages,
-        imageRefs,
-        urlByName
-      );
-      const safeMessages = sanitizeHistoryForApi(
-        messagesWithUrls as unknown as LibMessage[]
-      );
-
-      // 4. Katalog obrazów save'u (miniatura + licznik) - tylko z uploadowanych URL-i.
-      const images: FullGameSave['images'] = imageRefs
-        .filter((ref) => urlByName[ref.name])
-        .map((ref, idx) => ({
-          id: `img_${ref.msgIndex}_${idx}`,
-          url: urlByName[ref.name] as string,
-          gcsPath: urlByName[ref.name] as string,
-          prompt: '',
-          timestamp: new Date().toISOString(),
-          type: 'illustration',
-          messageId: `msg_${ref.msgIndex}`,
-        }));
-
-      const sessionCost = currentData.aiSettings?.costControl?.sessionCost || 0;
-
-      const saveData = {
-        id: saveId,
-        name: saveName,
-        userId,
-        locale: currentData?.locale ?? currentLocale,
-        messages: safeMessages,
-        images,
-        gameSettings: {
-          aiSettings: saveSettings
-            ? currentData.aiSettings
-            : ({} as AISettings),
-        },
-        equipmentVisualEra: currentData.equipmentVisualEra,
-        worldSetup: loadStoredWorldSetup(),
-        // Bezpiecznik limitu body 10 MB: miniatury ekwipunku / portrety to base64
-        // (~MB każdy) w żywym stanie - bez tego payload zapisu rośnie > 10 MB → HTTP 500.
-        // Obrazy wracają po wczytaniu (hydracja z IndexedDB + regeneracja miniatur).
-        characters: currentData.characters
-          .map((c) => sanitizeCharacterForApi(c))
-          .filter((c): c is Character => c !== null),
-        activeCharacterId: currentData.activeCharacterId,
-        hotSeatConfig: currentData.hotSeatConfig,
-        investigatorBoard: currentData.investigatorBoard,
-        campaigns: currentData.campaigns,
-        activeCampaignId: currentData.activeCampaignId,
-        campaignMemory: loadCampaignMemoryScope() ?? undefined,
-        npcs: currentData.npcs.map((n) => sanitizeNpcForApi(n)),
-        locations: currentData.locations,
-        currentLocationId: currentData.currentLocationId,
-        pdfMemory: currentData.pdfMemory,
-        notes: saveNotes,
-        sessionStartTime: currentData.sessionStartTime,
-        sessionCost,
-      };
-
-      const response = await fetch('/api/game-save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(saveData),
+      const result = await performFullGameSave({
+        saveName,
+        saveNotes,
+        saveImages,
+        saveSettings,
+        currentLocale,
+        data: currentData,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Save zapisany:', result);
-        toast({
-          title: `Zapisano: ${saveName}`,
-          description: `Rozmiar: ${result.formattedSize} · Wiadomości: ${result.messageCount} · Obrazy: ${result.imageCount}`,
-        });
-        onClose();
-        // Po udanym zapisie: powiadom rodzica (np. reset do kreatora dla "Nowej przygody")
-        onSaved?.();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t('saveFailed'));
-      }
+      console.log('✅ Save zapisany:', result);
+      toast({
+        title: `Zapisano: ${saveName}`,
+        description: `Rozmiar: ${result.formattedSize} · Wiadomości: ${result.messageCount} · Obrazy: ${result.imageCount}`,
+      });
+      onClose();
+      // Po udanym zapisie: powiadom rodzica (np. reset do kreatora dla "Nowej przygody")
+      onSaved?.();
     } catch (error) {
       console.error('Error while saving:', error);
       setError(error instanceof Error ? error.message : t('unknownError'));

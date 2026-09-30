@@ -368,5 +368,61 @@ describe('Dossier Migration & Anti-cRPG Normalization (CoC 7e RAW)', () => {
       expect(result.investigatorDossier.clues[0].title).toBe('Kalka techniczna z Zakładów R-1');
       expect(result.investigatorDossier.locations).toHaveLength(0);
     });
+
+    it('usuwa banalne obserwacje zmysłowe i atmosferyczne z istniejącego dossier i migracji (Issue #568)', () => {
+      const charWithSensoryNoise = {
+        name: 'Dr Ewa',
+        equipment: [],
+        journal: [
+          {
+            id: 'j_noise_1',
+            type: 'clue',
+            title: 'Zapach karbolu',
+            content: 'W korytarzu czuć silny zapach karbolu.',
+          },
+          {
+            id: 'j_real_1',
+            type: 'clue',
+            title: 'Klucz z grawerunkiem',
+            content: 'Mosiężny klucz znaleziony w kieszeni fartucha.',
+          },
+        ],
+        investigatorDossier: {
+          clues: [
+            {
+              id: 'c_noise_1',
+              title: 'Brak dymu z komina',
+              description: 'Z komina na dachu nie unosi się żaden dym.',
+              category: 'forensic' as const,
+              status: 'confirmed' as const,
+            },
+            {
+              id: 'c_noise_2',
+              title: 'Przenikliwe zimno',
+              description: 'W piwnicy panuje lodowaty chłód.',
+              category: 'forensic' as const,
+              status: 'confirmed' as const,
+            },
+            {
+              id: 'c_real_2',
+              title: 'Próbka rudy uranowej',
+              description: 'Ciężki odłamek skały zabezpieczony w ołowianym pojemniku.',
+              category: 'forensic' as const,
+              status: 'confirmed' as const,
+            },
+          ],
+          npcs: [],
+          locations: [],
+          notes: [],
+        },
+      };
+
+      const result = ensureCharacterDossier(charWithSensoryNoise);
+      expect(result.investigatorDossier.clues.map((c) => c.title)).toEqual([
+        'Próbka rudy uranowej',
+        'Klucz z grawerunkiem',
+      ]);
+    });
   });
 });
+
