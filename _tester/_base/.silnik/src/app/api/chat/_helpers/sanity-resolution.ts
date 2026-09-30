@@ -32,6 +32,9 @@ export function isSanitySkillName(skillName: string): boolean {
  * Wykrywa oczekujące rozstrzygnięcia testów Poczytalności z wiadomości gracza.
  * Obsługuje rzuty z Tacki ([🎲 Test:...]), format systemowy [DICE_ROLL],
  * rzuty pojedyncze oraz zbiorcze wiadomości Duet (Hot Seat).
+ *
+ * Uwaga: Używamy numerowanych grup przechwytujących (match[N]) zamiast nazwanych (?<name>),
+ * ze względu na cel kompilacji ES2017 w tsconfig.json.
  */
 export function detectPendingSanityTestResolution(message: string): PendingSanityResolution[] {
   if (!message || typeof message !== 'string') return [];
@@ -40,18 +43,20 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
   const trimmed = message.trim();
 
   // 1. Tacka format: [🎲 Test: ...] lub [🎯 Test: ...]
-  // Np. [🎲 Test: Poczytalność (50%)]
-  // lub [🎲 Test: @Margaret Sullivan: Poczytalność (45%)]
-  const tackaRegex = /\[(?:🎲|🎯)?\s*Test:\s*(?:@(?<charName>[^:\n\]]+):\s*)?(?<skill>[^(\]\n]+)(?:\s*\((?<target>\d+)%\))?\](?<details>[\s\S]*?)(?=(?:\[(?:🎲|🎯)?\s*Test:|\[DICE_ROLL\]|$))/gi;
+  // match[1]: charName (@...)
+  // match[2]: skill
+  // match[3]: target (%)
+  // match[4]: details
+  const tackaRegex = /\[(?:🎲|🎯)?\s*Test:\s*(?:@([^:\n\]]+):\s*)?([^(\]\n]+)(?:\s*\((\d+)%\))?\]([\s\S]*?)(?=(?:\[(?:🎲|🎯)?\s*Test:|\[DICE_ROLL\]|$))/gi;
   let match: RegExpExecArray | null;
 
   while ((match = tackaRegex.exec(trimmed)) !== null) {
-    const rawSkill = match.groups?.skill?.trim() || '';
+    const rawSkill = match[2]?.trim() || '';
     if (!isSanitySkillName(rawSkill)) continue;
 
-    const charName = match.groups?.charName?.trim() || undefined;
-    const details = match.groups?.details || '';
-    const targetStr = match.groups?.target;
+    const charName = match[1]?.trim() || undefined;
+    const details = match[4] || '';
+    const targetStr = match[3];
     const target = targetStr ? parseInt(targetStr, 10) : undefined;
 
     let failed = false;
@@ -77,19 +82,21 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
   }
 
   // 2. Format [DICE_ROLL] (pojedynczy lub zbiorczy z Duet)
-  // Np. [DICE_ROLL] @Margaret Sullivan: test umiejętności "Poczytalność" (50%): wynik 75, PORAŻKA - PORAŻKA
-  // lub [DICE_ROLL] Edward Carnby wykonał test umiejętności "Poczytalność"...
-  // lub [DICE_ROLL] test umiejętności "Poczytalność" (50%): wynik 20, SUKCES - SUKCES
-  const diceRollRegex = /\[DICE_ROLL\]\s*(?:(?:@?(?<charName>[A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż.\s]+?)(?::|\s+wykonał)\s+)?)test\s+umiejętności\s+"(?<skill>[^"]+)"(?:\s*\((?<target>\d+)%\))?:\s*wynik\s*(?<total>\d+),\s*(?<outcome>[^\n]+)/gi;
+  // match[1]: charName
+  // match[2]: skill
+  // match[3]: target (%)
+  // match[4]: total
+  // match[5]: outcome
+  const diceRollRegex = /\[DICE_ROLL\]\s*(?:(?:@?([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż.\s]+?)(?::|\s+wykonał)\s+)?)test\s+umiejętności\s+"([^"]+)"(?:\s*\((\d+)%\))?:\s*wynik\s*(\d+),\s*([^\n]+)/gi;
 
   while ((match = diceRollRegex.exec(trimmed)) !== null) {
-    const rawSkill = match.groups?.skill?.trim() || '';
+    const rawSkill = match[2]?.trim() || '';
     if (!isSanitySkillName(rawSkill)) continue;
 
-    const charName = match.groups?.charName?.trim() || undefined;
-    const outcome = match.groups?.outcome || '';
-    const targetStr = match.groups?.target;
-    const totalStr = match.groups?.total;
+    const charName = match[1]?.trim() || undefined;
+    const outcome = match[5] || '';
+    const targetStr = match[3];
+    const totalStr = match[4];
     const target = targetStr ? parseInt(targetStr, 10) : undefined;
     const total = totalStr ? parseInt(totalStr, 10) : undefined;
 
@@ -128,15 +135,16 @@ export function detectPendingSanityTestResolution(message: string): PendingSanit
 
 /**
  * Sprawdza czy tekst zawiera już znacznik [SANITY: ...] (ogólny lub dla danej postaci).
+ * match[1]: who (@...)
  */
 export function hasSanityTagForCharacter(text: string, characterName?: string): boolean {
   if (!text) return false;
 
-  const sanityTagRegex = /\[SANITY:\s*(?:@(?<who>[^:\]]+?)\s*:\s*)?[+-]?\s*(?:\d+[dDkK]\d+(?:[+-]\d+)?|\d+)(?:\s*:[^\]]*)?\]/gi;
+  const sanityTagRegex = /\[SANITY:\s*(?:@([^:\]]+?)\s*:\s*)?[+-]?\s*(?:\d+[dDkK]\d+(?:[+-]\d+)?|\d+)(?:\s*:[^\]]*)?\]/gi;
   let match: RegExpExecArray | null;
 
   while ((match = sanityTagRegex.exec(text)) !== null) {
-    const who = match.groups?.who?.trim();
+    const who = match[1]?.trim();
     if (!characterName) {
       // W trybie jednoosobowym dowolny tag SANITY oznacza rozstrzygnięcie przez model
       return true;
