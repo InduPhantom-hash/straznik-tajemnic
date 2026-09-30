@@ -89,37 +89,70 @@ describe('Sound Director Service (Issue #162 + Issue #463)', () => {
     });
   });
 
-  describe('buildAudioDirection - Punktowa Modulacja Zdań (Issue #463)', () => {
-    it('rozpoznaje zdanie szeptu przy bezpośrednim szoku lub paraliżującym lęku', () => {
-      const direction = buildAudioDirection({
+  describe('buildAudioDirection - Wygładzanie Tempa i Histereza Sceny (Issue #561)', () => {
+    it('utrzymuje stabilny ton lektora (histereza) dla zdań ze słowami "mrok", "chłód", "dusi", "wstrzymujesz oddech", "zwłoki" w spokojnej/standardowej scenie', () => {
+      const calmContext = {
         san: 65,
         maxSan: 80,
-        mood: 'tajemniczy',
-        sentenceText: 'Wstrzymujesz oddech w absolutnej ciszy, czując jak coś przemyka tuż obok.',
+        mood: 'spokojny wieczór w gabinecie',
+      };
+
+      const d1 = buildAudioDirection({
+        ...calmContext,
+        sentenceText: 'Wchodzisz do gabinetu, gdzie panuje gęsty mrok i przejmujący chłód.',
       });
-      expect(direction).toContain('urgent, tense, and paranoid whisper');
-      expect(direction).toContain('cosmic dread');
+      const d2 = buildAudioDirection({
+        ...calmContext,
+        sentenceText: 'Wstrzymujesz oddech na palcach, czując jak zaduch dusi cię w gardle.',
+      });
+      const d3 = buildAudioDirection({
+        ...calmContext,
+        sentenceText: 'Na kamiennym stole leżą bezwładne zwłoki i pradawny symbol.',
+      });
+
+      expect(d1).toBe(d2);
+      expect(d2).toBe(d3);
+      expect(d1).toContain('calm, crisp, but subtly eerie and watchful tone');
+      expect(d1).not.toContain('paranoid whisper');
+      expect(d1).not.toContain('dark revelation');
     });
 
-    it('rozpoznaje zdanie zrywu akcji / starcia przy ucieczce i nagłym ataku', () => {
-      const direction = buildAudioDirection({
+    it('aktywuje tryb whisper wyłącznie przy krytycznym zdarzeniu regułowym (recentSanLoss >= 5 lub tag [SANITY: -5...])', () => {
+      const directionWithLoss = buildAudioDirection({
         san: 65,
         maxSan: 80,
         mood: 'tajemniczy',
+        recentSanLoss: 5,
+        sentenceText: 'Wstrzymujesz oddech w absolutnej ciszy.',
+      });
+      expect(directionWithLoss).toContain('urgent, tense, and paranoid whisper');
+      expect(directionWithLoss).toContain('cosmic dread');
+
+      const directionWithTag = buildAudioDirection({
+        san: 65,
+        maxSan: 80,
+        mood: 'tajemniczy',
+        sentenceText: '[SANITY: -6: potworny widok] Zasłona rzeczywistości pęka.',
+      });
+      expect(directionWithTag).toContain('urgent, tense, and paranoid whisper');
+    });
+
+    it('aktywuje tryb action wyłącznie dla scen walki/pościgu lub jawnych tagów bojowych', () => {
+      const directionCombatMood = buildAudioDirection({
+        san: 65,
+        maxSan: 80,
+        mood: 'starcie i pościg w dokach',
         sentenceText: 'Gwałtownie rzuca się na ciebie, a wystrzał rozbija szybę w oknie!',
       });
-      expect(direction).toContain('urgent and intense cadence');
-      expect(direction).toContain('sharp, punchy diction');
-    });
+      expect(directionCombatMood).toContain('intense, thrilling cadence');
 
-    it('rozpoznaje zdanie złowrogiej kulminacji i makabrycznego odkrycia', () => {
-      const direction = buildAudioDirection({
+      const directionCombatTag = buildAudioDirection({
         san: 65,
         maxSan: 80,
         mood: 'tajemniczy',
-        sentenceText: 'Na kamiennym stole leżą zmasakrowane zwłoki, a obok wyryto pradawny symbol.',
+        sentenceText: '[WALKA_ATAK: @Badacz: napastnik=Kultysta] Kultysta rzuca się z nożem!',
       });
-      expect(direction).toContain('measured, ominous, and deliberate voice of dark revelation');
+      expect(directionCombatTag).toContain('intense, thrilling cadence');
     });
 
     it('zwraca dynamiczny ton bazowy dla neutralnego opisu w mrocznej scenie', () => {
@@ -135,12 +168,22 @@ describe('Sound Director Service (Issue #162 + Issue #463)', () => {
     });
   });
 
-  describe('classifySentencePacing', () => {
-    it('klasyfikuje kategorie zdań zgodnie z dramatyzmem', () => {
-      expect(classifySentencePacing('Wstrzymujesz oddech na palcach.')).toBe('whisper');
-      expect(classifySentencePacing('Kultysta nagle rzuca się z nożem!')).toBe('action');
-      expect(classifySentencePacing('Odkrywasz rozczłonkowane ciało badacza.')).toBe('revelation');
+  describe('classifySentencePacing (Issue #561)', () => {
+    it('nie wywraca tempa (zwraca baseline) dla pojedynczych słów prozy bez zdarzenia regułowego', () => {
+      expect(classifySentencePacing('W pokoju panuje mrok, chłód i zaduch, który dusi.')).toBe('baseline');
+      expect(classifySentencePacing('Wstrzymujesz oddech na palcach.')).toBe('baseline');
+      expect(classifySentencePacing('Kultysta nagle rzuca się z nożem!')).toBe('baseline');
+      expect(classifySentencePacing('Odkrywasz rozczłonkowane ciało badacza.')).toBe('baseline');
       expect(classifySentencePacing('Przeglądasz rejestr gości hotelowych.')).toBe('baseline');
+    });
+
+    it('zwraca whisper i action wyłącznie dla krytycznych zdarzeń regułowych (SAN >= 5, walka/pościg)', () => {
+      expect(classifySentencePacing('Zwykłe zdanie przy szoku.', 5)).toBe('whisper');
+      expect(classifySentencePacing('[SANITY: -5: koszmar] Widzisz prawdę.')).toBe('whisper');
+      expect(classifySentencePacing('Ciemność.', undefined, { san: 15, maxSan: 80 })).toBe('whisper');
+      expect(classifySentencePacing('[WALKA: start] Kultysta atakuje!')).toBe('action');
+      expect(classifySentencePacing('[POŚCIG: start] Uciekasz uliczką!')).toBe('action');
+      expect(classifySentencePacing('Biegniesz przed siebie.', undefined, { mood: 'pościg w zaułku' })).toBe('action');
     });
   });
 
@@ -200,9 +243,12 @@ describe('Sound Director Service (Issue #162 + Issue #463)', () => {
       expect(extractMoodFromText('Zwykły opis bez tagu.')).toBeUndefined();
     });
 
-    it('wyciąga stratę SAN z tagu protokołu [SANITY: -X: powód]', () => {
+    it('wyciąga stratę SAN z tagu protokołu [SANITY: -X: powód], skróconego [SANITY: -X] oraz notacji kości [SANITY: -1d10: ...], ignorując dodatni odzysk SAN', () => {
       const text = '[SANITY: -6: widok rozczłonkowanych zwłok]\nŚciska cię w żołądku.';
       expect(extractSanLossFromText(text)).toBe(6);
+      expect(extractSanLossFromText('[SANITY: -5] Nagły szok.')).toBe(5);
+      expect(extractSanLossFromText('[SANITY: -1d10: manifestacja bestii]')).toBeGreaterThanOrEqual(5);
+      expect(extractSanLossFromText('[SANITY: +5: psychoterapia]')).toBeUndefined();
     });
 
     it('wyciąga stratę SAN z naturalnego opisu w języku polskim', () => {

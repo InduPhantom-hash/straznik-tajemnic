@@ -53,6 +53,10 @@ export function buildNarrativeStyleInstructions(
         '- **Creativity (BALANCED):** Stay grounded in the investigation while tastefully adapting to unexpected player actions.\n';
     }
 
+    // Sentence rhythm & audio pacing (Issue #561)
+    instructions +=
+      '- **Sentence Rhythm & Audio Cadence (BALANCED FLOW):** Balance sentence rhythm across descriptive prose so it flows smoothly for audiobook narration. Avoid extreme sentence-length contrasts (such as alternating one-word fragments with sprawling run-on sentences) within a single paragraph.\n';
+
     return instructions;
   }
 
@@ -95,5 +99,10 @@ export function buildNarrativeStyleInstructions(
       '- **Kreatywność (ZBALANSOWANA):** Zachowaj równowagę między wiernością śledztwu a naturalnym reagowaniem na nietypowe pomysły gracza.\n';
   }
 
+  // Sentence rhythm & audio pacing (Issue #561)
+  instructions +=
+    '- **Rytmika fraz i płynność lektora (ZRÓWNOWAŻONA KADENCJA):** Zrównoważ rytmikę fraz w prozie opisowej, aby tekst brzmiał naturalnie i płynnie w odczycie lektora audiobooka. Unikaj skrajnych kontrastów długości zdań (np. przeplatania jednowyrazowych równoważników z wielokrotnie złożonymi tasiemcami) w jednym akapicie.\n';
+
   return instructions;
 }
+
