@@ -91,9 +91,10 @@ export class GeminiChatProvider implements IChatProvider {
     this.modelId = modelId || DEFAULT_GEMINI_MODEL;
   }
 
-  async streamChat(
-    request: ChatCompletionRequest
-  ): Promise<StreamingChatResult> {
+  private buildRequestPayload(request: ChatCompletionRequest): {
+    config: Record<string, unknown>;
+    contents: Content[];
+  } {
     // IND-12 PR-B Faza 2: czytaj z geminiOptions z fallbackiem na deprecated top-level alias
     const opts = request.geminiOptions;
     const thinkingLevel = opts?.thinkingLevel ?? request.thinkingLevel;
@@ -241,6 +242,14 @@ export class GeminiChatProvider implements IChatProvider {
     });
 
     const contents: Content[] = [{ role: 'user', parts: userParts }];
+
+    return { config, contents };
+  }
+
+  async streamChat(
+    request: ChatCompletionRequest
+  ): Promise<StreamingChatResult> {
+    const { config, contents } = this.buildRequestPayload(request);
 
     // === Wywołanie SDK (IND-19: ai.models.generateContentStream zamiast model.generateContentStream) ===
     // Capture `ai`/`model` do zmiennych - generator (async function*) nie ma dostępu do `this`.
@@ -439,12 +448,88 @@ export class GeminiChatProvider implements IChatProvider {
   }
 
   async chat(request: ChatCompletionRequest): Promise<ChatResult> {
-    const { stream, getUsage } = await this.streamChat(request);
-    let text = '';
-    for await (const chunk of stream) {
-      text += chunk.text;
+    const { config, contents } = this.buildRequestPayload(request);
+    const ai = this.ai;
+    let activeModel = this.modelId;
+
+    const fallbackChain = Array.from(
+      new Set([
+        activeModel,
+        DEFAULT_GEMINI_MODEL_FALLBACK,
+        'gemini-3.1-flash-lite',
+        'gemini-flash-lite-latest',
+      ])
+    );
+
+    let response: GenerateContentResponse | undefined;
+    let lastError: unknown;
+
+    for (const candidate of fallbackChain) {
+      try {
+        if (candidate !== activeModel) {
+          console.warn(
+            `⚠️ Przełączam model na sprawdzony fallback "${candidate}"...`
+          );
+        }
+        activeModel = candidate;
+        response = await ai.models.generateContent({
+          model: activeModel,
+          contents,
+          config,
+        });
+        break;
+      } catch (err: unknown) {
+        lastError = err;
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isRateLimit =
+          errMsg.includes('429') ||
+          errMsg.includes('RESOURCE_EXHAUSTED') ||
+          errMsg.includes('quota') ||
+          errMsg.includes('Quota exceeded');
+
+        const isUnavailable =
+          errMsg.includes('404') ||
+          errMsg.includes('not found') ||
+          errMsg.includes('no longer available') ||
+          errMsg.includes('503') ||
+          errMsg.includes('high demand') ||
+          errMsg.includes('UNAVAILABLE') ||
+          isRateLimit;
+
+        if (!isUnavailable) {
+          throw err;
+        }
+
+        if (isRateLimit) {
+          console.warn(
+            `⚠️ Model "${candidate}" zgłosił rate-limit 429 (${errMsg}). Oczekiwanie 1500ms i próba alternatywnego modelu w kaskadzie...`
+          );
+          await new Promise((r) => setTimeout(r, 1500));
+        } else {
+          console.warn(
+            `⚠️ Model "${candidate}" niedostępny (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
+          );
+        }
+      }
     }
-    return { text, usage: await getUsage() };
+
+    if (!response) {
+      throw lastError || new Error('Wszystkie modele w kaskadzie awaryjnej zawiodły');
+    }
+
+    const text = response.text || '';
+    const lastUsage = response.usageMetadata;
+    const usage: CompletionUsage | null = lastUsage
+      ? {
+          totalTokens: lastUsage.totalTokenCount || 0,
+          promptTokens: lastUsage.promptTokenCount,
+          completionTokens: lastUsage.candidatesTokenCount,
+          cachedTokens: lastUsage.cachedContentTokenCount ?? 0,
+          model: activeModel,
+        }
+      : null;
+
+    return { text, usage };
   }
 
   async testConnection(): Promise<{ success: boolean; error?: string }> {
