@@ -173,14 +173,14 @@ export function DocumentViewer({
       }`}
     >
       {/* Pasek nagłówka dokumentu */}
-      <div className="flex items-center justify-between border-b border-brass/25 bg-[#181410] px-3.5 py-2">
+      <div className="flex items-center justify-between border-b border-primary/30 bg-[#0f1715] px-3.5 py-2">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-brass" />
-          <span className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-amber-200 truncate max-w-[280px]">
+          <FileText className="h-4 w-4 text-primary" />
+          <span className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-foreground truncate max-w-[280px]">
             {title || t('defaultTitle')}
           </span>
           {docTypeLabel && (
-            <span className="inline-flex items-center text-[10px] font-mono uppercase bg-brass/10 text-brass border border-brass/30 px-1.5 py-0.5 rounded">
+            <span className="inline-flex items-center text-[10px] font-mono uppercase bg-primary/15 text-primary border border-primary/40 px-1.5 py-0.5 rounded">
               {docTypeLabel}
             </span>
           )}
@@ -189,7 +189,7 @@ export function DocumentViewer({
         {/* Przełącznik filtru starzenia papieru */}
         <div className="flex items-center gap-1 text-[11px] font-mono">
           <span className="text-muted-foreground mr-1 hidden sm:inline-flex items-center gap-1">
-            <Sliders className="h-3 w-3 text-brass/70" />
+            <Sliders className="h-3 w-3 text-primary/80" />
             {t('filterLabel')}:
           </span>
           <button
@@ -197,7 +197,7 @@ export function DocumentViewer({
             onClick={() => setFilter('none')}
             className={`px-2 py-0.5 rounded transition-all ${
               filter === 'none'
-                ? 'bg-brass/25 text-amber-200 border border-brass/50'
+                ? 'bg-primary/20 text-primary border border-primary/50 shadow-glow'
                 : 'text-muted-foreground hover:text-brass'
             }`}
             title={t('filterNoneTitle')}
@@ -209,7 +209,7 @@ export function DocumentViewer({
             onClick={() => setFilter('vintage-1920')}
             className={`px-2 py-0.5 rounded transition-all ${
               filter === 'vintage-1920'
-                ? 'bg-amber-950/60 text-amber-300 border border-amber-500/50'
+                ? 'bg-primary/20 text-primary border border-primary/50 shadow-glow'
                 : 'text-muted-foreground hover:text-brass'
             }`}
             title={t('filterVintageTitle')}
@@ -221,7 +221,7 @@ export function DocumentViewer({
             onClick={() => setFilter('prl-1970')}
             className={`px-2 py-0.5 rounded transition-all ${
               filter === 'prl-1970'
-                ? 'bg-stone-800 text-stone-200 border border-stone-500/50'
+                ? 'bg-primary/20 text-primary border border-primary/50 shadow-glow'
                 : 'text-muted-foreground hover:text-brass'
             }`}
             title={t('filterPrlTitle')}
@@ -234,7 +234,7 @@ export function DocumentViewer({
       {/* Kontener podglądu OpenSeadragon */}
       <div className="relative flex-1 min-h-[360px] bg-[#0c0a08] overflow-hidden">
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0c0a08]/80 text-brass font-special-elite text-xs uppercase tracking-widest animate-pulse">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0c0a08]/80 text-primary font-special-elite text-xs uppercase tracking-widest animate-pulse">
             {t('loadingDocument')}
           </div>
         )}
@@ -245,11 +245,11 @@ export function DocumentViewer({
         />
 
         {/* Diegetyczny pasek narzędzi (Lupka & Rotacja) w rogu widoku */}
-        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 bg-[#16130f]/90 border border-brass/35 p-1 rounded backdrop-blur-sm shadow-xl">
+        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 bg-[#0f1715]/90 border border-primary/40 p-1 rounded backdrop-blur-sm shadow-xl">
           <button
             type="button"
             onClick={handleZoomIn}
-            className="p-1.5 text-brass/85 hover:text-amber-200 hover:bg-brass/15 rounded transition-colors"
+            className="p-1.5 text-brass/85 hover:text-primary hover:bg-primary/15 rounded transition-colors"
             title={t('zoomIn')}
             aria-label={t('zoomIn')}
           >
@@ -258,7 +258,7 @@ export function DocumentViewer({
           <button
             type="button"
             onClick={handleZoomOut}
-            className="p-1.5 text-brass/85 hover:text-amber-200 hover:bg-brass/15 rounded transition-colors"
+            className="p-1.5 text-brass/85 hover:text-primary hover:bg-primary/15 rounded transition-colors"
             title={t('zoomOut')}
             aria-label={t('zoomOut')}
           >
@@ -267,7 +267,7 @@ export function DocumentViewer({
           <button
             type="button"
             onClick={handleRotate}
-            className="p-1.5 text-brass/85 hover:text-amber-200 hover:bg-brass/15 rounded transition-colors"
+            className="p-1.5 text-brass/85 hover:text-primary hover:bg-primary/15 rounded transition-colors"
             title={t('rotate')}
             aria-label={t('rotate')}
           >
@@ -276,17 +276,21 @@ export function DocumentViewer({
           <button
             type="button"
             onClick={handleReset}
-            className="p-1.5 text-brass/85 hover:text-amber-200 hover:bg-brass/15 rounded transition-colors"
+            className="p-1.5 text-brass/85 hover:text-primary hover:bg-primary/15 rounded transition-colors"
             title={t('resetView')}
             aria-label={t('resetView')}
           >
             <RotateCcw className="h-4 w-4" />
           </button>
-          <div className="h-4 w-px bg-brass/25 my-auto" />
+          <div className="h-4 w-px bg-primary/30 my-auto" />
           <button
             type="button"
             onClick={() => setIsFullscreen((prev) => !prev)}
-            className="p-1.5 text-brass/85 hover:text-amber-200 hover:bg-brass/15 rounded transition-colors"
+            className={`p-1.5 rounded transition-colors ${
+              isFullscreen
+                ? 'text-primary bg-primary/20'
+                : 'text-brass/85 hover:text-primary hover:bg-primary/15'
+            }`}
             title={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
             aria-label={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
           >
@@ -299,8 +303,8 @@ export function DocumentViewer({
         </div>
 
         {/* Diegetyczny badge wskazówki */}
-        <div className="absolute top-3 left-3 pointer-events-none z-10 flex items-center gap-1 text-[11px] font-serif italic text-amber-200/70 bg-black/40 px-2 py-0.5 rounded border border-brass/20">
-          <Sparkles className="h-3 w-3 text-amber-400" />
+        <div className="absolute top-3 left-3 pointer-events-none z-10 flex items-center gap-1 text-[11px] font-serif italic text-foreground/80 bg-[#0f1715]/80 px-2 py-0.5 rounded border border-primary/30">
+          <Sparkles className="h-3 w-3 text-primary" />
           <span>{t('investigateHint')}</span>
         </div>
       </div>

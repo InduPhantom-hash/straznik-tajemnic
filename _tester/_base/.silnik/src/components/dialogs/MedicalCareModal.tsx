@@ -123,6 +123,9 @@ export function MedicalCareModal({
                 <HeartPulse className="h-6 w-6 text-[#d9685f]" />
               </div>
               <div>
+                <div className="font-special-elite text-[11px] uppercase tracking-[0.35em] text-primary mb-0.5">
+                  MISKATONIC ARCHIVES • 1920s
+                </div>
                 <DialogTitle className="font-special-elite text-2xl text-brass tracking-wider">
                   {t('title')}
                 </DialogTitle>
@@ -191,21 +194,21 @@ export function MedicalCareModal({
           <TabsList className="grid grid-cols-3 bg-[#1f1a14] border border-brass/30 mb-4">
             <TabsTrigger
               value="recovery"
-              className="font-special-elite tracking-wider data-[state=active]:bg-brass/20 data-[state=active]:text-brass"
+              className="font-special-elite tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-glow"
             >
               <Clock className="h-4 w-4 mr-2" />
               {t('tabs.recovery')}
             </TabsTrigger>
             <TabsTrigger
               value="facilities"
-              className="font-special-elite tracking-wider data-[state=active]:bg-brass/20 data-[state=active]:text-brass"
+              className="font-special-elite tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-glow"
             >
               <Building2 className="h-4 w-4 mr-2" />
               {t('tabs.facilities')}
             </TabsTrigger>
             <TabsTrigger
               value="treatments"
-              className="font-special-elite tracking-wider data-[state=active]:bg-brass/20 data-[state=active]:text-brass"
+              className="font-special-elite tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-glow"
             >
               <Bandage className="h-4 w-4 mr-2" />
               {t('tabs.treatments')}
@@ -216,7 +219,7 @@ export function MedicalCareModal({
           <TabsContent value="recovery" className="space-y-4 font-sans">
             <div className="p-4 bg-[#1a1510] border border-brass/20 rounded space-y-4">
               <h3 className="font-special-elite text-brass text-lg flex items-center gap-2">
-                <Clock className="h-5 w-5 text-brass" />
+                <Clock className="h-5 w-5 text-primary" />
                 {t('recoverySectionTitle')}
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -237,7 +240,7 @@ export function MedicalCareModal({
                       onClick={() => setSelectedPeriod(p)}
                       className={
                         selectedPeriod === p
-                          ? 'bg-brass text-[#16130f] font-special-elite border-brass'
+                          ? 'bg-primary/20 text-primary font-special-elite border border-primary shadow-glow'
                           : 'border-brass/30 text-brass/80 hover:bg-brass/10 font-special-elite'
                       }
                     >
@@ -261,12 +264,14 @@ export function MedicalCareModal({
                         onClick={() => setSelectedFacility(fac)}
                         className={`p-3 border rounded cursor-pointer transition-colors ${
                           selectedFacility === fac
-                            ? 'bg-brass/15 border-brass text-foreground'
+                            ? 'border-primary bg-[#0f1715] text-foreground shadow-glow'
                             : 'bg-[#1f1a14] border-brass/20 hover:border-brass/40 text-muted-foreground'
                         }`}
                       >
                         <div className="flex justify-between items-center mb-1">
-                          <span className="font-special-elite text-sm text-brass">{t(`facilityNames.${fac}`)}</span>
+                          <span className={`font-special-elite text-sm ${selectedFacility === fac ? 'text-primary' : 'text-brass'}`}>
+                            {t(`facilityNames.${fac}`)}
+                          </span>
                           <span className="text-xs text-muted-foreground font-special-elite">
                             {cost > 0 ? `$${cost}/tydz.` : t('costFree')}
                           </span>
@@ -282,7 +287,7 @@ export function MedicalCareModal({
                 <Button
                   onClick={handleExecuteTimeSkip}
                   disabled={isCombatOrChaseActive || isDiceAnimating}
-                  className="w-full bg-[#7a221d] hover:bg-[#b3322c] text-white font-special-elite tracking-wider py-2"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-special-elite tracking-wider py-2 shadow-glow"
                 >
                   <HeartPulse className="h-4 w-4 mr-2" />
                   {t('actionExecuteRecovery')}
@@ -292,28 +297,40 @@ export function MedicalCareModal({
 
             {/* Time Skip Results Display */}
             {timeSkipResult && (
-              <div className="p-4 bg-[#1f1a14] border-2 border-brass/40 rounded space-y-3">
+              <div className="p-4 bg-[#1f1a14] border-2 border-primary/40 rounded space-y-3">
                 <div className="flex items-center justify-between border-b border-brass/20 pb-2">
-                  <h4 className="font-special-elite text-brass text-base flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <h4 className="font-special-elite text-primary text-base flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
                     {t('recoveryResultsTitle')}
                   </h4>
-                  <span className="font-special-elite text-xs text-brass tracking-wider">
-                    {t('periodAdvanced')}: {timeSkipResult.daysAdvanced} dni
-                  </span>
+                  <div className="flex items-center gap-2 font-special-elite text-xs tracking-wider">
+                    {timeSkipResult.hpGained > 0 && (
+                      <span className="text-primary bg-primary/15 border border-primary/40 px-2 py-0.5 rounded">
+                        +{timeSkipResult.hpGained} PŻ
+                      </span>
+                    )}
+                    {timeSkipResult.hpLost > 0 && (
+                      <span className="text-destructive bg-destructive/15 border border-destructive/40 px-2 py-0.5 rounded">
+                        -{timeSkipResult.hpLost} PŻ
+                      </span>
+                    )}
+                    <span className="text-brass">
+                      {t('periodAdvanced')}: {timeSkipResult.daysAdvanced} dni
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-sm font-sans">{timeSkipResult.narrativeSummary.pl}</p>
 
                 {timeSkipResult.wasMajorWoundCleared && (
-                  <div className="p-3 bg-green-950/30 border border-green-700/50 rounded flex items-center gap-3">
-                    <Sparkles className="h-6 w-6 text-green-400 shrink-0" />
+                  <div className="p-3 bg-primary/10 border border-primary/50 rounded flex items-center gap-3">
+                    <Sparkles className="h-6 w-6 text-primary shrink-0" />
                     <div className="text-xs">
-                      <p className="font-special-elite text-green-400 text-sm">
+                      <p className="font-special-elite text-primary text-sm">
                         {t('majorWoundHealedBanner')}
                       </p>
                       {timeSkipResult.newScar && (
-                        <p className="text-green-200 mt-0.5">
+                        <p className="text-emerald-200 mt-0.5">
                           {t('scarAcquired')}: <strong>{timeSkipResult.newScar.descriptionPl}</strong>
                         </p>
                       )}
@@ -338,7 +355,7 @@ export function MedicalCareModal({
                           </div>
                           <span
                             className={`font-special-elite shrink-0 ml-2 ${
-                              log.hpDelta > 0 ? 'text-green-400' : log.hpDelta < 0 ? 'text-red-400' : 'text-muted-foreground'
+                              log.hpDelta > 0 ? 'text-primary' : log.hpDelta < 0 ? 'text-destructive' : 'text-muted-foreground'
                             }`}
                           >
                             {log.hpDelta > 0 ? `+${log.hpDelta}` : log.hpDelta} PŻ
@@ -357,7 +374,7 @@ export function MedicalCareModal({
             <div className="space-y-3">
               <div className="p-3 bg-[#1f1a14] border border-brass/20 rounded">
                 <div className="flex items-center gap-2 text-brass font-special-elite text-base mb-1">
-                  <Building2 className="h-4 w-4" />
+                  <Building2 className="h-4 w-4 text-primary" />
                   <span>Miejski Szpital Ogólny (General Hospital)</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -367,7 +384,7 @@ export function MedicalCareModal({
 
               <div className="p-3 bg-[#1f1a14] border border-brass/20 rounded">
                 <div className="flex items-center gap-2 text-brass font-special-elite text-base mb-1">
-                  <Sparkles className="h-4 w-4 text-brass" />
+                  <Sparkles className="h-4 w-4 text-primary" />
                   <span>Prywatna Klinika dr. Pennhallowa (Dr. Pennhallow’s Sanitarium)</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -377,7 +394,7 @@ export function MedicalCareModal({
 
               <div className="p-3 bg-[#1f1a14] border border-brass/20 rounded">
                 <div className="flex items-center gap-2 text-brass font-special-elite text-base mb-1">
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4 text-brass" />
                   <span>{t('scarsJournalTitle')}</span>
                 </div>
                 {character.scars && character.scars.length > 0 ? (
@@ -403,28 +420,47 @@ export function MedicalCareModal({
               {/* First Aid card */}
               <div className="p-4 bg-[#1f1a14] border border-brass/20 rounded space-y-3">
                 <div className="flex items-center gap-2 text-brass font-special-elite text-base">
-                  <Bandage className="h-5 w-5 text-[#d9685f]" />
+                  <Bandage className="h-5 w-5 text-primary" />
                   <span>{t('treatmentsFirstAidTitle')}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Doraźne opatrzenie świeżej rany w terenie (d100 Weird Fiction s. 122). Przywraca dokładnie <strong>1 PŻ</strong> oraz stabilizuje umierającego badacza.
                 </p>
-                <div className="text-xs font-special-elite text-brass">
+                <div className="text-xs font-special-elite text-primary">
                   {t('skillValue')}: {firstAidSkill}%
                 </div>
                 <Button
                   onClick={handleFirstAid}
                   disabled={isCombatOrChaseActive || isDiceAnimating}
-                  variant="outline"
-                  className="w-full border-brass/40 text-brass hover:bg-brass/20 font-special-elite"
+                  variant="default"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border border-primary font-special-elite shadow-glow"
                 >
                   {t('actionRollFirstAid')}
                 </Button>
                 {firstAidResult && (
-                  <div className="p-2 bg-[#16130f] border border-brass/20 rounded text-xs space-y-1">
-                    <div className="flex justify-between font-special-elite text-brass">
+                  <div
+                    className={`p-2 bg-[#16130f] border rounded text-xs space-y-1 ${
+                      firstAidResult.success
+                        ? 'border-primary/30'
+                        : firstAidResult.outcome === 'fumble'
+                          ? 'border-destructive/40'
+                          : 'border-brass/20'
+                    }`}
+                  >
+                    <div
+                      className={`flex justify-between font-special-elite ${
+                        firstAidResult.success
+                          ? 'text-primary'
+                          : firstAidResult.outcome === 'fumble'
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                      }`}
+                    >
                       <span>Rzut: {firstAidResult.roll} vs {firstAidResult.targetSkill}</span>
-                      <span>{firstAidResult.outcome.toUpperCase()}</span>
+                      <span>
+                        {firstAidResult.outcome.toUpperCase()}
+                        {firstAidResult.hpGained > 0 ? ` (+${firstAidResult.hpGained} PŻ)` : ''}
+                      </span>
                     </div>
                     <PhysicalDiceScene dice={traceForD100(firstAidResult.roll, 'first-aid').dice} rolling={isDiceAnimating} label="d100" />
                     <p className="text-muted-foreground">{firstAidResult.narrativeSummary.pl}</p>
@@ -435,28 +471,47 @@ export function MedicalCareModal({
               {/* Medicine card */}
               <div className="p-4 bg-[#1f1a14] border border-brass/20 rounded space-y-3">
                 <div className="flex items-center gap-2 text-brass font-special-elite text-base">
-                  <Stethoscope className="h-5 w-5 text-brass" />
+                  <Stethoscope className="h-5 w-5 text-primary" />
                   <span>{t('treatmentsMedicineTitle')}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Zabieg chirurgiczny lub podanie medykamentów trwający 1 pełną godzinę. Przywraca <strong>1k3 PŻ</strong> (lub 2k3 przy sukcesie ekstremalnym).
                 </p>
-                <div className="text-xs font-special-elite text-brass">
+                <div className="text-xs font-special-elite text-primary">
                   {t('skillValue')}: {medicineSkill}%
                 </div>
                 <Button
                   onClick={handleMedicine}
-                  disabled={isCombatOrChaseActive}
-                  variant="outline"
-                  className="w-full border-brass/40 text-brass hover:bg-brass/20 font-special-elite"
+                  disabled={isCombatOrChaseActive || isDiceAnimating}
+                  variant="default"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border border-primary font-special-elite shadow-glow"
                 >
                   {t('actionRollMedicine')}
                 </Button>
                 {medicineResult && (
-                  <div className="p-2 bg-[#16130f] border border-brass/20 rounded text-xs space-y-1">
-                    <div className="flex justify-between font-special-elite text-brass">
+                  <div
+                    className={`p-2 bg-[#16130f] border rounded text-xs space-y-1 ${
+                      medicineResult.success
+                        ? 'border-primary/30'
+                        : medicineResult.outcome === 'fumble'
+                          ? 'border-destructive/40'
+                          : 'border-brass/20'
+                    }`}
+                  >
+                    <div
+                      className={`flex justify-between font-special-elite ${
+                        medicineResult.success
+                          ? 'text-primary'
+                          : medicineResult.outcome === 'fumble'
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                      }`}
+                    >
                       <span>Rzut: {medicineResult.roll} vs {medicineResult.targetSkill}</span>
-                      <span>{medicineResult.outcome.toUpperCase()}</span>
+                      <span>
+                        {medicineResult.outcome.toUpperCase()}
+                        {medicineResult.hpGained > 0 ? ` (+${medicineResult.hpGained} PŻ)` : ''}
+                      </span>
                     </div>
                     <PhysicalDiceScene dice={traceForD100(medicineResult.roll, 'medicine').dice} rolling={isDiceAnimating} label="d100" />
                     <p className="text-muted-foreground">{medicineResult.narrativeSummary.pl}</p>

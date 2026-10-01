@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { BookOpen, Compass, Scroll, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../ui/dialog';
 import { AppGuideTab } from './tabs/AppGuideTab';
 import { RoleplayGuideTab } from './tabs/RoleplayGuideTab';
 import { LovecraftLoreTab } from './tabs/LovecraftLoreTab';
@@ -59,12 +59,15 @@ export function CompendiumModal({
               📜
             </span>
             <div>
+              <div className="font-special-elite text-[11px] uppercase tracking-[0.35em] text-primary mb-0.5">
+                MISKATONIC ARCHIVES • 1920s
+              </div>
               <DialogTitle className="text-lg font-serif font-bold text-brass tracking-wider uppercase">
                 {t('title')}
               </DialogTitle>
-              <p className="text-xs font-courier-prime text-muted-foreground">
+              <DialogDescription className="text-xs font-courier-prime text-muted-foreground">
                 {t('subtitle')}
-              </p>
+              </DialogDescription>
             </div>
           </div>
 
@@ -89,11 +92,11 @@ export function CompendiumModal({
             onClick={() => setActiveTab('APP_GUIDE')}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-serif font-bold tracking-wide border-b-2 transition-all whitespace-nowrap rounded-t-sm ${
               activeTab === 'APP_GUIDE'
-                ? 'border-brass text-brass bg-brass/10 shadow-[inset_0_-2px_0_theme(colors.brass)]'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-brass/5'
+                ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-glow'
+                : 'border-transparent text-muted-foreground hover:text-brass hover:bg-brass/5'
             }`}
           >
-            <Compass className="w-4 h-4 text-brass" />
+            <Compass className={`w-4 h-4 ${activeTab === 'APP_GUIDE' ? 'text-primary' : 'text-brass'}`} />
             {t('tabAppGuide')}
           </button>
 
@@ -102,11 +105,11 @@ export function CompendiumModal({
             onClick={() => setActiveTab('ROLEPLAY_GUIDE')}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-serif font-bold tracking-wide border-b-2 transition-all whitespace-nowrap rounded-t-sm ${
               activeTab === 'ROLEPLAY_GUIDE'
-                ? 'border-brass text-brass bg-brass/10 shadow-[inset_0_-2px_0_theme(colors.brass)]'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-brass/5'
+                ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-glow'
+                : 'border-transparent text-muted-foreground hover:text-brass hover:bg-brass/5'
             }`}
           >
-            <BookOpen className="w-4 h-4 text-brass" />
+            <BookOpen className={`w-4 h-4 ${activeTab === 'ROLEPLAY_GUIDE' ? 'text-primary' : 'text-brass'}`} />
             {t('tabRoleplayGuide')}
           </button>
 
@@ -115,11 +118,11 @@ export function CompendiumModal({
             onClick={() => setActiveTab('LORE_ENCYCLOPEDIA')}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-serif font-bold tracking-wide border-b-2 transition-all whitespace-nowrap rounded-t-sm ${
               activeTab === 'LORE_ENCYCLOPEDIA'
-                ? 'border-brass text-brass bg-brass/10 shadow-[inset_0_-2px_0_theme(colors.brass)]'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-brass/5'
+                ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-glow'
+                : 'border-transparent text-muted-foreground hover:text-brass hover:bg-brass/5'
             }`}
           >
-            <Scroll className="w-4 h-4 text-brass" />
+            <Scroll className={`w-4 h-4 ${activeTab === 'LORE_ENCYCLOPEDIA' ? 'text-primary' : 'text-brass'}`} />
             {t('tabLoreEncyclopedia')}
           </button>
         </nav>

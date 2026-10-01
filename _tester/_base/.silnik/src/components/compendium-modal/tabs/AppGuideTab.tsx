@@ -166,26 +166,26 @@ export function AppGuideTab() {
               onClick={() => setActiveModule(mod.id)}
               className={`p-3 rounded-md border text-left flex flex-col justify-between transition-all group relative overflow-hidden ${
                 isSelected
-                  ? 'border-brass bg-brass/15 shadow-[0_0_15px_rgba(184,134,11,0.2)]'
+                  ? 'border-primary bg-[#0f1715] shadow-glow'
                   : 'border-border bg-card/50 hover:border-brass/50 hover:bg-card/90'
               }`}
             >
               <div className="flex items-center justify-between w-full mb-2">
                 <Icon
                   className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-                    isSelected ? 'text-brass' : 'text-muted-foreground group-hover:text-brass'
+                    isSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-brass'
                   }`}
                 />
                 <ChevronRight
                   className={`w-3.5 h-3.5 transition-transform ${
-                    isSelected ? 'text-brass rotate-90' : 'text-muted-foreground/40'
+                    isSelected ? 'text-primary rotate-90' : 'text-muted-foreground/40'
                   }`}
                 />
               </div>
               <div>
                 <h4
                   className={`text-xs font-serif font-bold tracking-tight line-clamp-1 ${
-                    isSelected ? 'text-brass' : 'text-foreground'
+                    isSelected ? 'text-primary' : 'text-foreground'
                   }`}
                 >
                   {mod.title}
@@ -203,7 +203,7 @@ export function AppGuideTab() {
       <div className="p-6 rounded-md border border-brass/40 bg-card/80 space-y-6 shadow-md relative">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-md bg-brass/20 border border-brass/40 text-brass">
+            <span className="p-2 rounded-md bg-primary/20 border border-primary/40 text-primary">
               <Sparkles className="w-5 h-5" />
             </span>
             <div>
@@ -215,7 +215,7 @@ export function AppGuideTab() {
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-courier-prime uppercase tracking-widest px-2.5 py-1 rounded bg-input/60 border border-border text-muted-foreground">
+          <span className="text-[11px] font-courier-prime uppercase tracking-widest px-2.5 py-1 rounded bg-primary/15 border border-primary/40 text-primary">
             {t('app_moduleTag')}
           </span>
         </div>
@@ -223,13 +223,13 @@ export function AppGuideTab() {
         {/* 3 Kroki Obsługi */}
         <div className="space-y-3">
           <h4 className="text-xs font-serif font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-brass" />
+            <CheckCircle2 className="w-4 h-4 text-primary" />
             {t('app_stepsHeader')}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="p-3.5 rounded bg-input/40 border border-border/80 space-y-1.5">
-              <div className="text-[11px] font-courier-prime font-bold text-brass">
+              <div className="text-[11px] font-courier-prime font-bold text-primary">
                 {t('app_step1Number')}
               </div>
               <p className="text-xs text-foreground/90 font-medium">
@@ -241,7 +241,7 @@ export function AppGuideTab() {
             </div>
 
             <div className="p-3.5 rounded bg-input/40 border border-border/80 space-y-1.5">
-              <div className="text-[11px] font-courier-prime font-bold text-brass">
+              <div className="text-[11px] font-courier-prime font-bold text-primary">
                 {t('app_step2Number')}
               </div>
               <p className="text-xs text-foreground/90 font-medium">
@@ -253,7 +253,7 @@ export function AppGuideTab() {
             </div>
 
             <div className="p-3.5 rounded bg-input/40 border border-border/80 space-y-1.5">
-              <div className="text-[11px] font-courier-prime font-bold text-brass">
+              <div className="text-[11px] font-courier-prime font-bold text-primary">
                 {t('app_step3Number')}
               </div>
               <p className="text-xs text-foreground/90 font-medium">

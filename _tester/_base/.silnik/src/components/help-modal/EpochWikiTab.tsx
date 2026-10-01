@@ -39,8 +39,8 @@ export function EpochWikiTab() {
         if (!res.ok) throw new Error(t('dataNotFoundError'));
         return res.json();
       })
-      .then((data: WikiEntry[] | { entries: WikiEntry[] }) => {
-        const nextEntries = Array.isArray(data) ? data : data.entries;
+      .then((data: WikiEntry[] | { entries?: WikiEntry[] }) => {
+        const nextEntries = Array.isArray(data) ? data : (data?.entries ?? []);
         setEntries(nextEntries);
         setActiveEntry(nextEntries.length > 0 ? nextEntries[0] : null);
         setSelectedCategory('ALL');
@@ -89,7 +89,7 @@ export function EpochWikiTab() {
             onClick={() => setCurrentDataset('lovecraft-mythos')}
             className={`px-3 py-1.5 rounded text-xs font-serif transition-colors ${
               currentDataset === 'lovecraft-mythos'
-                ? 'bg-brass/20 text-brass border border-brass/40 font-medium shadow'
+                ? 'bg-primary/20 text-primary border border-primary/50 font-medium shadow-glow'
                 : 'text-muted-foreground hover:text-foreground border border-transparent'
             }`}
           >
@@ -99,7 +99,7 @@ export function EpochWikiTab() {
             onClick={() => setCurrentDataset('pl-1990s-2000s')}
             className={`px-3 py-1.5 rounded text-xs font-serif transition-colors ${
               currentDataset === 'pl-1990s-2000s'
-                ? 'bg-brass/20 text-brass border border-brass/40 font-medium shadow'
+                ? 'bg-primary/20 text-primary border border-primary/50 font-medium shadow-glow'
                 : 'text-muted-foreground hover:text-foreground border border-transparent'
             }`}
           >
@@ -117,14 +117,14 @@ export function EpochWikiTab() {
             placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 bg-input border border-brass/30 rounded text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brass"
+            className="w-full px-3 py-2 bg-input border border-brass/30 rounded text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60"
           />
 
           {/* Filtr kategorii */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-3 py-2 bg-input border border-brass/30 rounded text-sm text-foreground focus:outline-none focus:border-brass text-xs"
+            className="w-full px-3 py-2 bg-input border border-brass/30 rounded text-sm text-foreground focus:outline-none focus:border-primary/60 text-xs"
           >
             <option value="ALL">{t('allCategories', { count: entries.length })}</option>
             {categories.map((cat) => (
@@ -147,7 +147,7 @@ export function EpochWikiTab() {
                   onClick={() => setActiveEntry(entry)}
                   className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                     activeEntry?.id === entry.id
-                      ? 'bg-brass/20 border border-brass/50 text-brass font-medium'
+                      ? 'bg-[#0f1715] border border-primary/50 text-primary font-medium shadow-glow'
                       : 'bg-input/40 hover:bg-input text-foreground/80'
                   }`}
                 >

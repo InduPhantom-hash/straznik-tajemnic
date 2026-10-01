@@ -276,7 +276,7 @@ export function EquipmentDetailDialog({
             <div className="flex flex-col min-h-0 flex-1 overflow-hidden p-6 md:p-8">
               <div className="flex items-center justify-between mb-4 border-b border-brass/20 pb-3 flex-none pr-14">
                 <div>
-                  <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-brass/70">
+                  <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">
                     {categoryLabel}
                   </div>
                   <h3 className="font-serif text-2xl md:text-3xl text-foreground mt-0.5">
@@ -286,7 +286,7 @@ export function EquipmentDetailDialog({
                 <button
                   type="button"
                   onClick={() => setIsExpanded(false)}
-                  className="flex items-center gap-2 text-xs font-special-elite text-brass border border-brass/40 bg-brass/10 hover:bg-brass/20 px-3 py-1.5 transition-colors cursor-pointer"
+                  className="flex items-center gap-2 text-xs font-special-elite text-primary border border-primary/50 bg-primary/10 hover:bg-primary/20 shadow-glow px-3 py-1.5 transition-colors cursor-pointer"
                 >
                   <Minimize2 className="w-4 h-4" />
                   <span>{t('collapseDocument')}</span>
@@ -346,7 +346,7 @@ export function EquipmentDetailDialog({
               <div className="flex-1 flex flex-col min-h-0 overflow-y-auto p-6 md:p-8 md:pl-6">
                 {/* Nagłówek: kategoria + nazwa */}
                 <div className="mb-4 pr-12">
-                  <div className="font-special-elite text-[10px] uppercase tracking-[0.3em] text-brass/70 mb-1.5">
+                  <div className="font-special-elite text-[10px] uppercase tracking-[0.3em] text-primary mb-1.5">
                     {categoryLabel}
                     {item.condition && (
                       <span className="ml-2 text-muted-foreground/60">
@@ -370,7 +370,11 @@ export function EquipmentDetailDialog({
 
                 {/* Audio diegetyczne (jeśli jest) */}
                 {item.audioUrl && (
-                  <div className="mb-4 p-3.5 bg-[#0d0a07] border border-brass/40 rounded-sm shadow-md">
+                  <div
+                    className={`mb-4 p-3.5 bg-[#0d0a07] border rounded-sm shadow-md transition-colors ${
+                      isAudioPlaying ? 'border-primary/60 shadow-glow' : 'border-brass/40'
+                    }`}
+                  >
                     <audio
                       ref={audioRef}
                       src={item.audioUrl}
@@ -378,8 +382,12 @@ export function EquipmentDetailDialog({
                       preload="none"
                     />
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs font-special-elite text-brass uppercase flex items-center gap-2">
-                        <Disc className={`w-4 h-4 text-brass ${isAudioPlaying ? 'animate-spin' : ''}`} />
+                      <div
+                        className={`text-xs font-special-elite uppercase flex items-center gap-2 ${
+                          isAudioPlaying ? 'text-primary' : 'text-brass'
+                        }`}
+                      >
+                        <Disc className={`w-4 h-4 ${isAudioPlaying ? 'text-primary animate-spin' : 'text-brass'}`} />
                         <span>{t('audioLabel')}</span>
                       </div>
                       <div className="text-[11px] font-mono text-brass/60">
@@ -396,7 +404,7 @@ export function EquipmentDetailDialog({
                           audioRef.current.currentTime = 0;
                           audioRef.current.play().then(() => setIsAudioPlaying(true)).catch(() => setIsAudioPlaying(false));
                         }}
-                        className="p-1.5 text-brass/70 hover:text-brass transition-colors rounded hover:bg-brass/10 cursor-pointer"
+                        className="p-1.5 text-brass/70 hover:text-primary transition-colors rounded hover:bg-primary/10 cursor-pointer"
                         title="Od początku"
                       >
                         <RotateCcw className="w-4 h-4" />
@@ -412,7 +420,11 @@ export function EquipmentDetailDialog({
                             audioRef.current.play().then(() => setIsAudioPlaying(true)).catch(() => setIsAudioPlaying(false));
                           }
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 py-1.5 px-3 text-xs font-special-elite bg-brass/20 hover:bg-brass/30 text-brass border border-brass/40 rounded-sm transition-all cursor-pointer active:scale-98 shadow"
+                        className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 text-xs font-special-elite rounded-sm transition-all cursor-pointer active:scale-98 shadow ${
+                          isAudioPlaying
+                            ? 'bg-primary/20 hover:bg-primary/30 text-primary border border-primary/50 shadow-glow'
+                            : 'bg-brass/20 hover:bg-brass/30 text-brass border border-brass/40'
+                        }`}
                       >
                         {isAudioPlaying ? (
                           <>
@@ -441,13 +453,13 @@ export function EquipmentDetailDialog({
                     {item.readableContent ? (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="font-special-elite text-xs uppercase tracking-wider text-brass">
+                          <span className="font-special-elite text-xs uppercase tracking-wider text-primary">
                             📜 {t('documentPreviewTitle')}
                           </span>
                           <button
                             type="button"
                             onClick={() => setIsExpanded(true)}
-                            className="flex items-center gap-1.5 text-xs text-brass/80 hover:text-brass transition-colors font-special-elite px-2 py-1 border border-brass/30 bg-brass/10 hover:bg-brass/20 cursor-pointer"
+                            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary transition-colors font-special-elite px-2.5 py-1 border border-primary/50 bg-primary/10 hover:bg-primary/20 shadow-glow cursor-pointer"
                             title={t('expandDocument')}
                           >
                             <Maximize2 className="w-3.5 h-3.5" />
@@ -464,7 +476,7 @@ export function EquipmentDetailDialog({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {errorMsg && (
-                          <div className="text-xs text-red-400 font-special-elite mb-1">
+                          <div className="text-xs text-destructive font-special-elite mb-1">
                             ⚠️ {errorMsg}
                           </div>
                         )}
@@ -472,8 +484,8 @@ export function EquipmentDetailDialog({
                           <Button
                             onClick={handleReadItem}
                             disabled={isGenerating}
-                            variant="outline"
-                            className="w-full justify-center bg-brass/10 border-brass/30 hover:bg-brass/20 text-brass uppercase font-special-elite tracking-wider text-xs"
+                            variant="default"
+                            className="w-full justify-center bg-primary hover:bg-primary/90 text-primary-foreground border border-primary shadow-glow uppercase font-special-elite tracking-wider text-xs"
                           >
                             {isGenerating ? (
                               <>

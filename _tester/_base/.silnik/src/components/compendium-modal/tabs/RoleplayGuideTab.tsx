@@ -106,7 +106,7 @@ export function RoleplayGuideTab() {
                 onClick={() => setActiveScenario(sc)}
                 className={`px-3 py-1 text-xs font-serif rounded transition-all ${
                   activeScenario === sc
-                    ? 'bg-brass/20 text-brass font-bold border border-brass/40 shadow-sm'
+                    ? 'bg-primary/20 text-primary font-bold border border-primary/50 shadow-glow'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -161,40 +161,40 @@ export function RoleplayGuideTab() {
           </div>
 
           {/* Kolumna 2: Styl Immersyjny */}
-          <div className="rounded-md border-2 border-brass/50 bg-brass/5 p-4 space-y-3 flex flex-col justify-between shadow-[0_0_20px_rgba(184,134,11,0.08)]">
+          <div className="rounded-md border-2 border-primary/50 bg-[#0f1715]/80 p-4 space-y-3 flex flex-col justify-between shadow-glow">
             <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-brass/30 pb-2">
-                <span className="text-xs font-serif font-bold text-brass uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
+              <div className="flex items-center justify-between border-b border-primary/30 pb-2">
+                <span className="text-xs font-serif font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
                   {t('rp_immersiveColumnHeader')}
                 </span>
-                <span className="text-[10px] font-courier-prime px-2 py-0.5 rounded bg-brass/20 text-brass font-bold border border-brass/30">
+                <span className="text-[10px] font-courier-prime px-2 py-0.5 rounded bg-primary/20 text-primary font-bold border border-primary/40">
                   {t('rp_immersiveBadge')}
                 </span>
               </div>
 
               {/* Wiadomość Gracza */}
               <div className="space-y-1">
-                <div className="text-[10px] font-courier-prime text-brass uppercase font-bold">
+                <div className="text-[10px] font-courier-prime text-primary uppercase font-bold">
                   {t('rp_playerPromptLabel')}
                 </div>
-                <div className="p-3 rounded bg-input/70 border border-brass/30 font-courier-prime text-xs text-foreground">
+                <div className="p-3 rounded bg-input/70 border border-primary/30 font-courier-prime text-xs text-foreground">
                   {t(`rp_scenario_${activeScenario}_immersivePrompt`)}
                 </div>
               </div>
 
               {/* Odpowiedź Strażnika */}
               <div className="space-y-1">
-                <div className="text-[10px] font-courier-prime text-brass uppercase font-bold">
+                <div className="text-[10px] font-courier-prime text-primary uppercase font-bold">
                   {t('rp_gmResponseLabel')}
                 </div>
-                <div className="p-3 rounded bg-card border border-brass/30 text-xs text-foreground/95 italic leading-relaxed">
+                <div className="p-3 rounded bg-card border border-primary/30 text-xs text-foreground/95 italic leading-relaxed">
                   {t(`rp_scenario_${activeScenario}_immersiveResponse`)}
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-brass/20 text-[11px] text-brass font-courier-prime font-medium">
+            <div className="pt-3 border-t border-primary/25 text-[11px] text-primary font-courier-prime font-medium">
               {t('rp_immersiveOutcomeNote')}
             </div>
           </div>
@@ -230,7 +230,7 @@ export function RoleplayGuideTab() {
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               {t('rp_whisperToolsDesc')}
             </p>
-            <div className="text-[10px] font-courier-prime text-brass/80 pt-1">
+            <div className="text-[10px] font-courier-prime text-primary/90 pt-1">
               {t('rp_whisperToolsTip')}
             </div>
           </div>
@@ -243,7 +243,7 @@ export function RoleplayGuideTab() {
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               {t('rp_whisperFlowDesc')}
             </p>
-            <div className="text-[10px] font-courier-prime text-brass/80 pt-1">
+            <div className="text-[10px] font-courier-prime text-primary/90 pt-1">
               {t('rp_whisperFlowTip')}
             </div>
           </div>
@@ -256,14 +256,14 @@ export function RoleplayGuideTab() {
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               {t('rp_nativeDictationDesc')}
             </p>
-            <div className="text-[10px] font-courier-prime text-brass/80 pt-1">
+            <div className="text-[10px] font-courier-prime text-primary/90 pt-1">
               {t('rp_nativeDictationTip')}
             </div>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-md bg-brass/10 border border-brass/30 flex items-start gap-3 text-xs">
-          <ArrowRight className="w-4 h-4 text-brass shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-md bg-primary/10 border border-primary/35 flex items-start gap-3 text-xs">
+          <ArrowRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <span className="text-foreground/90 font-sans leading-relaxed">
             {t('rp_voiceAdvantageSummary')}
           </span>

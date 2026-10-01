@@ -246,7 +246,7 @@ export function LovecraftLoreTab() {
             onClick={() => setSubTab('LORE')}
             className={`flex items-center gap-2 px-4 py-1.5 text-xs font-serif rounded-md transition-all ${
               subTab === 'LORE'
-                ? 'bg-brass/20 text-brass font-bold border border-brass/40 shadow-sm'
+                ? 'bg-primary/20 text-primary font-bold border border-primary/50 shadow-glow'
                 : 'bg-card text-muted-foreground hover:text-foreground border border-border'
             }`}
           >
@@ -259,7 +259,7 @@ export function LovecraftLoreTab() {
             onClick={() => setSubTab('RULES')}
             className={`flex items-center gap-2 px-4 py-1.5 text-xs font-serif rounded-md transition-all ${
               subTab === 'RULES'
-                ? 'bg-brass/20 text-brass font-bold border border-brass/40 shadow-sm'
+                ? 'bg-primary/20 text-primary font-bold border border-primary/50 shadow-glow'
                 : 'bg-card text-muted-foreground hover:text-foreground border border-border'
             }`}
           >
@@ -270,7 +270,7 @@ export function LovecraftLoreTab() {
 
         {/* Wskaźnik licencji / statusu */}
         <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-courier-prime text-muted-foreground">
-          <ShieldCheck className="w-3.5 h-3.5 text-brass" />
+          <ShieldCheck className="w-3.5 h-3.5 text-primary" />
           <span>{subTab === 'LORE' ? t('lore_openLicenseBadge') : t('lore_rawCoCBadge')}</span>
         </div>
       </div>
@@ -289,7 +289,7 @@ export function LovecraftLoreTab() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('lore_searchLorePlaceholder')}
-                className="w-full pl-9 pr-4 py-2 bg-input/40 border border-border rounded-md text-xs font-courier-prime text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-brass/50"
+                className="w-full pl-9 pr-4 py-2 bg-input/40 border border-border rounded-md text-xs font-courier-prime text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50"
               />
             </div>
 
@@ -297,7 +297,7 @@ export function LovecraftLoreTab() {
               value={activeCategory}
               onChange={(e) => setActiveCategory(e.target.value)}
               aria-label={t('lore_filterCategoryAria')}
-              className="px-3 py-2 bg-input/40 border border-border rounded-md text-xs font-serif text-foreground focus:outline-none focus:border-brass/50"
+              className="px-3 py-2 bg-input/40 border border-border rounded-md text-xs font-serif text-foreground focus:outline-none focus:border-primary/50"
             >
               <option value="ALL">{t('lore_categoryAll')}</option>
               {categories.map((cat) => (
@@ -328,7 +328,7 @@ export function LovecraftLoreTab() {
                     onClick={() => setActiveEntry(item)}
                     className={`w-full text-left p-2.5 rounded transition-all flex flex-col gap-0.5 ${
                       activeEntry?.id === item.id
-                        ? 'bg-brass/20 text-brass border-l-2 border-brass'
+                        ? 'bg-[#0f1715] text-primary border-l-2 border-primary'
                         : 'text-foreground/80 hover:bg-card hover:text-foreground'
                     }`}
                   >
@@ -348,7 +348,7 @@ export function LovecraftLoreTab() {
               {activeEntry ? (
                 <div className="space-y-4">
                   <div className="border-b border-border pb-3">
-                    <span className="text-[10px] font-courier-prime text-brass uppercase tracking-widest">
+                    <span className="text-[10px] font-courier-prime text-primary uppercase tracking-widest">
                       {activeEntry.categoryTitle}
                     </span>
                     <h3 className="text-lg font-serif font-bold text-brass mt-0.5">
@@ -378,7 +378,7 @@ export function LovecraftLoreTab() {
               {activeEntry && (
                 <div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 text-[10px] font-courier-prime text-muted-foreground">
                   <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-brass" />
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                     <span>
                       {t('lore_licenseLabel')}: {activeEntry.license || 'CC-BY-SA 3.0 / Public Domain'}
                     </span>
@@ -389,7 +389,7 @@ export function LovecraftLoreTab() {
                       href={activeEntry.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-brass hover:underline flex items-center gap-1"
+                      className="text-primary hover:underline flex items-center gap-1"
                     >
                       <span>{t('lore_sourceLinkLabel')}</span>
                       <ExternalLink className="w-3 h-3" />
@@ -410,7 +410,7 @@ export function LovecraftLoreTab() {
           {/* Stan wgranego podręcznika (Status RAG) */}
           <div className="p-4 rounded-md border border-border bg-card/60 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className={`p-2 rounded-md border ${hasUploadedPdf ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400' : 'bg-brass/10 border-brass/30 text-brass'}`}>
+              <span className={`p-2 rounded-md border ${hasUploadedPdf ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-brass/10 border-brass/30 text-brass'}`}>
                 {hasUploadedPdf ? <Bookmark className="w-4 h-4" /> : <FileQuestion className="w-4 h-4" />}
               </span>
               <div>
@@ -432,19 +432,19 @@ export function LovecraftLoreTab() {
           <form onSubmit={handleAskRag} className="space-y-3">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Terminal className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brass" />
+                <Terminal className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary" />
                 <input
                   type="text"
                   value={ragQuery}
                   onChange={(e) => setRagQuery(e.target.value)}
                   placeholder={t('lore_ragSearchPlaceholder')}
-                  className="w-full pl-9 pr-4 py-2.5 bg-input/50 border border-border rounded-md text-xs font-courier-prime text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-brass/60"
+                  className="w-full pl-9 pr-4 py-2.5 bg-input/50 border border-border rounded-md text-xs font-courier-prime text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isRagLoading || !ragQuery.trim()}
-                className="px-4 py-2.5 bg-brass/20 text-brass font-serif font-bold text-xs rounded-md border border-brass/40 hover:bg-brass/30 transition-all disabled:opacity-50"
+                className="px-4 py-2.5 bg-primary text-primary-foreground font-serif font-bold text-xs rounded-md border border-primary hover:bg-primary/90 shadow-glow transition-all disabled:opacity-50"
               >
                 {isRagLoading ? t('lore_ragSearchingBtn') : t('lore_ragSearchBtn')}
               </button>
@@ -452,9 +452,9 @@ export function LovecraftLoreTab() {
 
             {/* Wynik RAG (jeśli szukano) */}
             {ragAnswer && (
-              <div className="p-4 rounded-md border border-brass/40 bg-card/90 space-y-3 text-xs">
+              <div className="p-4 rounded-md border border-primary/40 bg-card/90 space-y-3 text-xs">
                 <div className="flex items-center justify-between border-b border-border pb-2">
-                  <span className="font-serif font-bold text-brass flex items-center gap-1.5">
+                  <span className="font-serif font-bold text-primary flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
                     {t('lore_ragAnswerHeader')}
                   </span>
@@ -476,7 +476,7 @@ export function LovecraftLoreTab() {
                   <div className="pt-2 border-t border-border/60 text-[10px] font-courier-prime text-muted-foreground flex flex-wrap gap-2">
                     <span>{t('lore_ragSourcesLabel')}:</span>
                     {ragSources.map((s, idx) => (
-                      <span key={idx} className="text-brass">
+                      <span key={idx} className="text-primary">
                         {s.term}
                       </span>
                     ))}
@@ -502,7 +502,7 @@ export function LovecraftLoreTab() {
                     onClick={() => setActiveRuleTopic(item.id)}
                     className={`w-full text-left p-2.5 rounded transition-all flex items-center justify-between ${
                       activeRuleTopic === item.id
-                        ? 'bg-brass/20 text-brass font-bold border border-brass/40'
+                        ? 'bg-[#0f1715] text-primary font-bold border border-primary/50'
                         : 'text-foreground/80 hover:bg-card'
                     }`}
                   >
@@ -520,7 +520,7 @@ export function LovecraftLoreTab() {
                   <h3 className="text-sm font-serif font-bold text-brass">
                     {selectedRule.title}
                   </h3>
-                  <span className="text-[10px] font-courier-prime px-2 py-0.5 rounded bg-input border border-border text-brass">
+                  <span className="text-[10px] font-courier-prime px-2 py-0.5 rounded bg-primary/15 border border-primary/40 text-primary">
                     {selectedRule.badge}
                   </span>
                 </div>

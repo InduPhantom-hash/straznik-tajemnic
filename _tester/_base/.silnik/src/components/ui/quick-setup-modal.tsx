@@ -106,7 +106,7 @@ export function QuickSetupModal({
           {/* Wybór trybu */}
           <div>
             <label className="block text-xs font-display uppercase tracking-[0.16em] text-brass mb-2 flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-gold" />
+              <Users className="w-3.5 h-3.5 text-primary" />
               {t('stepMode')}
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -115,22 +115,22 @@ export function QuickSetupModal({
                 onClick={() => { setPlayMode('solo'); setSelectedCharacter2(''); }}
                 className={`p-3.5 border text-left transition-all relative flex items-center gap-3.5 ${
                   playMode === 'solo'
-                    ? 'bg-gradient-to-br from-[#241d15] to-[#17130e] border-gold shadow-[0_0_20px_rgba(201,162,39,0.22)] text-foreground'
+                    ? 'border-primary bg-[#0f1715] shadow-glow text-foreground'
                     : 'bg-[#14100c]/90 border-brass/30 hover:border-brass/70 hover:bg-[#1a1510] text-muted-foreground'
                 }`}
               >
-                <span className="pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l border-brass/50" />
-                <span className="pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r border-brass/50" />
+                <span className={`pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l ${playMode === 'solo' ? 'border-primary' : 'border-brass/50'}`} />
+                <span className={`pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r ${playMode === 'solo' ? 'border-primary' : 'border-brass/50'}`} />
                 <div className={`p-2 border transition-colors ${
                   playMode === 'solo'
-                    ? 'border-gold/60 bg-gold/10 text-gold shadow-glow-brass'
+                    ? 'border-primary/60 bg-primary/15 text-primary shadow-glow'
                     : 'border-brass/30 bg-black/40 text-brass/70'
                 }`}>
                   <User className="w-5 h-5 shrink-0" />
                 </div>
                 <div>
                   <div className={`font-display text-xs uppercase tracking-[0.14em] font-semibold ${
-                    playMode === 'solo' ? 'text-gold' : 'text-foreground'
+                    playMode === 'solo' ? 'text-primary' : 'text-foreground'
                   }`}>{t('solo')}</div>
                   <div className="text-[10px] font-special-elite mt-0.5 opacity-80 tracking-wide">{t('soloDescription')}</div>
                 </div>
@@ -141,22 +141,22 @@ export function QuickSetupModal({
                 onClick={() => setPlayMode('hot-seat')}
                 className={`p-3.5 border text-left transition-all relative flex items-center gap-3.5 ${
                   playMode === 'hot-seat'
-                    ? 'bg-gradient-to-br from-[#241d15] to-[#17130e] border-gold shadow-[0_0_20px_rgba(201,162,39,0.22)] text-foreground'
+                    ? 'border-primary bg-[#0f1715] shadow-glow text-foreground'
                     : 'bg-[#14100c]/90 border-brass/30 hover:border-brass/70 hover:bg-[#1a1510] text-muted-foreground'
                 }`}
               >
-                <span className="pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l border-brass/50" />
-                <span className="pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r border-brass/50" />
+                <span className={`pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l ${playMode === 'hot-seat' ? 'border-primary' : 'border-brass/50'}`} />
+                <span className={`pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r ${playMode === 'hot-seat' ? 'border-primary' : 'border-brass/50'}`} />
                 <div className={`p-2 border transition-colors ${
                   playMode === 'hot-seat'
-                    ? 'border-gold/60 bg-gold/10 text-gold shadow-glow-brass'
+                    ? 'border-primary/60 bg-primary/15 text-primary shadow-glow'
                     : 'border-brass/30 bg-black/40 text-brass/70'
                 }`}>
                   <Users className="w-5 h-5 shrink-0" />
                 </div>
                 <div>
                   <div className={`font-display text-xs uppercase tracking-[0.14em] font-semibold ${
-                    playMode === 'hot-seat' ? 'text-gold' : 'text-foreground'
+                    playMode === 'hot-seat' ? 'text-primary' : 'text-foreground'
                   }`}>{t('hotSeat')}</div>
                   <div className="text-[10px] font-special-elite mt-0.5 opacity-80 tracking-wide">{t('hotSeatDescription')}</div>
                 </div>
@@ -167,7 +167,7 @@ export function QuickSetupModal({
           {/* Wybór scenariusza */}
           <div>
             <label className="block text-xs font-display uppercase tracking-[0.16em] text-brass mb-2 flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5 text-gold" />
+              <BookOpen className="w-3.5 h-3.5 text-primary" />
               {t('stepAdventure')}
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -179,15 +179,15 @@ export function QuickSetupModal({
                     onClick={() => setSelectedAdventureId(adv.id)}
                     className={`p-3.5 border cursor-pointer transition-all relative flex flex-col justify-between min-h-[6rem] ${
                       isSelected
-                        ? 'bg-gradient-to-br from-[#241d15] to-[#15110d] border-gold shadow-[0_0_20px_rgba(201,162,39,0.22)] text-foreground'
+                        ? 'border-primary bg-[#0f1715] shadow-glow text-foreground'
                         : 'bg-[#14100c]/90 border-brass/30 hover:border-brass/70 hover:bg-[#1a1510] text-muted-foreground'
                     }`}
                   >
-                    <span className="pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l border-brass/50" />
-                    <span className="pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r border-brass/50" />
+                    <span className={`pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l ${isSelected ? 'border-primary' : 'border-brass/50'}`} />
+                    <span className={`pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r ${isSelected ? 'border-primary' : 'border-brass/50'}`} />
                     <div>
                       <div className={`font-display text-xs uppercase tracking-[0.12em] font-bold ${
-                        isSelected ? 'text-gold' : 'text-foreground'
+                        isSelected ? 'text-primary' : 'text-foreground'
                       }`}>
                         {adv.title}
                       </div>
@@ -207,7 +207,7 @@ export function QuickSetupModal({
           {/* Wybór postaci */}
           <div>
             <label className="block text-xs font-display uppercase tracking-[0.16em] text-brass mb-2 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-gold" />
+              <User className="w-3.5 h-3.5 text-primary" />
               {t('stepCharacters')}
             </label>
             
@@ -225,14 +225,14 @@ export function QuickSetupModal({
                       key={'p1-'+c.id}
                       className={`relative border transition-all flex flex-col overflow-hidden ${
                         isSelected
-                          ? 'bg-[#221b14] border-gold shadow-[0_0_20px_rgba(201,162,39,0.3)]'
+                          ? 'bg-[#0f1715] border-primary shadow-glow'
                           : isOtherChosen 
                             ? 'opacity-30 border-brass/15 bg-black/70 grayscale pointer-events-none'
                             : 'bg-[#14100c]/90 border-brass/30 hover:border-brass/70 grayscale hover:grayscale-0'
                       }`}
                     >
-                      <span className="pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l border-brass/50 z-10" />
-                      <span className="pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r border-brass/50 z-10" />
+                      <span className={`pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l z-10 ${isSelected ? 'border-primary' : 'border-brass/50'}`} />
+                      <span className={`pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r z-10 ${isSelected ? 'border-primary' : 'border-brass/50'}`} />
                       <div className="flex-1 flex flex-col">
                         <button
                           type="button"
@@ -257,13 +257,13 @@ export function QuickSetupModal({
                               </div>
                             )}
                             {isSelected && (
-                              <span className="absolute left-1.5 top-1.5 flex h-6 w-6 rotate-45 items-center justify-center bg-gold border border-brass shadow-[0_0_12px_rgba(201,162,39,0.6)] z-10">
-                                <span aria-hidden="true" className="-rotate-45 text-sm font-black text-black">✓</span>
+                              <span className="absolute left-1.5 top-1.5 flex h-6 w-6 rotate-45 items-center justify-center bg-primary border border-primary/80 shadow-glow z-10">
+                                <span aria-hidden="true" className="-rotate-45 text-sm font-black text-primary-foreground">✓</span>
                               </span>
                             )}
                           </div>
                           <div className="p-2.5">
-                            <div className={`font-display uppercase tracking-[0.08em] text-[12px] truncate ${isSelected ? 'text-gold font-bold' : 'text-foreground'}`}>
+                            <div className={`font-display uppercase tracking-[0.08em] text-[12px] truncate ${isSelected ? 'text-primary font-bold' : 'text-foreground'}`}>
                               {c.name}
                             </div>
                             <div className="text-[10px] font-special-elite text-brass/70 truncate mt-0.5 tracking-wider uppercase">
@@ -303,14 +303,14 @@ export function QuickSetupModal({
                         key={'p2-'+c.id}
                         className={`relative border transition-all flex flex-col overflow-hidden ${
                           isSelected
-                            ? 'bg-[#221b14] border-gold shadow-[0_0_20px_rgba(201,162,39,0.3)]'
+                            ? 'bg-[#0f1715] border-primary shadow-glow'
                             : isOtherChosen 
                               ? 'opacity-30 border-brass/15 bg-black/70 grayscale pointer-events-none'
                               : 'bg-[#14100c]/90 border-brass/30 hover:border-brass/70 grayscale hover:grayscale-0'
                         }`}
                       >
-                        <span className="pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l border-brass/50 z-10" />
-                        <span className="pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r border-brass/50 z-10" />
+                        <span className={`pointer-events-none absolute top-1 left-1 w-2 h-2 border-t border-l z-10 ${isSelected ? 'border-primary' : 'border-brass/50'}`} />
+                        <span className={`pointer-events-none absolute bottom-1 right-1 w-2 h-2 border-b border-r z-10 ${isSelected ? 'border-primary' : 'border-brass/50'}`} />
                         <div className="flex-1 flex flex-col">
                           <button
                             type="button"
@@ -335,13 +335,13 @@ export function QuickSetupModal({
                                 </div>
                               )}
                               {isSelected && (
-                                <span className="absolute left-1.5 top-1.5 flex h-6 w-6 rotate-45 items-center justify-center bg-gold border border-brass shadow-[0_0_12px_rgba(201,162,39,0.6)] z-10">
-                                  <span aria-hidden="true" className="-rotate-45 text-sm font-black text-black">✓</span>
+                                <span className="absolute left-1.5 top-1.5 flex h-6 w-6 rotate-45 items-center justify-center bg-primary border border-primary/80 shadow-glow z-10">
+                                  <span aria-hidden="true" className="-rotate-45 text-sm font-black text-primary-foreground">✓</span>
                                 </span>
                               )}
                             </div>
                             <div className="p-2.5">
-                              <div className={`font-display uppercase tracking-[0.08em] text-[12px] truncate ${isSelected ? 'text-gold font-bold' : 'text-foreground'}`}>
+                              <div className={`font-display uppercase tracking-[0.08em] text-[12px] truncate ${isSelected ? 'text-primary font-bold' : 'text-foreground'}`}>
                                 {c.name}
                               </div>
                               <div className="text-[10px] font-special-elite text-brass/70 truncate mt-0.5 tracking-wider uppercase">
@@ -377,10 +377,10 @@ export function QuickSetupModal({
                 data-testid="quick-setup-progress-container"
                 className="w-full max-w-md flex flex-col gap-1.5 animate-in fade-in-50 duration-300"
               >
-                <div className="w-full h-2 bg-black/80 border border-brass/50 overflow-hidden relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.8)]">
+                <div className="w-full h-2 bg-black/80 border border-primary/50 overflow-hidden relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.8)]">
                   <div
                     data-testid="quick-setup-progress-bar"
-                    className="h-full bg-gradient-to-r from-brass via-gold to-yellow-300 transition-all duration-500 ease-out relative"
+                    className="h-full bg-primary shadow-glow transition-all duration-500 ease-out relative"
                     style={{ width: `${Math.min(100, Math.max(5, startProgress))}%` }}
                   >
                     <div className="absolute inset-0 bg-white/20 animate-pulse" />
@@ -388,10 +388,10 @@ export function QuickSetupModal({
                 </div>
                 <div className="w-full flex items-center justify-between text-xs font-special-elite text-brass tracking-[0.08em] px-1">
                   <span className="flex items-center gap-1.5 truncate">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold animate-ping shrink-0" />
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-ping shrink-0" />
                     <span className="truncate">{startStatus || t('statusSettingUp')}</span>
                   </span>
-                  <span className="font-mono text-gold ml-2 shrink-0">{startProgress}%</span>
+                  <span className="font-mono text-primary ml-2 shrink-0">{startProgress}%</span>
                 </div>
               </div>
             ) : (
@@ -403,9 +403,9 @@ export function QuickSetupModal({
             <Button
               className={`font-display uppercase tracking-[0.16em] text-xs px-8 h-11 border transition-all ${
                 isStarting
-                  ? 'bg-brass/40 border-brass text-black cursor-wait'
+                  ? 'bg-primary/40 border-primary text-primary-foreground cursor-wait'
                   : canStart
-                    ? 'bg-gradient-to-r from-gold via-brass to-gold border-brass text-black font-bold shadow-glow-brass hover:brightness-110 hover:shadow-[0_0_25px_rgba(201,162,39,0.5)]'
+                    ? 'bg-primary border-primary text-primary-foreground font-bold shadow-glow hover:bg-primary/90 hover:brightness-110'
                     : 'bg-black/50 border-brass/30 text-muted-foreground cursor-not-allowed opacity-50'
               }`}
               disabled={!canStart || isStarting}
@@ -423,7 +423,7 @@ export function QuickSetupModal({
             >
               {isStarting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin text-black" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin text-primary-foreground" />
                   <span>{t('startingGame')}</span>
                 </>
               ) : (

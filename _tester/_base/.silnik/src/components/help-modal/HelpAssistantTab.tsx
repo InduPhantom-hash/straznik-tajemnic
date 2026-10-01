@@ -79,10 +79,10 @@ export function HelpAssistantTab() {
 
   /** Etykieta statusu Nano dla UI. */
   const nanoLabel: Record<ChromeAIStatus, { text: string; color: string }> = {
-    available: { text: t('nanoAvailable'), color: 'text-green-400' },
-    'after-download': { text: t('nanoAfterDownload'), color: 'text-yellow-400' },
+    available: { text: t('nanoAvailable'), color: 'text-primary' },
+    'after-download': { text: t('nanoAfterDownload'), color: 'text-gold' },
     unavailable: { text: '', color: '' },
-    error: { text: t('nanoError'), color: 'text-red-400' },
+    error: { text: t('nanoError'), color: 'text-destructive' },
   };
 
   return (
@@ -102,22 +102,22 @@ export function HelpAssistantTab() {
           placeholder={t('inputPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 px-3 py-2 bg-input border border-brass/30 rounded text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brass"
+          className="flex-1 px-3 py-2 bg-input border border-brass/30 rounded text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60"
         />
         <button
           type="submit"
           disabled={isLoading || !query.trim()}
-          className="px-4 py-2 bg-brass/20 hover:bg-brass/30 disabled:opacity-50 text-brass text-xs font-semibold rounded border border-brass/40 transition-colors"
+          className="px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground text-xs font-semibold rounded border border-primary shadow-glow transition-colors"
         >
           {isLoading ? t('searchingButton') : t('askButton')}
         </button>
       </form>
 
       {answer && (
-        <div className="p-4 bg-card/90 border border-border rounded space-y-2">
-          <h5 className="text-xs font-serif text-brass font-bold uppercase tracking-wider">{t('answerTitle')}</h5>
+        <div className="p-4 bg-card/90 border border-primary/40 rounded space-y-2">
+          <h5 className="text-xs font-serif text-primary font-bold uppercase tracking-wider">{t('answerTitle')}</h5>
           <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-line">{answer}</p>
-          {sources && sources.length > 0 && <ul className="text-xs text-muted-foreground space-y-1">{sources.map((source) => <li key={source.sourceUrl}><a className="text-brass underline" href={source.sourceUrl} target="_blank" rel="noreferrer">{source.term}</a></li>)}</ul>}
+          {sources && sources.length > 0 && <ul className="text-xs text-muted-foreground space-y-1">{sources.map((source) => <li key={source.sourceUrl}><a className="text-primary underline" href={source.sourceUrl} target="_blank" rel="noreferrer">{source.term}</a></li>)}</ul>}
         </div>
       )}
     </div>

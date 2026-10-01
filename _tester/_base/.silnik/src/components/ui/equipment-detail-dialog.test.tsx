@@ -180,5 +180,8 @@ describe('EquipmentDetailDialog', () => {
 
     // Zdublowany przycisk w nagłówku nie powinien być renderowany
     expect(screen.queryByRole('button', { name: /Pytaj o to na czacie/i })).not.toBeInTheDocument();
+
+    // Pasek narzędziowy czytnika diegetycznego w szmaragdowym akcencie
+    expect(screen.getByTestId('diegetic-reader-toolbar')).toBeInTheDocument();
   });
 });
