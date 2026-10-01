@@ -227,6 +227,13 @@ export function extractSkillResults(text: string): SkillTestResult[] {
         const luckMatch = extras.match(/(?:luck|szczęście|szczescie)\s*[:\-]?\s*(\d+)/i);
         const luckSpent = luckMatch ? parseInt(luckMatch[1]) : (usedLuck ? 1 : 0);
 
+        // Wykrywanie kości premiowej (s. 105 RAW wyklucza z rozwoju)
+        const usedBonus = extras.includes('bonus') ||
+            extras.includes('premia') ||
+            extras.includes('premiow') ||
+            resultTypeRaw.includes('bonus') ||
+            resultTypeRaw.includes('premia');
+
         let result: SkillTestResult['result'] = 'failure';
         if (resultTypeRaw.includes('krytyczny') || resultTypeRaw.includes('critical') || resultTypeRaw.includes('01')) {
             result = 'critical';
@@ -255,11 +262,13 @@ export function extractSkillResults(text: string): SkillTestResult[] {
             reason = 'Porażka testu';
         } else if (usedLuck) {
             reason = 'Sukces z użyciem Szczęścia - nie oznacza do rozwoju';
+        } else if (usedBonus) {
+            reason = 'Sukces z kością premiową - nie oznacza do rozwoju (s. 105 RAW)';
         } else if (isExcluded) {
             reason = `${skillName} nie podlega normalnemu oznaczaniu`;
         } else {
             shouldMark = true;
-            reason = 'Sukces bez użycia Szczęścia - oznaczono do rozwoju';
+            reason = 'Sukces bez użycia Szczęścia i bez kości premiowej - oznaczono do rozwoju';
         }
 
         results.push({
@@ -270,6 +279,7 @@ export function extractSkillResults(text: string): SkillTestResult[] {
             threshold,
             usedLuck,
             luckSpent: usedLuck ? luckSpent : undefined,
+            usedBonus: usedBonus || undefined,
             shouldMark,
             reason
         });

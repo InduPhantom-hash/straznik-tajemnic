@@ -96,6 +96,36 @@ describe('extractSkillResults (WYNIK) - duet & solo', () => {
       usedLuck: true,
     });
   });
+
+  it('blokuje oznaczanie umiejętności do rozwoju przy sukcesie z kością premiową (CoC 7e RAW s. 105)', () => {
+    const results = extractSkillResults(
+      '[WYNIK: Spostrzegawczość | 22 ≤ 55 | SUKCES | +1 kość bonusowa]\n' +
+        '[WYNIK: Broń Palna | 15 ≤ 50 | SUKCES | kość premiowa]\n' +
+        '[WYNIK: @Arthur: Przekonywanie | 30 ≤ 60 | SUKCES | BONUS]'
+    );
+    expect(results).toHaveLength(3);
+    expect(results[0]).toMatchObject({
+      skillName: 'Spostrzegawczość',
+      shouldMark: false,
+      usedBonus: true,
+    });
+    expect(results[0].reason).toContain('kością premiową');
+
+    expect(results[1]).toMatchObject({
+      skillName: 'Broń Palna',
+      shouldMark: false,
+      usedBonus: true,
+    });
+    expect(results[1].reason).toContain('kością premiową');
+
+    expect(results[2]).toMatchObject({
+      characterName: 'Arthur',
+      skillName: 'Przekonywanie',
+      shouldMark: false,
+      usedBonus: true,
+    });
+    expect(results[2].reason).toContain('kością premiową');
+  });
 });
 
 describe('extractHazardEvents (CoC 7e RAW)', () => {

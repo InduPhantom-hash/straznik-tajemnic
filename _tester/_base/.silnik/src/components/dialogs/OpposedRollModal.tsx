@@ -45,6 +45,7 @@ import {
   rollAndResolveOpposed,
   formatOpposedRollForChat,
   formatOpposedRollForSystemContext,
+  formatOpposedWinnerResultTag,
 } from '@/lib/opposed-rolls';
 import type { RollOutcome } from '@/lib/dice-utils';
 
@@ -163,8 +164,15 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
 
   const handleSendToChat = () => {
     if (!resolution) return;
-    const chatMessage = formatOpposedRollForChat(resolution);
+    let chatMessage = formatOpposedRollForChat(resolution);
     const systemContext = formatOpposedRollForSystemContext(resolution);
+
+    // CoC 7e RAW (s. 105): W teście przeciwstawnym tylko zwycięzca zaznacza swoją umiejętność do rozwoju
+    // (o ile nie korzystał z kości premiowej).
+    const winnerResultTag = formatOpposedWinnerResultTag(resolution);
+    if (winnerResultTag) {
+      chatMessage = `${chatMessage}\n\n${winnerResultTag}`;
+    }
 
     if (onSendToChat) {
       onSendToChat(chatMessage, systemContext);

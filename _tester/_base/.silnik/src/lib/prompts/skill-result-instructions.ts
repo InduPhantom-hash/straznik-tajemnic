@@ -26,8 +26,9 @@ Jeśli gracz użył Luck (Szczęścia) do zmiany wyniku, KONIECZNIE dodaj flagę
 - [WYNIK: Medycyna | 05 ≤ 70 | SUKCES EKSTREMALNY]
 
 ### ZASADY OZNACZANIA DO ROZWOJU:
-- Sukces BEZ użycia Luck → umiejętność ZOSTANIE OZNACZONA do rozwoju ✓
+- Sukces BEZ użycia Luck i BEZ kości premiowej → umiejętność ZOSTANIE OZNACZONA do rozwoju ✓
 - Sukces Z użyciem Luck → umiejętność NIE JEST oznaczana
+- Sukces Z kością premiową (BONUS) → umiejętność NIE JEST oznaczana (CoC 7e RAW s. 105)
 - Porażka → umiejętność NIE JEST oznaczana
 - Credit Rating i Cthulhu Mythos NIGDY nie są oznaczane
 
