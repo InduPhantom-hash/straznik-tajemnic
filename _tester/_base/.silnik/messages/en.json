@@ -7810,6 +7810,7 @@
     "autoRoutedToRulesTitle": "Rulebook detected - moved to Required column",
     "autoRoutedToRulesDesc": "File \"{fileName}\" was recognized as a rulebook (\"{profileTitle}\") and assigned to the left column.",
     "starterScenarioExtractedNote": "The built-in Starter scenario was also extracted and added to Manual Setup.",
+    "rulebookScenariosExtractedNote": "Also extracted {count} built-in scenarios from the rulebook and added them to Manual Setup.",
     "installedRulesHeader": "Installed Rulebooks ({count})",
     "installedOptionalHeader": "Installed Adventures & Supplements ({count})",
     "emptyRulesList": "No rulebooks uploaded yet. Upload the Starter or Keeper Rulebook above.",

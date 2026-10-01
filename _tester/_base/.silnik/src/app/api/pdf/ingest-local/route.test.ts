@@ -265,6 +265,64 @@ describe('POST & DELETE /api/pdf/ingest-local document policy & library manager'
     expect(body.adventures[0].documentType).toBe('compendium');
     expect(body.capabilities.installedOverlays[0].stats.adventureCount).toBe(0);
   });
+
+  it('extracts built-in scenarios from core-d100 and pulp-d100 while keeping them in the rules column', async () => {
+    const coreTextWithScenarios = `
+      Zew Cthulhu Księga Strażnika. Edycja polska.
+      Rozdział 3 Tworzenie Badaczy, Rozdział 7 Pościgi, Rozdział 8 Poczytalność, Walka i Magia k100.
+      ROZDZIAŁ 15.1 - SCENARIUSZE: POŚRÓD PRADAWNYCH DRZEW 394
+      ROZDZIAŁ 15.2 - SCENARIUSZE: SZKARŁATNE LITERY 414
+    `;
+
+    const coreReq = new NextRequest('http://localhost/api/pdf/ingest-local', {
+      headers: { 'content-type': 'application/json' },
+    });
+    jest.spyOn(coreReq, 'json').mockResolvedValueOnce({
+      text: coreTextWithScenarios,
+      type: 'rules',
+      targetColumn: 'rules',
+      fileName: 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+    });
+
+    const coreRes = await POST(coreReq);
+    const coreBody = await coreRes.json();
+    expect(coreBody.success).toBe(true);
+    expect(coreBody.rulebookProfile.profile).toBe('core-d100');
+    expect(coreBody.actualColumn).toBe('rules');
+    expect(coreBody.adventures).toHaveLength(2);
+    expect(coreBody.adventures.map((a: { title: string }) => a.title)).toEqual([
+      'Pośród pradawnych drzew',
+      'Szkarłatne litery',
+    ]);
+    expect(coreBody.capabilities.installedOverlays[0].stats.adventureCount).toBe(2);
+
+    const pulpTextWithScenarios = `
+      Pulp Cthulhu. Two-Fisted Action And Adventure Against The Mythos.
+      Pulp Archetypes, Pulp Talents, Sanity, Weird Science, and Luck d100.
+      CHAPTER 10: THE DISINTEGRATOR, SCENARIO 135
+      CHAPTER 11: WAITING FOR THE HURRICANE, SCENARIO 158
+      CHAPTER 12: PANDORA’S BOX, SCENARIO 176
+      CHAPTER 13: SLOW BOAT TO CHINA, SCENARIO 205
+    `;
+
+    const pulpReq = new NextRequest('http://localhost/api/pdf/ingest-local', {
+      headers: { 'content-type': 'application/json' },
+    });
+    jest.spyOn(pulpReq, 'json').mockResolvedValueOnce({
+      text: pulpTextWithScenarios,
+      type: 'rules',
+      targetColumn: 'rules',
+      fileName: 'Call_of_Cthulhu_Pulp_Cthulhu.pdf',
+    });
+
+    const pulpRes = await POST(pulpReq);
+    const pulpBody = await pulpRes.json();
+    expect(pulpBody.success).toBe(true);
+    expect(pulpBody.rulebookProfile.profile).toBe('pulp-d100');
+    expect(pulpBody.actualColumn).toBe('rules');
+    expect(pulpBody.adventures).toHaveLength(4);
+    expect(pulpBody.capabilities.counts.totalAdventures).toBe(6);
+  });
 });
 
 describe('GET /api/pdf/ingest-local', () => {

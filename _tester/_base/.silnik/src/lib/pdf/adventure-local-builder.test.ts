@@ -299,5 +299,109 @@ Krótki scenariusz do gry d100 w Arkham w 1924 roku. Badacze odkrywają tajemnic
       );
       expect(customAdvs[0].title).toBe('Tajemnica Domu Wiedźmy');
     });
+
+    it('extracts built-in scenarios from core-d100 (Keeper Rulebook / Księga Strażnika) and returns [] for short rules snippets without scenarios', () => {
+      const coreRulesOnlySnippet = `
+        Zew Cthulhu 7. edycja - Księga Strażnika.
+        Rozdział 3: Tworzenie Badaczy. Rozdział 6: Walka. Rozdział 7: Pościgi. Rozdział 8: Poczytalność. Rozdział 9: Magia k100.
+      `;
+      const fpShort = detectRulebookProfile(
+        coreRulesOnlySnippet,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf'
+      );
+      expect(fpShort.profile).toBe('core-d100');
+      const shortAdvs = buildLocalCustomAdventures(
+        coreRulesOnlySnippet,
+        fpShort,
+        dummyOverlay,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+        484
+      );
+      expect(shortAdvs).toEqual([]);
+
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 3 TWORZENIE BADACZY
+        ROZDZIAŁ 7 POŚCIGI
+        ROZDZIAŁ 8 POCZYTALNOŚĆ
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+        ROZDZIAŁ 15.2 - SCENARIUSZE
+        SZKARŁATNE LITERY 414
+      `;
+      const fpPl = detectRulebookProfile(
+        coreFullTocPl,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf'
+      );
+      const advsPl = buildLocalCustomAdventures(
+        coreFullTocPl,
+        fpPl,
+        dummyOverlay,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+        484
+      );
+      expect(advsPl).toHaveLength(2);
+      expect(advsPl[0].title).toBe('Pośród pradawnych drzew');
+      expect(advsPl[0].sourceCategory).toBe('core');
+      expect(advsPl[0].documentType).toBe('scenario');
+      expect(advsPl[1].title).toBe('Szkarłatne litery');
+      expect(advsPl[1].sourceCategory).toBe('core');
+      expect(advsPl[1].documentType).toBe('scenario');
+
+      const coreVariantPl = `
+        Zew Cthulhu Księga Strażnika. Walka, Pościgi, Poczytalność k100.
+        Rozdział 17: Scenariusze - Wśród prastarych drzew oraz Szkarłatne litery.
+      `;
+      const fpVar = detectRulebookProfile(coreVariantPl, 'Ksiega_Straznika.pdf');
+      const advsVar = buildLocalCustomAdventures(
+        coreVariantPl,
+        fpVar,
+        dummyOverlay,
+        'Ksiega_Straznika.pdf',
+        450
+      );
+      expect(advsVar.map((a) => a.title)).toEqual([
+        'Wśród prastarych drzew',
+        'Szkarłatne litery',
+      ]);
+    });
+
+    it('extracts the 4 built-in scenarios from pulp-d100 (Pulp Cthulhu) and returns [] for short pulp rules snippets', () => {
+      const pulpRulesOnly = `
+        Pulp Cthulhu. Two-Fisted Action And Adventure Against The Mythos.
+        Pulp Archetypes, Pulp Talents, Sanity, Weird Science, and Luck d100.
+      `;
+      const fpShort = detectRulebookProfile(pulpRulesOnly, 'Pulp_Cthulhu.pdf');
+      expect(fpShort.profile).toBe('pulp-d100');
+      expect(
+        buildLocalCustomAdventures(pulpRulesOnly, fpShort, dummyOverlay, 'Pulp_Cthulhu.pdf', 272)
+      ).toEqual([]);
+
+      const pulpFullToc = `
+        PULP CTHULHU - Two-Fisted Action And Adventure Against The Mythos.
+        Creating Pulp Heroes, Pulp Archetypes, Pulp Talents, Weird Science, Sanity.
+        CHAPTER 10: THE DISINTEGRATOR, SCENARIO 135
+        CHAPTER 11: WAITING FOR THE HURRICANE, SCENARIO 158
+        CHAPTER 12: PANDORA’S BOX, SCENARIO 176
+        CHAPTER 13: SLOW BOAT TO CHINA, SCENARIO 205
+      `;
+      const fpPulp = detectRulebookProfile(pulpFullToc, 'Call_of_Cthulhu_Pulp_Cthulhu.pdf');
+      expect(fpPulp.profile).toBe('pulp-d100');
+      const advsPulp = buildLocalCustomAdventures(
+        pulpFullToc,
+        fpPulp,
+        dummyOverlay,
+        'Call_of_Cthulhu_Pulp_Cthulhu.pdf',
+        274
+      );
+      expect(advsPulp).toHaveLength(4);
+      expect(advsPulp.map((a) => a.title)).toEqual([
+        'The Disintegrator',
+        'Waiting for the Hurricane',
+        "Pandora's Box",
+        'Slow Boat to China',
+      ]);
+      expect(advsPulp.every((a) => a.tone === 'pulp' && a.documentType === 'scenario')).toBe(true);
+    });
   });
 });

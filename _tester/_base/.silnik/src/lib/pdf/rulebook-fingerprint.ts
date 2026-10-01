@@ -225,6 +225,8 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     sample.includes('pulpowe archetypy') ||
     sample.includes('pulp archetypes') ||
     sample.includes('pulp talents') ||
+    sample.includes('pulp-o-meter') ||
+    sample.includes('creating pulp heroes') ||
     sample.includes('pulpomet') ||
     sample.includes('talenty pulpu') ||
     cleanFileName.includes('pulp') ||
@@ -329,6 +331,7 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     !isAnthologyHeader &&
     !isKeeperGuideHeader &&
     !isStarterIndicator &&
+    !hasPulpTalents &&
     (cleanFileName.includes('ksiega straznika') ||
       cleanFileName.includes('ksiegastraznika') ||
       cleanFileName.includes('ksiega_straznika') ||
@@ -419,6 +422,7 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
   // G. Antologia / Zbiór scenariuszy (np. Cienie Tatr, Horror nad Wartą, Usłysz Zew Cthulhu, Kwiat Paproci, Wrota Mroku)
   const isAnthologyIndicator =
     !isExplicitCoreBook &&
+    !isPulpIndicator &&
     !isStarterIndicator &&
     !isScenarioHeader &&
     !isKeeperGuideHeader &&
@@ -443,6 +447,7 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
   // F. Mega-Kampania (np. Maski Nyarlathotepa, Horror w Orient Expressie, Czas Żniw, Dwa Węże)
   const isMegaCampaignIndicator =
     !isExplicitCoreBook &&
+    !isPulpIndicator &&
     !isStarterIndicator &&
     !isScenarioHeader &&
     !isAnthologyIndicator &&
@@ -694,14 +699,46 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     detectedCategories.push('CZARY');
     estimatedEntities.spells = true;
   }
-  if (adventureType || isAnthologyIndicator || isMegaCampaignIndicator || isOneShotIndicator || isStarterIndicator) {
+  const hasCoreBuiltInScenarios =
+    profile === 'core-d100' &&
+    (sample.includes('posrod pradawnych drzew') ||
+      sample.includes('wsrod prastarych drzew') ||
+      sample.includes('wsrod pradawnych drzew') ||
+      sample.includes('posrod prastarych drzew') ||
+      sample.includes('amidst the ancient trees') ||
+      sample.includes('szkarlatne litery') ||
+      sample.includes('karmazynowe litery') ||
+      sample.includes('crimson letters'));
+
+  const hasPulpBuiltInScenarios =
+    profile === 'pulp-d100' &&
+    (sample.includes('the disintegrator') ||
+      sample.includes('dezintegrator') ||
+      sample.includes('waiting for the hurricane') ||
+      sample.includes('czekajac na huragan') ||
+      sample.includes("pandora's box") ||
+      sample.includes('pandoras box') ||
+      sample.includes('puszka pandory') ||
+      sample.includes('slow boat to china') ||
+      sample.includes('wolny statek do chin'));
+
+  const hasDetectedScenarios =
+    Boolean(adventureType) ||
+    isAnthologyIndicator ||
+    isMegaCampaignIndicator ||
+    isOneShotIndicator ||
+    isStarterIndicator ||
+    hasCoreBuiltInScenarios ||
+    hasPulpBuiltInScenarios;
+
+  if (hasDetectedScenarios) {
     detectedCategories.push('FABULA');
     detectedCategories.push('NPC');
     estimatedEntities.npcs = true;
     estimatedEntities.locations = true;
     estimatedEntities.clues = true;
   }
-  if (hasHandouts || adventureType || isAnthologyIndicator || isMegaCampaignIndicator) {
+  if (hasHandouts || hasDetectedScenarios) {
     detectedCategories.push('REKWIZYTY');
     estimatedEntities.handouts = true;
   }
@@ -710,7 +747,11 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     detectedCategories: Array.from(new Set(detectedCategories)),
     estimatedEntities,
     adventureType,
-    multiPartDetected: profile === 'mega_campaign' || profile === 'scenario_anthology',
+    multiPartDetected:
+      profile === 'mega_campaign' ||
+      profile === 'scenario_anthology' ||
+      hasCoreBuiltInScenarios ||
+      hasPulpBuiltInScenarios,
   };
 
   return {
@@ -725,7 +766,7 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
       hasCreatures,
       hasSpells,
       hasHandouts,
-      hasScenarios: !!adventureType,
+      hasScenarios: Boolean(adventureType) || hasCoreBuiltInScenarios || hasPulpBuiltInScenarios,
       hasPulpTalents,
       hasInvestigatorCreation,
     },
@@ -779,7 +820,9 @@ export function isAdventureBearingProfile(profile: RulebookProfile): boolean {
     profile === 'one_shot' ||
     profile === 'scenario_anthology' ||
     profile === 'mega_campaign' ||
-    profile === 'starter-d100'
+    profile === 'starter-d100' ||
+    profile === 'core-d100' ||
+    profile === 'pulp-d100'
   );
 }
 

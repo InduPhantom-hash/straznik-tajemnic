@@ -46,6 +46,7 @@ jest.mock('next-intl', () => ({
       autoRoutedToRulesDesc: `Plik "${values?.fileName}" został rozpoznany jako podręcznik zasad.`,
       starterScenarioExtractedNote:
         'Wyodrębniono również wbudowany scenariusz ze Startera i dodano go do Manual Setup.',
+      rulebookScenariosExtractedNote: `Wyodrębniono również wbudowane scenariusze z podręcznika (${values?.count ?? 0}) i dodano je do Manual Setup.`,
       installedRulesHeader: `Wgrane podręczniki zasad (${values?.count ?? 0})`,
       installedOptionalHeader: `Wgrane przygody i dodatki (${values?.count ?? 0})`,
       emptyRulesList: 'Brak wgranych podręczników zasad.',
@@ -601,5 +602,116 @@ describe('RulebookModal - dwukolumnowe centrum podręczników i dodatków PDF', 
     const banner = screen.getByTestId('auto-routing-banner');
     expect(banner).toBeInTheDocument();
     expect(banner.textContent).toContain('(0 scen.)');
+  });
+
+  it('powiadamia o wyodrębnionych scenariuszach z Księgi Strażnika (core-d100) i Pulp Cthulhu (pulp-d100) oraz synchronizuje je z Manual Setup', async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          recordCount: 0,
+          capabilities: {
+            installedOverlays: [],
+            flags: { hasBaseRules: false, hasRulebookExpansion: false },
+            counts: {},
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          indexed: 484,
+          totalChunks: 484,
+          namespace: 'rules',
+          actualColumn: 'rules',
+          requestedColumn: 'rules',
+          autoRouted: false,
+          routingKind: 'none',
+          rulebookProfile: {
+            profile: 'core-d100',
+            title: 'Księga Zasad Głównych d100 (Core Book)',
+          },
+          adventures: [
+            {
+              id: 'custom-core-ancient-trees',
+              title: 'Pośród pradawnych drzew',
+              fileName: 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+              documentType: 'scenario',
+            },
+            {
+              id: 'custom-core-crimson-letters',
+              title: 'Szkarłatne litery',
+              fileName: 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+              documentType: 'scenario',
+            },
+          ],
+          capabilities: {
+            installedOverlays: [
+              {
+                id: 'overlay-core-d100',
+                title: 'Księga Zasad Głównych d100 (Core Book)',
+                fileName: 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+                profile: 'core-d100',
+                column: 'rules',
+                pageCount: 484,
+                adventureIds: [
+                  'custom-core-ancient-trees',
+                  'custom-core-crimson-letters',
+                ],
+                installedAt: new Date().toISOString(),
+                tags: ['MECHANIKA', 'FABULA'],
+                overlayPath: '/tmp/overlay-core.json',
+                stats: {
+                  npcCount: 12,
+                  creatureCount: 30,
+                  spellCount: 40,
+                  ruleCount: 25,
+                  handoutCount: 6,
+                  adventureCount: 2,
+                },
+              },
+            ],
+            flags: { hasBaseRules: true, hasRulebookExpansion: false },
+            counts: { totalAdventures: 2 },
+          },
+        }),
+      });
+
+    render(
+      <RulebookModal
+        open={true}
+        onOpenChange={() => {}}
+        gated={true}
+        rulesCount={0}
+      />
+    );
+
+    const rulesDropzone = screen.getByTestId('upload-rules-dropzone');
+    const coreFile = new File(
+      ['%PDF-1.4 keeper'],
+      'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+      { type: 'application/pdf' }
+    );
+
+    fireEvent.drop(rulesDropzone, {
+      dataTransfer: { files: [coreFile] },
+    });
+
+    const note = await screen.findByTestId('rulebook-scenarios-extracted-note');
+    expect(note.textContent).toContain('(2)');
+
+    const overlayCard = screen.getByTestId('installed-overlay-overlay-core-d100');
+    expect(overlayCard.textContent).toContain('2 scen.');
+
+    expect(mockSaveCustomAdventures).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adventures: expect.arrayContaining([
+          expect.objectContaining({ title: 'Pośród pradawnych drzew' }),
+          expect.objectContaining({ title: 'Szkarłatne litery' }),
+        ]),
+      })
+    );
   });
 });

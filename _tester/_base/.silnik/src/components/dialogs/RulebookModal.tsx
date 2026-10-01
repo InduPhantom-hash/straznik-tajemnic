@@ -215,7 +215,11 @@ export const RulebookModal: FC<RulebookModalProps> = ({
   const [serverRulesCount, setServerRulesCount] = useState<number>(rulesCount);
   const [legacyBaseUnlocked, setLegacyBaseUnlocked] = useState<boolean>(rulesCount > 0);
   const [routingNotice, setRoutingNotice] = useState<RoutingNotice | null>(null);
-  const [starterScenarioNote, setStarterScenarioNote] = useState<boolean>(false);
+  const [extractedRulebookScenariosCount, setExtractedRulebookScenariosCount] =
+    useState<number>(0);
+  const [extractedRulebookProfile, setExtractedRulebookProfile] = useState<
+    string | null
+  >(null);
   const [deletingOverlayId, setDeletingOverlayId] = useState<string | null>(null);
 
   const installedOverlays: InstalledOverlayInfo[] =
@@ -287,7 +291,8 @@ export const RulebookModal: FC<RulebookModalProps> = ({
       setProgress(0);
       setFileName('');
       setRoutingNotice(null);
-      setStarterScenarioNote(false);
+      setExtractedRulebookScenariosCount(0);
+      setExtractedRulebookProfile(null);
       void fetchCurrentStatus();
     }
   }, [open, fetchCurrentStatus]);
@@ -397,11 +402,16 @@ export const RulebookModal: FC<RulebookModalProps> = ({
         });
       }
 
-      if (
-        data.rulebookProfile?.profile === 'starter-d100' &&
-        playableAdventureCount > 0
-      ) {
-        setStarterScenarioNote(true);
+      const resolvedProfile = data.rulebookProfile?.profile;
+      const isRulesColumnItem =
+        data.actualColumn === 'rules' ||
+        (resolvedProfile && isRulebookColumnProfile(resolvedProfile));
+
+      if (isRulesColumnItem && playableAdventureCount > 0) {
+        setExtractedRulebookScenariosCount(
+          (prev) => prev + playableAdventureCount
+        );
+        setExtractedRulebookProfile((prev) => prev ?? (resolvedProfile || null));
       }
 
       if (typeof window !== 'undefined') {
@@ -430,7 +440,8 @@ export const RulebookModal: FC<RulebookModalProps> = ({
     if (list.length === 0) return;
 
     setRoutingNotice(null);
-    setStarterScenarioNote(false);
+    setExtractedRulebookScenariosCount(0);
+    setExtractedRulebookProfile(null);
 
     for (const file of list) {
       const ok = await processSingleFile(file, requestedColumn);
@@ -775,6 +786,20 @@ export const RulebookModal: FC<RulebookModalProps> = ({
                             profileTitle: routingNotice.profileTitle,
                           })}
                     </p>
+                    {routingNotice.kind === 'moved_to_rules' &&
+                      routingNotice.adventureCount > 0 && (
+                        <p
+                          data-testid="rulebook-scenarios-extracted-note"
+                          className="text-xs text-emerald-400 font-medium pt-0.5"
+                        >
+                          {extractedRulebookProfile === 'starter-d100' &&
+                          routingNotice.adventureCount === 1
+                            ? t('starterScenarioExtractedNote')
+                            : t('rulebookScenariosExtractedNote', {
+                                count: routingNotice.adventureCount,
+                              })}
+                        </p>
+                      )}
                   </div>
                 </div>
               </CardContent>
@@ -792,9 +817,17 @@ export const RulebookModal: FC<RulebookModalProps> = ({
                     - {t('successIndexed', { count: indexed })}
                   </span>
                 </div>
-                {starterScenarioNote && (
-                  <p className="text-xs text-emerald-300/90 pl-6">
-                    {t('starterScenarioExtractedNote')}
+                {extractedRulebookScenariosCount > 0 && (
+                  <p
+                    data-testid="rulebook-scenarios-extracted-note"
+                    className="text-xs text-emerald-300/90 pl-6"
+                  >
+                    {extractedRulebookProfile === 'starter-d100' &&
+                    extractedRulebookScenariosCount === 1
+                      ? t('starterScenarioExtractedNote')
+                      : t('rulebookScenariosExtractedNote', {
+                          count: extractedRulebookScenariosCount,
+                        })}
                   </p>
                 )}
               </CardContent>

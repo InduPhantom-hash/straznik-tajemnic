@@ -1,4 +1,7 @@
-import { detectRulebookProfile } from "./rulebook-fingerprint";
+import {
+  detectRulebookProfile,
+  isAdventureBearingProfile,
+} from "./rulebook-fingerprint";
 
 describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semantyczny", () => {
   describe("Typy przygód (One-Shot vs Antologia vs Mega-Kampania)", () => {
@@ -95,6 +98,39 @@ describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semant
       `;
       const res = detectRulebookProfile(text, "ZewCthulhu_KsiegaStraznika_v.1.3.pdf");
       expect(res.profile).toBe("core-d100");
+    });
+
+    it("oznacza core-d100 i pulp-d100 jako profile zawierające przygody (isAdventureBearingProfile) i wykrywa wbudowane scenariusze", () => {
+      expect(isAdventureBearingProfile("starter-d100")).toBe(true);
+      expect(isAdventureBearingProfile("core-d100")).toBe(true);
+      expect(isAdventureBearingProfile("pulp-d100")).toBe(true);
+      expect(isAdventureBearingProfile("investigator_handbook")).toBe(false);
+
+      const coreWithScenarios = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        Rozdział 15.1 - Scenariusze: Pośród pradawnych drzew 394
+        Rozdział 15.2 - Scenariusze: Szkarłatne litery 414
+        Walka, Pościgi, Poczytalność i Magia k100.
+      `;
+      const resCore = detectRulebookProfile(coreWithScenarios, "ZewCthulhu_KsiegaStraznika_v.1.3.pdf");
+      expect(resCore.profile).toBe("core-d100");
+      expect(resCore.detectedFeatures.hasScenarios).toBe(true);
+      expect(resCore.semanticPlan.detectedCategories).toContain("FABULA");
+
+      const pulpWithScenarios = `
+        Pulp Cthulhu. Two-Fisted Action And Adventure Against The Mythos.
+        You must have a copy of the Call of Cthulhu Keeper Rulebook to use this supplement.
+        Look out for more Pulp Cthulhu campaigns and scenarios from Chaosium including The Two-Headed Serpent.
+        PULP-O-METER, CREATING PULP HEROES, Pulp Archetypes, Pulp Talents, Sanity and Luck.
+        CHAPTER 10: THE DISINTEGRATOR, SCENARIO 135
+        CHAPTER 11: WAITING FOR THE HURRICANE, SCENARIO 158
+        CHAPTER 12: PANDORA'S BOX, SCENARIO 176
+        CHAPTER 13: SLOW BOAT TO CHINA, SCENARIO 205
+      `;
+      const resPulp = detectRulebookProfile(pulpWithScenarios, "Call_of_Cthulhu_Pulp_Cthulhu.pdf");
+      expect(resPulp.profile).toBe("pulp-d100");
+      expect(resPulp.detectedFeatures.hasScenarios).toBe(true);
+      expect(resPulp.semanticPlan.detectedCategories).toContain("FABULA");
     });
 
     it("nie myli jednostrzałowego scenariusza zawierającego walkę, zaklęcie i stopkę Pulp Cthulhu z podręcznikiem bazowym ani grymuarem", () => {

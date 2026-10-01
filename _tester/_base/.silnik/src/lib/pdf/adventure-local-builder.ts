@@ -946,6 +946,377 @@ export function buildLocalCustomAdventures(
     ];
   }
 
+  // 2b. Księga Strażnika (core-d100) z wbudowanymi scenariuszami ("Wśród prastarych drzew" / "Pośród pradawnych drzew" oraz "Szkarłatne litery" / "Crimson Letters")
+  if (fingerprint.profile === 'core-d100') {
+    const isEn = fingerprint.detectedLanguage === 'en';
+    const coreSourceLabel = isEn ? 'Keeper Rulebook' : 'Księga Strażnika';
+    const coreAdventures: CustomAdventure[] = [];
+
+    const hasAncientTrees =
+      /po[sś]r[oó]d\s+pradawnych\s+drzew|w[sś]r[oó]d\s+prastarych\s+drzew|w[sś]r[oó]d\s+pradawnych\s+drzew|po[sś]r[oó]d\s+prastarych\s+drzew|amidst\s+the\s+ancient\s+trees/i.test(
+        pdfText
+      );
+    const hasCrimsonLetters =
+      /szkar[lł]atne\s+litery|karmazynowe\s+litery|crimson\s+letters/i.test(pdfText);
+
+    if (hasAncientTrees) {
+      const treesTitle = /w[sś]r[oó]d\s+prastarych\s+drzew/i.test(pdfText)
+        ? 'Wśród prastarych drzew'
+        : /po[sś]r[oó]d\s+pradawnych\s+drzew/i.test(pdfText)
+          ? 'Pośród pradawnych drzew'
+          : /w[sś]r[oó]d\s+pradawnych\s+drzew/i.test(pdfText)
+            ? 'Wśród pradawnych drzew'
+            : /po[sś]r[oó]d\s+prastarych\s+drzew/i.test(pdfText)
+              ? 'Pośród prastarych drzew'
+              : 'Amidst the Ancient Trees';
+
+      const id =
+        existingAdventureId && coreAdventures.length === 0
+          ? existingAdventureId
+          : `custom-${fileSlug}-core-${slugifyText(treesTitle)}`;
+      const eraInfo: { era: 'classic'; eraLabel: string; yearRange: string; activeSceneYear: number } = {
+        era: 'classic',
+        eraLabel: isEn ? 'Classic 1920s' : 'Klasyczne lata 20.',
+        yearRange: '1925',
+        activeSceneYear: 1925,
+      };
+      const locationInfo = {
+        location: isEn
+          ? 'Bennington / Green Mountain, Vermont'
+          : 'Bennington / Las Green Mountain (Vermont)',
+        country: 'USA',
+      };
+      const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+
+      coreAdventures.push({
+        id,
+        title: treesTitle,
+        era: eraInfo.era,
+        eraLabel: eraInfo.eraLabel,
+        yearRange: eraInfo.yearRange,
+        activeSceneYear: eraInfo.activeSceneYear,
+        location: locationInfo.location,
+        country: locationInfo.country,
+        tone: 'purist',
+        themes: ['Porwanie i pościg', 'Las i dzicz', 'Senne Wezwania', 'Gla’aki'],
+        suggestedOccupations: [
+          'Prywatny detektyw',
+          'Traper / Myśliwy',
+          'Lekarz',
+          'Dziennikarz',
+          'Policjant',
+        ],
+        suggestedArchetypes: ['investigator', 'action', 'scholar'],
+        hook: isEn
+          ? 'The daughter of local industrialist Lucas Strong has been kidnapped, and the ransom drop ended in a shootout on the edge of Green Mountain National Forest. The investigators join the search posse in the woods, unaware of an ancient horror stirring by the lake.'
+          : 'Córka miejscowego przemysłowca Lucasa Stronga została porwana, a przekazanie okupu zakończyło się strzelaniną na obrzeżach Lasu Narodowego Green Mountain. Badacze dołączają do grupy pościgowej w gęstwinie, nie wiedząc, że w głębi puszczy budzi się prastara groza.',
+        description: isEn
+          ? 'Classic Keeper Rulebook scenario set in the summer of 1925 in the forests of Vermont, combining a wilderness manhunt with the cosmic terror of Gla’aki.'
+          : `Scenariusz "${treesTitle}" wyodrębniony z podręcznika ${coreSourceLabel}. Leśna obława w stanie Vermont (czerwiec 1925 r.), która przeradza się w konfrontację ze sługami Wielkiego Przedwiecznego Gla’akiego.`,
+        estimatedSessions: '1-2',
+        playerCount: '2-5',
+        difficulty: 'normal',
+        difficultyStars: 3,
+        isCustom: true,
+        pdfUrl: '',
+        geminiFileUri: '',
+        fileName,
+        uploadedAt: new Date().toISOString(),
+        isAnalyzed: true,
+        documentType: 'scenario',
+        isCampaign: false,
+        graph,
+        source: coreSourceLabel,
+        sourceCategory: 'core',
+        sourceBookId: 'core-d100',
+        recommendedForBeginners: true,
+        attachedLorebookIds: [],
+      });
+    }
+
+    if (hasCrimsonLetters) {
+      const crimsonTitle = /szkar[lł]atne\s+litery/i.test(pdfText)
+        ? 'Szkarłatne litery'
+        : /karmazynowe\s+litery/i.test(pdfText)
+          ? 'Karmazynowe litery'
+          : 'Crimson Letters';
+
+      const id =
+        existingAdventureId && coreAdventures.length === 0
+          ? existingAdventureId
+          : `custom-${fileSlug}-core-${slugifyText(crimsonTitle)}`;
+      const eraInfo: { era: 'classic'; eraLabel: string; yearRange: string; activeSceneYear: number } = {
+        era: 'classic',
+        eraLabel: isEn ? 'Classic 1920s' : 'Klasyczne lata 20.',
+        yearRange: '1925',
+        activeSceneYear: 1925,
+      };
+      const locationInfo = {
+        location: isEn ? 'Arkham / Miskatonic University' : 'Arkham / Uniwersytet Miskatonic',
+        country: 'USA',
+      };
+      const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+
+      coreAdventures.push({
+        id,
+        title: crimsonTitle,
+        era: eraInfo.era,
+        eraLabel: eraInfo.eraLabel,
+        yearRange: eraInfo.yearRange,
+        activeSceneYear: eraInfo.activeSceneYear,
+        location: locationInfo.location,
+        country: locationInfo.country,
+        tone: 'purist',
+        themes: [
+          'Śledztwo akademickie',
+          'Procesy czarownic',
+          'Przeklęte manuskrypty',
+          'Piaskownica śledcza',
+        ],
+        suggestedOccupations: [
+          'Profesor uniwersytetu',
+          'Antykwariusz',
+          'Prywatny detektyw',
+          'Dziennikarz',
+          'Okultysta',
+        ],
+        suggestedArchetypes: ['scholar', 'investigator', 'mystic'],
+        hook: isEn
+          ? 'The sudden, inexplicable death of Professor Charles Leiter at Miskatonic University and the theft of priceless Arkham witch-trial papers. Dean Bryce Fallon hires the investigators to discreetly recover the cursed documents before scandal erupts or the Horror in Ink is unleashed.'
+          : 'Nagła i niewytłumaczalna śmierć profesora Charlesa Leitera na Uniwersytecie Miskatonic oraz zaginięcie bezcennych akt z procesów czarownic w Arkham. Prorektor Bryce Fallon wynajmuje Badaczy do dyskretnego odnalezienia przeklętych dokumentów, zanim wybuchnie skandal lub uwolniony zostanie Koszmar z Atramentu.',
+        description: isEn
+          ? 'Non-linear sandbox investigative scenario from the Keeper Rulebook, set in Arkham around Miskatonic University in autumn 1925.'
+          : `Scenariusz śledczy typu piaskownica (sandbox) "${crimsonTitle}" wyodrębniony z podręcznika ${coreSourceLabel}. Akcja toczy się w Arkham wokół Uniwersytetu Miskatonic jesienią 1925 roku.`,
+        estimatedSessions: '2-3',
+        playerCount: '2-5',
+        difficulty: 'normal',
+        difficultyStars: 3,
+        isCustom: true,
+        pdfUrl: '',
+        geminiFileUri: '',
+        fileName,
+        uploadedAt: new Date().toISOString(),
+        isAnalyzed: true,
+        documentType: 'scenario',
+        isCampaign: false,
+        graph,
+        source: coreSourceLabel,
+        sourceCategory: 'core',
+        sourceBookId: 'core-d100',
+        attachedLorebookIds: [],
+      });
+    }
+
+    return coreAdventures;
+  }
+
+  // 2c. Pulp Cthulhu (pulp-d100) z 4 wbudowanymi scenariuszami (Rozdziały 10-13)
+  if (fingerprint.profile === 'pulp-d100') {
+    const isEn = fingerprint.detectedLanguage === 'en';
+    const pulpSourceLabel = 'Pulp Cthulhu';
+    const pulpSpecs: Array<{
+      pattern: RegExp;
+      plPattern: RegExp;
+      plTitle: string;
+      enTitle: string;
+      slug: string;
+      year: number;
+      locationPl: string;
+      locationEn: string;
+      country: string;
+      sessions: string;
+      recommended?: boolean;
+      themes: string[];
+      occupations: string[];
+      hookPl: string;
+      hookEn: string;
+      descPl: string;
+      descEn: string;
+    }> = [
+      {
+        pattern: /\bthe\s+disintegrator\b|\bdezintegrator\b/i,
+        plPattern: /\bdezintegrator\b/i,
+        plTitle: 'Dezintegrator',
+        enTitle: 'The Disintegrator',
+        slug: 'the-disintegrator',
+        year: 1935,
+        locationPl: 'Nowa Anglia (Odległy hotel)',
+        locationEn: 'New England (Secluded Hotel)',
+        country: 'USA',
+        sessions: '1-2',
+        recommended: true,
+        themes: ['Szalona nauka (Weird Science)', 'Tajna aukcja', 'Przygoda Pulp', 'Intryga'],
+        occupations: [
+          'Naukowiec / Wynalazca',
+          'Prywatny detektyw',
+          'Dziennikarz śledczy',
+          'Agent federalny',
+          'Awanturnik',
+        ],
+        hookPl:
+          'Zamożny zleceniodawca wynajmuje bohaterów, aby zinfiltrowali prywatną aukcję w odosobnionym hotelu i przejęli niezwykłe urządzenie szalonej nauki znane jako „dezintegrator”.',
+        hookEn:
+          'A wealthy scientist hires the heroes to gatecrash a private auction at a secluded hotel and acquire a weird-science device known as a “disintegrator.”',
+        descPl:
+          'Scenariusz z podręcznika Pulp Cthulhu (Rozdział 10) łączący tajną aukcję, szaloną naukę i wartką akcję w realiach lat 30.',
+        descEn:
+          'Pulp Cthulhu scenario (Chapter 10) blending a covert auction, weird science, and two-fisted action in the 1930s.',
+      },
+      {
+        pattern: /waiting\s+for\s+the\s+hurricane|czekaj[aą]c\s+na\s+huragan/i,
+        plPattern: /czekaj[aą]c\s+na\s+huragan/i,
+        plTitle: 'Czekając na huragan',
+        enTitle: 'Waiting for the Hurricane',
+        slug: 'waiting-for-the-hurricane',
+        year: 1935,
+        locationPl: 'Florida Keys (Key West)',
+        locationEn: 'Florida Keys (Key West)',
+        country: 'USA',
+        sessions: '1-2',
+        recommended: true,
+        themes: ['Huragan w tropikach', 'Kult Mitów', 'Przygoda Pulp', 'Walka o przetrwanie'],
+        occupations: [
+          'Pilot / Marynarz',
+          'Prywatny detektyw',
+          'Reporter',
+          'Przemytnik',
+          'Awanturnik',
+        ],
+        hookPl:
+          'Uwięzieni na wyspie archipelagu Florida Keys podczas niszczycielskiego huraganu z 1935 roku, bohaterowie muszą przetrwać żywioł i pokrzyżować plany złowrogiego kultu wykorzystującego burzę jako zasłonę dymną.',
+        hookEn:
+          'Stranded on an island in the Florida Keys, the heroes must ride a hurricane to safety and uproot the sinister plans of a cult seeking to use the weather as a cover for their dark deeds.',
+        descPl:
+          'Dynamiczny scenariusz z podręcznika Pulp Cthulhu (Rozdział 11) osadzony na Florydzie w trakcie historycznego huraganu z 1935 roku.',
+        descEn:
+          'High-octane Pulp Cthulhu scenario (Chapter 11) set in the Florida Keys during the historic 1935 hurricane.',
+      },
+      {
+        pattern: /pandora['’]?s\s+box|puszka\s+pandory/i,
+        plPattern: /puszka\s+pandory/i,
+        plTitle: 'Puszka Pandory',
+        enTitle: "Pandora's Box",
+        slug: 'pandoras-box',
+        year: 1935,
+        locationPl: 'San Francisco / Kalifornia',
+        locationEn: 'San Francisco / California',
+        country: 'USA',
+        sessions: '1-2',
+        themes: ['Nocny klub i gangsterzy', 'Przeklęty artefakt', 'Przygoda Pulp', 'Noir'],
+        occupations: [
+          'Prywatny detektyw',
+          'Artysta estradowy',
+          'Dziennikarz',
+          'Archeolog / Antykwariusz',
+          'Gangster',
+        ],
+        hookPl:
+          'Legendarny artefakt znany jako „Puszka Pandory” zostaje wystawiony w nocnym klubie jako chwyt reklamowy, lecz każdego, kto się do niego zbliży, prześladuje złowrogie, nadprzyrodzone fatum.',
+        hookEn:
+          'The fabled artifact “Pandora’s Box” is now housed in a local nightclub as a publicity stunt, but otherworldly bad luck seems to follow all those who chance upon it.',
+        descPl:
+          'Miejski scenariusz z podręcznika Pulp Cthulhu (Rozdział 12) pełen gangsterów, nocnych klubów i starożytnej klątwy w realiach lat 30.',
+        descEn:
+          'Urban Pulp Cthulhu scenario (Chapter 12) featuring gangsters, nightclubs, and an ancient curse in the 1930s.',
+      },
+      {
+        pattern: /slow\s+boat\s+to\s+china|wolny\s+statek\s+do\s+chin/i,
+        plPattern: /wolny\s+statek\s+do\s+chin/i,
+        plTitle: 'Wolny statek do Chin',
+        enTitle: 'Slow Boat to China',
+        slug: 'slow-boat-to-china',
+        year: 1936,
+        locationPl: 'Pacyfik (rejs San Francisco - Szanghaj)',
+        locationEn: 'Pacific Ocean (San Francisco to Shanghai)',
+        country: 'USA',
+        sessions: '2-3',
+        themes: ['Rejs transoceaniczny', 'Złowrogi spisek', 'Przygoda Pulp', 'Daleki Wschód'],
+        occupations: [
+          'Awanturnik / Podróżnik',
+          'Dziennikarz',
+          'Dyplomata',
+          'Lekarz okrętowy',
+          'Detektyw',
+        ],
+        hookPl:
+          'Rejs z San Francisco do Szanghaju na pokładzie transatlantyku zapowiada się jako zasłużony wypoczynek, jednak siły pragnące zawładnąć mocami spoza naszego świata zamieniają podróż w walkę o przetrwanie.',
+        hookEn:
+          'A voyage from San Francisco to Shanghai promises rest and relaxation, but an evil intent on controlling powers from beyond ensures this trip will be anything but restful.',
+        descPl:
+          'Pełen rozmachu scenariusz z podręcznika Pulp Cthulhu (Rozdział 13) rozgrywający się podczas rejsu przez Pacyfik z San Francisco do Szanghaju.',
+        descEn:
+          'Globe-trotting Pulp Cthulhu scenario (Chapter 13) set aboard a trans-Pacific liner sailing from San Francisco to Shanghai.',
+      },
+    ];
+
+    const pulpAdventures: CustomAdventure[] = [];
+    for (const spec of pulpSpecs) {
+      if (!spec.pattern.test(pdfText)) continue;
+
+      const resolvedTitle = spec.plPattern.test(pdfText) ? spec.plTitle : spec.enTitle;
+      const id =
+        existingAdventureId && pulpAdventures.length === 0
+          ? existingAdventureId
+          : `custom-${fileSlug}-pulp-${spec.slug}`;
+      const eraInfo: { era: 'noir'; eraLabel: string; yearRange: string; activeSceneYear: number } = {
+        era: 'noir',
+        eraLabel: isEn ? '1930s / Pulp Era' : 'Lata 30. / Pulp',
+        yearRange: String(spec.year),
+        activeSceneYear: spec.year,
+      };
+      const locationInfo = {
+        location: isEn ? spec.locationEn : spec.locationPl,
+        country: spec.country,
+      };
+      const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+
+      pulpAdventures.push({
+        id,
+        title: resolvedTitle,
+        era: eraInfo.era,
+        eraLabel: eraInfo.eraLabel,
+        yearRange: eraInfo.yearRange,
+        activeSceneYear: eraInfo.activeSceneYear,
+        location: locationInfo.location,
+        country: locationInfo.country,
+        tone: 'pulp',
+        themes: spec.themes,
+        suggestedOccupations: spec.occupations,
+        suggestedArchetypes: ['action', 'investigator', 'scholar', 'mystic'],
+        hook: isEn ? spec.hookEn : spec.hookPl,
+        description: isEn ? spec.descEn : spec.descPl,
+        estimatedSessions: spec.sessions,
+        playerCount: '2-5',
+        difficulty: 'normal',
+        difficultyStars: 3,
+        isCustom: true,
+        pdfUrl: '',
+        geminiFileUri: '',
+        fileName,
+        uploadedAt: new Date().toISOString(),
+        isAnalyzed: true,
+        documentType: 'scenario',
+        isCampaign: false,
+        graph,
+        source: pulpSourceLabel,
+        sourceCategory: 'core',
+        sourceBookId: 'pulp-d100',
+        ...(spec.recommended ? { recommendedForBeginners: true } : {}),
+        attachedLorebookIds: [],
+      });
+    }
+
+    return pulpAdventures;
+  }
+
+  // 2d. Pozostałe podręczniki czysto mechaniczne (Podręcznik Badacza, własny system d100) bez wbudowanych scenariuszy
+  if (
+    fingerprint.profile === 'investigator_handbook' ||
+    fingerprint.profile === 'custom-d100'
+  ) {
+    return [];
+  }
+
   // 3. Grymuar, Bestiariusz lub Rozszerzenie Settingowe (Lorebook / Compendium)
   if (
     fingerprint.profile === 'grimoire' ||

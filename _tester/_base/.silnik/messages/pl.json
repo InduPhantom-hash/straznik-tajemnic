@@ -7810,6 +7810,7 @@
     "autoRoutedToRulesTitle": "Wykryto podręcznik zasad - przeniesiono do kolumny Wymagane",
     "autoRoutedToRulesDesc": "Plik \"{fileName}\" został rozpoznany jako podręcznik zasad (\"{profileTitle}\") i przypisany do lewej kolumny.",
     "starterScenarioExtractedNote": "Wyodrębniono również wbudowany scenariusz ze Startera i dodano go do Manual Setup.",
+    "rulebookScenariosExtractedNote": "Wyodrębniono również wbudowane scenariusze z podręcznika ({count}) i dodano je do Manual Setup.",
     "installedRulesHeader": "Wgrane podręczniki zasad ({count})",
     "installedOptionalHeader": "Wgrane przygody i dodatki ({count})",
     "emptyRulesList": "Brak wgranych podręczników zasad. Wgraj Starter lub Księgę Strażnika powyżej.",
