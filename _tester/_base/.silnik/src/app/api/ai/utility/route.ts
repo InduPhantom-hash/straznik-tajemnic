@@ -81,11 +81,9 @@ export async function POST(request: NextRequest) {
     geminiOptions.responseMimeType = 'text/plain';
   }
 
-  let stream: Awaited<ReturnType<typeof provider.streamChat>>['stream'];
+  let chatResult: Awaited<ReturnType<typeof provider.chat>>;
   try {
-    // streamChat woła generateContentStream EAGER (gemini-provider) - błędy klucza/modelu
-    // rzucają się tutaj na await, więc łapiemy je i zwracamy czysty status zamiast 500.
-    ({ stream } = await provider.streamChat({
+    chatResult = await provider.chat({
       systemPrompt: UTILITY_SYSTEM_PROMPT,
       messages: [],
       userMessage,
@@ -95,7 +93,7 @@ export async function POST(request: NextRequest) {
       topP: 0.95,
       maxOutputTokens: 4096,
       geminiOptions,
-    }));
+    });
   } catch (err) {
     Sentry.captureException(err, { tags: { endpoint: '/api/ai/utility' } });
     return NextResponse.json(
@@ -109,25 +107,19 @@ export async function POST(request: NextRequest) {
 
   const encoder = new TextEncoder();
   const sseStream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          if (chunk.text) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ type: 'text', content: chunk.text })}\n\n`
-              )
-            );
-          }
-        }
-        // Pusta metadata domyka strumień (collectSSEText ignoruje, ale spójne z /api/chat).
+    start(controller) {
+      if (chatResult.text) {
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: 'metadata' })}\n\n`)
+          encoder.encode(
+            `data: ${JSON.stringify({ type: 'text', content: chatResult.text })}\n\n`
+          )
         );
-        controller.close();
-      } catch (e) {
-        controller.error(e);
       }
+      // Pusta metadata domyka strumień (collectSSEText ignoruje, ale spójne z /api/chat).
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ type: 'metadata' })}\n\n`)
+      );
+      controller.close();
     },
   });
 

@@ -1253,6 +1253,8 @@ export function CharacterWizardV2({
         body: JSON.stringify({
           message: prompt,
           messages: [],
+          json: true,
+          responseMimeType: 'application/json',
         }),
       });
 
@@ -1271,21 +1273,22 @@ export function CharacterWizardV2({
       if (fullContent) {
         try {
           // Extract JSON from response - ulepszony parser
-          let jsonStr = fullContent;
-
-          // 1. Usuń markdown code blocks
-          jsonStr = jsonStr.replace(/```json\n?/gi, '').replace(/```\n?/g, '');
+          let jsonStr = fullContent
+            .replace(/```(?:json)?\n?/gi, '')
+            .replace(/```\n?/g, '')
+            .trim();
 
           // 2. Znajdź JSON w odpowiedzi (od { do })
           const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
+          if (jsonMatch) {
+            jsonStr = jsonMatch[0].trim();
+          }
+          if (!jsonStr.startsWith('{')) {
             throw new Error(t('jsonNotFound'));
           }
-          jsonStr = jsonMatch[0].trim();
 
           // 3. Napraw typowe błędy JSON
-          jsonStr = jsonStr.replace(/,\s*}/g, '}');
-          jsonStr = jsonStr.replace(/,\s*]/g, ']');
+          jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
 
           const parsed = JSON.parse(jsonStr);
 

@@ -1,4 +1,5 @@
 const mockGenerateContentStream = jest.fn();
+const mockGenerateContent = jest.fn();
 
 jest.mock('@google/genai', () => {
   const actual = jest.requireActual<typeof import('@google/genai')>(
@@ -8,7 +9,10 @@ jest.mock('@google/genai', () => {
   return {
     ...actual,
     GoogleGenAI: jest.fn().mockImplementation(() => ({
-      models: { generateContentStream: mockGenerateContentStream },
+      models: {
+        generateContentStream: mockGenerateContentStream,
+        generateContent: mockGenerateContent,
+      },
     })),
   };
 });
@@ -36,6 +40,7 @@ function streamResponse(chunks: Array<Record<string, unknown>>) {
 describe('GeminiChatProvider.finishReason', () => {
   beforeEach(() => {
     mockGenerateContentStream.mockReset();
+    mockGenerateContent.mockReset();
   });
 
   it.each(['legacy', 'options'] as const)('blocks %s document attachments before any SDK request', async (location) => {
@@ -111,5 +116,28 @@ describe('GeminiChatProvider.finishReason', () => {
 
     expect(text).toEqual(['Scena po retry.']);
     expect(mockGenerateContentStream).toHaveBeenCalledTimes(2);
+  });
+
+  it('zwraca kompletny tekst i metadane tokenów przez unarne generateContent w chat()', async () => {
+    mockGenerateContent.mockResolvedValue({
+      text: '{"name":"John Doe","birthplace":"Boston"}',
+      usageMetadata: {
+        totalTokenCount: 150,
+        promptTokenCount: 100,
+        candidatesTokenCount: 50,
+      },
+    });
+
+    const provider = new GeminiChatProvider('test-key', 'gemini-test');
+    const result = await provider.chat(request);
+
+    expect(result.text).toBe('{"name":"John Doe","birthplace":"Boston"}');
+    expect(result.usage).toMatchObject({
+      totalTokens: 150,
+      promptTokens: 100,
+      completionTokens: 50,
+    });
+    expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+    expect(mockGenerateContentStream).not.toHaveBeenCalled();
   });
 });
