@@ -10,6 +10,7 @@ import {
   rollAndResolveOpposed,
   formatOpposedRollForChat,
   formatOpposedRollForSystemContext,
+  formatOpposedWinnerResultTag,
   type OpposedRollSideResult,
 } from '@/lib/opposed-rolls';
 
@@ -220,6 +221,36 @@ describe('opposed-rolls (CoC 7e RAW)', () => {
       expect(parsed.winner).toBe('sideA');
       expect(parsed.sideA.value).toBe(65);
       expect(parsed.sideB.value).toBe(50);
+    });
+
+    it('formatOpposedWinnerResultTag emituje poprawny tag WYNIK dla zwycięskiego gracza bez kości premiowej', () => {
+      const sideA = createMockSide('Arthur', 'Zastraszanie', 60, 'hard', 25, 0);
+      const sideB = createMockSide('Kultysta', 'Psychologia', 45, 'regular', 35, 0);
+      const res = evaluateOpposedResolution(sideA, sideB);
+
+      const tag = formatOpposedWinnerResultTag(res);
+      expect(tag).toBe('[WYNIK: @Arthur: Zastraszanie | 25 ≤ 60 | HARD]');
+    });
+
+    it('formatOpposedWinnerResultTag dodaje znacznik BONUS gdy gracz wygrał z kością premiową', () => {
+      const sideA = createMockSide('Arthur', 'Zastraszanie', 60, 'regular', 45, 1);
+      const sideB = createMockSide('Kultysta', 'Psychologia', 45, 'fail', 70, 0);
+      const res = evaluateOpposedResolution(sideA, sideB);
+
+      const tag = formatOpposedWinnerResultTag(res);
+      expect(tag).toBe('[WYNIK: @Arthur: Zastraszanie | 45 ≤ 60 | REGULAR | BONUS]');
+    });
+
+    it('formatOpposedWinnerResultTag zwraca null gdy przeciwnik wygrał lub był remis', () => {
+      const sideA = createMockSide('Arthur', 'Zastraszanie', 45, 'fail', 70, 0);
+      const sideB = createMockSide('Kultysta', 'Psychologia', 60, 'regular', 30, 0);
+      const resLoser = evaluateOpposedResolution(sideA, sideB);
+      expect(formatOpposedWinnerResultTag(resLoser)).toBeNull();
+
+      const sideAFail = createMockSide('Arthur', 'Zastraszanie', 50, 'fail', 80, 0);
+      const sideBFail = createMockSide('Kultysta', 'Psychologia', 50, 'fail', 90, 0);
+      const resDraw = evaluateOpposedResolution(sideAFail, sideBFail);
+      expect(formatOpposedWinnerResultTag(resDraw)).toBeNull();
     });
   });
 });

@@ -316,3 +316,19 @@ export function formatOpposedRollForSystemContext(
     },
   });
 }
+
+/**
+ * Generuje tag [WYNIK:] dla zwycięzcy testu przeciwstawnego według CoC 7e RAW (s. 105).
+ * Tylko zwycięzca testu przeciwstawnego oznacza umiejętność do rozwoju,
+ * o ile osiągnął sukces i nie korzystał z kości premiowej.
+ */
+export function formatOpposedWinnerResultTag(
+  resolution: OpposedRollResolution
+): string | null {
+  if (resolution.winner !== 'sideA') return null;
+  if (!isSuccessOutcome(resolution.sideA.outcome)) return null;
+
+  const charPrefix = resolution.sideA.name ? `@${resolution.sideA.name}: ` : '';
+  const bonusSuffix = resolution.sideA.bonusDice > 0 ? ' | BONUS' : '';
+  return `[WYNIK: ${charPrefix}${resolution.sideA.skillName} | ${resolution.sideA.total} ≤ ${resolution.sideA.skillValue} | ${resolution.sideA.outcome.toUpperCase()}${bonusSuffix}]`;
+}

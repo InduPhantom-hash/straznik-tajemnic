@@ -145,6 +145,7 @@ export interface SkillTestResult {
   threshold: number; // Próg sukcesu
   usedLuck: boolean; // Czy użyto Luck (Szczęścia)
   luckSpent?: number; // Ile Luck wydano
+  usedBonus?: boolean; // Czy rzut wykonano z kością premiową (s. 105 RAW wyklucza z rozwoju)
   shouldMark: boolean; // Czy oznaczyć do rozwoju
   reason?: string; // Powód (nie)oznaczenia
 }
