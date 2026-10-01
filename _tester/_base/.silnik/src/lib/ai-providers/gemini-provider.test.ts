@@ -68,4 +68,48 @@ describe('GeminiChatProvider.finishReason', () => {
     expect(text).toEqual(['Urwany fragment']);
     expect(result.getFinishReason()).toBe('MAX_TOKENS');
   });
+
+  it('ignoruje błąd SDK Incomplete JSON segment at the end jeśli treść narracji została już wyemitowana', async () => {
+    mockGenerateContentStream.mockResolvedValue(
+      (async function* () {
+        yield { text: 'Wkraczasz do ruin kościoła w Prabutach.' };
+        throw new Error('Incomplete JSON segment at the end');
+      })()
+    );
+
+    const provider = new GeminiChatProvider('test-key', 'gemini-test');
+    const result = await provider.streamChat(request);
+
+    const text: string[] = [];
+    for await (const chunk of result.stream) {
+      text.push(chunk.text);
+    }
+
+    expect(text).toEqual(['Wkraczasz do ruin kościoła w Prabutach.']);
+  });
+
+  it('ponawia zapytanie (retry) gdy błąd Incomplete JSON segment at the end wystąpi przed emisją jakichkolwiek danych', async () => {
+    mockGenerateContentStream
+      .mockResolvedValueOnce(
+        (async function* () {
+          throw new Error('Incomplete JSON segment at the end');
+        })()
+      )
+      .mockResolvedValueOnce(
+        (async function* () {
+          yield { text: 'Scena po retry.' };
+        })()
+      );
+
+    const provider = new GeminiChatProvider('test-key', 'gemini-test');
+    const result = await provider.streamChat(request);
+
+    const text: string[] = [];
+    for await (const chunk of result.stream) {
+      text.push(chunk.text);
+    }
+
+    expect(text).toEqual(['Scena po retry.']);
+    expect(mockGenerateContentStream).toHaveBeenCalledTimes(2);
+  });
 });

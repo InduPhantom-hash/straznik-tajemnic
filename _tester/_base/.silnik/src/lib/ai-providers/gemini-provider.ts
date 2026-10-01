@@ -259,18 +259,37 @@ export class GeminiChatProvider implements IChatProvider {
     async function* pump(
       response: Awaited<ReturnType<typeof streamOnce>>
     ): AsyncGenerator<string> {
-      for await (const chunk of response) {
-        try {
-          if (chunk.usageMetadata) lastUsage = chunk.usageMetadata;
-          const fr = chunk.candidates?.[0]?.finishReason;
-          if (fr) lastFinishReason = fr;
-          const text = chunk.text;
-          if (text) yield text;
-        } catch (e) {
-          // Safety-blocked chunk, pomiń
-          console.warn('⚠️ Gemini stream chunk error (safety?):', e);
-          continue;
+      let yieldedCount = 0;
+      try {
+        for await (const chunk of response) {
+          try {
+            if (chunk.usageMetadata) lastUsage = chunk.usageMetadata;
+            const fr = chunk.candidates?.[0]?.finishReason;
+            if (fr) lastFinishReason = fr;
+            const text = chunk.text;
+            if (text) {
+              yieldedCount++;
+              yield text;
+            }
+          } catch (e) {
+            // Safety-blocked chunk, pomiń
+            console.warn('⚠️ Gemini stream chunk error (safety?):', e);
+            continue;
+          }
         }
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isIncompleteJson = /Incomplete JSON segment at the end/i.test(errMsg);
+        if (isIncompleteJson) {
+          console.warn(
+            `⚠️ Gemini stream reader (Issue #1342: Incomplete JSON segment at the end). Wyemitowano chunków: ${yieldedCount}.`
+          );
+          // Jeśli wyemitowano już treść narracji, zamykamy generator czysto bez rzucania fatalnego błędu.
+          if (yieldedCount > 0) {
+            return;
+          }
+        }
+        throw err;
       }
     }
 
@@ -344,9 +363,21 @@ export class GeminiChatProvider implements IChatProvider {
     // narracji; urywanie długiej odpowiedzi to osobny problem (IND-73), nie IND-199.
     const stream = (async function* () {
       let emitted = false;
-      for await (const text of pump(firstResponse)) {
-        emitted = true;
-        yield { text };
+      try {
+        for await (const text of pump(firstResponse)) {
+          emitted = true;
+          yield { text };
+        }
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isIncompleteJson = /Incomplete JSON segment at the end/i.test(errMsg);
+        if (isIncompleteJson && !emitted) {
+          console.warn(
+            '⚠️ Pierwsze zapytanie Gemini zakończone błędem Incomplete JSON przed emisją danych. Przechodzę do retry...'
+          );
+        } else {
+          throw err;
+        }
       }
 
       if (!emitted) {
@@ -360,16 +391,20 @@ export class GeminiChatProvider implements IChatProvider {
           ...config,
           thinkingConfig: { thinkingBudget: THINKING_BUDGET_RETRY },
         };
-        for await (const text of pump(await streamOnce(activeModel, retryConfig))) {
-          emitted = true;
-          yield { text };
+        try {
+          for await (const text of pump(await streamOnce(activeModel, retryConfig))) {
+            emitted = true;
+            yield { text };
+          }
+        } catch (retryErr: unknown) {
+          console.warn('⚠️ Gemini stream retry error:', retryErr);
         }
 
         // Nadal pusto → jawny komunikat zamiast cichego pustego dymka + Sentry (była ślepa plamka).
         if (!emitted) {
           Sentry.captureException(
             new Error(
-              'Gemini: pusta odpowiedź po retry (możliwy MAX_TOKENS/safety)'
+              'Gemini: pusta odpowiedź po retry (możliwy MAX_TOKENS/safety/Incomplete JSON)'
             ),
             {
               tags: { feature: 'chat', provider: 'gemini' },
