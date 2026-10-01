@@ -220,5 +220,51 @@ describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
     expect(sections[1].content).toBe('Krople deszczu uderzają o parapet.');
     expect(sections[1].content).not.toContain('---');
   });
+
+  it('zamyka handout separatorem, nawet gdy treść listu zawiera słowa kluczowe typu plan, policja, raport', () => {
+    const text = [
+      'PRZESYŁKA EKSPRESOWA – POCZTA POLSKA',
+      '----------------------------------------',
+      'Nasz plan zakłada ukrycie się przed policją.',
+      'Dołączam raport i mapę ewakuacji.',
+      '----------------------------------------',
+      'Na biurku unosi się zapach laku i wilgotnego papieru.',
+      '[Co robisz?]',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    expect(sections).toHaveLength(3);
+    expect(sections[0].type).toBe('handout');
+    expect(sections[0].handoutType).toBe('letter');
+    expect(sections[0].content).toContain('Nasz plan zakłada ukrycie się przed policją.');
+    expect(sections[0].content).toContain('Dołączam raport i mapę ewakuacji.');
+    expect(sections[0].content).not.toContain('Na biurku unosi się zapach laku');
+
+    expect(sections[1].type).toBe('narrative');
+    expect(sections[1].content).toBe('Na biurku unosi się zapach laku i wilgotnego papieru.');
+
+    expect(sections[2].type).toBe('whisper');
+    expect(sections[2].content).toBe('Co robisz?');
+  });
+
+  it('poprawnie parsuje otwierający separator --- przed nagłówkiem handoutu bez traktowania go jako dialog', () => {
+    const text = [
+      '---',
+      'PRZESYŁKA EKSPRESOWA – POCZTA POLSKA',
+      '---',
+      'Tajemnicza treść listu.',
+      '---',
+      'Narracja po liście.',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    expect(sections).toHaveLength(2);
+    expect(sections.some((s) => s.type === 'dialogue')).toBe(false);
+    expect(sections[0].type).toBe('handout');
+    expect(sections[0].handoutType).toBe('letter');
+    expect(sections[0].content).toContain('Tajemnicza treść listu.');
+    expect(sections[1].type).toBe('narrative');
+    expect(sections[1].content).toBe('Narracja po liście.');
+  });
 });
 

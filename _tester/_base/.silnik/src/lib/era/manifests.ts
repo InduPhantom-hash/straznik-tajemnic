@@ -220,7 +220,7 @@ export const PL_1920S_APPROVED_MANIFEST: EraManifestV1 = {
   law: [
     'Policja Państwowa (utworzona w 1919 r.) umundurowana w granatowe mundury z orłem w koronie.',
     'Służba Śledcza (Urząd Śledczy) prowadząca rejestry daktyloskopijne, fotografię sygnalityczną i kartoteki.',
-    'Brak numerów alarmowych typu 997 czy 112 – kontakt bezpośredni z posterunkiem, komisariatem lub przez centralę telefoniczną.',
+    'Brak numerów alarmowych typu 997 czy 112 - kontakt bezpośredni z posterunkiem, komisariatem lub przez centralę telefoniczną.',
   ],
   customs: [
     'Etykieta salonowa i kawiarniana, całowanie kobiet w dłoń, tytułowanie („Panie Radco”, „Panie Mecenasie”, „Panie Doktorze”).',
@@ -282,7 +282,7 @@ export const PL_1920S_APPROVED_MANIFEST: EraManifestV1 = {
   ],
   presentismRisks: [
     'Nie wprowadzaj realiów powojennych PRL ani współczesnych (brak Milicji Obywatelskiej, Dworca Centralnego, numeru 997, dowodów osobistych PRL).',
-    'Nie wprowadzaj długopisów kulkowych ani Zenith – w latach 20. pisano wyłącznie stalówkami, wiecznymi piórami, kałamarzem lub ołówkiem kopiowym.',
+    'Nie wprowadzaj długopisów kulkowych ani Zenith - w latach 20. pisano wyłącznie stalówkami, wiecznymi piórami, kałamarzem lub ołówkiem kopiowym.',
     'Nie przedstawiaj współczesnych technologii cyfrowych ani natychmiastowego dostępu do danych.',
   ],
   sources: [PL_1920S_SOURCE],

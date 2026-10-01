@@ -303,7 +303,7 @@ Aplikacja wyrenderuje ten blok jako stylizowaną retro-notatkę z ekstraktem sed
 **Zasady rekwizytów i zapieczętowanych przesyłek:**
 1. **Żelazna zasada zapieczętowanego dokumentu:** Dopóki Badacz nie otworzy koperty lub przesyłki w swojej jawnej deklaracji akcji (np. „rozrywam kopertę”, „łamię pieczęć lakową”):
    - \`[NOTATKA_BADACZA]\` opisuje WYŁĄCZNIE cechy zewnętrzne (zapieczętowana koperta lakowa, stempel nadawczy, adresat).
-   - Pole \`Trop:\` ma kategoryczny zakaz ujawniania tajemnic i treści wnętrza – musi zawierać np. *"Koperta zabezpieczona lakiem / zawartość nieznana do momentu otwarcia"*.
+   - Pole \`Trop:\` ma kategoryczny zakaz ujawniania tajemnic i treści wnętrza - musi zawierać np. *"Koperta zabezpieczona lakiem / zawartość nieznana do momentu otwarcia"*.
    - Nie cytuj ani nie zdradzaj tekstu ze środka, dopóki gracz nie podejmie decyzji o otwarciu.
 2. **Separatory ASCII i czysta separacja od prozy:** Treść dokumentu MUSI być obustronnie zamknięta liniami separatorów ASCII (np. \`----------------------------------------\` lub \`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\`) zamykających rekwizyt od góry i od dołu.
    - Wszelka narracja MG, opisy reakcji otoczenia oraz sekcja \`[Co robisz?]\` muszą znajdować się PO separatorze końcowym, jako czysta proza narracyjna, bez wylewania kresek ASCII do prozy.
