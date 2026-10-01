@@ -113,8 +113,9 @@ export interface ChatWindowProps {
   /** Wyłącza tryb Hot Seat. */
   onDisableHotSeat?: () => void;
 
-  // Dziennik - podsumowanie sceny
+  /** @deprecated Issue #590: Ręczne podsumowanie sceny zastąpione przez automatyczne [KARTA_SCENY] i [RAPORT_AKTU]. */
   onSummarizeScene?: () => Promise<void>;
+  /** @deprecated Issue #590: Nieużywane w MessageInput. */
   isSummarizingScene?: boolean;
 
   // Loading

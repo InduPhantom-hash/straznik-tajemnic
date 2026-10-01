@@ -78,8 +78,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   hotSeatConfig,
   onSwitchPlayer,
   onDisableHotSeat,
-  onSummarizeScene,
-  isSummarizingScene = false,
   isLoading = false,
   onStopGeneration,
   isInitialBuffering = false,
@@ -512,8 +510,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             setNewMessage={setNewMessage}
             handleSendMessage={handleSendMessage}
             messagesCount={messages.length}
-            onSummarizeScene={onSummarizeScene}
-            isSummarizingScene={isSummarizingScene}
             isDuet={isDuet}
             pendingDeclarations={pendingDeclarations}
             playersAwaitingDeclaration={playersAwaitingDeclaration}
