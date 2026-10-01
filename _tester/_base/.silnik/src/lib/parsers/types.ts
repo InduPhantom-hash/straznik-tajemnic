@@ -114,6 +114,11 @@ export interface SkillTestModifier {
   count: number;
 }
 
+export interface CombinedSkillSubtest {
+  skillName: string;
+  skillValue: number;
+}
+
 export interface SkillTestData {
   id: string;
   skillName: string;
@@ -127,6 +132,11 @@ export interface SkillTestData {
   characterId?: string;
   /** Wspólna grupa testów z jednej odpowiedzi MG. */
   groupId?: string;
+  /** Test łączony (RAW s. 103): operator 'OR' (LUB) lub 'AND' (I) oraz lista umiejętności */
+  combined?: {
+    operator: 'OR' | 'AND';
+    skills: CombinedSkillSubtest[];
+  };
 }
 
 export interface TimeUpdate {

@@ -270,6 +270,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               0
             ),
             justification: activeSkillTest.justification,
+            combined: activeSkillTest.combined,
           }
         : null,
     [activeSkillTest]

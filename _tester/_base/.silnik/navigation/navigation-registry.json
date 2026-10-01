@@ -386,6 +386,14 @@
       }
     },
     {
+      "id": "roll-test-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Tacka testu umiejętności d100 Weird Fiction",
+        "en": "d100 Weird Fiction Skill Test Tray"
+      }
+    },
+    {
       "id": "combat-card",
       "kind": "modal",
       "label": {
@@ -931,6 +939,15 @@
     },
     {
       "source": "game",
+      "target": "roll-test-modal",
+      "label": {
+        "pl": "Rzut na umiejętność",
+        "en": "Roll skill test"
+      },
+      "component": "src/components/dialogs/RollTestModal.tsx"
+    },
+    {
+      "source": "game",
       "target": "game",
       "label": {
         "pl": "Ponów zapis kroniki po błędzie",
@@ -939,5 +956,5 @@
       "component": "src/components/chat/chat-window/components/message-card.tsx"
     }
   ],
-  "lastUpdated": "2026-10-01T18:35:00.000Z"
+  "lastUpdated": "2026-10-01T18:48:00.000Z"
 }

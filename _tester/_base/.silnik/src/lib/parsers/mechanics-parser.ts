@@ -175,6 +175,26 @@ export function extractSkillTests(text: string): SkillTestData[] {
             }
         }
 
+        // Detekcja testu łączonego (RAW s. 103: operatory LUB/OR oraz I/AND)
+        let combined: SkillTestData['combined'] = undefined;
+        if (/\s+(?:LUB|OR)\s+/i.test(skillName)) {
+            const subSkillNames = skillName.split(/\s+(?:LUB|OR)\s+/i).map((s) => s.trim()).filter(Boolean);
+            if (subSkillNames.length > 1) {
+                combined = {
+                    operator: 'OR',
+                    skills: subSkillNames.map((name) => ({ skillName: name, skillValue: 0 })),
+                };
+            }
+        } else if (/\s+(?:I|AND)\s+/i.test(skillName)) {
+            const subSkillNames = skillName.split(/\s+(?:I|AND)\s+/i).map((s) => s.trim()).filter(Boolean);
+            if (subSkillNames.length > 1) {
+                combined = {
+                    operator: 'AND',
+                    skills: subSkillNames.map((name) => ({ skillName: name, skillValue: 0 })),
+                };
+            }
+        }
+
         tests.push({
             id: crypto.randomUUID(),
             skillName,
@@ -182,7 +202,8 @@ export function extractSkillTests(text: string): SkillTestData[] {
             difficulty,
             modifiers,
             justification,
-            characterName
+            characterName,
+            combined,
         });
     }
 
