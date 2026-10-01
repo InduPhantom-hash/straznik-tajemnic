@@ -248,5 +248,56 @@ POMOC DLA GRACZY #2 - Wycinek z Gazety Podhalańskiej
       expect(adv.handouts).toBeDefined();
       expect(adv.handouts?.length).toBeGreaterThanOrEqual(2);
     });
+
+    it('parses uppercase scenario headers in TOC without crashing on unclosed parentheses in body lines', () => {
+      const text = `
+Zbiór scenariuszy
+LEGENDA OZNACZENIA SCENARIUSZY
+PISK, WIZG
+Przygotowanie do gry ...........................................................5
+Przedmowa ...........................................................................5
+Dramatis Personae ................................................................9
+ODŁAMEK
+Wstęp ..............................................................................35
+Dramatis Personae .........................................................35
+${'Opis tła fabularnego w Muscoby. '.repeat(200)}
+PISK, WIZG
+Tom Gurteen, siostrzeniec Shirley (jego rodzice zginęli, gdy miał 10
+lat podczas wypadku kolejowego).
+ODŁAMEK
+Odprawa w Klubie Niebieska Piramida w Londynie w 1926 roku.
+      `;
+
+      const scenarios = parseScenariosFromAnthologyText(text, 'ZC_Pisk-wizg-i-Odlamek.pdf');
+      expect(scenarios).toHaveLength(2);
+      expect(scenarios[0].title).toBe('Pisk, Wizg');
+      expect(scenarios[1].title).toBe('Odłamek');
+    });
+
+    it('uses cleaned fileName instead of generic category label and creates distinct IDs per file', () => {
+      const text1 = `
+Zew Cthulhu Starter. Zasady skrócone Quick-Start d100.
+Tworzenie Badacza, test umiejętności k100. Scenariusz: Nawiedzony dom i posiadłość Corbitta.
+      `;
+      const fp1 = detectRulebookProfile(text1, 'Starter_Edycja_1.pdf');
+      const fp2 = detectRulebookProfile(text1, 'Starter_Edycja_2.pdf');
+
+      const adv1 = buildLocalCustomAdventures(text1, fp1, dummyOverlay, 'Starter_Edycja_1.pdf', 32);
+      const adv2 = buildLocalCustomAdventures(text1, fp2, dummyOverlay, 'Starter_Edycja_2.pdf', 32);
+      expect(adv1[0].id).not.toBe(adv2[0].id);
+
+      const customOneShotText = `
+Krótki scenariusz do gry d100 w Arkham w 1924 roku. Badacze odkrywają tajemniczy dziennik w piwnicy.
+      `;
+      const fpCustom = detectRulebookProfile(customOneShotText, 'Tajemnica_Domu_Wiedźmy.pdf');
+      const customAdvs = buildLocalCustomAdventures(
+        customOneShotText,
+        fpCustom,
+        dummyOverlay,
+        'Tajemnica_Domu_Wiedźmy.pdf',
+        18
+      );
+      expect(customAdvs[0].title).toBe('Tajemnica Domu Wiedźmy');
+    });
   });
 });

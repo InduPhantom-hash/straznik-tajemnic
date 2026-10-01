@@ -40,7 +40,7 @@ jest.mock('next-intl', () => ({
         'Pulp Cthulhu oraz Podręcznik Badacza rozszerzają mechanikę, ale wymagają bazowych reguł d100.',
       autoRoutedToOptionalTitle:
         'Wykryto przygodę lub suplement - przeniesiono do kolumny Opcjonalne',
-      autoRoutedToOptionalDesc: `Plik "${values?.fileName}" został rozpoznany jako "${values?.profileTitle}".`,
+      autoRoutedToOptionalDesc: `Plik "${values?.fileName}" został rozpoznany jako "${values?.profileTitle}" (${values?.adventureCount ?? 0} scen.).`,
       autoRoutedToRulesTitle:
         'Wykryto podręcznik zasad - przeniesiono do kolumny Wymagane',
       autoRoutedToRulesDesc: `Plik "${values?.fileName}" został rozpoznany jako podręcznik zasad.`,
@@ -443,5 +443,163 @@ describe('RulebookModal - dwukolumnowe centrum podręczników i dodatków PDF', 
       screen.queryByTestId('installed-overlay-overlay-starter-d100')
     ).not.toBeInTheDocument();
     expect(screen.queryByTestId('continue-to-game-btn')).not.toBeInTheDocument();
+  });
+
+  it('zachowuje komunikat auto-routingu podczas wgrywania wielu plików naraz i nie zlicza kompendiów jako scenariuszy', async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          recordCount: 0,
+          capabilities: {
+            installedOverlays: [],
+            flags: { hasBaseRules: false, hasRulebookExpansion: false },
+            counts: {},
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          indexed: 120,
+          totalChunks: 120,
+          namespace: 'adventures/custom-malleus',
+          actualColumn: 'optional',
+          requestedColumn: 'rules',
+          autoRouted: true,
+          routingKind: 'moved_to_optional',
+          rulebookProfile: {
+            profile: 'bestiary',
+            title: 'Malleus Monstrorum',
+          },
+          adventures: [
+            {
+              id: 'custom-malleus',
+              title: 'Malleus Monstrorum',
+              fileName: 'malleus.pdf',
+              documentType: 'compendium',
+            },
+          ],
+          capabilities: {
+            installedOverlays: [
+              {
+                id: 'overlay-malleus',
+                title: 'Malleus Monstrorum',
+                fileName: 'malleus.pdf',
+                profile: 'bestiary',
+                column: 'optional',
+                pageCount: 120,
+                adventureIds: ['custom-malleus'],
+                installedAt: new Date().toISOString(),
+                tags: ['BESTIARIUSZ'],
+                overlayPath: '/tmp/overlay-malleus.json',
+                stats: {
+                  npcCount: 0,
+                  creatureCount: 30,
+                  spellCount: 0,
+                  ruleCount: 0,
+                  handoutCount: 0,
+                  adventureCount: 0,
+                },
+              },
+            ],
+            flags: { hasBaseRules: false, hasRulebookExpansion: false },
+            counts: { totalCreatures: 30, totalAdventures: 0 },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          indexed: 400,
+          totalChunks: 400,
+          namespace: 'rules',
+          actualColumn: 'rules',
+          requestedColumn: 'rules',
+          autoRouted: false,
+          routingKind: 'none',
+          rulebookProfile: {
+            profile: 'core-d100',
+            title: 'Księga Zasad Głównych d100',
+          },
+          adventures: [],
+          capabilities: {
+            installedOverlays: [
+              {
+                id: 'overlay-malleus',
+                title: 'Malleus Monstrorum',
+                fileName: 'malleus.pdf',
+                profile: 'bestiary',
+                column: 'optional',
+                pageCount: 120,
+                installedAt: new Date().toISOString(),
+                tags: ['BESTIARIUSZ'],
+                overlayPath: '/tmp/overlay-malleus.json',
+                stats: {
+                  npcCount: 0,
+                  creatureCount: 30,
+                  spellCount: 0,
+                  ruleCount: 0,
+                  handoutCount: 0,
+                  adventureCount: 0,
+                },
+              },
+              {
+                id: 'overlay-core',
+                title: 'Księga Zasad Głównych d100',
+                fileName: 'keeper.pdf',
+                profile: 'core-d100',
+                column: 'rules',
+                pageCount: 400,
+                installedAt: new Date().toISOString(),
+                tags: ['MECHANIKA'],
+                overlayPath: '/tmp/overlay-core.json',
+                stats: {
+                  npcCount: 0,
+                  creatureCount: 10,
+                  spellCount: 10,
+                  ruleCount: 25,
+                  handoutCount: 0,
+                  adventureCount: 0,
+                },
+              },
+            ],
+            flags: { hasBaseRules: true, hasRulebookExpansion: false },
+            counts: { totalCreatures: 40, totalAdventures: 0 },
+          },
+        }),
+      });
+
+    render(
+      <RulebookModal
+        open={true}
+        onOpenChange={() => {}}
+        gated={true}
+        rulesCount={0}
+      />
+    );
+
+    const rulesDropzone = screen.getByTestId('upload-rules-dropzone');
+    const file1 = new File(['%PDF-1.4 malleus'], 'malleus.pdf', {
+      type: 'application/pdf',
+    });
+    const file2 = new File(['%PDF-1.4 keeper'], 'keeper.pdf', {
+      type: 'application/pdf',
+    });
+
+    fireEvent.drop(rulesDropzone, {
+      dataTransfer: { files: [file1, file2] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('continue-to-game-btn')).toBeInTheDocument();
+    });
+
+    const banner = screen.getByTestId('auto-routing-banner');
+    expect(banner).toBeInTheDocument();
+    expect(banner.textContent).toContain('(0 scen.)');
   });
 });

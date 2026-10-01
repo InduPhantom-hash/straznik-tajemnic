@@ -75,4 +75,56 @@ describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semant
       expect(res.confidence).toBeGreaterThanOrEqual(0.85);
     });
   });
+
+  describe("Odporność na fałszywe dopasowania z przedmów, stopki licencyjnej i statystyk NPC", () => {
+    it("rozpoznaje Księgę Strażnika (core-d100) nawet gdy w przedmowie wspomniano Maski Nyarlathotepa i Horror w Orient Expressie", () => {
+      const text = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        W przedmowie wspominamy legendarne kampanie takie jak Maski Nyarlathotepa oraz Horror w Orient Expressie.
+        SPIS TREŚCI
+        Rozdział 1: Wprowadzenie ... 7
+        Rozdział 3: Tworzenie Badacza ... 28
+        Rozdział 6: Walka ... 101
+        Rozdział 7: Pościgi ... 132
+        Rozdział 8: Poczytalność ... 152
+        Rozdział 9: Magia ... 173
+        Rozdział 10: Prowadzenie gry ... 196
+        Rozdział 11: Księgi Mitów ... 224
+        Rozdział 12: Wielki Grymuar ... 243
+        Rozdział 14: Potwory, Bestie i Obcy Bogowie ... 277
+      `;
+      const res = detectRulebookProfile(text, "ZewCthulhu_KsiegaStraznika_v.1.3.pdf");
+      expect(res.profile).toBe("core-d100");
+    });
+
+    it("nie myli jednostrzałowego scenariusza zawierającego walkę, zaklęcie i stopkę Pulp Cthulhu z podręcznikiem bazowym ani grymuarem", () => {
+      const text = `
+        SCENARIUSZ DO 7. EDYCJI ZEWU CTHULHU
+        CALL OF CTHULHU, ZEW CTHULHU, Trzeba karmić ogień © 2020 Chaosium Inc.
+        „Pulp Cthulhu” oraz „Call of Cthulhu” są zarejestrowanymi znakami towarowymi Chaosium Inc.
+        Wprowadzenie dla Strażnika. Zawiązanie akcji i Dramatis Personae.
+        Kultysta: Walka Wręcz (Bijatyka) 45%, Unik 30%, Modyfikator Obrażeń +1k4.
+        Zaklęcie: Przyzwanie Żaru. Koszt: 5 Punktów Magii i 1k6 Poczytalności. Czas rzucania: 2 rundy.
+      `;
+      const res = detectRulebookProfile(text, "Zew_Cthulhu_7ed._Trzeba_karmic_ogien.pdf");
+      expect(res.profile).toBe("one_shot");
+      expect(res.title).toBe("Trzeba karmić ogień");
+    });
+
+    it("klasyfikuje krótkie miniporadniki i dodatki z postaciami historycznymi jako setting_expansion, a nie starter-d100", () => {
+      const npcSupplement = `
+        POSTACI HISTORYCZNE DO ZEWU CTHULHU
+        Dodatek zawierający sylwetki postaci historycznych z lat 20. wraz ze statystykami k100, Poczytalnością i umiejętnościami.
+      `;
+      const resNpc = detectRulebookProfile(npcSupplement, "ZC-Postaci-Historyczne-12-07.pdf");
+      expect(resNpc.profile).toBe("setting_expansion");
+
+      const miniGuide = `
+        MINIPORADNIK DLA STRAŻNIKA: ONI
+        Poradnik budowania grozy, tworzenia kultów i antagonistów w sesjach Zewu Cthulhu d100.
+      `;
+      const resGuide = detectRulebookProfile(miniGuide, "Miniporadnik_ONI.pdf");
+      expect(resGuide.profile).toBe("setting_expansion");
+    });
+  });
 });

@@ -359,7 +359,7 @@ export async function POST(request: NextRequest) {
     const shouldExtractAdventures =
       actualColumn === 'optional' ||
       isAdventureBearingProfile(rulebookProfile.profile) ||
-      type === 'adventure';
+      (type === 'adventure' && !isDetectedRulebook);
 
     if (shouldExtractAdventures) {
       adventures = buildLocalCustomAdventures(
@@ -409,10 +409,14 @@ export async function POST(request: NextRequest) {
     }
 
     const adventureIds = adventures.map((a) => a.id);
+    const playableAdventureCount = adventures.filter(
+      (a) => a.documentType === 'scenario' || a.documentType === 'campaign'
+    ).length;
     const capabilities = registerOverlay(overlay, {
       column: actualColumn,
       pageCount: pdfPagesCount,
       adventureIds,
+      adventureCount: playableAdventureCount,
     });
     console.log(
       `🧩 Nakładka DLC zarejestrowana: ${overlay.id} (kolumna: ${actualColumn}, tagi: ${overlay.tags.join(', ')})`

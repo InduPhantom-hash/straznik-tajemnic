@@ -194,6 +194,77 @@ describe('POST & DELETE /api/pdf/ingest-local document policy & library manager'
     expect(delBody.capabilities.flags.hasBaseRules).toBe(false);
     expect(fs.existsSync(advFilePath)).toBe(false);
   });
+
+  it('keeps second starter overlay and adventure intact when two starter editions are uploaded and one is deleted', async () => {
+    const starterText =
+      'Zew Cthulhu Starter. Zasady skrócone Quick-Start d100. Tworzenie Badacza, test umiejętności k100. Scenariusz: Nawiedzony dom i posiadłość Corbitta w Bostonie.';
+
+    const postReq1 = new NextRequest('http://localhost/api/pdf/ingest-local', {
+      headers: { 'content-type': 'application/json' },
+    });
+    jest.spyOn(postReq1, 'json').mockResolvedValueOnce({
+      text: starterText,
+      type: 'rules',
+      targetColumn: 'rules',
+      fileName: 'starter_v1.pdf',
+    });
+    const res1 = await POST(postReq1);
+    const body1 = await res1.json();
+
+    const postReq2 = new NextRequest('http://localhost/api/pdf/ingest-local', {
+      headers: { 'content-type': 'application/json' },
+    });
+    jest.spyOn(postReq2, 'json').mockResolvedValueOnce({
+      text: starterText,
+      type: 'rules',
+      targetColumn: 'rules',
+      fileName: 'starter_v2.pdf',
+    });
+    const res2 = await POST(postReq2);
+    const body2 = await res2.json();
+
+    expect(body1.overlay.id).not.toBe(body2.overlay.id);
+    expect(body1.adventures[0].id).not.toBe(body2.adventures[0].id);
+    expect(body2.capabilities.installedOverlays).toHaveLength(2);
+
+    const delReq = new NextRequest(
+      `http://localhost/api/pdf/ingest-local?overlayId=${encodeURIComponent(body1.overlay.id)}`
+    );
+    const delRes = await DELETE(delReq);
+    const delBody = await delRes.json();
+    expect(delBody.success).toBe(true);
+    expect(delBody.capabilities.installedOverlays).toHaveLength(1);
+    expect(delBody.capabilities.installedOverlays[0].id).toBe(body2.overlay.id);
+    expect(delBody.capabilities.flags.hasBaseRules).toBe(true);
+    expect(
+      fs.existsSync(path.join(tmpDir, 'adventures', `${body2.adventures[0].id}.json`))
+    ).toBe(true);
+  });
+
+  it('records adventureCount as 0 for bestiaries/grimoires while still registering their compendium entry', async () => {
+    const bestiaryText =
+      'Malleus Monstrorum. Bestiariusz Mitów Cthulhu. Kompendium potworów i bóstw Mitów. Statystyki: Siła, Kondycja, Pancerz, Ataki na rundę, Utrata Poczytalności 1k10/1k100.';
+
+    const postReq = new NextRequest('http://localhost/api/pdf/ingest-local', {
+      headers: { 'content-type': 'application/json' },
+    });
+    jest.spyOn(postReq, 'json').mockResolvedValueOnce({
+      text: bestiaryText,
+      type: 'rules',
+      targetColumn: 'rules',
+      fileName: 'malleus_monstrorum.pdf',
+    });
+
+    const res = await POST(postReq);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.rulebookProfile.profile).toBe('bestiary');
+    expect(body.actualColumn).toBe('optional');
+    expect(body.autoRouted).toBe(true);
+    expect(body.adventures).toHaveLength(1);
+    expect(body.adventures[0].documentType).toBe('compendium');
+    expect(body.capabilities.installedOverlays[0].stats.adventureCount).toBe(0);
+  });
 });
 
 describe('GET /api/pdf/ingest-local', () => {

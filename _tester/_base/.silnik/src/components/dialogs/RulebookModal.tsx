@@ -317,8 +317,6 @@ export const RulebookModal: FC<RulebookModalProps> = ({
 
     setFileName(file.name);
     setError('');
-    setRoutingNotice(null);
-    setStarterScenarioNote(false);
     setStage('working');
     setProgress(8);
 
@@ -381,6 +379,10 @@ export const RulebookModal: FC<RulebookModalProps> = ({
         await syncAdventuresToClientStorage(extractedAdventures, file.name);
       }
 
+      const playableAdventureCount = extractedAdventures.filter(
+        (adv) => adv.documentType !== 'compendium' && adv.documentType !== 'setting'
+      ).length;
+
       // Obsługa komunikatu Smart Auto-Routing
       if (
         data.autoRouted &&
@@ -391,11 +393,13 @@ export const RulebookModal: FC<RulebookModalProps> = ({
           kind: data.routingKind,
           fileName: file.name,
           profileTitle: data.rulebookProfile?.title || file.name,
-          adventureCount: extractedAdventures.length,
+          adventureCount: playableAdventureCount,
         });
-      } else if (
+      }
+
+      if (
         data.rulebookProfile?.profile === 'starter-d100' &&
-        extractedAdventures.length > 0
+        playableAdventureCount > 0
       ) {
         setStarterScenarioNote(true);
       }
@@ -424,6 +428,9 @@ export const RulebookModal: FC<RulebookModalProps> = ({
   ) => {
     const list = Array.from(files);
     if (list.length === 0) return;
+
+    setRoutingNotice(null);
+    setStarterScenarioNote(false);
 
     for (const file of list) {
       const ok = await processSingleFile(file, requestedColumn);

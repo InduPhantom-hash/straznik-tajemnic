@@ -44,6 +44,7 @@ export interface RegisterOverlayOptions {
   column?: "rules" | "optional";
   pageCount?: number;
   adventureIds?: string[];
+  adventureCount?: number;
 }
 
 export interface SystemCapabilities {
@@ -234,9 +235,19 @@ export function registerOverlay(
     fs.mkdirSync(overlaysDir, { recursive: true });
   }
 
+  const resolvedStats =
+    typeof options?.adventureCount === "number"
+      ? { ...overlay.stats, adventureCount: options.adventureCount }
+      : overlay.stats;
+
+  const persistedOverlay: OverlayDescriptor = {
+    ...overlay,
+    stats: resolvedStats,
+  };
+
   const overlayFileName = `${overlay.id}.json`;
   const overlayFilePath = path.join(overlaysDir, overlayFileName);
-  fs.writeFileSync(overlayFilePath, JSON.stringify(overlay, null, 2), "utf-8");
+  fs.writeFileSync(overlayFilePath, JSON.stringify(persistedOverlay, null, 2), "utf-8");
 
   const caps = loadCapabilities();
   const resolvedColumn =
@@ -255,11 +266,28 @@ export function registerOverlay(
     installedAt: new Date().toISOString(),
     tags: overlay.tags,
     overlayPath: overlayFilePath,
-    stats: overlay.stats,
+    stats: resolvedStats,
   };
 
-  const existingIdx = caps.installedOverlays.findIndex((o) => o.id === overlay.id);
+  const normalizedFileName = (overlay.fileName || "").trim().toLowerCase();
+  const existingIdx = caps.installedOverlays.findIndex((o) => {
+    if (o.id === overlay.id) return true;
+    const existingFileName = (o.fileName || "").trim().toLowerCase();
+    const existingCol = o.column ?? (isRulebookColumnProfile(o.profile) ? "rules" : "optional");
+    return Boolean(normalizedFileName) && existingFileName === normalizedFileName && existingCol === resolvedColumn;
+  });
+
   if (existingIdx >= 0) {
+    const prev = caps.installedOverlays[existingIdx];
+    if (prev.overlayPath && prev.overlayPath !== overlayFilePath) {
+      try {
+        if (fs.existsSync(prev.overlayPath)) {
+          fs.unlinkSync(prev.overlayPath);
+        }
+      } catch {
+        // Ignorujemy błąd usuwania poprzedniego pliku nakładki
+      }
+    }
     caps.installedOverlays[existingIdx] = overlayInfo;
   } else {
     caps.installedOverlays.push(overlayInfo);

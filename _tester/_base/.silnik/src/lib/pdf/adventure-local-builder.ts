@@ -597,28 +597,56 @@ export function buildAdventureGraph(
 /**
  * Ekstrahuje poszczególne scenariusze z tomu antologii na podstawie spisu treści i nagłówków rozdziałów.
  */
+const GENERIC_FINGERPRINT_TITLES = new Set([
+  'Nieznany dokument',
+  'Nierozpoznany dokument PDF',
+  'Unrecognized PDF Document',
+  'Scenariusz Jednorazowy d100 (One-Shot Adventure)',
+  'd100 One-Shot Scenario',
+  'Wielka Kampania d100 (Epic Campaign)',
+  'd100 Epic Mega-Campaign',
+  'Antologia Scenariuszy d100 (Scenario Anthology)',
+  'd100 Scenario Anthology',
+  'Rozszerzenie Settingowe / Epoka d100 (Setting Expansion)',
+  'd100 Era & Setting Expansion',
+]);
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function formatScenarioTitle(rawTitle: string): string {
+  return rawTitle
+    .toLowerCase()
+    .split(' ')
+    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
+    .join(' ');
+}
+
 export function parseScenariosFromAnthologyText(
   pdfText: string,
-  fileName: string
+  _fileName?: string
 ): Array<{ num: string; title: string; rawTitle: string; textSlice: string }> {
-  // Podział na strony
+  void _fileName;
+  // Podział na strony (gdy brak podziału stron z pdf-parse, bierzemy pierwsze 25000 znaków obejmujące pełny spis treści)
   const pages = pdfText.split(/<!--\s*Strona\s*\d+\s*-->|\f/);
-  const samplePages = pages.length > 1 ? pages : [pdfText];
-
-  // Szukamy stron spisu treści (zazwyczaj strony 2-6)
   let tocText = '';
-  for (let p = 0; p < Math.min(samplePages.length, 8); p++) {
-    if (/spis\s+tre[sś]ci|table\s+of\s+contents/i.test(samplePages[p])) {
-      tocText = samplePages[p];
-      if (p + 1 < samplePages.length && !/rozdzia[lł]\s+1\b/i.test(samplePages[p + 1])) {
-        tocText += '\n' + samplePages[p + 1];
-      }
-      break;
-    }
-  }
 
-  if (!tocText) {
-    tocText = samplePages.slice(0, 6).join('\n');
+  if (pages.length > 1) {
+    for (let p = 0; p < Math.min(pages.length, 8); p++) {
+      if (/spis\s+tre[sś]ci|table\s+of\s+contents/i.test(pages[p])) {
+        tocText = pages[p];
+        if (p + 1 < pages.length && !/rozdzia[lł]\s+1\b/i.test(pages[p + 1])) {
+          tocText += '\n' + pages[p + 1];
+        }
+        break;
+      }
+    }
+    if (!tocText) {
+      tocText = pages.slice(0, 6).join('\n');
+    }
+  } else {
+    tocText = pdfText.slice(0, 25000);
   }
 
   const lines = tocText.split('\n').map((l) => l.trim()).filter(Boolean);
@@ -626,9 +654,11 @@ export function parseScenariosFromAnthologyText(
   const seenNumbers = new Set<string>();
 
   const isIgnoredTitle = (t: string) =>
-    /wstęp|wstep|przedmowa|wprowadzenie|dodatki|dodatek|karty badaczy|zasady|indeks|o autorach|statystyki|pomocnicze|tabele/i.test(t);
+    /wstęp|wstep|przedmowa|wprowadzenie|dodatki|dodatek|karty badaczy|gotowi badacze|zasady|indeks|o autorach|statystyki|pomocnicze|tabele|legenda oznaczenia|autorstwo|twórcy|twórczynie|edycja polska|edycja angielska|nota autorska|podziękowania/i.test(
+      t
+    );
 
-  // Wzorzec A: ROZDZIAŁ X \n TYTUŁ (np. Horror nad Wartą)
+  // Wzorzec A: ROZDZIAŁ X \n TYTUŁ (np. Horror nad Wartą, Cienie Tatr, Usłysz Zew Cthulhu)
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const chMatch = line.match(/^(?:ROZDZIAŁ|SCENARIUSZ|CHAPTER|SCENARIO)\s*(\d+|[IVXLCDM]+)$/i);
@@ -648,22 +678,46 @@ export function parseScenariosFromAnthologyText(
         !isIgnoredTitle(titleClean)
       ) {
         seenNumbers.add(num);
-        const formatted = titleClean
-          .toLowerCase()
-          .split(' ')
-          .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
-          .join(' ');
         scenariosMeta.push({
           num,
-          title: formatted,
+          title: formatScenarioTitle(titleClean),
           rawTitle: titleClean,
         });
       }
     }
   }
 
-  // Wzorzec B: Linijka spisu treści: TYTUŁ ... STRONA (np. Cienie Tatr)
+  // Wzorzec A2: Samodzielne nagłówki wielkimi literami w spisie treści poprzedzające podsekcje z wykropkowaniem (np. PISK, WIZG / ODŁAMEK)
   if (scenariosMeta.length < 2) {
+    seenNumbers.clear();
+    scenariosMeta.length = 0;
+    let idx = 1;
+    for (let i = 0; i < lines.length - 1; i++) {
+      const line = lines[i];
+      const nextLine = lines[i + 1];
+      const isUppercaseHeading =
+        line.length >= 3 &&
+        line.length <= 50 &&
+        !/\d/.test(line) &&
+        !/[\.·…]{2,}/.test(line) &&
+        line === line.toUpperCase() &&
+        /[A-ZĄĆĘŁŃÓŚŹŻ]/.test(line);
+      const isFollowedBySubitem = /^(?:Przygotowanie do gry|Przedmowa|Wstęp|Dramatis Personae|Zawiązanie akcji|Wprowadzenie)\b.*[\.·…]{2,}\s*\d+$/i.test(
+        nextLine
+      );
+      if (isUppercaseHeading && isFollowedBySubitem && !isIgnoredTitle(line)) {
+        scenariosMeta.push({
+          num: String(idx++),
+          title: formatScenarioTitle(line),
+          rawTitle: line,
+        });
+      }
+    }
+  }
+
+  // Wzorzec B: Linijka spisu treści z wykropkowaniem: TYTUŁ ... STRONA (gdy dokument zawiera jawny nagłówek Spis treści)
+  const hasExplicitTocHeader = lines.some((l) => /^(?:spis\s+tre[sś]ci|table\s+of\s+contents)$/i.test(l));
+  if (scenariosMeta.length < 2 && hasExplicitTocHeader) {
     seenNumbers.clear();
     scenariosMeta.length = 0;
     let idx = 1;
@@ -678,14 +732,9 @@ export function parseScenariosFromAnthologyText(
           !isIgnoredTitle(titleClean) &&
           !/spis\s+tre/i.test(titleClean)
         ) {
-          const formatted = titleClean
-            .toLowerCase()
-            .split(' ')
-            .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
-            .join(' ');
           scenariosMeta.push({
             num: String(idx++),
-            title: formatted,
+            title: formatScenarioTitle(titleClean),
             rawTitle: titleClean,
           });
         }
@@ -701,7 +750,9 @@ export function parseScenariosFromAnthologyText(
 
   const scenarioPositions: Array<{ num: string; title: string; rawTitle: string; pos: number }> = [];
   for (const s of scenariosMeta) {
-    const pattern = new RegExp(`(?:ROZDZIAŁ\\s*${s.num}[\\s\\S]{0,30})?${s.rawTitle.replace(/\s+/g, '\\s+')}`, 'i');
+    const escapedNum = escapeRegExp(s.num);
+    const escapedTitle = escapeRegExp(s.rawTitle).replace(/\s+/g, '\\s+');
+    const pattern = new RegExp(`(?:ROZDZIAŁ\\s*${escapedNum}[\\s\\S]{0,30})?${escapedTitle}`, 'i');
     const match = bodyText.match(pattern);
     const pos = match && typeof match.index === 'number' ? match.index : bodyText.indexOf(s.rawTitle);
     scenarioPositions.push({
@@ -745,6 +796,10 @@ export function buildLocalCustomAdventures(
   existingAdventureId?: string
 ): CustomAdventure[] {
   const cleanFileName = fileName.toLowerCase();
+  const cleanedFileBaseTitle = fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
+  const fileSlug = slugifyText(cleanedFileBaseTitle || fingerprint.title || 'custom');
+  const hasSpecificFingerprintTitle =
+    Boolean(fingerprint.title) && !GENERIC_FINGERPRINT_TITLES.has(fingerprint.title);
 
   // 1. Antologia z wieloma scenariuszami
   const isAnthology =
@@ -761,13 +816,15 @@ export function buildLocalCustomAdventures(
           ? 'Horror nad Wartą'
           : cleanFileName.includes('cienie') && cleanFileName.includes('tatr')
             ? 'Cienie Tatr'
-            : fingerprint.title || fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
+            : hasSpecificFingerprintTitle
+              ? fingerprint.title
+              : cleanedFileBaseTitle || fingerprint.title;
 
       return detectedScenarios.map((scen, idx) => {
         const id =
           existingAdventureId && idx === 0
             ? existingAdventureId
-            : `custom-${Date.now()}-${idx + 1}-${slugifyText(scen.title)}`;
+            : `custom-${fileSlug}-${idx + 1}-${slugifyText(scen.title)}`;
 
         const meta = extractScenarioDetailedMetadata(scen.textSlice, scen.title, fingerprint.detectedLanguage);
         const locationInfo = detectLocationAndCountry(scen.textSlice, fingerprint.detectedLanguage);
@@ -833,7 +890,7 @@ export function buildLocalCustomAdventures(
 
   // 2. Starter d100 z wbudowaną przygodą
   if (fingerprint.profile === 'starter-d100' || cleanFileName.includes('starter')) {
-    const id = existingAdventureId || `custom-${Date.now()}-starter-scenariusz`;
+    const id = existingAdventureId || `custom-${fileSlug}-starter-scenariusz`;
     const isHaunting = /nawiedzony\s+dom|haunting|corbitt/i.test(pdfText);
     const scenTitle = isHaunting ? 'Nawiedzony dom' : 'Przygoda ze Startera d100';
     const eraInfo: { era: 'classic'; eraLabel: string; yearRange: string; activeSceneYear: number } = {
@@ -897,7 +954,10 @@ export function buildLocalCustomAdventures(
   ) {
     const docType: DocumentType =
       fingerprint.profile === 'setting_expansion' ? 'setting' : 'compendium';
-    const id = existingAdventureId || `custom-${Date.now()}-${slugifyText(fingerprint.title || fileName)}`;
+    const compendiumTitle = hasSpecificFingerprintTitle
+      ? fingerprint.title
+      : cleanedFileBaseTitle || fingerprint.title;
+    const id = existingAdventureId || `custom-${fileSlug}-${slugifyText(compendiumTitle || fileName)}`;
     const eraInfo = detectEraAndYears(pdfText);
     const locationInfo = detectLocationAndCountry(pdfText, fingerprint.detectedLanguage);
     const toneInfo = detectToneAndOccupations(pdfText);
@@ -919,7 +979,7 @@ export function buildLocalCustomAdventures(
     return [
       {
         id,
-        title: fingerprint.title || fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim(),
+        title: compendiumTitle,
         era: eraInfo.era,
         eraLabel: eraInfo.eraLabel,
         yearRange: eraInfo.yearRange,
@@ -943,13 +1003,13 @@ export function buildLocalCustomAdventures(
         isAnalyzed: true,
         documentType: docType,
         isCampaign: false,
-        source: fingerprint.title || fileName.replace(/\.pdf$/i, ''),
+        source: compendiumTitle || fileName.replace(/\.pdf$/i, ''),
         sourceCategory: 'core',
-        sourceBookId: slugifyText(fingerprint.title || fileName),
+        sourceBookId: slugifyText(compendiumTitle || fileName),
         attachedLorebookIds: [],
         lorebookData: {
           id: `lore-${id}`,
-          title: fingerprint.title || fileName.replace(/\.pdf$/i, ''),
+          title: compendiumTitle || fileName.replace(/\.pdf$/i, ''),
           documentType: docType,
           regionOrTheme: fingerprint.profile === 'grimoire' ? 'Zaklęcia i Rytuały' : fingerprint.profile === 'bestiary' ? 'Bestiariusz i Bóstwa' : locationInfo.location,
           summary: description,
@@ -971,12 +1031,11 @@ export function buildLocalCustomAdventures(
   }
 
   // 4. Pojedynczy scenariusz / One-Shot domyślny
-  const titleClean =
-    fingerprint.title && fingerprint.title !== 'Nieznany dokument'
-      ? fingerprint.title
-      : fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
+  const titleClean = hasSpecificFingerprintTitle
+    ? fingerprint.title
+    : cleanedFileBaseTitle || fingerprint.title || 'Scenariusz d100';
 
-  const id = existingAdventureId || `custom-${Date.now()}-${slugifyText(titleClean)}`;
+  const id = existingAdventureId || `custom-${fileSlug}-${slugifyText(titleClean)}`;
   const meta = extractScenarioDetailedMetadata(pdfText, titleClean, fingerprint.detectedLanguage);
   const locationInfo = detectLocationAndCountry(pdfText, fingerprint.detectedLanguage);
   const toneInfo = detectToneAndOccupations(pdfText);
