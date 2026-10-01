@@ -3,11 +3,11 @@ import { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import type { NextRequest } from 'next/server';
 
 class MockResponse {
-  body: any;
+  body: ReadableStream<Uint8Array> | null;
   status: number;
   headers: Headers;
 
-  constructor(body: any, init?: { status?: number; headers?: Record<string, string> }) {
+  constructor(body: ReadableStream<Uint8Array> | null, init?: { status?: number; headers?: Record<string, string> }) {
     this.body = body;
     this.status = init?.status ?? 200;
     this.headers = new Headers(init?.headers);
