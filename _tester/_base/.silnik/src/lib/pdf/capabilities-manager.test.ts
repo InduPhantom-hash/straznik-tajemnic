@@ -107,4 +107,46 @@ describe("capabilities-manager - Rejestr Możliwości i Nakładek DLC", () => {
     const emptySection = getSystemCapabilitiesPromptSection("pl");
     expect(emptySection).toBe("");
   });
+
+  it("rozróżnia dodatek zasad (Pulp Cthulhu) od bazowego podręcznika (Core / Starter) dla flagi hasBaseRules", () => {
+    const pulpOverlay: OverlayDescriptor = {
+      ...mockOverlay,
+      id: "overlay-pulp-d100",
+      title: "Pulp d100: Księga Zasad",
+      fileName: "pulp_cthulhu.pdf",
+      profile: "pulp-d100",
+      tags: ["MECHANIKA"],
+    };
+
+    const afterPulp = registerOverlay(pulpOverlay, { pageCount: 120 });
+    expect(afterPulp.flags.hasBaseRules).toBe(false);
+    expect(afterPulp.flags.hasRulebookExpansion).toBe(true);
+    expect(afterPulp.installedOverlays[0].column).toBe("rules");
+    expect(afterPulp.installedOverlays[0].pageCount).toBe(120);
+
+    const starterOverlay: OverlayDescriptor = {
+      ...mockOverlay,
+      id: "overlay-starter-d100",
+      title: "Zasady Skrócone d100",
+      fileName: "starter.pdf",
+      profile: "starter-d100",
+      tags: ["MECHANIKA", "FABULA"],
+    };
+
+    const afterStarter = registerOverlay(starterOverlay, {
+      pageCount: 32,
+      adventureIds: ["custom-starter-adv"],
+    });
+    expect(afterStarter.flags.hasBaseRules).toBe(true);
+    expect(afterStarter.flags.hasRulebookExpansion).toBe(true);
+    expect(afterStarter.installedOverlays.length).toBe(2);
+
+    // Po usunięciu Startera sam Pulp Cthulhu nie spełnia wymogu hasBaseRules
+    const afterRemovingStarter = removeOverlay("overlay-starter-d100");
+    expect(afterRemovingStarter.flags.hasBaseRules).toBe(false);
+    expect(afterRemovingStarter.flags.hasRulebookExpansion).toBe(true);
+
+    removeOverlay("overlay-pulp-d100");
+  });
 });
+

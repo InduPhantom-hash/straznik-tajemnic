@@ -13,6 +13,9 @@ import { getWritableDataDir } from "@/lib/paths";
 import {
   RulebookProfile,
   SemanticTag,
+  isBaseRulebookProfile,
+  isRulebookExpansionProfile,
+  isRulebookColumnProfile,
 } from "./rulebook-fingerprint";
 import { OverlayDescriptor } from "./semantic-overlay-engine";
 
@@ -21,6 +24,9 @@ export interface InstalledOverlayInfo {
   title: string;
   fileName: string;
   profile: RulebookProfile;
+  column?: "rules" | "optional";
+  pageCount?: number;
+  adventureIds?: string[];
   installedAt: string;
   tags: SemanticTag[];
   overlayPath: string;
@@ -34,9 +40,17 @@ export interface InstalledOverlayInfo {
   };
 }
 
+export interface RegisterOverlayOptions {
+  column?: "rules" | "optional";
+  pageCount?: number;
+  adventureIds?: string[];
+}
+
 export interface SystemCapabilities {
   installedOverlays: InstalledOverlayInfo[];
   flags: {
+    hasBaseRules: boolean;
+    hasRulebookExpansion: boolean;
     hasChaseRules: boolean;
     hasMagicSystem: boolean;
     hasPulpTalents: boolean;
@@ -69,6 +83,8 @@ function createEmptyCapabilities(): SystemCapabilities {
   return {
     installedOverlays: [],
     flags: {
+      hasBaseRules: false,
+      hasRulebookExpansion: false,
       hasChaseRules: false,
       hasMagicSystem: false,
       hasPulpTalents: false,
@@ -96,6 +112,22 @@ export function loadCapabilities(): SystemCapabilities {
       const content = fs.readFileSync(filePath, "utf-8");
       const parsed = JSON.parse(content) as SystemCapabilities;
       if (parsed && Array.isArray(parsed.installedOverlays)) {
+        const hasBaseRules = parsed.installedOverlays.some((o) =>
+          isBaseRulebookProfile(o.profile)
+        );
+        const hasRulebookExpansion = parsed.installedOverlays.some((o) =>
+          isRulebookExpansionProfile(o.profile)
+        );
+        parsed.flags = {
+          ...createEmptyCapabilities().flags,
+          ...parsed.flags,
+          hasBaseRules,
+          hasRulebookExpansion,
+        };
+        parsed.installedOverlays = parsed.installedOverlays.map((o) => ({
+          ...o,
+          column: o.column ?? (isRulebookColumnProfile(o.profile) ? "rules" : "optional"),
+        }));
         return parsed;
       }
     }
@@ -123,6 +155,8 @@ export function saveCapabilities(caps: SystemCapabilities): void {
  * Przelicza flagi i sumaryczne liczniki na podstawie zainstalowanych nakładek
  */
 function recalculateCapabilities(caps: SystemCapabilities, overlaysDir: string): void {
+  let hasBaseRules = false;
+  let hasRulebookExpansion = false;
   let hasChase = false;
   let hasMagic = false;
   let hasPulp = false;
@@ -136,6 +170,13 @@ function recalculateCapabilities(caps: SystemCapabilities, overlaysDir: string):
   let totalAdventures = 0;
 
   for (const info of caps.installedOverlays) {
+    if (isBaseRulebookProfile(info.profile)) {
+      hasBaseRules = true;
+    }
+    if (isRulebookExpansionProfile(info.profile)) {
+      hasRulebookExpansion = true;
+    }
+
     totalNpcs += info.stats.npcCount || 0;
     totalCreatures += info.stats.creatureCount || 0;
     totalSpells += info.stats.spellCount || 0;
@@ -163,6 +204,8 @@ function recalculateCapabilities(caps: SystemCapabilities, overlaysDir: string):
   }
 
   caps.flags = {
+    hasBaseRules,
+    hasRulebookExpansion,
     hasChaseRules: hasChase,
     hasMagicSystem: hasMagic,
     hasPulpTalents: hasPulp,
@@ -182,7 +225,10 @@ function recalculateCapabilities(caps: SystemCapabilities, overlaysDir: string):
 /**
  * Rejestruje nową nakładkę semantyczną DLC
  */
-export function registerOverlay(overlay: OverlayDescriptor): SystemCapabilities {
+export function registerOverlay(
+  overlay: OverlayDescriptor,
+  options?: RegisterOverlayOptions
+): SystemCapabilities {
   const overlaysDir = getOverlaysDirectory();
   if (!fs.existsSync(overlaysDir)) {
     fs.mkdirSync(overlaysDir, { recursive: true });
@@ -193,12 +239,19 @@ export function registerOverlay(overlay: OverlayDescriptor): SystemCapabilities 
   fs.writeFileSync(overlayFilePath, JSON.stringify(overlay, null, 2), "utf-8");
 
   const caps = loadCapabilities();
+  const resolvedColumn =
+    options?.column ?? (isRulebookColumnProfile(overlay.profile) ? "rules" : "optional");
 
   const overlayInfo: InstalledOverlayInfo = {
     id: overlay.id,
     title: overlay.title,
     fileName: overlay.fileName,
     profile: overlay.profile,
+    column: resolvedColumn,
+    ...(typeof options?.pageCount === "number" ? { pageCount: options.pageCount } : {}),
+    ...(options?.adventureIds && options.adventureIds.length > 0
+      ? { adventureIds: options.adventureIds }
+      : {}),
     installedAt: new Date().toISOString(),
     tags: overlay.tags,
     overlayPath: overlayFilePath,

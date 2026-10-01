@@ -261,11 +261,13 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
 
   // A. Grymuar Magii (np. The Grand Grimoire, Wielki Grymuar Magii Mitów Cthulhu)
   const isGrimoireIndicator =
-    cleanFileName.includes('grymuar') ||
-    cleanFileName.includes('grimoire') ||
-    normalizedSample.includes('wielki grymuar') ||
-    normalizedSample.includes('grand grimoire') ||
-    (hasSpells && (sample.includes('czas rzucania') || sample.includes('casting time') || sample.includes('gleboka magia') || sample.includes('deep magic')));
+    !sample.includes('ksiega straznika') &&
+    !sample.includes('keeper rulebook') &&
+    (cleanFileName.includes('grymuar') ||
+      cleanFileName.includes('grimoire') ||
+      normalizedSample.includes('wielki grymuar') ||
+      normalizedSample.includes('grand grimoire') ||
+      (hasSpells && (sample.includes('czas rzucania') || sample.includes('casting time') || sample.includes('gleboka magia') || sample.includes('deep magic'))));
 
   // B. Bestiariusz (np. Malleus Monstrorum, Petersen's Field Guide)
   const isBestiaryIndicator =
@@ -356,7 +358,13 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
       sample.includes('scenariusz jedno-sesyjny') ||
       sample.includes('jednostrzal') ||
       sample.includes('one-shot') ||
-      ((sample.includes('scenariusz') || sample.includes('scenario')) &&
+      ((cleanFileName.includes('przygoda') ||
+        cleanFileName.includes('scenariusz') ||
+        cleanFileName.includes('adventure') ||
+        cleanFileName.includes('scenario') ||
+        sample.includes('scenariusz') ||
+        sample.includes('scenario') ||
+        hasHandouts) &&
         !sample.includes('ksiega straznika') &&
         !sample.includes('keeper rulebook') &&
         !hasChaseRules &&
@@ -539,5 +547,54 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     detectedLanguage,
     semanticPlan,
   };
+}
+
+/**
+ * Zwraca true, jeśli profil dostarcza bazową mechanikę d100 wymaganą do uruchomienia gry
+ * (Starter lub Księga Strażnika / Core / własny system d100).
+ */
+export function isBaseRulebookProfile(profile: RulebookProfile): boolean {
+  return profile === 'starter-d100' || profile === 'core-d100' || profile === 'custom-d100';
+}
+
+/**
+ * Zwraca true, jeśli profil jest rozszerzeniem zasad (Pulp Cthulhu lub Podręcznik Badacza),
+ * które trafia do lewej kolumny (Podręczniki zasad), ale samo w sobie nie zastępuje bazowej mechaniki.
+ */
+export function isRulebookExpansionProfile(profile: RulebookProfile): boolean {
+  return profile === 'pulp-d100' || profile === 'investigator_handbook';
+}
+
+/**
+ * Zwraca true, jeśli profil należy do lewej kolumny (Podręczniki Zasad i Dodatki Mechaniczne).
+ */
+export function isRulebookColumnProfile(profile: RulebookProfile): boolean {
+  return isBaseRulebookProfile(profile) || isRulebookExpansionProfile(profile);
+}
+
+/**
+ * Zwraca true, jeśli profil należy do prawej kolumny (Przygody, Kampanie, Bestiariusze, Grymuary, Lorebooki).
+ */
+export function isOptionalColumnProfile(profile: RulebookProfile): boolean {
+  return (
+    profile === 'one_shot' ||
+    profile === 'scenario_anthology' ||
+    profile === 'mega_campaign' ||
+    profile === 'bestiary' ||
+    profile === 'grimoire' ||
+    profile === 'setting_expansion'
+  );
+}
+
+/**
+ * Zwraca true, jeśli podręcznik lub dodatek zawiera scenariusze gotowe do ekstrakcji do Manual Setup.
+ */
+export function isAdventureBearingProfile(profile: RulebookProfile): boolean {
+  return (
+    profile === 'one_shot' ||
+    profile === 'scenario_anthology' ||
+    profile === 'mega_campaign' ||
+    profile === 'starter-d100'
+  );
 }
 

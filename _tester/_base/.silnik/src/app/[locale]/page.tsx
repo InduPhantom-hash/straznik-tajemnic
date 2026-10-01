@@ -284,15 +284,30 @@ export default function Home() {
   
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState<boolean | null>(null);
 
-  // Beta Welcome Modal: auto-open na starcie, jeśli gracz nie zaznaczył "Nie pokazuj ponownie"
+  // Beta Welcome Modal: auto-open na starcie po przejściu bramek (Język -> Klucz API -> Podręcznik),
+  // jeśli gracz nie zaznaczył "Nie pokazuj ponownie"
   useEffect(() => {
-    if (typeof window !== 'undefined' && languageSelectionRequired === false) {
+    if (
+      typeof window !== 'undefined' &&
+      languageSelectionRequired === false &&
+      hasRequiredKeys() &&
+      !rulesStatus.loading &&
+      rulesStatus.hasRules &&
+      !showApiKeysModal &&
+      !showRulebookModal
+    ) {
       const dismissed = localStorage.getItem('straznik_beta_welcome_dismissed');
       if (dismissed !== 'true') {
         setShowBetaWelcomeModal(true);
       }
     }
-  }, [languageSelectionRequired]);
+  }, [
+    languageSelectionRequired,
+    rulesStatus.loading,
+    rulesStatus.hasRules,
+    showApiKeysModal,
+    showRulebookModal,
+  ]);
   const [rulesOnboardingCompleted, setRulesOnboardingCompleted] = useState<boolean | null>(null);
   
   const [pendingNewAdventure, setPendingNewAdventure] = useState(false);
@@ -847,6 +862,27 @@ export default function Home() {
       window.removeEventListener('open-rulebook-modal', handleOpenRules);
     };
   }, []);
+
+  useEffect(() => {
+    const handleCustomAdventuresChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        deletedIds?: string[];
+        deletedFileName?: string | null;
+      }>;
+      const deletedIds = customEvent.detail?.deletedIds || [];
+      if (adventureContext?.id && deletedIds.includes(adventureContext.id)) {
+        setAdventureContext(null);
+        try {
+          localStorage.removeItem('adventure_context');
+        } catch {}
+      }
+    };
+
+    window.addEventListener('custom-adventures-changed', handleCustomAdventuresChanged);
+    return () => {
+      window.removeEventListener('custom-adventures-changed', handleCustomAdventuresChanged);
+    };
+  }, [adventureContext?.id]);
 
   
   

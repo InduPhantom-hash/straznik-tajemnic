@@ -339,6 +339,10 @@
       "label": {
         "pl": "Podręcznik zasad",
         "en": "Rulebook"
+      },
+      "description": {
+        "pl": "Dwukolumnowe centrum podręczników zasad, przygód i dodatków PDF z inteligentnym auto-routingiem, weryfikacją zasad bazowych (Starter/Core dla Pulp Cthulhu) oraz kaskadową synchronizacją scenariuszy z Manual Setup",
+        "en": "Two-column rulebooks, adventures and PDF supplements manager with smart auto-routing, base d100 rules gate (Starter/Core required for Pulp Cthulhu) and cascading scenario sync with Manual Setup"
       }
     },
     {
