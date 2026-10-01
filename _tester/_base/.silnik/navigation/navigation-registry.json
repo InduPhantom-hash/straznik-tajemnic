@@ -378,6 +378,14 @@
       }
     },
     {
+      "id": "opposed-roll-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Test przeciwstawny d100 Weird Fiction (Opposed Roll)",
+        "en": "Opposed Roll d100 Weird Fiction"
+      }
+    },
+    {
       "id": "combat-card",
       "kind": "modal",
       "label": {
@@ -914,6 +922,15 @@
     },
     {
       "source": "game",
+      "target": "opposed-roll-modal",
+      "label": {
+        "pl": "Rzut przeciwstawny",
+        "en": "Opposed roll"
+      },
+      "component": "src/components/dialogs/OpposedRollModal.tsx"
+    },
+    {
+      "source": "game",
       "target": "game",
       "label": {
         "pl": "Ponów zapis kroniki po błędzie",
@@ -922,5 +939,5 @@
       "component": "src/components/chat/chat-window/components/message-card.tsx"
     }
   ],
-  "lastUpdated": "2026-09-30T13:48:42.612Z"
+  "lastUpdated": "2026-10-01T18:35:00.000Z"
 }
