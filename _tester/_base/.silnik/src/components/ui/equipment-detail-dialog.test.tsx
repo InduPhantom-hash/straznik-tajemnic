@@ -184,4 +184,80 @@ describe('EquipmentDetailDialog', () => {
     // Pasek narzędziowy czytnika diegetycznego w szmaragdowym akcencie
     expect(screen.getByTestId('diegetic-reader-toolbar')).toBeInTheDocument();
   });
+
+  it('ukrywa domyślne stany przedmiotu (used/new/working), a wyświetla i tłumaczy wyłącznie stany awaryjne (damaged/broken/depleted)', () => {
+    const { rerender } = render(
+      <EquipmentDetailDialog
+        item={{
+          id: 'tool-used',
+          name: 'Magnetofon szpulowy',
+          category: 'tool',
+          description: 'Nagrywanie wywiadów i własnych obserwacji.',
+          condition: 'used',
+          weight: 2,
+        }}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.queryByText(/Używany/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\bused\b/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Stan techniczny')).not.toBeInTheDocument();
+
+    rerender(
+      <EquipmentDetailDialog
+        item={{
+          id: 'tool-damaged',
+          name: 'Magnetofon szpulowy',
+          category: 'tool',
+          description: 'Nagrywanie wywiadów i własnych obserwacji.',
+          condition: 'damaged',
+          weight: 2,
+        }}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Stan techniczny')).toBeInTheDocument();
+    expect(screen.getAllByText(/Uszkodzony/i).length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/\bdamaged\b/i)).not.toBeInTheDocument();
+
+    rerender(
+      <EquipmentDetailDialog
+        item={{
+          id: 'weapon-jammed',
+          name: 'Rewolwer .38',
+          category: 'weapon',
+          condition: 'used',
+          isJammed: true,
+        }}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText(/· Zacięta/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Używany/i)).not.toBeInTheDocument();
+  });
+
+  it('renderuje klimatyczny EquipmentImagePlaceholder zamiast rozciągać ikonę kategorii .svg z /equipment/predefined/', () => {
+    render(
+      <EquipmentDetailDialog
+        item={{
+          id: 'tool-svg-fallback',
+          name: 'Magnetofon szpulowy',
+          category: 'tool',
+          imageUrl: '/equipment/predefined/tool.svg',
+          condition: 'used',
+        }}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(
+      screen.queryByRole('img', { name: 'Magnetofon szpulowy' })
+    ).not.toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.className).toContain('md:w-[70vw]');
+    expect(dialog.className).toContain('md:h-[70vh]');
+  });
 });

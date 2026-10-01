@@ -1,8 +1,12 @@
 import type { Character, EquipmentItem } from '@/lib/types';
+import { isDeprecatedEmptyStartingEquipment } from '@/lib/equipment-catalog';
 
 /** Bezpieczna granica między danymi zapisu a kodem mechaniki/UI. */
 export function getEquipmentItems(value: unknown): EquipmentItem[] {
-  return Array.isArray(value) ? (value as EquipmentItem[]) : [];
+  if (!Array.isArray(value)) return [];
+  return (value as EquipmentItem[]).filter(
+    (item) => !isDeprecatedEmptyStartingEquipment(item)
+  );
 }
 
 /**

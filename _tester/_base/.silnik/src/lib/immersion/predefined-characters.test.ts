@@ -198,7 +198,9 @@ describe('PREDEFINED_CHARACTERS', () => {
       expect(names).not.toContain('powerbank'.toLowerCase());
       expect(names).not.toContain('telefon komórkowy (cegła)'.toLowerCase());
       expect(names).toContain('latarka elektryczna'.toLowerCase());
-      expect(names).toContain('notes badawczy'.toLowerCase());
+      expect(names).toContain('kieszonkowa apteczka'.toLowerCase());
+      expect(names).not.toContain('notes badawczy'.toLowerCase());
+      expect(names).not.toContain('koperty na dowody'.toLowerCase());
     });
   });
 

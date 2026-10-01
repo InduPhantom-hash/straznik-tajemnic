@@ -27,7 +27,10 @@ import {
   BookOpen,
   Newspaper
 } from 'lucide-react';
-import { EquipmentDetailDialog } from './equipment-detail-dialog';
+import {
+  EquipmentDetailDialog,
+  isAbnormalEquipmentCondition,
+} from './equipment-detail-dialog';
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS, findEquipmentByName } from '@/lib/equipment-data';
 import {
@@ -726,6 +729,7 @@ function WeaponCard({
     used: t('conditionUsed'),
     damaged: t('conditionDamaged'),
     broken: t('conditionBroken'),
+    depleted: t('conditionDepleted'),
   };
   const locale = useLocale();
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
@@ -783,9 +787,13 @@ function WeaponCard({
             </span>
           </div>
         </div>
-        {item.condition && (
-          <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-muted-foreground hidden sm:inline flex-none">
-            {conditionLabels[item.condition] || item.condition}
+        {(isAbnormalEquipmentCondition(item.condition) || item.isJammed) && (
+          <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-amber-400 hidden sm:inline flex-none">
+            {item.isJammed
+              ? t('jammed')
+              : item.condition
+                ? conditionLabels[item.condition] || item.condition
+                : ''}
           </span>
         )}
       </div>
@@ -830,7 +838,7 @@ function WeaponCard({
         )}
       </div>
 
-      <div className="mt-2 font-serif italic text-sm text-muted-foreground/90 whitespace-normal break-words leading-relaxed line-clamp-2">
+      <div className="mt-2 font-serif italic text-base text-muted-foreground/95 whitespace-normal break-words leading-relaxed line-clamp-2">
         {effectiveLore}
       </div>
     </div>
@@ -853,6 +861,7 @@ function GearCard({
     used: t('conditionUsed'),
     damaged: t('conditionDamaged'),
     broken: t('conditionBroken'),
+    depleted: t('conditionDepleted'),
   };
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
 
@@ -898,9 +907,13 @@ function GearCard({
               </span>
             )}
           </div>
-          {item.condition && (
-            <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-muted-foreground hidden sm:inline flex-none">
-              {conditionLabels[item.condition] || item.condition}
+          {(isAbnormalEquipmentCondition(item.condition) || item.isJammed) && (
+            <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-amber-400 hidden sm:inline flex-none">
+              {item.isJammed
+                ? t('jammed')
+                : item.condition
+                  ? conditionLabels[item.condition] || item.condition
+                  : ''}
             </span>
           )}
         </div>
@@ -921,7 +934,7 @@ function GearCard({
           </div>
         )}
 
-        <div className="mt-1 font-serif italic text-sm text-muted-foreground/90 whitespace-normal break-words leading-relaxed line-clamp-2">
+        <div className="mt-1 font-serif italic text-base text-muted-foreground/95 whitespace-normal break-words leading-relaxed line-clamp-2">
           {effectiveLore}
         </div>
       </div>

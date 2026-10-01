@@ -224,6 +224,15 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                 melee && hasDb ? `${damage} ${damageBonus}` : damage;
               const weaponLore = w.description?.trim() || generateItemLore(w.name, locale);
 
+              const abnormalCondition =
+                w.condition === 'depleted'
+                  ? t('conditionDepleted')
+                  : w.condition === 'broken'
+                    ? t('conditionBroken')
+                    : w.condition === 'damaged'
+                      ? t('conditionDamaged')
+                      : null;
+
               return (
                 <div
                   key={w.id}
@@ -246,7 +255,7 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                       </span>
                     </div>
                     {weaponLore && (
-                      <p className="font-serif italic text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed mb-2.5">
+                      <p className="font-serif italic text-sm md:text-base text-muted-foreground/90 line-clamp-2 leading-relaxed mb-2.5">
                         {weaponLore}
                       </p>
                     )}
@@ -273,6 +282,9 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                     {w.isJammed && (
                       <span className="flex items-center gap-1 text-[#d9685f] font-bold">⚠️ {t('jammed')}</span>
                     )}
+                    {abnormalCondition && (
+                      <span className="flex items-center gap-1 text-[#d9685f] font-bold">⚠️ {abnormalCondition}</span>
+                    )}
                     {w.modifiers?.malfunction && (
                       <span className="flex items-center gap-1">⚙️ {t('malfunction')}: <strong className="text-foreground">{w.modifiers.malfunction}</strong></span>
                     )}
@@ -293,6 +305,14 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {medical.map((item) => {
               const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              const abnormalCondition =
+                item.condition === 'depleted'
+                  ? t('conditionDepleted')
+                  : item.condition === 'broken'
+                    ? t('conditionBroken')
+                    : item.condition === 'damaged'
+                      ? t('conditionDamaged')
+                      : null;
               return (
                 <div
                   key={item.id}
@@ -305,14 +325,21 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                       <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
                         {item.name}
                       </span>
-                      {typeof item.charges === 'number' && (
-                        <span className="flex-none font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
-                          🩹 {t('charges')}: {item.charges}/{item.maxCharges ?? 3}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-none">
+                        {abnormalCondition && (
+                          <span className="font-special-elite text-xs px-1.5 py-0.5 rounded border text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20">
+                            {abnormalCondition}
+                          </span>
+                        )}
+                        {typeof item.charges === 'number' && (
+                          <span className="font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                            🩹 {t('charges')}: {item.charges}/{item.maxCharges ?? 3}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {gearLore && (
-                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                      <div className="font-serif italic text-sm md:text-base text-muted-foreground/90 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
                         {gearLore}
                       </div>
                     )}
@@ -335,6 +362,8 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
               const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
               const isDepleted = item.condition === 'depleted';
               const isBroken = item.condition === 'broken';
+              const isDamaged = item.condition === 'damaged';
+              const showConditionBadge = isDepleted || isBroken || isDamaged;
               return (
                 <div
                   key={item.id}
@@ -347,18 +376,18 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                       <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
                         {item.name}
                       </span>
-                      {item.condition && (
-                        <span className={`flex-none font-special-elite text-xs px-1.5 py-0.5 rounded border ${
-                          isDepleted || isBroken
-                            ? 'text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20'
-                            : 'text-brass/80 bg-brass/10 border-brass/20'
-                        }`}>
-                          {isDepleted ? t('conditionDepleted') : isBroken ? t('conditionBroken') : t('conditionWorking')}
+                      {showConditionBadge && (
+                        <span className="flex-none font-special-elite text-xs px-1.5 py-0.5 rounded border text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20">
+                          {isDepleted
+                            ? t('conditionDepleted')
+                            : isBroken
+                              ? t('conditionBroken')
+                              : t('conditionDamaged')}
                         </span>
                       )}
                     </div>
                     {gearLore && (
-                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                      <div className="font-serif italic text-sm md:text-base text-muted-foreground/90 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
                         {gearLore}
                       </div>
                     )}
@@ -379,6 +408,14 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {documents.map((item) => {
               const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              const abnormalCondition =
+                item.condition === 'depleted'
+                  ? t('conditionDepleted')
+                  : item.condition === 'broken'
+                    ? t('conditionBroken')
+                    : item.condition === 'damaged'
+                      ? t('conditionDamaged')
+                      : null;
               return (
                 <div
                   key={item.id}
@@ -391,14 +428,21 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                       <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
                         {item.name}
                       </span>
-                      {item.isReadable && (
-                        <span className="flex-none font-special-elite text-xs text-brass bg-brass/10 px-1.5 py-0.5 rounded border border-brass/20">
-                          📜 {t('categoryDocuments')}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-none">
+                        {abnormalCondition && (
+                          <span className="font-special-elite text-xs px-1.5 py-0.5 rounded border text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20">
+                            {abnormalCondition}
+                          </span>
+                        )}
+                        {item.isReadable && (
+                          <span className="font-special-elite text-xs text-brass bg-brass/10 px-1.5 py-0.5 rounded border border-brass/20">
+                            📜 {t('categoryDocuments')}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {gearLore && (
-                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                      <div className="font-serif italic text-sm md:text-base text-muted-foreground/90 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
                         {gearLore}
                       </div>
                     )}
@@ -419,6 +463,14 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {occult.map((item) => {
               const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              const abnormalCondition =
+                item.condition === 'depleted'
+                  ? t('conditionDepleted')
+                  : item.condition === 'broken'
+                    ? t('conditionBroken')
+                    : item.condition === 'damaged'
+                      ? t('conditionDamaged')
+                      : null;
               return (
                 <div
                   key={item.id}
@@ -431,12 +483,19 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                       <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
                         {item.name}
                       </span>
-                      <span className="flex-none font-special-elite text-xs text-[#b870c2] bg-[#8e4a96]/15 px-1.5 py-0.5 rounded border border-[#8e4a96]/30">
-                        {t('occultItemBadge')}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-none">
+                        {abnormalCondition && (
+                          <span className="font-special-elite text-xs px-1.5 py-0.5 rounded border text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20">
+                            {abnormalCondition}
+                          </span>
+                        )}
+                        <span className="font-special-elite text-xs text-[#b870c2] bg-[#8e4a96]/15 px-1.5 py-0.5 rounded border border-[#8e4a96]/30">
+                          {t('occultItemBadge')}
+                        </span>
+                      </div>
                     </div>
                     {gearLore && (
-                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                      <div className="font-serif italic text-sm md:text-base text-muted-foreground/90 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
                         {gearLore}
                       </div>
                     )}
@@ -457,6 +516,14 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {personal.map((item) => {
               const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              const abnormalCondition =
+                item.condition === 'depleted'
+                  ? t('conditionDepleted')
+                  : item.condition === 'broken'
+                    ? t('conditionBroken')
+                    : item.condition === 'damaged'
+                      ? t('conditionDamaged')
+                      : null;
               return (
                 <div
                   key={item.id}
@@ -469,14 +536,21 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                       <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
                         {item.name}
                       </span>
-                      {item.modifiers?.skill && item.modifiers?.bonus && (
-                        <span className="flex-none font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
-                          {item.modifiers.skill} +{item.modifiers.bonus}%
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-none">
+                        {abnormalCondition && (
+                          <span className="font-special-elite text-xs px-1.5 py-0.5 rounded border text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20">
+                            {abnormalCondition}
+                          </span>
+                        )}
+                        {item.modifiers?.skill && item.modifiers?.bonus && (
+                          <span className="font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                            {item.modifiers.skill} +{item.modifiers.bonus}%
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {gearLore && (
-                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                      <div className="font-serif italic text-sm md:text-base text-muted-foreground/90 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
                         {gearLore}
                       </div>
                     )}
