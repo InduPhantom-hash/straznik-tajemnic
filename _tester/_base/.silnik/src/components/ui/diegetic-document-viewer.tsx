@@ -89,77 +89,95 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const renderReaderToolbar = () => (
+    <div
+      data-testid="diegetic-reader-toolbar"
+      className="flex items-center justify-between border border-primary/35 bg-[#0f1715]/90 px-3 py-1.5 rounded-sm text-[10px] font-special-elite text-primary uppercase tracking-widest mb-2 shadow-glow"
+    >
+      <div className="flex items-center gap-2 truncate">
+        <FileText className="w-3.5 h-3.5 text-primary shrink-0" />
+        <span className="truncate">{docType.replace(/_/g, ' ')}</span>
+      </div>
+      <span className="inline-flex items-center gap-1 bg-primary/15 text-primary border border-primary/40 px-2 py-0.5 rounded-sm shrink-0 ml-2">
+        {year}
+      </span>
+    </div>
+  );
+
   // === 1. LEGITYMACJA PRASOWA / DOWÓD TOŻSAMOŚCI ===
   if (docType === 'press_pass' || docType === 'id_card') {
     const isPress = docType === 'press_pass';
     return (
-      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-5'} bg-[#d9cbb0] text-[#241a12] border-4 border-[#5c4a35] shadow-2xl rounded-sm font-serif select-text overflow-hidden`}>
-        {/* Deseń tła paszportowego */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#423121_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
+      <div className="my-3">
+        {renderReaderToolbar()}
+        <div className={`relative ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-5'} bg-[#d9cbb0] text-[#241a12] border-4 border-[#5c4a35] shadow-2xl rounded-sm font-serif select-text overflow-hidden`}>
+          {/* Deseń tła paszportowego */}
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#423121_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
 
-        {/* Nagłówek instytucji */}
-        <div className="relative border-b-2 border-[#5c4a35] pb-2 mb-4 text-center">
-          <div className="text-[10px] font-special-elite uppercase tracking-[0.25em] text-[#6e5840]">
-            {isPress ? t('pressPassTitle') : t('idCardTitle')}
-          </div>
-          <h4 className="font-bold text-lg md:text-xl uppercase tracking-wider text-[#3d2f21] mt-0.5">
-            {isPress ? headers.pressOrg : headers.idAuthority}
-          </h4>
-          <div className="text-[11px] italic text-[#544332]">
-            {isPress ? headers.pressAddress : headers.idSubtitle}
-          </div>
-        </div>
-
-        {/* Treść z portretem */}
-        <div className="relative flex flex-col sm:flex-row gap-4 items-start">
-          {/* Zdjęcie z spinaczem */}
-          <div className="relative flex-none mx-auto sm:mx-0 transform -rotate-1 shadow-md">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-7 bg-muted-foreground/60 rounded-full border-2 border-border/80 z-20"></div>
-            <div className="w-24 h-28 bg-[#c2b397] border-4 border-white overflow-hidden flex items-center justify-center sepia-[0.3]">
-              {character?.portraitUrl ? (
-                <SafeImage
-                  src={character.portraitUrl}
-                  alt={character.name}
-                  className="w-full h-full object-cover grayscale contrast-125"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-[#735e47]">
-                  <User className="w-10 h-10 stroke-[1.5]" />
-                  <span className="text-[9px] font-special-elite uppercase tracking-wider mt-1">
-                    FOTO
-                  </span>
-                </div>
-              )}
+          {/* Nagłówek instytucji */}
+          <div className="relative border-b-2 border-[#5c4a35] pb-2 mb-4 text-center">
+            <div className="text-[10px] font-special-elite uppercase tracking-[0.25em] text-[#6e5840]">
+              {isPress ? t('pressPassTitle') : t('idCardTitle')}
             </div>
-            {/* Pieczęć nakładana na zdjęcie */}
-            <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full border-2 border-[#8b0000]/60 flex items-center justify-center text-[8px] font-bold text-[#8b0000]/70 transform -rotate-12 pointer-events-none select-none">
-              <span className="text-center leading-tight">OFFICIAL<br/>SEAL</span>
+            <h4 className="font-bold text-lg md:text-xl uppercase tracking-wider text-[#3d2f21] mt-0.5">
+              {isPress ? headers.pressOrg : headers.idAuthority}
+            </h4>
+            <div className="text-[11px] italic text-[#544332]">
+              {isPress ? headers.pressAddress : headers.idSubtitle}
             </div>
           </div>
 
-          {/* Dane i Treść */}
-          <div className={`flex-1 ${isExpanded ? 'text-base' : 'text-sm'} leading-relaxed font-serif`}>
-            <div className="mb-2 pb-1 border-b border-[#a8987d]/50 font-special-elite text-xs flex justify-between">
-              <span>NRO: <strong className="text-[#3d2f21]">418/24</strong></span>
-              <span>{t('validUntil')} <strong className="text-[#3d2f21]">31.XII.{headers.validUntilYear} r.</strong></span>
+          {/* Treść z portretem */}
+          <div className="relative flex flex-col sm:flex-row gap-4 items-start">
+            {/* Zdjęcie z spinaczem */}
+            <div className="relative flex-none mx-auto sm:mx-0 transform -rotate-1 shadow-md">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-7 bg-muted-foreground/60 rounded-full border-2 border-border/80 z-20"></div>
+              <div className="w-24 h-28 bg-[#c2b397] border-4 border-white overflow-hidden flex items-center justify-center sepia-[0.3]">
+                {character?.portraitUrl ? (
+                  <SafeImage
+                    src={character.portraitUrl}
+                    alt={character.name}
+                    className="w-full h-full object-cover grayscale contrast-125"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-[#735e47]">
+                    <User className="w-10 h-10 stroke-[1.5]" />
+                    <span className="text-[9px] font-special-elite uppercase tracking-wider mt-1">
+                      FOTO
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Pieczęć nakładana na zdjęcie */}
+              <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full border-2 border-[#8b0000]/60 flex items-center justify-center text-[8px] font-bold text-[#8b0000]/70 transform -rotate-12 pointer-events-none select-none">
+                <span className="text-center leading-tight">OFFICIAL<br/>SEAL</span>
+              </div>
             </div>
-            <p className="italic text-[#291e14] whitespace-pre-line">
-              {content}
-            </p>
-          </div>
-        </div>
 
-        {/* Podpis redaktora / szeryfa */}
-        <div className="relative mt-4 pt-2 border-t border-[#a8987d] flex justify-between items-end text-xs font-special-elite text-[#524131]">
-          <div>
-            <span>{t('statusLabel')} </span>
-            <span className="uppercase font-bold text-[#8b0000]">{t('statusAuthorized')}</span>
-          </div>
-          <div className="text-right">
-            <div className="font-serif italic text-sm text-[#2b1f15] font-bold">
-              [-] Arthur Pendelton
+            {/* Dane i Treść */}
+            <div className={`flex-1 ${isExpanded ? 'text-base' : 'text-sm'} leading-relaxed font-serif`}>
+              <div className="mb-2 pb-1 border-b border-[#a8987d]/50 font-special-elite text-xs flex justify-between">
+                <span>NRO: <strong className="text-[#3d2f21]">418/24</strong></span>
+                <span>{t('validUntil')} <strong className="text-[#3d2f21]">31.XII.{headers.validUntilYear} r.</strong></span>
+              </div>
+              <p className="italic text-[#291e14] whitespace-pre-line">
+                {content}
+              </p>
             </div>
-            <div className="text-[10px] text-[#6b5643]">{t('editorRole')}</div>
+          </div>
+
+          {/* Podpis redaktora / szeryfa */}
+          <div className="relative mt-4 pt-2 border-t border-[#a8987d] flex justify-between items-end text-xs font-special-elite text-[#524131]">
+            <div>
+              <span>{t('statusLabel')} </span>
+              <span className="uppercase font-bold text-[#8b0000]">{t('statusAuthorized')}</span>
+            </div>
+            <div className="text-right">
+              <div className="font-serif italic text-sm text-[#2b1f15] font-bold">
+                [-] Arthur Pendelton
+              </div>
+              <div className="text-[10px] text-[#6b5643]">{t('editorRole')}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -169,35 +187,38 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 2. TECZKA / KOPERTA NA DOWODY POLICYJNE ===
   if (docType === 'evidence_envelope') {
     return (
-      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-6'} bg-[#c7b28b] text-[#241a10] border-2 border-[#695439] shadow-2xl rounded-none font-special-elite select-text`}>
-        {/* Zagięcia i sznurki teczki */}
-        <div className="absolute top-3 right-4 w-6 h-6 rounded-full bg-[#8c352b] border-2 border-[#57201a] shadow-inner flex items-center justify-center text-white text-[10px] font-bold">
-          ★
-        </div>
+      <div className="my-3">
+        {renderReaderToolbar()}
+        <div className={`relative ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-6'} bg-[#c7b28b] text-[#241a10] border-2 border-[#695439] shadow-2xl rounded-none font-special-elite select-text`}>
+          {/* Zagięcia i sznurki teczki */}
+          <div className="absolute top-3 right-4 w-6 h-6 rounded-full bg-[#8c352b] border-2 border-[#57201a] shadow-inner flex items-center justify-center text-white text-[10px] font-bold">
+            ★
+          </div>
 
-        <div className="border-2 border-dashed border-[#57442d] p-4 bg-[#d1c09d]/60">
-          <div className="flex justify-between items-start border-b-2 border-[#453623] pb-2 mb-3">
-            <div>
-              <h4 className="font-bold text-base md:text-lg uppercase tracking-wider text-[#362a1b]">
-                {headers.policeDept}
-              </h4>
-              <div className="text-xs uppercase tracking-widest text-[#5c4933]">
-                {t('evidenceOffice')}
+          <div className="border-2 border-dashed border-[#57442d] p-4 bg-[#d1c09d]/60">
+            <div className="flex justify-between items-start border-b-2 border-[#453623] pb-2 mb-3">
+              <div>
+                <h4 className="font-bold text-base md:text-lg uppercase tracking-wider text-[#362a1b]">
+                  {headers.policeDept}
+                </h4>
+                <div className="text-xs uppercase tracking-widest text-[#5c4933]">
+                  {t('evidenceOffice')}
+                </div>
+              </div>
+              <div className="text-right text-xs">
+                <div>{t('caseNo')} <strong className="text-[#731911]">412/{year}</strong></div>
+                <div>{t('deposit')} <strong className="text-[#362a1b]">{t('sectorB')}</strong></div>
               </div>
             </div>
-            <div className="text-right text-xs">
-              <div>{t('caseNo')} <strong className="text-[#731911]">412/{year}</strong></div>
-              <div>{t('deposit')} <strong className="text-[#362a1b]">{t('sectorB')}</strong></div>
+
+            <div className={`font-serif italic ${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} text-[#1f160e] my-3 whitespace-pre-line`}>
+              {content}
             </div>
-          </div>
 
-          <div className={`font-serif italic ${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} text-[#1f160e] my-3 whitespace-pre-line`}>
-            {content}
-          </div>
-
-          <div className="mt-4 pt-2 border-t border-[#6b5438] flex flex-wrap justify-between text-xs text-[#4a3926] gap-2">
-            <div>{t('securedBy')} <strong>Det. M. Callahan</strong></div>
-            <div>{t('statusLabel')} <strong className="text-[#8c2318] uppercase">{t('crownEvidence')}</strong></div>
+            <div className="mt-4 pt-2 border-t border-[#6b5438] flex flex-wrap justify-between text-xs text-[#4a3926] gap-2">
+              <div>{t('securedBy')} <strong>Det. M. Callahan</strong></div>
+              <div>{t('statusLabel')} <strong className="text-[#8c2318] uppercase">{t('crownEvidence')}</strong></div>
+            </div>
           </div>
         </div>
       </div>
@@ -207,33 +228,36 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 3. OFICJALNE PISMO RZĄDOWE / URZĘDOWE ===
   if (docType === 'official_document') {
     return (
-      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-7'} bg-[#ede4ce] text-[#1c150e] border border-[#a39474] shadow-2xl rounded-sm font-serif select-text`}>
-        {/* Ślepa pieczęć urzędowa */}
-        <div className="absolute top-6 right-6 w-16 h-16 rounded-full border-4 border-double border-[#8a7653]/40 flex items-center justify-center pointer-events-none select-none">
-          <Shield className="w-8 h-8 text-[#8a7653]/30" />
-        </div>
-
-        <div className="text-center border-b border-[#a8997c] pb-3 mb-4">
-          <div className="text-[10px] font-special-elite uppercase tracking-[0.3em] text-[#6b583e]">
-            {headers.officialOffice}
+      <div className="my-3">
+        {renderReaderToolbar()}
+        <div className={`relative ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-7'} bg-[#ede4ce] text-[#1c150e] border border-[#a39474] shadow-2xl rounded-sm font-serif select-text`}>
+          {/* Ślepa pieczęć urzędowa */}
+          <div className="absolute top-6 right-6 w-16 h-16 rounded-full border-4 border-double border-[#8a7653]/40 flex items-center justify-center pointer-events-none select-none">
+            <Shield className="w-8 h-8 text-[#8a7653]/30" />
           </div>
-          <h4 className="font-bold text-lg md:text-xl uppercase tracking-widest text-[#2e2216] mt-1">
-            {t('officialLetterNo')} • {year}
-          </h4>
-          <div className="text-[11px] italic text-[#5c4a35] mt-0.5">
-            {headers.officialSubtitle}
+
+          <div className="text-center border-b border-[#a8997c] pb-3 mb-4">
+            <div className="text-[10px] font-special-elite uppercase tracking-[0.3em] text-[#6b583e]">
+              {headers.officialOffice}
+            </div>
+            <h4 className="font-bold text-lg md:text-xl uppercase tracking-widest text-[#2e2216] mt-1">
+              {t('officialLetterNo')} • {year}
+            </h4>
+            <div className="text-[11px] italic text-[#5c4a35] mt-0.5">
+              {headers.officialSubtitle}
+            </div>
           </div>
-        </div>
 
-        <div className={`${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} text-[#1f170f] whitespace-pre-line my-4`}>
-          {content}
-        </div>
+          <div className={`${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} text-[#1f170f] whitespace-pre-line my-4`}>
+            {content}
+          </div>
 
-        <div className="mt-6 pt-3 border-t border-[#a8997c] flex justify-between items-end text-xs font-special-elite text-[#544331]">
-          <div>{t('sealLabel')} <strong className="text-[#2e2216]">{t('sealApproved')}</strong></div>
-          <div className="text-right">
-            <div className="font-serif italic font-bold text-base text-[#1c150e]">
-              [-] Inspector General
+          <div className="mt-6 pt-3 border-t border-[#a8997c] flex justify-between items-end text-xs font-special-elite text-[#544331]">
+            <div>{t('sealLabel')} <strong className="text-[#2e2216]">{t('sealApproved')}</strong></div>
+            <div className="text-right">
+              <div className="font-serif italic font-bold text-base text-[#1c150e]">
+                [-] Inspector General
+              </div>
             </div>
           </div>
         </div>
@@ -244,17 +268,20 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 4. GAZETA / WYCINEK PRASOWY ===
   if (docType === 'newspaper') {
     return (
-      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-5'} bg-[#e3d8c1] text-[#1a140e] border border-[#78664e] shadow-xl font-serif select-text`}>
-        <div className="border-b-4 border-double border-[#3b3022] text-center pb-2 mb-3">
-          <div className="text-[10px] font-special-elite uppercase tracking-widest text-[#5c4a35]">
-            {t('pressClipping')} • {year}
+      <div className="my-3">
+        {renderReaderToolbar()}
+        <div className={`relative ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-5'} bg-[#e3d8c1] text-[#1a140e] border border-[#78664e] shadow-xl font-serif select-text`}>
+          <div className="border-b-4 border-double border-[#3b3022] text-center pb-2 mb-3">
+            <div className="text-[10px] font-special-elite uppercase tracking-widest text-[#5c4a35]">
+              {t('pressClipping')} • {year}
+            </div>
+            <h4 className="font-extrabold text-xl md:text-2xl uppercase tracking-tight text-[#211810]">
+              {headers.newspaperTitle}
+            </h4>
           </div>
-          <h4 className="font-extrabold text-xl md:text-2xl uppercase tracking-tight text-[#211810]">
-            {headers.newspaperTitle}
-          </h4>
-        </div>
-        <div className={`${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} italic text-[#261d15] whitespace-pre-line font-serif`}>
-          {content}
+          <div className={`${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} italic text-[#261d15] whitespace-pre-line font-serif`}>
+            {content}
+          </div>
         </div>
       </div>
     );
@@ -263,19 +290,22 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 5. NOTATNIK / PAMIĘTNIK ===
   if (docType === 'journal_page') {
     return (
-      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-6'} bg-[#f4ebd8] text-[#2c1d11] shadow-md border border-[#d3c29e] rounded-sm font-serif select-text overflow-hidden`}>
-        {/* Kawałek pożółkłej taśmy na górze */}
-        <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-24 h-8 bg-[#e6d5b8]/50 backdrop-blur-sm border border-[#c5b599]/40 rotate-[2deg] shadow-sm z-10"></div>
-        
-        {/* Liniatura tła */}
-        <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #607d8b 28px)' }}></div>
-        
-        <div className="relative z-0 mt-2">
-          <span className="block text-[10px] font-special-elite text-[#8c7356] uppercase tracking-wider mb-3 opacity-90 border-b border-[#a8987d]/40 pb-1">
-            {t('tornPage')}
-          </span>
-          <div className={`whitespace-pre-line italic text-[#24170d] ${isExpanded ? 'text-base md:text-lg leading-[32px]' : 'text-sm md:text-base leading-[28px]'} pr-2`}>
-            {content}
+      <div className="my-3">
+        {renderReaderToolbar()}
+        <div className={`relative ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-6'} bg-[#f4ebd8] text-[#2c1d11] shadow-md border border-[#d3c29e] rounded-sm font-serif select-text overflow-hidden`}>
+          {/* Kawałek pożółkłej taśmy na górze */}
+          <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-24 h-8 bg-[#e6d5b8]/50 backdrop-blur-sm border border-[#c5b599]/40 rotate-[2deg] shadow-sm z-10"></div>
+          
+          {/* Liniatura tła */}
+          <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #607d8b 28px)' }}></div>
+          
+          <div className="relative z-0 mt-2">
+            <span className="block text-[10px] font-special-elite text-[#8c7356] uppercase tracking-wider mb-3 opacity-90 border-b border-[#a8987d]/40 pb-1">
+              {t('tornPage')}
+            </span>
+            <div className={`whitespace-pre-line italic text-[#24170d] ${isExpanded ? 'text-base md:text-lg leading-[32px]' : 'text-sm md:text-base leading-[28px]'} pr-2`}>
+              {content}
+            </div>
           </div>
         </div>
       </div>
@@ -285,22 +315,25 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 6. BILET / PRZEPUSTKA ===
   if (docType === 'ticket') {
     return (
-      <div className={`relative my-3 mx-auto ${isExpanded ? 'max-w-md' : 'max-w-sm'} flex shadow-xl drop-shadow-md filter select-text`}>
-        <div className="flex-1 bg-[#e8cd9c] p-4 border-r-2 border-dashed border-[#8c6b45]/60 rounded-l-md relative">
-           <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#735e47] mb-1">
-             Admit One • Transferable
-           </div>
-           <h4 className="font-extrabold text-xl uppercase tracking-tighter text-[#2a2016] leading-tight mt-1">
-             {item.name}
-           </h4>
-           <div className={`font-serif italic text-[#3d2f21] whitespace-pre-line mt-3 border-t border-[#8c6b45]/30 pt-2 ${isExpanded ? 'text-base' : 'text-sm'}`}>
-             {content}
-           </div>
-        </div>
-        <div className="w-16 bg-[#e8cd9c] rounded-r-md flex flex-col items-center justify-center p-2">
-           <div className="transform rotate-90 text-xs font-special-elite font-bold tracking-widest text-[#8c2318] whitespace-nowrap">
-             {item.id.slice(-5).toUpperCase()}
-           </div>
+      <div className="my-3">
+        {renderReaderToolbar()}
+        <div className={`relative mx-auto ${isExpanded ? 'max-w-md' : 'max-w-sm'} flex shadow-xl drop-shadow-md filter select-text`}>
+          <div className="flex-1 bg-[#e8cd9c] p-4 border-r-2 border-dashed border-[#8c6b45]/60 rounded-l-md relative">
+             <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#735e47] mb-1">
+               Admit One • Transferable
+             </div>
+             <h4 className="font-extrabold text-xl uppercase tracking-tighter text-[#2a2016] leading-tight mt-1">
+               {item.name}
+             </h4>
+             <div className={`font-serif italic text-[#3d2f21] whitespace-pre-line mt-3 border-t border-[#8c6b45]/30 pt-2 ${isExpanded ? 'text-base' : 'text-sm'}`}>
+               {content}
+             </div>
+          </div>
+          <div className="w-16 bg-[#e8cd9c] rounded-r-md flex flex-col items-center justify-center p-2">
+             <div className="transform rotate-90 text-xs font-special-elite font-bold tracking-widest text-[#8c2318] whitespace-nowrap">
+               {item.id.slice(-5).toUpperCase()}
+             </div>
+          </div>
         </div>
       </div>
     );
@@ -308,42 +341,45 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
 
   // === 7. DEFAULT / LIST OSOBISTY ===
   return (
-    <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto text-base md:text-lg' : 'p-6 text-sm md:text-base'} bg-[#ebdfc6] text-[#2c1d11] shadow-inner border border-[#d3c29e] rounded-sm font-serif leading-relaxed select-text`}>
-      {/* Znaczek pocztowy w rogu dla listów */}
-      <div className="absolute top-3 right-3 w-10 h-12 border-2 border-dashed border-[#8c765c] bg-[#d9c7a7] flex flex-col items-center justify-center text-[9px] font-special-elite text-[#5c4934]">
-        <span>{eraContext?.countryCode === 'PL' ? 'POLSKA' : eraContext?.countryCode === 'GB' ? 'UK' : 'USA'}</span>
-        <span className="font-bold">{eraContext?.countryCode === 'PL' ? '10gr' : eraContext?.countryCode === 'GB' ? '1d' : '2¢'}</span>
-      </div>
-
-      <span className="block text-xs font-special-elite text-[#5c4a37] uppercase tracking-wider mb-2 opacity-70">
-        {t('documentContent')}
-      </span>
-      <div className="whitespace-pre-line italic text-[#24170d] pr-6 leading-relaxed">
-        {content}
-      </div>
-
-      {item.imageUrl && (
-        <div className="my-4">
-          <DocumentViewer
-            imageUrl={item.imageUrl}
-            title={item.name}
-            initialFilter={year >= 1945 ? 'prl-1970' : 'vintage-1920'}
-            docTypeLabel={docType}
-            evidenceFact={item.readableContent ? item.readableContent.slice(0, 140) : item.description}
-          />
+    <div className="my-3">
+      {renderReaderToolbar()}
+      <div className={`relative ${isExpanded ? 'p-8 max-w-3xl mx-auto text-base md:text-lg' : 'p-6 text-sm md:text-base'} bg-[#ebdfc6] text-[#2c1d11] shadow-inner border border-[#d3c29e] rounded-sm font-serif leading-relaxed select-text`}>
+        {/* Znaczek pocztowy w rogu dla listów */}
+        <div className="absolute top-3 right-3 w-10 h-12 border-2 border-dashed border-[#8c765c] bg-[#d9c7a7] flex flex-col items-center justify-center text-[9px] font-special-elite text-[#5c4934]">
+          <span>{eraContext?.countryCode === 'PL' ? 'POLSKA' : eraContext?.countryCode === 'GB' ? 'UK' : 'USA'}</span>
+          <span className="font-bold">{eraContext?.countryCode === 'PL' ? '10gr' : eraContext?.countryCode === 'GB' ? '1d' : '2¢'}</span>
         </div>
-      )}
 
-      {item.audioUrl && (
-        <div className="mt-4">
-          <AudioReelPlayer
-            audioUrl={item.audioUrl}
-            title={item.name}
-            transcript={content}
-            reelType={year >= 1960 ? 'cassette' : year < 1930 ? 'gramophone' : 'reel_to_reel'}
-          />
+        <span className="block text-xs font-special-elite text-[#5c4a37] uppercase tracking-wider mb-2 opacity-70">
+          {t('documentContent')}
+        </span>
+        <div className="whitespace-pre-line italic text-[#24170d] pr-6 leading-relaxed">
+          {content}
         </div>
-      )}
+
+        {item.imageUrl && (
+          <div className="my-4">
+            <DocumentViewer
+              imageUrl={item.imageUrl}
+              title={item.name}
+              initialFilter={year >= 1945 ? 'prl-1970' : 'vintage-1920'}
+              docTypeLabel={docType}
+              evidenceFact={item.readableContent ? item.readableContent.slice(0, 140) : item.description}
+            />
+          </div>
+        )}
+
+        {item.audioUrl && (
+          <div className="mt-4">
+            <AudioReelPlayer
+              audioUrl={item.audioUrl}
+              title={item.name}
+              transcript={content}
+              reelType={year >= 1960 ? 'cassette' : year < 1930 ? 'gramophone' : 'reel_to_reel'}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

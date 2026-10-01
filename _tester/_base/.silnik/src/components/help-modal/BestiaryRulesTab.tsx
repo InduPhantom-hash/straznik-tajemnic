@@ -54,7 +54,7 @@ export function BestiaryRulesTab() {
           onClick={() => setSubTab('RULES')}
           className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
             subTab === 'RULES'
-              ? 'bg-brass/20 text-brass border border-brass/40'
+              ? 'bg-primary/20 text-primary border border-primary/50 shadow-glow'
               : 'bg-card text-muted-foreground hover:text-foreground border border-transparent'
           }`}
         >
@@ -64,7 +64,7 @@ export function BestiaryRulesTab() {
           onClick={() => setSubTab('BESTIARY')}
           className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
             subTab === 'BESTIARY'
-              ? 'bg-brass/20 text-brass border border-brass/40'
+              ? 'bg-primary/20 text-primary border border-primary/50 shadow-glow'
               : 'bg-card text-muted-foreground hover:text-foreground border border-transparent'
           }`}
         >

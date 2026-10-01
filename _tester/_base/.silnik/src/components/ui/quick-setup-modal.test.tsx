@@ -170,5 +170,26 @@ describe('QuickSetupModal (Issue #121)', () => {
     expect(screen.getByText('Generating opening scene...')).toBeInTheDocument();
     expect(screen.getByText('90%')).toBeInTheDocument();
     expect(screen.queryByText('Przygotowywanie sesji...')).not.toBeInTheDocument();
+    expect(progressBar).toHaveClass('bg-primary');
+  });
+
+  it('podświetla wybrane karty trybu, scenariusza i postaci akcentem szmaragdowym Art Déco', () => {
+    render(
+      <QuickSetupModal
+        open={true}
+        onOpenChange={jest.fn()}
+        onQuickStart={jest.fn()}
+      />
+    );
+
+    const soloBtn = screen.getByRole('button', { name: /Solo/i });
+    expect(soloBtn).toHaveClass('border-primary', 'bg-[#0f1715]');
+
+    const charCards = screen.getAllByRole('button', { name: /Tomasz Nowicki/i });
+    fireEvent.click(charCards[0]);
+    expect(charCards[0].closest('div.border')).toHaveClass('border-primary', 'bg-[#0f1715]');
+
+    const startBtn = screen.getByRole('button', { name: /Rozpocznij przygodę/i });
+    expect(startBtn).toHaveClass('bg-primary');
   });
 });

@@ -36,11 +36,16 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
       <div className="relative w-[80vw] h-[78vh] max-h-[85vh] bg-card border border-brass/40 rounded-lg shadow-2xl overflow-hidden flex flex-col">
         {/* Nagłówek Modalu */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/90">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-xl">🕯️</span>
-            <h2 className="text-lg font-serif text-brass font-semibold tracking-wide">
-              {t('title')}
-            </h2>
+            <div className="flex flex-col">
+              <span className="font-special-elite text-[11px] uppercase tracking-[0.35em] text-primary">
+                MISKATONIC ARCHIVES • 1920s
+              </span>
+              <h2 className="text-lg font-serif text-brass font-semibold tracking-wide">
+                {t('title')}
+              </h2>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -57,7 +62,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('EPOCH_WIKI')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'EPOCH_WIKI'
-                ? 'border-brass text-brass bg-brass/10'
+                ? 'border-primary text-primary bg-primary/10 shadow-glow'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -67,7 +72,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('RULES_BESTIARY')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'RULES_BESTIARY'
-                ? 'border-brass text-brass bg-brass/10'
+                ? 'border-primary text-primary bg-primary/10 shadow-glow'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -77,7 +82,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('INTERFACE')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'INTERFACE'
-                ? 'border-brass text-brass bg-brass/10'
+                ? 'border-primary text-primary bg-primary/10 shadow-glow'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -87,7 +92,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('RAG_ASSISTANT')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'RAG_ASSISTANT'
-                ? 'border-brass text-brass bg-brass/10'
+                ? 'border-primary text-primary bg-primary/10 shadow-glow'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -97,7 +102,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('COPYRIGHT')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'COPYRIGHT'
-                ? 'border-brass text-brass bg-brass/10'
+                ? 'border-primary text-primary bg-primary/10 shadow-glow'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
