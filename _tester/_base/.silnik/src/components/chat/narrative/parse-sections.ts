@@ -80,17 +80,22 @@ export function parseIntoSections(content: string): Section[] {
 
       const isPerspective = /^@([^:]+):\s*(.*)$/.test(trimmedLine);
       const isRollOrCheck = /^\[(RZUT|TEST|WYNIK)/i.test(trimmedLine);
+      const isEndingSeparator = isHandoutEnd(trimmedLine, handoutBuffer);
 
       if (
         !isInitialStickyOnly &&
-        (isHandoutEnd(trimmedLine) ||
+        (isEndingSeparator ||
           isHandoutTerminator(trimmedLine) ||
           isDialogueLine ||
           isPerspective ||
           isRollOrCheck)
       ) {
-        if (isHandoutEnd(trimmedLine)) {
+        if (isEndingSeparator) {
           handoutBuffer.push(line);
+          // Pomiń ewentualne zdublowane linie separatorów bezpośrednio po zamknięciu
+          while (i + 1 < lines.length && isSeparatorLine(lines[i + 1])) {
+            i++;
+          }
         }
         const joined = handoutBuffer.join('\n');
         const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
@@ -114,7 +119,7 @@ export function parseIntoSections(content: string): Section[] {
         });
         inHandout = false;
         handoutBuffer = [];
-        if (!isHandoutEnd(trimmedLine)) {
+        if (!isEndingSeparator) {
           i--; // ponów parsowanie linii jako start nowej sekcji
         }
         continue;
@@ -272,6 +277,35 @@ export function parseIntoSections(content: string): Section[] {
   return sections;
 }
 
+function isSeparatorLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.match(/^[━═─╔╗╚╝┌┐└┘│║╠╣╦╩╬+=\-_*~]{3,}$/)) return true;
+  if (trimmed.match(/^(?:[-*_]\s*){3,}$/)) return true;
+  return false;
+}
+
+function isHandoutHeaderLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (/^\[?(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)/i.test(trimmed)) return false;
+  if (isSeparatorLine(trimmed)) return false;
+  if (trimmed.startsWith('```')) return false;
+  return isHandoutStart(trimmed) || detectHandoutType(trimmed) !== 'note';
+}
+
+function hasHandoutBodyContent(buffer: string[]): boolean {
+  for (const rawLine of buffer) {
+    const trimmed = rawLine.trim();
+    if (!trimmed) continue;
+    if (/^\[?(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)/i.test(trimmed)) continue;
+    if (isSeparatorLine(trimmed)) continue;
+    if (trimmed.startsWith('```')) continue;
+    if (isHandoutHeaderLine(trimmed)) continue;
+
+    return true;
+  }
+  return false;
+}
+
 function isHandoutStart(line: string): boolean {
   // IND-224: tagi protokołu (DZIENNIK:typ:..., MYŚLI_MG:, NASTRÓJ:, CEL_NARRACYJNY:)
   // to NIE handouty. "DZIENNIK" jest aliasem gazety (H9), więc bare/niedomknięty tag
@@ -289,10 +323,10 @@ function isHandoutStart(line: string): boolean {
   }
   // ASCII art borders
   if (line.match(/^[━═─╔╗╚╝┌┐└┘│║╠╣╦╩╬+=\-_*~]{5,}$/)) return true;
-  // Nagłówki prasowe i multimedialne
+  // Nagłówki prasowe i multimedialne oraz blankiety pocztowe
   if (
     line.match(
-      /^📰|^📜|^✉️|^📋|^📧|^🎙️|^📼|^📻|^🗺️|^(?:ARKHAM ADVERTISER|THE NEW YORK TIMES|THE BOSTON GLOBE)\b|^(?:TELEGRAM|WESTERN UNION)\b(?:\s*:|\s+Z\s+DNIA|\s+NR|\s+STOP|\s*$)|^(?:KURIER|DZIENNIK)\s+(?:WARSZAWSKI|PORANNY|CODZIENNY|POLSKI|POWSZECHNY|LUBELSKI|WŁILEŃSKI|WILENSKI|POZNAŃSKI|POZNANSKI)\b|^(?:DZIENNIK|KURIER|TELEGRAM|RAPORT|LIST|DOKUMENT):\s*/i
+      /^📰|^📜|^✉️|^📋|^📧|^🎙️|^📼|^📻|^🗺️|^(?:ARKHAM ADVERTISER|THE NEW YORK TIMES|THE BOSTON GLOBE)\b|^(?:TELEGRAM|WESTERN UNION)\b(?:\s*:|\s+Z\s+DNIA|\s+NR|\s+STOP|\s*$)|^(?:KURIER|DZIENNIK)\s+(?:WARSZAWSKI|PORANNY|CODZIENNY|POLSKI|POWSZECHNY|LUBELSKI|WŁILEŃSKI|WILENSKI|POZNAŃSKI|POZNANSKI)\b|^(?:DZIENNIK|KURIER|TELEGRAM|RAPORT|LIST|DOKUMENT):\s*|^(?:\*{1,2}|_{1,2})?(?:PRZESYŁKA\s+(?:EKSPRESOWA|POLECONA)|POCZTA\s+POLSKA|BLANKIET\s+(?:POCZTOWY|TELEGRAFICZNY))\b/i
     )
   )
     return true;
@@ -305,9 +339,15 @@ function isHandoutTerminator(line: string): boolean {
   return /^\[(Co robi(?:sz|cie)\?|RZUT|TEST|WYNIK|Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched)/i.test(line);
 }
 
-function isHandoutEnd(line: string): boolean {
-  if (line.match(/^[━═─╔╗╚╝┌┐└┘│║╠╣╦╩╬+=\-_*~]{5,}$/)) return true;
-  if (line.startsWith('```') && line.length <= 5) return true;
+function isHandoutEnd(line: string, buffer?: string[]): boolean {
+  const trimmed = line.trim();
+  if (trimmed.startsWith('```') && trimmed.length <= 5) return true;
+
+  if (isSeparatorLine(trimmed)) {
+    if (!buffer || buffer.length === 0) return true;
+    return hasHandoutBodyContent(buffer);
+  }
+
   return false;
 }
 
@@ -317,9 +357,24 @@ export function detectHandoutType(line: string): HandoutType {
   if (line.match(/📓|DIARY|JOURNAL|PAMIĘTNIK|NOTATNIK/i)) return 'diary';
   if (line.match(/📰|KURIER|DZIENNIK|ADVERTISER|NEWSPAPER|TIMES|GAZETTE/i))
     return 'newspaper';
-  if (line.match(/✉️|\bLIST\b|\bLETTER\b/i)) return 'letter';
-  if (line.match(/📧|TELEGRAM|WESTERN UNION|STOP\s|URG/i)) return 'telegram';
-  if (line.match(/📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ|🎙️|📼|📻|NAGRANIE|TAŚMA|TASMA|RECORDING|AUDIO|MAGNETOFON|🗺️|MAPA|PLAN|MAP/i)) return 'report';
+  if (
+    line.match(
+      /✉️|\bLIST\b|\bLETTER\b|PRZESYŁKA\s+(?:EKSPRESOWA|POLECONA)|POCZTA\s+POLSKA/i
+    )
+  )
+    return 'letter';
+  if (
+    line.match(
+      /📧|TELEGRAM|WESTERN UNION|STOP\s|URG|BLANKIET\s+(?:POCZTOWY|TELEGRAFICZNY)/i
+    )
+  )
+    return 'telegram';
+  if (
+    line.match(
+      /📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ|🎙️|📼|📻|NAGRANIE|TAŚMA|TASMA|RECORDING|AUDIO|MAGNETOFON|🗺️|MAPA|PLAN|MAP/i
+    )
+  )
+    return 'report';
   if (line.match(/📜|KSIĘGA|NECRONOMICON|TOME|MANUSCR/i)) return 'book';
   return 'note';
 }

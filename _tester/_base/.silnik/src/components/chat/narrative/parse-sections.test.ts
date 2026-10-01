@@ -156,5 +156,69 @@ describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
     expect(dialogue).toBeDefined();
     expect(dialogue?.content).toContain('Nie podoba mi się to, doktorze.');
   });
+
+  it('poprawnie parsuje przesyłkę pocztową PRZESYŁKA EKSPRESOWA – POCZTA POLSKA z oddzieleniem narracji po separatorze', () => {
+    const text = [
+      '[NOTATKA_BADACZA: Kto: Urząd Pocztowy Warszawa 1 | Dotyczy: Zapieczętowana przesyłka ekspresowa | Trop: Koperta zabezpieczona lakiem / zawartość nieznana do momentu otwarcia]',
+      'PRZESYŁKA EKSPRESOWA – POCZTA POLSKA',
+      '----------------------------------------',
+      'OD: Ministerstwo Spraw Wewnętrznych, Warszawa',
+      'DO: Dr Janusz Kowalski, Archiwum Akt Dawnych',
+      '',
+      'PILNE: Dokumenty dotyczące incydentu w Wilczym Jarze.',
+      '----------------------------------------',
+      'Na biurku unosi się zapach laku i wilgotnego papieru.',
+      '[Co robisz?]',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    expect(sections).toHaveLength(3);
+
+    // Sekcja 0: handout listu z notatką badacza
+    expect(sections[0].type).toBe('handout');
+    expect(sections[0].handoutType).toBe('letter');
+    expect(sections[0].stickyNote).toBeDefined();
+    expect(sections[0].stickyNote?.who).toBe('Urząd Pocztowy Warszawa 1');
+    expect(sections[0].stickyNote?.about).toBe('Zapieczętowana przesyłka ekspresowa');
+    expect(sections[0].stickyNote?.clue).toBe('Koperta zabezpieczona lakiem / zawartość nieznana do momentu otwarcia');
+    expect(sections[0].content).toContain('PRZESYŁKA EKSPRESOWA – POCZTA POLSKA');
+    expect(sections[0].content).toContain('PILNE: Dokumenty dotyczące incydentu w Wilczym Jarze.');
+    expect(sections[0].content).not.toContain('Na biurku unosi się zapach laku');
+
+    // Sekcja 1: czysta narracja po separatorze, bez kresek ASCII w prozie
+    expect(sections[1].type).toBe('narrative');
+    expect(sections[1].content).toBe('Na biurku unosi się zapach laku i wilgotnego papieru.');
+    expect(sections[1].content).not.toMatch(/[-─━═]{3,}/);
+
+    // Sekcja 2: szept / pytanie końcowe
+    expect(sections[2].type).toBe('whisper');
+    expect(sections[2].content).toBe('Co robisz?');
+  });
+
+  it('poprawnie klasyfikuje nagłówki pocztowe i blankiety w detectHandoutType', () => {
+    expect(detectHandoutType('PRZESYŁKA EKSPRESOWA – POCZTA POLSKA')).toBe('letter');
+    expect(detectHandoutType('PRZESYŁKA POLECONA')).toBe('letter');
+    expect(detectHandoutType('POCZTA POLSKA')).toBe('letter');
+    expect(detectHandoutType('BLANKIET POCZTOWY')).toBe('telegram');
+    expect(detectHandoutType('BLANKIET TELEGRAFICZNY')).toBe('telegram');
+  });
+
+  it('oddziela narrację po separatorze markdown (---) bez wylewania kresek do prozy', () => {
+    const text = [
+      'PRZESYŁKA EKSPRESOWA – POCZTA POLSKA',
+      'Poufna korespondencja urzędowa.',
+      '---',
+      'Krople deszczu uderzają o parapet.',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    expect(sections).toHaveLength(2);
+    expect(sections[0].type).toBe('handout');
+    expect(sections[0].handoutType).toBe('letter');
+    expect(sections[0].content).toContain('Poufna korespondencja urzędowa.');
+    expect(sections[1].type).toBe('narrative');
+    expect(sections[1].content).toBe('Krople deszczu uderzają o parapet.');
+    expect(sections[1].content).not.toContain('---');
+  });
 });
 

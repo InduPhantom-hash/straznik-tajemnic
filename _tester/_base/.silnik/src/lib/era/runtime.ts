@@ -91,7 +91,7 @@ export function buildEraNarrativeRules(context: ResolvedEraContext): string {
   if (guardrails) {
     if (guardrails.forbiddenTech.length > 0) {
       guardrailLines.push(
-        `KATEGORYCZNY ZAKAZ TECHNOLOGICZNY (anachronizmy): ${guardrails.forbiddenTech.slice(0, 10).join(', ')}.`
+        `KATEGORYCZNY ZAKAZ TECHNOLOGICZNY (anachronizmy): ${guardrails.forbiddenTech.join(', ')}.`
       );
     }
     if (guardrails.forbiddenInstitutions.length > 0) {
