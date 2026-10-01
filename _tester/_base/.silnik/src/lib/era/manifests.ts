@@ -168,6 +168,127 @@ export const US_1920S_APPROVED_MANIFEST: EraManifestV1 = {
   approvalStatus: 'approved',
 };
 
+const PL_1920S_SOURCE = {
+  id: 'pl-1920s-historical-records',
+  title: 'Realia historyczne II Rzeczypospolitej i Warszawy lat 20. XX w. (reforma Grabskiego 1924, Policja Państwowa, transport i piśmiennictwo)',
+  trustLevel: 'primary' as const,
+  url: 'internal://pl-1920s-historical-records',
+  retrievedAt: '2026-10-01',
+  contentHash: 'pl-1920s-approved-v1',
+  usageRights: 'historical-reference',
+  verificationStatus: 'verified' as const,
+};
+
+export const PL_1920S_APPROVED_MANIFEST: EraManifestV1 = {
+  schemaVersion: 1,
+  id: 'pl-1920s',
+  title: 'Polska 1920s (II Rzeczpospolita RAW)',
+  validFrom: 1920,
+  validTo: 1929,
+  exactYearRequired: false,
+  countryCodes: ['PL'],
+  regionProfiles: ['PL'],
+  economicBackground: [
+    'Odbudowa kraju po zaborach i wojnie polsko-bolszewickiej, unifikacja ziem dawnych trzech zaborów.',
+    'Waluta: złoty polski (PLN, zł) wprowadzony reformą premiera Władysława Grabskiego w kwietniu 1924 r. (zastąpił markę polską mp. w relacji 1 zł = 1 800 000 mp.).',
+    'Standard życia powiązany z cechą Majętność: arystokracja, ziemiaństwo, urzędnicy państwowi, inteligencja, robotnicy i chłopi.',
+    'Płatności gotówkowe bilonem (srebro, nikiel, brąz) i biletami Banku Polskiego oraz wekslami.',
+  ],
+  socialAndClassStructure: [
+    'Wielonarodowe społeczeństwo II RP: Polacy, Żydzi, Ukraińcy, Białorusini, Niemcy.',
+    'Wyraźny podział klasowy: arystokracja i ziemiaństwo, warstwa inteligencji i urzędników, robotnicy fabryczni oraz uboga wieś.',
+    'Życie kawiarniane i artystyczne (Ziemiańska, Kawiarnia Pod Pikadorem) oraz stowarzyszenia naukowe.',
+  ],
+  politicalSituation: [
+    'II Rzeczpospolita: od Konstytucji marcowej (1921 r.) po Przewrót majowy (1926 r.) i rządy sanacji.',
+    'Napięcia graniczne na wschodzie (Korpus Ochrony Pogranicza od 1924 r.) oraz zabójstwo prezydenta Gabriela Narutowicza (1922 r.).',
+    'Zagrożenie szpiegowskie i dywersyjne ze wschodu i zachodu.',
+  ],
+  racismAndExclusion: [
+    'Napięcia narodowościowe i antysemityzm tła epoki; traktowanie mniejszości narodowych w administracji.',
+    'Uprzedzenia stanowią tło diegetyczne epoki, a nie powód do mechanicznego karania postaci badaczy.',
+  ],
+  genderRolesAndRights: [
+    'Pełne prawa wyborcze kobiet od dekretu z listopada 1918 r. i Konstytucji marcowej 1921 r.',
+    'Kobiety na uniwersytetach (Uniwersytet Warszawski, Uniwersytet Jagielloński), w medycynie, edukacji i urzędach państwowych.',
+  ],
+  technology: [
+    'Elektryczność w większych miastach (Warszawa, Kraków, Lwów, Poznań); na prowincji i przedmieściach lampy naftowe i gazowe.',
+    'Polskie Radio rozpoczęło regularne nadawanie w 1926 r.; odbiorniki kryształkowe i lampowe.',
+    'Kinematografia niema, prasa codzienna i tygodniki ilustrowane jako główne źródła informacji.',
+  ],
+  law: [
+    'Policja Państwowa (utworzona w 1919 r.) umundurowana w granatowe mundury z orłem w koronie.',
+    'Służba Śledcza (Urząd Śledczy) prowadząca rejestry daktyloskopijne, fotografię sygnalityczną i kartoteki.',
+    'Brak numerów alarmowych typu 997 czy 112 - kontakt bezpośredni z posterunkiem, komisariatem lub przez centralę telefoniczną.',
+  ],
+  customs: [
+    'Etykieta salonowa i kawiarniana, całowanie kobiet w dłoń, tytułowanie („Panie Radco”, „Panie Mecenasie”, „Panie Doktorze”).',
+    'Ubiór z epoki: kapelusze (meloniki, borsalino), wełniane płaszcze, garnitury, suknie z epoki art déco.',
+    'Wieczorne życie kabaretowe (Qui Pro Quo, Morskie Oko) i kawiarniane.',
+  ],
+  occupations: [
+    'Zawody w II RP: Oficer Wojska Polskiego, Urzędnik państwowy, Policjant PP, Profesor uniwersytetu, Lekarz, Prawnik/Adwokat, Dziennikarz, Antykwariusz, Detektyw prywatny, Ziemianin.',
+  ],
+  communication: [
+    'Poczta Polska i telegraf: telegramy błyskawiczne i zwykłe, przesyłki polecone i ekspresowe ze stemplami pocztowymi.',
+    'Telefon ręczny łączony przez telefonistki miejskiej centrali PAST-y (Polska Akcyjna Spółka Telefoniczna).',
+    'Przybory piśmiennicze: wieczne pióra ze stalówką (Pelikan, Waterman), kałamarze z atramentem, bibuły, ołówki kopiowe i maszyny do pisania.',
+  ],
+  transport: [
+    'Kolej parowa PKP: magistrale łączące Warszawę z Krakowem, Lwowem, Poznaniem i Wilnem.',
+    'Warszawskie dworce kolejowe lat 20.: Dworzec Główny / Dworzec Wiedeński (tymczasowy drewniany budynek przy ul. Chmielnej po zniszczeniach wojennych), Dworzec Wileński na Pradze, Dworzec Wschodni.',
+    'Transport miejski: tramwaje elektryczne, dorożki konne, nieliczne taksówki samochodowe.',
+    'Samochody: luksusowe auta sprowadzane (Citroën, Fiat, Ford, Renault) oraz pierwsze polskie CWS T-1 (od 1927 r.).',
+  ],
+  architecture: [
+    'Warszawa lat 20.: historyzm, modernizm i wczesne Art Déco, secesyjne kamienice czynszowe w Śródmieściu, pałace i kamienice Powiśla oraz Pragi.',
+    'Charakterystyczne punkty: gmach PAST-y przy ul. Zielnej, Zamek Królewski, Krakowskie Przedmieście, Nowy Świat.',
+  ],
+  periodKnowledgeAndLimits: [
+    'Medycyna sądowa: Instytut Medycyny Sądowej, daktyloskopia, sekcje zwłok, grupy krwi A/B/O. Brak badań DNA i testów cyfrowych.',
+    'Archiwa papierowe: tożsamość ustalana na podstawie dowodów osobistych II RP, paszportów, ksiąg parafialnych i meldunkowych.',
+  ],
+  language: [
+    'Język polski okresu międzywojennego: przedwojenna ortografia (sprzed reformy 1936 r.), specyficzny szyk zdania i dystyngowane zwroty grzecznościowe.',
+    'Określenia z epoki: automobil, aeroplan, aparat telefoniczny, dorożkarz, przodownik, posterunkowy, jegomość.',
+  ],
+  visualDirection: [
+    'Dokumentalna fotografia z lat 20. XX w., sepiowe i czarno-białe kadry, światło lamp gazowych i żarówek wolframowych.',
+    'Brukowane ulice, kamienice o bogatej sztukaterii, stylowe szyldy sklepowe pisane antykwą.',
+  ],
+  forbidden: [
+    'długopis kulkowy',
+    'długopis Zenith',
+    'długopis',
+    'Dworzec Centralny',
+    'numer 997',
+    'numer 112',
+    'dowód osobisty PRL',
+    'milicja obywatelska',
+    'smartfon',
+    'telefon komórkowy',
+    'komputer osobisty',
+    'komputer',
+    'laptop',
+    'tablet',
+    'internet',
+    'wi-fi',
+    'gps',
+    'analiza DNA',
+    'cyfrowy monitoring',
+    'kamery CCTV',
+    'tworzywa sztuczne ABS',
+  ],
+  presentismRisks: [
+    'Nie wprowadzaj realiów powojennych PRL ani współczesnych (brak Milicji Obywatelskiej, Dworca Centralnego, numeru 997, dowodów osobistych PRL).',
+    'Nie wprowadzaj długopisów kulkowych ani Zenith - w latach 20. pisano wyłącznie stalówkami, wiecznymi piórami, kałamarzem lub ołówkiem kopiowym.',
+    'Nie przedstawiaj współczesnych technologii cyfrowych ani natychmiastowego dostępu do danych.',
+  ],
+  sources: [PL_1920S_SOURCE],
+  approvalStatus: 'approved',
+};
+
 export const ERA_MANIFESTS_V1: readonly EraManifestV1[] = [
   draftManifest(
     'gb-1890s',
@@ -180,6 +301,7 @@ export const ERA_MANIFESTS_V1: readonly EraManifestV1[] = [
     ['dokumentalny realizm późnej epoki wiktoriańskiej', 'materiały i konstrukcje właściwe dokładnemu rokowi']
   ),
   US_1920S_APPROVED_MANIFEST,
+  PL_1920S_APPROVED_MANIFEST,
   draftManifest(
     'pl-1973-1974',
     'Polska 1973-1974',
