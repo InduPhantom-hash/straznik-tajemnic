@@ -283,6 +283,30 @@ describe('MessageInput - detekcja anachronizmów i dymek Art Déco', () => {
       fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
       expect(handleSendMessage).toHaveBeenCalledWith('Nowa wiadomość');
     });
+
+    it('Issue #590: nie wyświetla przestarzałego przycisku książki (Podsumuj ostatnią scenę do dziennika) przy messagesCount >= 3', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+      const onStopGeneration = jest.fn();
+      const onSummarizeScene = jest.fn();
+
+      const legacyProps = {
+        newMessage: '',
+        setNewMessage,
+        handleSendMessage,
+        messagesCount: 5,
+        isLoading: true,
+        onStopGeneration,
+        onSummarizeScene,
+      };
+
+      render(<MessageInput {...legacyProps} />);
+
+      expect(screen.getByTestId('stop-generation-button')).toBeInTheDocument();
+      expect(
+        screen.queryByTitle('Podsumuj ostatnią scenę do dziennika')
+      ).not.toBeInTheDocument();
+    });
   });
 });
 

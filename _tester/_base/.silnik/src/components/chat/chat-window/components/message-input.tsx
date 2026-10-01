@@ -1,16 +1,15 @@
 'use client';
 
 /**
- * @file MessageInput - input czatu z Textarea + Send button + opcjonalny SummarizeScene (IND-144 Wariant C, sesja 131).
+ * @file MessageInput - input czatu z Textarea + Send/Stop button.
  *
- * Extracted z ChatWindow.tsx jako micro 7/8. SummarizeScene button renderowany
- * conditional gdy messagesCount>=3 i onSummarizeScene defined.
+ * Extracted z ChatWindow.tsx jako micro 7/8.
  *
  * Textarea onKeyDown: Enter (bez shift) wysyła wiadomość + reset newMessage.
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Loader2, Users, Check, Clock, Square, CornerDownLeft } from 'lucide-react';
+import { Send, Users, Check, Clock, Square, CornerDownLeft } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import type { ResolvedEraContext, AnachronismDetection } from '@/lib/era';
 import { detectAnachronism } from '@/lib/era';
@@ -33,8 +32,6 @@ interface MessageInputProps {
   setNewMessage: (message: string) => void;
   handleSendMessage: (message: string) => void;
   messagesCount: number;
-  onSummarizeScene?: () => Promise<void>;
-  isSummarizingScene?: boolean;
   // === C4 (duet): bufor deklaracji ===
   /** Czy tryb dla dwojga - decyduje o buforowaniu (Enter dokłada zamiast wysyłać). */
   isDuet?: boolean;
@@ -67,9 +64,6 @@ export function MessageInput({
   newMessage,
   setNewMessage,
   handleSendMessage,
-  messagesCount,
-  onSummarizeScene,
-  isSummarizingScene = false,
   isDuet = false,
   pendingDeclarations = [],
   playersAwaitingDeclaration = [],
@@ -425,23 +419,6 @@ export function MessageInput({
                 Wyślij turę
               </Button>
             </>
-          )}
-
-          {/* Przycisk podsumowania sceny */}
-          {onSummarizeScene && messagesCount >= 3 && !isSessionEnded && (
-            <Button
-              onClick={onSummarizeScene}
-              disabled={isSummarizingScene || isLoading}
-              variant="outline"
-              className="h-[52px] px-3 border-brass/50 text-brass hover:bg-brass/10"
-              title="Podsumuj ostatnią scenę do dziennika"
-            >
-              {isSummarizingScene ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <BookOpen className="w-4 h-4" />
-              )}
-            </Button>
           )}
         </div>
       </div>
