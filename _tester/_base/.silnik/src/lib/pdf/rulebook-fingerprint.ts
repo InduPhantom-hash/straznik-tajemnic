@@ -699,28 +699,37 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     detectedCategories.push('CZARY');
     estimatedEntities.spells = true;
   }
+  const scenarioSearchText =
+    profile === 'core-d100' || profile === 'pulp-d100'
+      ? (text.length > 150000
+          ? `${sample} ${stripDiacritics(text.slice(150000).toLowerCase())}`
+          : sample
+        ).replace(/\s+/g, ' ')
+      : sample.replace(/\s+/g, ' ');
+
   const hasCoreBuiltInScenarios =
     profile === 'core-d100' &&
-    (sample.includes('posrod pradawnych drzew') ||
-      sample.includes('wsrod prastarych drzew') ||
-      sample.includes('wsrod pradawnych drzew') ||
-      sample.includes('posrod prastarych drzew') ||
-      sample.includes('amidst the ancient trees') ||
-      sample.includes('szkarlatne litery') ||
-      sample.includes('karmazynowe litery') ||
-      sample.includes('crimson letters'));
+    (scenarioSearchText.includes('posrod pradawnych drzew') ||
+      scenarioSearchText.includes('wsrod prastarych drzew') ||
+      scenarioSearchText.includes('wsrod pradawnych drzew') ||
+      scenarioSearchText.includes('posrod prastarych drzew') ||
+      scenarioSearchText.includes('amidst the ancient trees') ||
+      scenarioSearchText.includes('szkarlatne litery') ||
+      scenarioSearchText.includes('karmazynowe litery') ||
+      scenarioSearchText.includes('crimson letters'));
 
   const hasPulpBuiltInScenarios =
     profile === 'pulp-d100' &&
-    (sample.includes('the disintegrator') ||
-      sample.includes('dezintegrator') ||
-      sample.includes('waiting for the hurricane') ||
-      sample.includes('czekajac na huragan') ||
-      sample.includes("pandora's box") ||
-      sample.includes('pandoras box') ||
-      sample.includes('puszka pandory') ||
-      sample.includes('slow boat to china') ||
-      sample.includes('wolny statek do chin'));
+    (scenarioSearchText.includes('the disintegrator') ||
+      scenarioSearchText.includes('dezintegrator') ||
+      scenarioSearchText.includes('waiting for the hurricane') ||
+      scenarioSearchText.includes('czekajac na huragan') ||
+      scenarioSearchText.includes("pandora's box") ||
+      scenarioSearchText.includes('pandora’s box') ||
+      scenarioSearchText.includes('pandoras box') ||
+      scenarioSearchText.includes('puszka pandory') ||
+      scenarioSearchText.includes('slow boat to china') ||
+      scenarioSearchText.includes('wolny statek do chin'));
 
   const hasDetectedScenarios =
     Boolean(adventureType) ||

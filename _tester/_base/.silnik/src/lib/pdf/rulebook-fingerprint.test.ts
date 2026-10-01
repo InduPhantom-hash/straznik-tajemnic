@@ -131,6 +131,16 @@ describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semant
       expect(resPulp.profile).toBe("pulp-d100");
       expect(resPulp.detectedFeatures.hasScenarios).toBe(true);
       expect(resPulp.semanticPlan.detectedCategories).toContain("FABULA");
+
+      // Scenariusze pojawiające się dopiero w dalszej części dokumentu (>150 000 znaków) i złamane nową linią
+      const lateScenarioCore =
+        "Zew Cthulhu Księga Strażnika. Walka, Pościgi, Poczytalność i Magia k100. " +
+        "x".repeat(160000) +
+        "\nROZDZIAŁ 15.1\nPOŚRÓD\nPRADAWNYCH DRZEW\nROZDZIAŁ 15.2\nSZKARŁATNE\nLITERY";
+      const resLateCore = detectRulebookProfile(lateScenarioCore, "ZewCthulhu_KsiegaStraznika_v.1.3.pdf");
+      expect(resLateCore.profile).toBe("core-d100");
+      expect(resLateCore.detectedFeatures.hasScenarios).toBe(true);
+      expect(resLateCore.semanticPlan.detectedCategories).toContain("FABULA");
     });
 
     it("nie myli jednostrzałowego scenariusza zawierającego walkę, zaklęcie i stopkę Pulp Cthulhu z podręcznikiem bazowym ani grymuarem", () => {

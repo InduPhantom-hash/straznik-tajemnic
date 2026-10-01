@@ -526,7 +526,20 @@ describe('RulebookModal - dwukolumnowe centrum podręczników i dodatków PDF', 
             profile: 'core-d100',
             title: 'Księga Zasad Głównych d100',
           },
-          adventures: [],
+          adventures: [
+            {
+              id: 'custom-core-1',
+              title: 'Pośród pradawnych drzew',
+              fileName: 'keeper.pdf',
+              documentType: 'scenario',
+            },
+            {
+              id: 'custom-core-2',
+              title: 'Szkarłatne litery',
+              fileName: 'keeper.pdf',
+              documentType: 'scenario',
+            },
+          ],
           capabilities: {
             installedOverlays: [
               {
@@ -556,20 +569,20 @@ describe('RulebookModal - dwukolumnowe centrum podręczników i dodatków PDF', 
                 column: 'rules',
                 pageCount: 400,
                 installedAt: new Date().toISOString(),
-                tags: ['MECHANIKA'],
+                tags: ['MECHANIKA', 'FABULA'],
                 overlayPath: '/tmp/overlay-core.json',
                 stats: {
-                  npcCount: 0,
+                  npcCount: 11,
                   creatureCount: 10,
                   spellCount: 10,
                   ruleCount: 25,
-                  handoutCount: 0,
-                  adventureCount: 0,
+                  handoutCount: 6,
+                  adventureCount: 2,
                 },
               },
             ],
             flags: { hasBaseRules: true, hasRulebookExpansion: false },
-            counts: { totalCreatures: 40, totalAdventures: 0 },
+            counts: { totalCreatures: 40, totalAdventures: 2 },
           },
         }),
       });
@@ -602,6 +615,10 @@ describe('RulebookModal - dwukolumnowe centrum podręczników i dodatków PDF', 
     const banner = screen.getByTestId('auto-routing-banner');
     expect(banner).toBeInTheDocument();
     expect(banner.textContent).toContain('(0 scen.)');
+
+    const extractedNote = screen.getByTestId('rulebook-scenarios-extracted-note');
+    expect(extractedNote).toBeInTheDocument();
+    expect(extractedNote.textContent).toContain('(2)');
   });
 
   it('powiadamia o wyodrębnionych scenariuszach z Księgi Strażnika (core-d100) i Pulp Cthulhu (pulp-d100) oraz synchronizuje je z Manual Setup', async () => {

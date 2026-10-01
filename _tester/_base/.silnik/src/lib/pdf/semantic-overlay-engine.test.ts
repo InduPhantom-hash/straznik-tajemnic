@@ -41,14 +41,31 @@ describe("semantic-overlay-engine - Silnik Nakładek Semantycznych DLC", () => {
       expect(spells[0].deepMagic).toBe(true);
     });
 
-    it("ekstrahuje Rekwizyty i materiały do odczytania", () => {
-      const sampleText = "Rekwizyt 1 - List od mecenasa\nDrogi przyjacielu, piszę ten list w pośpiechu, gdyż czuję, że cienie wokół posiadłości gęstnieją.\n\nRekwizyt 2 - Wycinek z gazety\nTajemniczy pożar w dokach portowych pochłonął trzy magazyny.\n";
+    it("ekstrahuje Rekwizyty i materiały do odczytania oraz ignoruje odmiany wyrazu w prozie", () => {
+      const sampleText = "Rekwizyt 1 - List od mecenasa\nDrogi przyjacielu, piszę ten list w pośpiechu, gdyż czuję, że cienie wokół posiadłości gęstnieją.\n\nRekwizyt 2 - Wycinek z gazety\nTajemniczy pożar w dokach portowych pochłonął trzy magazyny.\nW tej scenie ważnym rekwizytem jest odręcznie napisany list, a rekwizyty pomagają graczom.\n";
       const handouts = extractHandouts(sampleText);
       expect(handouts.length).toBe(2);
       expect(handouts[0].number).toBe("1");
       expect(handouts[0].content).toContain("Drogi przyjacielu");
       expect(handouts[1].number).toBe("2");
       expect(handouts[1].content).toContain("Tajemniczy pożar");
+    });
+
+    it("ekstrahuje postacie z bloku DRAMATIS PERSONAE i odrzuca terminy mechaniczne", () => {
+      const sampleText = [
+        "Postacie niezależne w rozdziale zasad",
+        "Pierwsza pomoc: pozwala odzyskać 1 punkt wytrzymałości.",
+        "",
+        "DRAMATIS PERSONAE",
+        "Lucas Strong: Miejscowa szycha, właściciel fabryki.",
+        "JANE STRONG, ofiara porwania, lat 16.",
+        "ROZPOCZĘCIE",
+      ].join("\n");
+      const npcs = extractNPCs(sampleText);
+      const names = npcs.map((n) => n.name);
+      expect(names).toContain("Lucas Strong");
+      expect(names).toContain("Jane Strong");
+      expect(names).not.toContain("Pierwsza pomoc");
     });
   });
 

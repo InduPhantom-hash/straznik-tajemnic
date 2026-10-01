@@ -411,7 +411,9 @@ export const RulebookModal: FC<RulebookModalProps> = ({
         setExtractedRulebookScenariosCount(
           (prev) => prev + playableAdventureCount
         );
-        setExtractedRulebookProfile((prev) => prev ?? (resolvedProfile || null));
+        setExtractedRulebookProfile((prev) =>
+          prev && prev !== resolvedProfile ? 'multiple' : (resolvedProfile || null)
+        );
       }
 
       if (typeof window !== 'undefined') {
@@ -786,20 +788,19 @@ export const RulebookModal: FC<RulebookModalProps> = ({
                             profileTitle: routingNotice.profileTitle,
                           })}
                     </p>
-                    {routingNotice.kind === 'moved_to_rules' &&
-                      routingNotice.adventureCount > 0 && (
-                        <p
-                          data-testid="rulebook-scenarios-extracted-note"
-                          className="text-xs text-emerald-400 font-medium pt-0.5"
-                        >
-                          {extractedRulebookProfile === 'starter-d100' &&
-                          routingNotice.adventureCount === 1
-                            ? t('starterScenarioExtractedNote')
-                            : t('rulebookScenariosExtractedNote', {
-                                count: routingNotice.adventureCount,
-                              })}
-                        </p>
-                      )}
+                    {extractedRulebookScenariosCount > 0 && (
+                      <p
+                        data-testid="rulebook-scenarios-extracted-note"
+                        className="text-xs text-emerald-400 font-medium pt-0.5"
+                      >
+                        {extractedRulebookProfile === 'starter-d100' &&
+                        extractedRulebookScenariosCount === 1
+                          ? t('starterScenarioExtractedNote')
+                          : t('rulebookScenariosExtractedNote', {
+                              count: extractedRulebookScenariosCount,
+                            })}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>

@@ -344,9 +344,15 @@ Krótki scenariusz do gry d100 w Arkham w 1924 roku. Badacze odkrywają tajemnic
       expect(advsPl[0].title).toBe('Pośród pradawnych drzew');
       expect(advsPl[0].sourceCategory).toBe('core');
       expect(advsPl[0].documentType).toBe('scenario');
+      expect(advsPl[0].graph?.npcs?.map((n) => n.name)).toContain('Lucas Strong');
+      expect(advsPl[0].graph?.npcs?.map((n) => n.name)).not.toContain('Bryce Fallon');
+      expect(advsPl[0].handouts?.length).toBeGreaterThanOrEqual(4);
       expect(advsPl[1].title).toBe('Szkarłatne litery');
       expect(advsPl[1].sourceCategory).toBe('core');
       expect(advsPl[1].documentType).toBe('scenario');
+      expect(advsPl[1].graph?.npcs?.map((n) => n.name)).toContain('Bryce Fallon');
+      expect(advsPl[1].graph?.npcs?.map((n) => n.name)).not.toContain('Lucas Strong');
+      expect(advsPl[1].handouts?.length).toBeGreaterThanOrEqual(2);
 
       const coreVariantPl = `
         Zew Cthulhu Księga Strażnika. Walka, Pościgi, Poczytalność k100.
@@ -402,6 +408,8 @@ Krótki scenariusz do gry d100 w Arkham w 1924 roku. Badacze odkrywają tajemnic
         'Slow Boat to China',
       ]);
       expect(advsPulp.every((a) => a.tone === 'pulp' && a.documentType === 'scenario')).toBe(true);
+      expect(advsPulp.every((a) => (a.handouts?.length ?? 0) >= 1 && (a.graph?.locations?.length ?? 0) >= 2)).toBe(true);
+      expect(advsPulp[0].graph?.npcs?.[0]?.name).not.toBe(advsPulp[1].graph?.npcs?.[0]?.name);
     });
   });
 });
