@@ -248,5 +248,168 @@ POMOC DLA GRACZY #2 - Wycinek z Gazety Podhalańskiej
       expect(adv.handouts).toBeDefined();
       expect(adv.handouts?.length).toBeGreaterThanOrEqual(2);
     });
+
+    it('parses uppercase scenario headers in TOC without crashing on unclosed parentheses in body lines', () => {
+      const text = `
+Zbiór scenariuszy
+LEGENDA OZNACZENIA SCENARIUSZY
+PISK, WIZG
+Przygotowanie do gry ...........................................................5
+Przedmowa ...........................................................................5
+Dramatis Personae ................................................................9
+ODŁAMEK
+Wstęp ..............................................................................35
+Dramatis Personae .........................................................35
+${'Opis tła fabularnego w Muscoby. '.repeat(200)}
+PISK, WIZG
+Tom Gurteen, siostrzeniec Shirley (jego rodzice zginęli, gdy miał 10
+lat podczas wypadku kolejowego).
+ODŁAMEK
+Odprawa w Klubie Niebieska Piramida w Londynie w 1926 roku.
+      `;
+
+      const scenarios = parseScenariosFromAnthologyText(text, 'ZC_Pisk-wizg-i-Odlamek.pdf');
+      expect(scenarios).toHaveLength(2);
+      expect(scenarios[0].title).toBe('Pisk, Wizg');
+      expect(scenarios[1].title).toBe('Odłamek');
+    });
+
+    it('uses cleaned fileName instead of generic category label and creates distinct IDs per file', () => {
+      const text1 = `
+Zew Cthulhu Starter. Zasady skrócone Quick-Start d100.
+Tworzenie Badacza, test umiejętności k100. Scenariusz: Nawiedzony dom i posiadłość Corbitta.
+      `;
+      const fp1 = detectRulebookProfile(text1, 'Starter_Edycja_1.pdf');
+      const fp2 = detectRulebookProfile(text1, 'Starter_Edycja_2.pdf');
+
+      const adv1 = buildLocalCustomAdventures(text1, fp1, dummyOverlay, 'Starter_Edycja_1.pdf', 32);
+      const adv2 = buildLocalCustomAdventures(text1, fp2, dummyOverlay, 'Starter_Edycja_2.pdf', 32);
+      expect(adv1[0].id).not.toBe(adv2[0].id);
+
+      const customOneShotText = `
+Krótki scenariusz do gry d100 w Arkham w 1924 roku. Badacze odkrywają tajemniczy dziennik w piwnicy.
+      `;
+      const fpCustom = detectRulebookProfile(customOneShotText, 'Tajemnica_Domu_Wiedźmy.pdf');
+      const customAdvs = buildLocalCustomAdventures(
+        customOneShotText,
+        fpCustom,
+        dummyOverlay,
+        'Tajemnica_Domu_Wiedźmy.pdf',
+        18
+      );
+      expect(customAdvs[0].title).toBe('Tajemnica Domu Wiedźmy');
+    });
+
+    it('extracts built-in scenarios from core-d100 (Keeper Rulebook / Księga Strażnika) and returns [] for short rules snippets without scenarios', () => {
+      const coreRulesOnlySnippet = `
+        Zew Cthulhu 7. edycja - Księga Strażnika.
+        Rozdział 3: Tworzenie Badaczy. Rozdział 6: Walka. Rozdział 7: Pościgi. Rozdział 8: Poczytalność. Rozdział 9: Magia k100.
+      `;
+      const fpShort = detectRulebookProfile(
+        coreRulesOnlySnippet,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf'
+      );
+      expect(fpShort.profile).toBe('core-d100');
+      const shortAdvs = buildLocalCustomAdventures(
+        coreRulesOnlySnippet,
+        fpShort,
+        dummyOverlay,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+        484
+      );
+      expect(shortAdvs).toEqual([]);
+
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 3 TWORZENIE BADACZY
+        ROZDZIAŁ 7 POŚCIGI
+        ROZDZIAŁ 8 POCZYTALNOŚĆ
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+        ROZDZIAŁ 15.2 - SCENARIUSZE
+        SZKARŁATNE LITERY 414
+      `;
+      const fpPl = detectRulebookProfile(
+        coreFullTocPl,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf'
+      );
+      const advsPl = buildLocalCustomAdventures(
+        coreFullTocPl,
+        fpPl,
+        dummyOverlay,
+        'ZewCthulhu_KsiegaStraznika_v.1.3.pdf',
+        484
+      );
+      expect(advsPl).toHaveLength(2);
+      expect(advsPl[0].title).toBe('Pośród pradawnych drzew');
+      expect(advsPl[0].sourceCategory).toBe('core');
+      expect(advsPl[0].documentType).toBe('scenario');
+      expect(advsPl[0].graph?.npcs?.map((n) => n.name)).toContain('Lucas Strong');
+      expect(advsPl[0].graph?.npcs?.map((n) => n.name)).not.toContain('Bryce Fallon');
+      expect(advsPl[0].handouts?.length).toBeGreaterThanOrEqual(4);
+      expect(advsPl[1].title).toBe('Szkarłatne litery');
+      expect(advsPl[1].sourceCategory).toBe('core');
+      expect(advsPl[1].documentType).toBe('scenario');
+      expect(advsPl[1].graph?.npcs?.map((n) => n.name)).toContain('Bryce Fallon');
+      expect(advsPl[1].graph?.npcs?.map((n) => n.name)).not.toContain('Lucas Strong');
+      expect(advsPl[1].handouts?.length).toBeGreaterThanOrEqual(2);
+
+      const coreVariantPl = `
+        Zew Cthulhu Księga Strażnika. Walka, Pościgi, Poczytalność k100.
+        Rozdział 17: Scenariusze - Wśród prastarych drzew oraz Szkarłatne litery.
+      `;
+      const fpVar = detectRulebookProfile(coreVariantPl, 'Ksiega_Straznika.pdf');
+      const advsVar = buildLocalCustomAdventures(
+        coreVariantPl,
+        fpVar,
+        dummyOverlay,
+        'Ksiega_Straznika.pdf',
+        450
+      );
+      expect(advsVar.map((a) => a.title)).toEqual([
+        'Wśród prastarych drzew',
+        'Szkarłatne litery',
+      ]);
+    });
+
+    it('extracts the 4 built-in scenarios from pulp-d100 (Pulp Cthulhu) and returns [] for short pulp rules snippets', () => {
+      const pulpRulesOnly = `
+        Pulp Cthulhu. Two-Fisted Action And Adventure Against The Mythos.
+        Pulp Archetypes, Pulp Talents, Sanity, Weird Science, and Luck d100.
+      `;
+      const fpShort = detectRulebookProfile(pulpRulesOnly, 'Pulp_Cthulhu.pdf');
+      expect(fpShort.profile).toBe('pulp-d100');
+      expect(
+        buildLocalCustomAdventures(pulpRulesOnly, fpShort, dummyOverlay, 'Pulp_Cthulhu.pdf', 272)
+      ).toEqual([]);
+
+      const pulpFullToc = `
+        PULP CTHULHU - Two-Fisted Action And Adventure Against The Mythos.
+        Creating Pulp Heroes, Pulp Archetypes, Pulp Talents, Weird Science, Sanity.
+        CHAPTER 10: THE DISINTEGRATOR, SCENARIO 135
+        CHAPTER 11: WAITING FOR THE HURRICANE, SCENARIO 158
+        CHAPTER 12: PANDORA’S BOX, SCENARIO 176
+        CHAPTER 13: SLOW BOAT TO CHINA, SCENARIO 205
+      `;
+      const fpPulp = detectRulebookProfile(pulpFullToc, 'Call_of_Cthulhu_Pulp_Cthulhu.pdf');
+      expect(fpPulp.profile).toBe('pulp-d100');
+      const advsPulp = buildLocalCustomAdventures(
+        pulpFullToc,
+        fpPulp,
+        dummyOverlay,
+        'Call_of_Cthulhu_Pulp_Cthulhu.pdf',
+        274
+      );
+      expect(advsPulp).toHaveLength(4);
+      expect(advsPulp.map((a) => a.title)).toEqual([
+        'The Disintegrator',
+        'Waiting for the Hurricane',
+        "Pandora's Box",
+        'Slow Boat to China',
+      ]);
+      expect(advsPulp.every((a) => a.tone === 'pulp' && a.documentType === 'scenario')).toBe(true);
+      expect(advsPulp.every((a) => (a.handouts?.length ?? 0) >= 1 && (a.graph?.locations?.length ?? 0) >= 2)).toBe(true);
+      expect(advsPulp[0].graph?.npcs?.[0]?.name).not.toBe(advsPulp[1].graph?.npcs?.[0]?.name);
+    });
   });
 });

@@ -51,19 +51,28 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // IND-130: Async load - IndexedDB primary, localStorage fallback + migration
-  useEffect(() => {
-    void (async () => {
-      try {
-        const loaded = await loadCustomAdventures();
-        setCustomAdventures(loaded.adventures);
-        setActiveAdventureId(loaded.activeId);
-      } catch (error) {
-        console.error('Error loading custom adventures:', error);
-      }
-    })();
+  const reloadFromStorage = useCallback(async () => {
+    try {
+      const loaded = await loadCustomAdventures();
+      setCustomAdventures(loaded.adventures);
+      setActiveAdventureId(loaded.activeId);
+    } catch (error) {
+      console.error('Error loading custom adventures:', error);
+    }
   }, []);
 
+  useEffect(() => {
+    void reloadFromStorage();
 
+    const handleCustomAdventuresChanged = () => {
+      void reloadFromStorage();
+    };
+
+    window.addEventListener('custom-adventures-changed', handleCustomAdventuresChanged);
+    return () => {
+      window.removeEventListener('custom-adventures-changed', handleCustomAdventuresChanged);
+    };
+  }, [reloadFromStorage]);
 
   const clearUploadError = useCallback(() => {
     setUploadError(null);
@@ -150,7 +159,15 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         }));
 
         const freshState = await loadCustomAdventures();
-        const updatedAdventures = [...freshState.adventures, ...newAdventures];
+        const filteredExisting = freshState.adventures.filter(
+          (existing) =>
+            !newAdventures.some(
+              (added) =>
+                added.id === existing.id ||
+                (existing.fileName === added.fileName && existing.title === added.title)
+            )
+        );
+        const updatedAdventures = [...filteredExisting, ...newAdventures];
 
         setUploadProgress(90);
         setLoadingStatus('Optymalizacja struktur grafu i pamięci...');
@@ -160,6 +177,10 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           adventures: updatedAdventures,
           activeId: freshState.activeId || activeAdventureId,
         });
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('rules-changed'));
+        }
 
         console.log(
           `📚 Dodano ${newAdventures.length} przygodę(y): ${newAdventures.map((a) => `"${a.title}"`).join(', ')}`

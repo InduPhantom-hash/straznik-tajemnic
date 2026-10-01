@@ -199,10 +199,20 @@ export function extractNPCs(text: string, defaultAdventureId?: string): OverlayN
     });
   }
 
-  // Wzorzec 2: Nagłówki NPC / Dramatis Personae (np. "Dramatis Personae: Jackson Elias")
-  const headerNpcRegex = /(?:Dramatis Personae|NPC|Postacie niezależne|Postać)[^\n]*\n+([A-ZĆŁŚŹŻ][a-ząćęłńóśźż]+(?:\s+[A-ZĆŁŚŹŻ][a-ząćęłńóśźż]+)+)\s*[-–—:]\s*([^\n\.]+)/gi;
+  const ignoredNpcTerms =
+    /^(?:pierwsza pomoc|nazwy opcjonalne|bazowa wartość|normalne obrażenia|średni modyfikator|średnia krzepa|punkt kulminacyjny|poziom trudności|test umiejętności|rzut kością|kość premiowa|kość karna|utrata poczytalności|punkty magii|punkty wytrzymałości|walka wręcz|broń palna)$/i;
+  const isCapitalizedName = (candidate: string): boolean => {
+    const words = candidate.trim().split(/\s+/);
+    if (words.length < 2 || words.length > 4) return false;
+    if (ignoredNpcTerms.test(candidate.trim())) return false;
+    return words.every((w) => /^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]{1,25}$/.test(w));
+  };
+
+  // Wzorzec 2: Nagłówki NPC / Dramatis Personae (np. "Dramatis Personae: Jackson Elias" lub sekcja DRAMATIS PERSONAE)
+  const headerNpcRegex = /(?:Dramatis Personae|NPC|Postacie niezależne|Bohaterowie niezależni)[^\n]*\n+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]+)+)\s*[-–—:]\s*([^\n\.]+)/g;
   while ((match = headerNpcRegex.exec(text)) !== null) {
     const name = match[1].trim();
+    if (!isCapitalizedName(name)) continue;
     if (seenNames.has(name.toLowerCase())) continue;
     seenNames.add(name.toLowerCase());
 
@@ -215,6 +225,35 @@ export function extractNPCs(text: string, defaultAdventureId?: string): OverlayN
       hiddenGoal: "Współpracownik lub świadek w toku dochodzenia",
       adventureId: defaultAdventureId,
     });
+  }
+
+  // Wzorzec 3: Lista postaci pod nagłówkiem DRAMATIS PERSONAE (np. w Księdze Strażnika)
+  const dramatisBlockRegex = /(?:DRAMATIS\s+PERSONAE|Dramatis\s+Personae)\s*\n([\s\S]{1,3500})/g;
+  let blockMatch: RegExpExecArray | null;
+  while ((blockMatch = dramatisBlockRegex.exec(text)) !== null) {
+    const block = blockMatch[1];
+    const entryRegex = /(?:^|\n)\s*([A-ZĄĆĘŁŃÓŚŹŻ][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'’-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'’-]+){1,2})\s*(?:[-–—:]|,\s*(?=[a-ząćęłńóśźż]))\s*([^\n\.]{4,90})/g;
+    let entryMatch: RegExpExecArray | null;
+    while ((entryMatch = entryRegex.exec(block)) !== null) {
+      const rawName = entryMatch[1]
+        .trim()
+        .split(/\s+/)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+      if (!isCapitalizedName(rawName)) continue;
+      if (seenNames.has(rawName.toLowerCase())) continue;
+      seenNames.add(rawName.toLowerCase());
+
+      const role = entryMatch[2].trim();
+      npcs.push({
+        id: `npc-${slugify(rawName)}`,
+        name: rawName,
+        role,
+        mask: role,
+        hiddenGoal: "Postać dramatu wymieniona w sekcji Dramatis Personae",
+        adventureId: defaultAdventureId,
+      });
+    }
   }
 
   return npcs;
@@ -328,7 +367,7 @@ export function extractHandouts(text: string, defaultAdventureId?: string): Over
   const handouts: OverlayHandout[] = [];
   const seen = new Set<string>();
 
-  const handoutRegex = /(?:Rekwizyt|Handout)\s*([0-9A-Za-z]+)\s*[-–—:]?\s*([^\n]*)\n+([\s\S]{20,400}?)(?=\n\s*(?:Rekwizyt|Handout|Rozdział|Scena|Akt|$))/gi;
+  const handoutRegex = /\b(?:Rekwizyt|Handout|Pomoc(?:e)?\s+dla\s+graczy)\s+(?:#|nr\s*)?(\d+[A-Za-z]?|[A-Z])\b\s*[-–—:]?\s*([^\n]*)\n+([\s\S]{20,400}?)(?=\n\s*(?:Rekwizyt|Handout|Pomoc(?:e)?\s+dla\s+graczy|Rozdział|Scena|Akt|$))/gi;
   let match: RegExpExecArray | null;
 
   while ((match = handoutRegex.exec(text)) !== null) {
