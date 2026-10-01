@@ -4940,7 +4940,11 @@
     "opposedBadge": "OPPOSED ROLL",
     "versus": "vs",
     "opponentValue": "Opponent value:",
-    "opposedRollButton": "Roll opposed test"
+    "opposedRollButton": "Roll opposed test",
+    "combinedOrBadge": "COMBINED TEST (OR)",
+    "combinedAndBadge": "COMBINED TEST (AND)",
+    "combinedOrDesc": "Any success is sufficient for overall success",
+    "combinedAndDesc": "Both skill successes required"
   },
   "DiceRollCard": {
     "cardTitle": "Dice Roll",
@@ -5322,7 +5326,11 @@
     "diceSumFormula": "{tens} + {units} = {total}",
     "diceSumRaw100": "00 + 0 = 100",
     "diceTrayAria": "Art Déco 3D dice tray",
-    "rolling": "Rolling dice..."
+    "rolling": "Rolling dice...",
+    "combinedOrTag": "OR - any success",
+    "combinedAndTag": "AND - both required",
+    "combinedOverallSuccess": "Combined test success",
+    "combinedOverallFailure": "Combined test failure"
   },
   "HelpModal": {
     "title": "Help & Investigator Encyclopedia",

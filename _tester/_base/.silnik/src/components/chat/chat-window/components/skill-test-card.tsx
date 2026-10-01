@@ -117,6 +117,7 @@ export function SkillTestCard({
   characterName,
   characterId,
   groupId,
+  combined,
   onRoll,
   completed = false,
   opposed,
@@ -149,6 +150,7 @@ export function SkillTestCard({
         characterName,
         characterId,
         groupId,
+        combined,
       });
     }
   };
@@ -186,31 +188,64 @@ export function SkillTestCard({
             <span className="text-xs text-muted-foreground font-special-elite">@{characterName}</span>
           )}
         </div>
-        {isOpposed ? (
-          <Badge className="bg-brass/20 text-brass border-brass/40 font-mono text-xs">
-            {t('opposedBadge')}
-          </Badge>
-        ) : (
-          <Badge className={difficultyBadge.className}>{difficultyBadge.label}</Badge>
-        )}
+        <div className="flex items-center gap-1.5">
+          {combined && (
+            <Badge className="bg-brass/20 text-brass border border-brass/40 font-mono text-xs">
+              {combined.operator === 'OR' ? t('combinedOrBadge') : t('combinedAndBadge')}
+            </Badge>
+          )}
+          {isOpposed ? (
+            <Badge className="bg-brass/20 text-brass border-brass/40 font-mono text-xs">
+              {t('opposedBadge')}
+            </Badge>
+          ) : (
+            <Badge className={difficultyBadge.className}>{difficultyBadge.label}</Badge>
+          )}
+        </div>
       </div>
 
       {/* Wartość i próg */}
       <div className="px-4 py-2 border-b border-border/60 space-y-1 bg-card/60">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">{t('yourValue')}</span>
-          <span className="font-mono">
-            <span className="text-foreground font-bold">{skillValue}%</span>
-            {!isOpposed && (
-              <>
-                <span className="text-muted-foreground mx-2">→</span>
-                <span className="text-primary font-bold">
-                  {t('threshold', { threshold })}
-                </span>
-              </>
-            )}
-          </span>
-        </div>
+        {combined && combined.skills.length > 0 ? (
+          <div className="space-y-1.5 py-0.5">
+            <div className="text-xs text-muted-foreground italic">
+              {combined.operator === 'OR' ? t('combinedOrDesc') : t('combinedAndDesc')}
+            </div>
+            {combined.skills.map((sub, idx) => {
+              const subThreshold = calculateThreshold(sub.skillValue, difficulty);
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-sm border-t border-border/30 pt-1 first:border-none first:pt-0"
+                >
+                  <span className="text-foreground font-medium">{sub.skillName}</span>
+                  <span className="font-mono">
+                    <span className="text-foreground font-bold">{sub.skillValue}%</span>
+                    <span className="text-muted-foreground mx-2">→</span>
+                    <span className="text-primary font-bold">
+                      {t('threshold', { threshold: subThreshold })}
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{t('yourValue')}</span>
+            <span className="font-mono">
+              <span className="text-foreground font-bold">{skillValue}%</span>
+              {!isOpposed && (
+                <>
+                  <span className="text-muted-foreground mx-2">→</span>
+                  <span className="text-primary font-bold">
+                    {t('threshold', { threshold })}
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
+        )}
 
         {/* Wartość przeciwnika przy teście przeciwstawnym */}
         {isOpposed && opposed && (

@@ -51,6 +51,7 @@ graph TD
     sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (d100 Weird Fiction) / Sanity therapy and recovery (d100 Weird Fiction)"]
     medical_care_modal["Rekonwalescencja i opieka medyczna (d100 Weird Fiction) / Convalescence and medical care (d100 Weird Fiction)"]
     opposed_roll_modal["Test przeciwstawny d100 Weird Fiction (Opposed Roll) / Opposed Roll d100 Weird Fiction"]
+    roll_test_modal["Tacka testu umiejętności d100 Weird Fiction / d100 Weird Fiction Skill Test Tray"]
     combat_card["Obrona w walce wręcz w czacie (d100 Weird Fiction) / In-chat melee combat defense (d100 Weird Fiction)"]
     spell_card["Rzucanie zaklęć w czacie (d100 Weird Fiction) / In-chat spell casting (d100 Weird Fiction)"]
     tome_card["Badanie tomów w czacie (d100 Weird Fiction) / In-chat tome study (d100 Weird Fiction)"]
@@ -113,6 +114,7 @@ graph TD
     game -->|Kres postaci i epilog / Investigator end and epilogue| game_over_card
     character_new -->|Wybierz rycinę z epoki / Choose period engraving| retro_portrait_gallery_modal
     game -->|Rzut przeciwstawny / Opposed roll| opposed_roll_modal
+    game -->|Rzut na umiejętność / Roll skill test| roll_test_modal
     game -->|Ponów zapis kroniki po błędzie / Retry chronicle save after error| game
 ```
 
@@ -190,6 +192,7 @@ graph TD
 | Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (d100 Weird Fiction) | `src/components/chat/chat-window/components/game-over-card.tsx` |
 | Nowa postać | Wybierz rycinę z epoki / Choose period engraving | Kolekcja rycin noir z lat 20. | `src/components/ui/character-wizard.tsx` |
 | Aktywna sesja | Rzut przeciwstawny / Opposed roll | Test przeciwstawny d100 Weird Fiction (Opposed Roll) | `src/components/dialogs/OpposedRollModal.tsx` |
+| Aktywna sesja | Rzut na umiejętność / Roll skill test | Tacka testu umiejętności d100 Weird Fiction | `src/components/dialogs/RollTestModal.tsx` |
 | Aktywna sesja | Ponów zapis kroniki po błędzie / Retry chronicle save after error | Aktywna sesja | `src/components/chat/chat-window/components/message-card.tsx` |
 
 ## Zasady aktualizacji

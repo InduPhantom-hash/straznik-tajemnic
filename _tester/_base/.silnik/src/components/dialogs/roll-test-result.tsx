@@ -13,6 +13,7 @@ import {
 } from '@/lib/dice-utils';
 import type { RollTestData } from './RollTestModal';
 import { ArtDecoDice3D, type ArtDecoDiceBreakdown } from './ArtDecoDice3D';
+import type { CombinedRollResolution } from '@/lib/combined-skill-rolls';
 
 interface RollTestResultProps {
   test: RollTestData;
@@ -23,6 +24,7 @@ interface RollTestResultProps {
   /** Dostępne pkt Szczęścia (CoC 7e Faza 5B); null luckNeeded = nie wolno / nie trzeba. */
   availableLuck: number;
   luckNeeded: number | null;
+  combinedResolution?: CombinedRollResolution | null;
   onRoll: () => void;
   onSpendLuck: () => void;
   onSend: () => void;
@@ -41,6 +43,7 @@ export const RollTestResult: FC<RollTestResultProps> = ({
   breakdown,
   availableLuck,
   luckNeeded,
+  combinedResolution,
   onRoll,
   onSpendLuck,
   onSend,
@@ -92,9 +95,16 @@ export const RollTestResult: FC<RollTestResultProps> = ({
       {/* Podsumowanie testu: próg trudności + kości premii/kary */}
       <div className="border border-brass/28 bg-[#16130f] p-4 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-special-elite text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            {t('difficulty')}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-special-elite text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              {t('difficulty')}
+            </span>
+            {test.combined && (
+              <Badge className="bg-brass/20 text-brass border-brass/40 font-mono text-xs">
+                {test.combined.operator === 'OR' ? t('combinedOrTag') : t('combinedAndTag')}
+              </Badge>
+            )}
+          </div>
           <Badge variant="secondary">
             {test.difficulty === 'zwykly'
               ? t('difficultyRegular')
@@ -103,17 +113,42 @@ export const RollTestResult: FC<RollTestResultProps> = ({
                 : t('difficultyExtreme')}
           </Badge>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-special-elite text-xs uppercase tracking-[0.06em]">
-          <span className={thClass('zwykly', 'text-foreground')}>
-            {t('thresholdRegular', { value: target })}
-          </span>
-          <span className={thClass('trudny', 'text-brass')}>
-            {t('thresholdHard', { value: hardThreshold })}
-          </span>
-          <span className={thClass('ekstremalny', 'text-primary')}>
-            {t('thresholdExtreme', { value: extremeThreshold })}
-          </span>
-        </div>
+
+        {test.combined ? (
+          <div className="space-y-1.5 pt-1">
+            {test.combined.skills.map((sub, idx) => {
+              const subTarget = sub.skillValue;
+              const subHard = Math.floor(subTarget / 2);
+              const subExtreme = Math.floor(subTarget / 5);
+              return (
+                <div
+                  key={idx}
+                  className="flex flex-wrap items-center justify-between text-xs border-b border-border/30 pb-1 last:border-none"
+                >
+                  <span className="font-bold text-foreground">{sub.skillName}</span>
+                  <div className="flex gap-2 font-mono">
+                    <span className={thClass('zwykly', 'text-foreground')}>≤{subTarget}</span>
+                    <span className={thClass('trudny', 'text-brass')}>½ ≤{subHard}</span>
+                    <span className={thClass('ekstremalny', 'text-primary')}>⅕ ≤{subExtreme}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-special-elite text-xs uppercase tracking-[0.06em]">
+            <span className={thClass('zwykly', 'text-foreground')}>
+              {t('thresholdRegular', { value: target })}
+            </span>
+            <span className={thClass('trudny', 'text-brass')}>
+              {t('thresholdHard', { value: hardThreshold })}
+            </span>
+            <span className={thClass('ekstremalny', 'text-primary')}>
+              {t('thresholdExtreme', { value: extremeThreshold })}
+            </span>
+          </div>
+        )}
+
         {bonusLabel && (
           <div className="text-center">
             <Badge
@@ -143,26 +178,52 @@ export const RollTestResult: FC<RollTestResultProps> = ({
 
       {/* Werdykt po ustabilizowaniu rzutu */}
       {phase === 'done' && (
-        <div className="flex flex-col items-center justify-center pt-0.5">
-          {outcomeInfo && (
-            <div
-              className={`relative font-display text-lg uppercase tracking-[0.16em] ${outcomeInfo.color}`}
-            >
-              {outcomeInfo.emoji} {outcomeInfo.label}
-            </div>
-          )}
-          {roll?.requiredDifficulty &&
-            roll.requiredDifficulty !== 'regular' &&
-            roll.passedRequirement !== undefined && (
+        <div className="flex flex-col items-center justify-center pt-0.5 space-y-1">
+          {combinedResolution ? (
+            <div className="w-full text-center space-y-1">
               <div
-                className={`relative mt-1 font-special-elite text-xs tracking-[0.1em] ${succeeded ? 'text-primary' : 'text-destructive'}`}
+                className={`font-display text-lg uppercase tracking-[0.16em] ${
+                  combinedResolution.overallSuccess ? 'text-primary font-bold' : 'text-destructive font-bold'
+                }`}
               >
-                {succeeded ? '✓' : '✗'}{' '}
-                {t('requiredLevelTag', {
-                  level: REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty],
-                })}
+                {combinedResolution.overallSuccess
+                  ? `✅ ${t('combinedOverallSuccess')}`
+                  : `❌ ${t('combinedOverallFailure')}`}
               </div>
-            )}
+              <div className="space-y-0.5 text-xs font-mono text-muted-foreground">
+                {combinedResolution.subtests.map((sub, idx) => (
+                  <div key={idx} className="flex justify-center gap-2">
+                    <span className="text-foreground">{sub.skillName}:</span>
+                    <span className={sub.isSuccess ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
+                      {sub.isSuccess ? '✓ ZDANY' : '✗ NIEZDANY'} (≤{sub.threshold})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              {outcomeInfo && (
+                <div
+                  className={`relative font-display text-lg uppercase tracking-[0.16em] ${outcomeInfo.color}`}
+                >
+                  {outcomeInfo.emoji} {outcomeInfo.label}
+                </div>
+              )}
+              {roll?.requiredDifficulty &&
+                roll.requiredDifficulty !== 'regular' &&
+                roll.passedRequirement !== undefined && (
+                  <div
+                    className={`relative mt-1 font-special-elite text-xs tracking-[0.1em] ${succeeded ? 'text-primary' : 'text-destructive'}`}
+                  >
+                    {succeeded ? '✓' : '✗'}{' '}
+                    {t('requiredLevelTag', {
+                      level: REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty],
+                    })}
+                  </div>
+                )}
+            </>
+          )}
         </div>
       )}
 

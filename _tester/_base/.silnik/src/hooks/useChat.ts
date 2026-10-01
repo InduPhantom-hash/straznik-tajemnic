@@ -212,16 +212,43 @@ export function resolveSkillTestValues(
       test.characterName,
       character
     );
+    let combined = test.combined;
+    let resolvedSkillValue: number;
+
+    if (combined && combined.skills.length > 0) {
+      const resolvedSkills = combined.skills.map((sub) => ({
+        skillName: sub.skillName,
+        skillValue:
+          resolveTestValue(sub.skillName, target) ??
+          resolveSkillBaseValue(sub.skillName) ??
+          UNKNOWN_SKILL_BASE,
+      }));
+      combined = {
+        ...combined,
+        skills: resolvedSkills,
+      };
+      // Próg reprezentatywny dla widoku ogólnego:
+      // OR: maksymalna wartość (wystarczy jeden sukces)
+      // AND: minimalna wartość (wymagane oba sukcesy)
+      resolvedSkillValue =
+        combined.operator === 'OR'
+          ? Math.max(...resolvedSkills.map((s) => s.skillValue))
+          : Math.min(...resolvedSkills.map((s) => s.skillValue));
+    } else {
+      resolvedSkillValue =
+        resolveTestValue(test.skillName, target) ??
+        resolveSkillBaseValue(test.skillName) ??
+        UNKNOWN_SKILL_BASE;
+    }
+
     return {
       ...test,
       characterId: target.id,
       characterName: target.name,
       // Degradacja: karta postaci → bazowa tabela CoC 7e (BASE_SKILLS) → stała.
       // NIGDY 0% (próg ≤0 = absurdalny test gwarantowanej porażki).
-      skillValue:
-        resolveTestValue(test.skillName, target) ??
-        resolveSkillBaseValue(test.skillName) ??
-        UNKNOWN_SKILL_BASE,
+      skillValue: resolvedSkillValue,
+      combined,
     };
   });
 }

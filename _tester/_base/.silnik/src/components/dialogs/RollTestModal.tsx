@@ -23,6 +23,14 @@ import {
 import { useLuckSpend } from './use-luck-spend';
 import { RollTestResult } from './roll-test-result';
 import type { ArtDecoDiceBreakdown } from './ArtDecoDice3D';
+import type { CombinedSkillSubtest } from '@/lib/parsers/types';
+import {
+  evaluateCombinedSkillCheck,
+  formatCombinedRollForChat,
+  formatCombinedRollForAI,
+  generateCombinedResultTags,
+  type CombinedRollResolution,
+} from '@/lib/combined-skill-rolls';
 
 /**
  * Dane testu z tagu [TEST:] przekazane do modalu (z SkillTestCard po kliknięciu "Rzuć").
@@ -38,6 +46,11 @@ export interface RollTestData {
   bonusDice: number;
   /** Uzasadnienie / okoliczności testu (do dziennika). */
   justification?: string;
+  /** Test łączony (RAW s. 103): operator 'OR' / 'AND' oraz lista umiejętności */
+  combined?: {
+    operator: 'OR' | 'AND';
+    skills: CombinedSkillSubtest[];
+  };
 }
 
 interface RollTestModalProps {
@@ -177,14 +190,37 @@ export const RollTestModal: FC<RollTestModalProps> = ({
     timersRef.current.push(settle);
   };
 
+  const combinedResolution: CombinedRollResolution | null =
+    test?.combined && roll
+      ? evaluateCombinedSkillCheck({
+          roll: roll.total,
+          subtests: test.combined.skills,
+          operator: test.combined.operator,
+          difficulty: test.difficulty,
+          bonusDice: test.bonusDice,
+          usedLuck: (roll.luckSpent ?? 0) > 0,
+        })
+      : null;
+
   // Wysyła FINALNY rzut (po ewentualnym wydaniu Szczęścia) do czatu + dziennika.
   const handleSend = () => {
     if (!roll) return;
     if (onRollSendToChat) {
-      onRollSendToChat(
-        formatRollForChat(roll),
-        formatRollForAI(roll, activeCharacter?.name)
-      );
+      if (combinedResolution) {
+        const resultTags = generateCombinedResultTags(
+          combinedResolution,
+          activeCharacter?.name,
+          (roll.luckSpent ?? 0) > 0
+        ).join('\n');
+        const chatText = `${formatCombinedRollForChat(combinedResolution, activeCharacter?.name)}\n\n${resultTags}`;
+        const aiText = formatCombinedRollForAI(combinedResolution, activeCharacter?.name);
+        onRollSendToChat(chatText, aiText);
+      } else {
+        onRollSendToChat(
+          formatRollForChat(roll),
+          formatRollForAI(roll, activeCharacter?.name)
+        );
+      }
     }
     onJournalRoll?.(roll, test.justification, test.characterId);
     onOpenChange(false);
@@ -215,6 +251,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
           breakdown={breakdown}
           availableLuck={availableLuck}
           luckNeeded={luckNeeded}
+          combinedResolution={combinedResolution}
           onRoll={handleRoll}
           onSpendLuck={spendLuck}
           onSend={handleSend}
