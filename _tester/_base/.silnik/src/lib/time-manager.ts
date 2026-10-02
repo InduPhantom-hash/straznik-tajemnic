@@ -255,11 +255,9 @@ function deriveStartHourAndMinute(
 export function deriveStartGameTime(
   adventure: AdventureTimeInput | null | undefined
 ): GameTime {
-  let year = deriveStartYear(adventure);
+  const year = deriveStartYear(adventure);
   const text = `${adventure?.title ?? ''} ${adventure?.hook ?? ''} ${adventure?.description ?? ''}`.toLowerCase();
-  const { hour: defaultHour, minute: defaultMinute } = deriveStartHourAndMinute(adventure, text);
-  let hour = defaultHour;
-  let minute = defaultMinute;
+  const { hour, minute } = deriveStartHourAndMinute(adventure, text);
 
   // 1. Jawny obiekt startDate
   if (adventure?.startDate && typeof adventure.startDate === 'object') {
