@@ -374,9 +374,17 @@ export function useGameStart({
     }
 
     if (adventureContext) {
+      const startDateTimeFormatted =
+        typeof timeManager?.formatDateTime === 'function'
+          ? timeManager.formatDateTime()
+          : '';
+      const startWeather =
+        typeof timeManager?.getWeather === 'function'
+          ? timeManager.getWeather()
+          : '';
       prompt += english
-        ? `**ADVENTURE CONTEXT:**\n- Title: ${adventureContext.title}\n- Location: ${adventureContext.location}, ${adventureContext.country}\n- Hook: ${adventureContext.hook}\n\n`
-        : `**KONTEKST PRZYGODY:**\n- Tytuł: ${adventureContext.title}\n- Lokalizacja: ${adventureContext.location}, ${adventureContext.country}\n- Hook: ${adventureContext.hook}\n\n`;
+        ? `**ADVENTURE CONTEXT:**\n- Title: ${adventureContext.title}\n- Location: ${adventureContext.location}, ${adventureContext.country}${startDateTimeFormatted ? `\n- Starting Time: ${startDateTimeFormatted}` : ''}${startWeather ? `\n- Weather: ${startWeather}` : ''}\n- Hook: ${adventureContext.hook}\n\n`
+        : `**KONTEKST PRZYGODY:**\n- Tytuł: ${adventureContext.title}\n- Lokalizacja: ${adventureContext.location}, ${adventureContext.country}${startDateTimeFormatted ? `\n- Czas rozpoczęcia: ${startDateTimeFormatted}` : ''}${startWeather ? `\n- Pogoda: ${startWeather}` : ''}\n- Hook: ${adventureContext.hook}\n\n`;
     }
 
     // IND-261: TURA WPROWADZAJĄCA = wyjątek od limitu długości (IND-213). Onboarding
@@ -802,18 +810,17 @@ export function useGameStart({
       hasCharacter: !!activeCharacter,
     });
 
+    // Ustaw zegar kampanii na dynamiczną datę startową i pogodę przygody PRZED budowaniem introPromptu.
+    // Świeży start nadpisuje stary czas z localStorage; reload zapisanej gry tu nie trafia (osobna ścieżka).
+    timeManager.resetForAdventure(adventureContext);
+    setMessages([]); // Wyczyść czat przed startem przygody
+
     const introPrompt = buildIntroPrompt();
     const assistantMessageId = `gm-intro-${crypto.randomUUID()}`;
     const memoryScope = adventureContext
       ? createCampaignMemoryScope(adventureContext)
       : null;
     if (memoryScope) storeCampaignMemoryScope(memoryScope);
-
-    // Bug data: ustaw zegar na erę przygody (modern->2024, classic->1925,
-    // gaslight->1890) PRZED openingiem. Świeży start nadpisuje stary czas z
-    // localStorage; reload zapisanej gry tu nie trafia (osobna ścieżka).
-    timeManager.resetForAdventure(adventureContext);
-    setMessages([]); // Wyczyść czat przed startem przygody
 
     // Wyczyść wyłącznie obrazy generowane dla egzemplarzy fabularnych. Katalogowe
     // assety są lokalne i muszą przetrwać start bez kosztu ani żądania do API.

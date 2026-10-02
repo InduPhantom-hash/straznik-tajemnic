@@ -1048,6 +1048,10 @@ export interface AdventureContext {
   yearRange?: string;
   /** Jawny rok bieżącej akcji (nadrzędny wobec yearRange przy ustalaniu daty sceny) */
   activeSceneYear?: number;
+  /** Dokładna lub tekstowa data startowa scenariusza (np. ISO string lub obiekt GameTime) */
+  startDate?: string | Partial<GameTime>;
+  /** Początkowe warunki pogodowe scenariusza */
+  initialWeather?: string;
   location?: string;
   country?: string;
   tone?: 'purist' | 'pulp' | 'noir';

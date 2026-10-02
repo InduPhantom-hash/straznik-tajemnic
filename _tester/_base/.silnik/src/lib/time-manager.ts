@@ -108,15 +108,46 @@ function calculateMoonPhase(
 }
 
 /**
- * Wyznacza rok startowy gry z przygody: priorytet yearRange (pierwszy
- * 4-cyfrowy rok ze stringa, np. '1890-1895' -> 1890, '2024' -> 2024),
- * fallback wg era, ostatecznie 1925 (klasyczny CoC 7e).
+ * Interfejs wejściowy do wyznaczania czasu startowego z przygody
+ */
+export interface AdventureTimeInput {
+  id?: string;
+  title?: string;
+  era?: string;
+  yearRange?: string;
+  activeSceneYear?: number;
+  startDate?: string | Partial<GameTime>;
+  initialWeather?: string;
+  hook?: string;
+  description?: string;
+  tone?: 'purist' | 'pulp' | 'noir' | string;
+  themes?: string[];
+}
+
+/**
+ * Wyznacza rok startowy gry z przygody:
+ * priorytet startDate -> activeSceneYear -> yearRange -> fallback wg era, ostatecznie 1925.
  */
 export function deriveStartYear(
-  adventure: { era?: string; yearRange?: string } | null | undefined
+  adventure: AdventureTimeInput | null | undefined
 ): number {
+  if (adventure?.startDate) {
+    if (typeof adventure.startDate === 'object' && typeof adventure.startDate.year === 'number') {
+      return adventure.startDate.year;
+    }
+    if (typeof adventure.startDate === 'string') {
+      const match = adventure.startDate.match(/^(\d{4})/);
+      if (match) return parseInt(match[1], 10);
+    }
+  }
+
+  if (typeof adventure?.activeSceneYear === 'number') {
+    return adventure.activeSceneYear;
+  }
+
   const match = adventure?.yearRange?.match(/\d{4}/);
   if (match) return parseInt(match[0], 10);
+
   switch (adventure?.era) {
     case 'modern':
       return 2024;
@@ -131,6 +162,222 @@ export function deriveStartYear(
     default:
       return 1925;
   }
+}
+
+const POLISH_MONTH_NAMES_MAP: Record<string, number> = {
+  stycznia: 0,
+  styczeń: 0,
+  styczen: 0,
+  lutego: 1,
+  luty: 1,
+  marca: 2,
+  marzec: 2,
+  kwietnia: 3,
+  kwiecień: 3,
+  kwiecien: 3,
+  maja: 4,
+  maj: 4,
+  czerwca: 5,
+  czerwiec: 5,
+  lipca: 6,
+  lipiec: 6,
+  sierpnia: 7,
+  sierpień: 7,
+  sierpien: 7,
+  września: 8,
+  wrzesnia: 8,
+  wrzesień: 8,
+  wrzesien: 8,
+  października: 9,
+  pazdziernika: 9,
+  październik: 9,
+  pazdziernik: 9,
+  listopada: 10,
+  listopad: 10,
+  grudnia: 11,
+  grudzień: 11,
+  grudzien: 11,
+};
+
+const ENGLISH_MONTH_NAMES_MAP: Record<string, number> = {
+  january: 0,
+  february: 1,
+  march: 2,
+  april: 3,
+  may: 4,
+  june: 5,
+  july: 6,
+  august: 7,
+  september: 8,
+  october: 9,
+  november: 10,
+  december: 11,
+};
+
+/**
+ * Wyznacza początkową godzinę i minutę na podstawie tonu oraz wskazówek z tekstu.
+ */
+function deriveStartHourAndMinute(
+  adventure: AdventureTimeInput | null | undefined,
+  text: string
+): { hour: number; minute: number } {
+  // Skanowanie słów kluczowych pory dnia w tekście
+  if (/\b(noc|nocy|nocą|północ|północy|midnight)\b/i.test(text)) {
+    return { hour: 22, minute: 0 };
+  }
+  if (/\b(wieczór|wieczorem|wieczor|zmierzch|zmierzchem|dusk|evening)\b/i.test(text)) {
+    return { hour: 19, minute: 0 };
+  }
+  if (/\b(popołudnie|popołudniu|popoludnie|afternoon)\b/i.test(text)) {
+    return { hour: 14, minute: 30 };
+  }
+  if (/\b(rano|poranek|poranku|porankiem|poranne|świt|świtem|dawn|morning)\b/i.test(text)) {
+    return { hour: 9, minute: 30 };
+  }
+
+  // Fallback oparty na tonie przygody
+  if (adventure?.tone === 'pulp') {
+    return { hour: 9, minute: 30 };
+  }
+  if (adventure?.tone === 'noir' || adventure?.tone === 'purist') {
+    return { hour: 19, minute: 0 };
+  }
+
+  return { hour: 10, minute: 0 };
+}
+
+/**
+ * Trzypoziomowe wyznaczanie początkowej daty i godziny gry:
+ * 1. Dokładna data z pola startDate (obiekt lub ISO/formatowany string).
+ * 2. Naturalna ekstrakcja z tekstu przygody (dzień + miesiąc lub pora roku).
+ * 3. Nastrojowy fallback dopasowany do tonu przygody (zamiast wiecznego 14 stycznia).
+ */
+export function deriveStartGameTime(
+  adventure: AdventureTimeInput | null | undefined
+): GameTime {
+  let year = deriveStartYear(adventure);
+  const text = `${adventure?.title ?? ''} ${adventure?.hook ?? ''} ${adventure?.description ?? ''}`.toLowerCase();
+  const { hour: defaultHour, minute: defaultMinute } = deriveStartHourAndMinute(adventure, text);
+  let hour = defaultHour;
+  let minute = defaultMinute;
+
+  // 1. Jawny obiekt startDate
+  if (adventure?.startDate && typeof adventure.startDate === 'object') {
+    const s = adventure.startDate;
+    return {
+      year: typeof s.year === 'number' ? s.year : year,
+      month: typeof s.month === 'number' ? Math.max(0, Math.min(11, s.month)) : 9,
+      day: typeof s.day === 'number' ? Math.max(1, Math.min(31, s.day)) : 15,
+      hour: typeof s.hour === 'number' ? Math.max(0, Math.min(23, s.hour)) : hour,
+      minute: typeof s.minute === 'number' ? Math.max(0, Math.min(59, s.minute)) : minute,
+    };
+  }
+
+  // 2. Jawny string startDate (np. "1973-10-18T19:30" lub "1996-05-12")
+  if (adventure?.startDate && typeof adventure.startDate === 'string') {
+    const match = adventure.startDate
+      .trim()
+      .match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[T\s](\d{1,2}):(\d{1,2}))?/);
+    if (match) {
+      const parsedYear = parseInt(match[1], 10);
+      const parsedMonth = Math.max(0, Math.min(11, parseInt(match[2], 10) - 1));
+      const parsedDay = Math.max(1, Math.min(31, parseInt(match[3], 10)));
+      const parsedHour = match[4] !== undefined ? Math.max(0, Math.min(23, parseInt(match[4], 10))) : hour;
+      const parsedMinute = match[5] !== undefined ? Math.max(0, Math.min(59, parseInt(match[5], 10))) : minute;
+
+      return {
+        year: parsedYear,
+        month: parsedMonth,
+        day: parsedDay,
+        hour: parsedHour,
+        minute: parsedMinute,
+      };
+    }
+  }
+
+  // 3. Ekstrakcja dnia i miesiąca z tekstu
+  const dayMonthMatch = text.match(
+    /\b(\d{1,2})\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|wrzesnia|października|pazdziernika|listopada|grudnia)\b/i
+  );
+  if (dayMonthMatch) {
+    const d = parseInt(dayMonthMatch[1], 10);
+    const m = POLISH_MONTH_NAMES_MAP[dayMonthMatch[2].toLowerCase()];
+    if (m !== undefined && d >= 1 && d <= 31) {
+      return { year, month: m, day: d, hour, minute };
+    }
+  }
+
+  // 4. Ekstrakcja samego miesiąca z tekstu (z bezpieczną granicą słów uwzględniającą polskie znaki)
+  for (const [mName, mIdx] of Object.entries(POLISH_MONTH_NAMES_MAP)) {
+    if (new RegExp(`(?:^|[^a-ząćęłńóśźż0-9])${mName}(?:$|[^a-ząćęłńóśźż0-9])`, 'i').test(text)) {
+      return { year, month: mIdx, day: 15, hour, minute };
+    }
+  }
+  for (const [mName, mIdx] of Object.entries(ENGLISH_MONTH_NAMES_MAP)) {
+    if (new RegExp(`\\b${mName}\\b`, 'i').test(text)) {
+      return { year, month: mIdx, day: 15, hour, minute };
+    }
+  }
+
+  // 5. Ekstrakcja pory roku z tekstu
+  if (/(?:^|[^a-ząćęłńóśźż0-9])(jesie[ńn]|jesienn|autumn|fall)(?:$|[^a-ząćęłńóśźż0-9])/i.test(text)) {
+    return { year, month: 9, day: 15, hour, minute }; // Październik
+  }
+  if (/(?:^|[^a-ząćęłńóśźż0-9])(wiosn|wiosenn|spring)(?:$|[^a-ząćęłńóśźż0-9])/i.test(text)) {
+    return { year, month: 4, day: 12, hour, minute }; // Maj
+  }
+  if (/(?:^|[^a-ząćęłńóśźż0-9])(lato|letni|letnie|letnia|summer)(?:$|[^a-ząćęłńóśźż0-9])/i.test(text)) {
+    return { year, month: 6, day: 15, hour, minute }; // Lipiec
+  }
+  if (/(?:^|[^a-ząćęłńóśźż0-9])(zima|zimow|winter)(?:$|[^a-ząćęłńóśźż0-9])/i.test(text)) {
+    return { year, month: 0, day: 15, hour, minute }; // Styczeń
+  }
+
+  // 6. Trzypoziomowy fallback dopasowany do tonu
+  if (adventure?.tone === 'pulp') {
+    return { year, month: 4, day: 18, hour, minute }; // Ciepły majowy start wyprawy
+  }
+  if (adventure?.tone === 'noir') {
+    return { year, month: 10, day: 12, hour, minute }; // Listopadowy chłód
+  }
+
+  // Klasyczny purystowski Lovecraft: chłodny październik
+  return { year, month: 9, day: 15, hour, minute };
+}
+
+/**
+ * Wyznacza początkową pogodę scenariusza dopasowaną do miesiąca i klimatu.
+ */
+export function deriveInitialWeather(
+  adventure: AdventureTimeInput | null | undefined,
+  gameTime: GameTime
+): string {
+  if (adventure?.initialWeather && adventure.initialWeather.trim() !== '') {
+    return adventure.initialWeather.trim();
+  }
+
+  const { month } = gameTime;
+
+  // Zima (grudzień, styczeń, luty)
+  if (month === 11 || month === 0 || month === 1) {
+    return 'Przejmujący mróz, szary śnieg i lodowaty wiatr';
+  }
+
+  // Wiosna (marzec, kwiecień, maj)
+  if (month >= 2 && month <= 4) {
+    return 'Rześkie powietrze po wiosennym deszczu';
+  }
+
+  // Lato (czerwiec, lipiec, sierpień)
+  if (month >= 5 && month <= 7) {
+    return 'Duszne, parne powietrze zwiastujące burzę';
+  }
+
+  // Jesień (wrzesień, październik, listopad)
+  if (adventure?.tone === 'noir') {
+    return 'Gęsta jesienna mgła i chłodny deszcz';
+  }
+  return 'Chłodny wiatr, nisko wiszące chmury i wilgotne powietrze';
 }
 
 // ============================================================================
@@ -281,22 +528,16 @@ class TimeManager {
   }
 
   /**
-   * Resetuje zegar na datę startową dopasowaną do ery przygody
-   * (modern -> 2024, classic -> 1925, gaslight -> 1890). Zachowuje domyślny
-   * dzień/godzinę (14 stycznia, 10:00). Wołać TYLKO na świeży start gry -
-   * nadpisuje stary czas z localStorage; NIE wołać na reload zapisanej sesji.
+   * Resetuje zegar na dynamiczną datę startową i pogodę dopasowaną do scenariusza
+   * (dokładna data z przygody -> wykrycie pory roku z tekstu -> nastrojowy fallback).
+   * Wołać TYLKO na świeży start gry - nadpisuje stary czas z localStorage;
+   * NIE wołać na reload zapisanej sesji.
    */
   resetForAdventure(
-    adventure: { era?: string; yearRange?: string } | null | undefined
+    adventure: AdventureTimeInput | null | undefined
   ): GameTime {
-    this.currentTime = {
-      year: deriveStartYear(adventure),
-      month: 0,
-      day: 14,
-      hour: 10,
-      minute: 0,
-    };
-    this.currentWeather = 'Lekka mgła, rześkie powietrze';
+    this.currentTime = deriveStartGameTime(adventure);
+    this.currentWeather = deriveInitialWeather(adventure, this.currentTime);
     this.saveToStorage();
     this.saveWeatherToStorage();
     return this.currentTime;

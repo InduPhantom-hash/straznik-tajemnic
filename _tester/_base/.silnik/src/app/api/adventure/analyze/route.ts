@@ -48,6 +48,8 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy):
       "era": "classic|gaslight|modern|custom",
       "eraLabel": "Czytelna nazwa ery (np. 'Klasyczne lata 20.')",
       "yearRange": "Zakres lat (np. '1923-1925' lub '1920-1929')",
+      "startDate": "Dokładna data startowa jeśli podana w tekście/handoucie w formacie ISO 'YYYY-MM-DDTHH:mm' lub 'YYYY-MM-DD' lub null",
+      "initialWeather": "Klimatyczny opis otwierających warunków pogodowych (np. 'Gęsta jesienna mgła i chłodny deszcz') lub null",
       "hook": "BEZSPOILEROWE wprowadzenie 2-3 zdania - zajawka klimatu przyciągająca gracza",
       "description": "BEZSPOILEROWY opis 3-4 zdania - sytuacja wyjściowa, motyw przewodni lub streszczenie kompendium",
       "tone": "purist|pulp|noir",
@@ -105,6 +107,8 @@ interface AdventureRaw {
   era?: string;
   eraLabel?: string;
   yearRange?: string;
+  startDate?: string | null;
+  initialWeather?: string | null;
   hook?: string;
   description?: string;
   tone?: string;
@@ -421,6 +425,8 @@ export async function POST(request: NextRequest) {
         eraLabel:
           data.eraLabel || `${data.yearRange!.trim()}, ${data.country!.trim()}`,
         yearRange: data.yearRange!.trim(),
+        startDate: data.startDate?.trim() || undefined,
+        initialWeather: data.initialWeather?.trim() || undefined,
         hook:
           data.hook ||
           (docType === 'setting'

@@ -77,6 +77,10 @@ export interface AdventureContext {
   eraLabel: string;
   yearRange: string;
   activeSceneYear?: number;
+  /** Dokładna lub tekstowa data startowa scenariusza (np. ISO string lub obiekt GameTime) */
+  startDate?: string | Partial<import('./types').GameTime>;
+  /** Początkowe warunki pogodowe scenariusza */
+  initialWeather?: string;
   location: string;
   country: string;
   tone: 'purist' | 'pulp' | 'noir';
@@ -152,6 +156,8 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     eraLabel: 'PRL - lata 70.',
     yearRange: '1973-1974',
     activeSceneYear: 1973,
+    startDate: '1973-10-18T19:30',
+    initialWeather: 'Zimna mżawka i chłodny wiatr od Zalewu Wiślanego',
     location: 'Warszawa - Elbląg - Prabuty',
     country: 'Polska',
     tone: 'noir',
@@ -219,6 +225,8 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     eraLabel: 'Lata 90.',
     yearRange: '1995-1999',
     activeSceneYear: 1996,
+    startDate: '1996-05-12T14:15',
+    initialWeather: 'Ciepłe majowe popołudnie, rześki wiatr z Karkonoszy',
     location: 'Kowary - Karkonosze',
     country: 'Polska',
     tone: 'pulp',
@@ -279,6 +287,8 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     eraLabel: 'Lata 90. (Y2K)',
     yearRange: '1983-1999',
     activeSceneYear: 1999,
+    startDate: '1999-08-28T21:00',
+    initialWeather: 'Duszna, parna noc zwiastująca gwałtowną burzę',
     location: 'Traszyn k. Lublina',
     country: 'Polska',
     tone: 'purist',
