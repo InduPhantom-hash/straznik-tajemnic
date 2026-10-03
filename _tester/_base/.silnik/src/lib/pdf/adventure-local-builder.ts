@@ -28,6 +28,7 @@ import type {
   OverlayAdventureNode,
 } from './semantic-overlay-engine';
 import type { RulebookFingerprintResult } from './rulebook-fingerprint';
+import { generateAtmosphericDossierPattern } from '@/lib/era/setting-trivia';
 
 export function slugifyText(text: string): string {
   return (
@@ -1812,6 +1813,17 @@ export function buildLocalCustomAdventures(
           : `Śledztwo w regionie ${locationInfo.location} (${meta.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez Badaczy.`;
 
         const description = `Scenariusz "${scen.title}" z antologii "${sourceTitle}". Miejsce akcji: ${locationInfo.location}, czas: ${meta.eraLabel} (${meta.yearRange}).`;
+        const investigatorIntro = generateAtmosphericDossierPattern(
+          {
+            title: scen.title,
+            location: locationInfo.location,
+            country: locationInfo.country,
+            eraLabel: meta.eraLabel,
+            yearRange: meta.yearRange,
+            activeSceneYear: meta.activeSceneYear,
+          },
+          { locale: fingerprint.detectedLanguage === 'en' ? 'en' : 'pl' }
+        );
 
         return {
           id,
@@ -1828,6 +1840,7 @@ export function buildLocalCustomAdventures(
           suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
           hook,
           description,
+          investigatorIntro,
           estimatedSessions: meta.estimatedSessions,
           playerCount: '1-4',
           difficulty: meta.difficulty,
@@ -1873,6 +1886,19 @@ export function buildLocalCustomAdventures(
       : 'Wprowadzający scenariusz śledczy dla początkujących Badaczy, badających niepokojące zdarzenia powiązane z Mitami Cthulhu.';
 
     const description = `Scenariusz wprowadzający wyekstrahowany ze Startera d100. Klasyczne śledztwo w Bostonie w realiach lat 20. XX wieku.`;
+    const investigatorIntro = isHaunting
+      ? hook
+      : generateAtmosphericDossierPattern(
+          {
+            title: scenTitle,
+            location: locationInfo.location,
+            country: locationInfo.country,
+            eraLabel: eraInfo.eraLabel,
+            yearRange: eraInfo.yearRange,
+            activeSceneYear: eraInfo.activeSceneYear,
+          },
+          { locale: fingerprint.detectedLanguage === 'en' ? 'en' : 'pl' }
+        );
 
     return [
       {
@@ -1890,6 +1916,7 @@ export function buildLocalCustomAdventures(
         suggestedArchetypes: ['investigator', 'scholar', 'action'],
         hook,
         description,
+        investigatorIntro,
         estimatedSessions: '1-2',
         playerCount: '1-4',
         difficulty: 'easy',
@@ -2043,6 +2070,17 @@ export function buildLocalCustomAdventures(
 
   const hook = `Śledztwo w regionie ${locationInfo.location} (${meta.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez dociekliwych Badaczy.`;
   const description = `Autorski scenariusz d100 wyekstrahowany w trybie lokalnym z pliku "${fileName}". Dokument zawiera ${pdfPagesCount} stron, ${graph.npcs.length} kluczowych postaci dramatu oraz ${graph.clues.length} zidentyfikowanych poszlak i rekwizytów.`;
+  const investigatorIntro = generateAtmosphericDossierPattern(
+    {
+      title: titleClean,
+      location: locationInfo.location,
+      country: locationInfo.country,
+      eraLabel: meta.eraLabel,
+      yearRange: meta.yearRange,
+      activeSceneYear: meta.activeSceneYear,
+    },
+    { locale: fingerprint.detectedLanguage === 'en' ? 'en' : 'pl' }
+  );
 
   return [
     {
@@ -2060,6 +2098,7 @@ export function buildLocalCustomAdventures(
       suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
       hook,
       description,
+      investigatorIntro,
       estimatedSessions: documentType === 'campaign' ? '10+' : meta.estimatedSessions,
       playerCount: '1-4',
       difficulty: meta.difficulty,
