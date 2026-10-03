@@ -1,0 +1,49 @@
+======================================================================
+  Strażnik Tajemnic AI (Mechanika d100 Weird Fiction)
+  Wersja dla systemu Windows - Instrukcja szybkiego startu (Zero-Setup)
+======================================================================
+
+Dziękujemy za pobranie gry Strażnik Tajemnic AI!
+Ta paczka jest w 100% samowystarczalna i zawiera wbudowane środowisko
+uruchomieniowe. Nie musisz instalować Node.js ani żadnych innych programów.
+
+----------------------------------------------------------------------
+JAK ROZPOCZĄĆ ROZGRYWKĘ (3 PROSTE KROKI):
+----------------------------------------------------------------------
+
+1. WYPAKUJ ARCHIWUM:
+   Przed uruchomieniem kliknij prawym przyciskiem myszy na pobrany plik
+   ZIP i wybierz opcję "Wyodrębnij wszystkie..." do wybranego folderu
+   (np. na Pulpit lub do folderu Gry).
+   WAŻNE: Nie uruchamiaj gry bezpośrednio z wnętrza archiwum ZIP!
+
+2. URUCHOM GRĘ:
+   W wypakowanym folderze kliknij dwukrotnie plik:
+   "Graj - Strażnik Tajemnic.cmd"
+   
+   Gra automatycznie uruchomi lokalny serwer i otworzy dedykowane,
+   pełnoekranowe okno w przeglądarce Edge lub Chrome (w trybie aplikacji,
+   bez pasków adresu i nawigacji).
+
+3. PODAJ KLUCZ GOOGLE GEMINI API (BYOK - Bring Your Own Key):
+   Do generowania narracji MG, dialogów i reguł RAW wymagany jest
+   bezpłatny klucz API Google Gemini:
+   - Po otwarciu gry kliknij ikonę Ustawień (koło zębate w prawym górnym rogu).
+   - Wklej swój klucz Gemini API.
+   - Jeśli jeszcze nie posiadasz klucza, wygenerujesz go bezpłatnie na:
+     https://aistudio.google.com/
+   - Klucz jest zapisywany wyłącznie lokalnie w Twojej przeglądarce.
+
+----------------------------------------------------------------------
+ROZWIĄZYWANIE PROBLEMÓW:
+----------------------------------------------------------------------
+- Zamknięcie gry:
+  Po prostu zamknij okno gry. Supervisor procesów automatycznie zakończy
+  pracę lokalnego serwera w tle (brak procesów zombie).
+  
+- Logi diagnostyczne:
+  W razie problemów z uruchomieniem sprawdź plik logów:
+  %APPDATA%\ZewCthulhu\logs\straznik-tajemnic-ai.log
+
+- Zgłaszanie uwag i aktualizacje:
+  https://github.com/InduPhantom-hash/straznik-tajemnic/releases
