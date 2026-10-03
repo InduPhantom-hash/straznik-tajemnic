@@ -7,8 +7,8 @@
 **Nieoficjalny, fanowski Mistrz Gry AI do sesji RPG w klimacie lovecraftowskim.**  
 *An unofficial, fan-made AI Game Master for RPG sessions in the Lovecraftian setting.*
 
-> v0.9.5 jest stabilnym wydaniem na macOS. Pobierz paczkę ZIP poniżej.<br>
-> v0.9.5 is a stable release for macOS. Download the ZIP package below.
+> v0.9.5 jest stabilnym wydaniem na Windows oraz macOS. Pobierz paczkę ZIP poniżej.<br>
+> v0.9.5 is a stable release for Windows and macOS. Download the ZIP package below.
 
 ---
 
@@ -165,7 +165,7 @@ Konfiguracja w panelu **Ustawienia → Profil Jakości** (sesja ≈ 3h gry, domy
 ## 🗺️ Rozwój projektu
 
 - **Szlif kluczowych fundamentów:** Dalsza ewolucja Kompendium Badacza, Ekwipunku i Dziennika Śledztwa - w wersji v0.9.5 zyskały one właściwy kierunek architektoniczny, lecz pozostają w fazie aktywnego szlifowania UX i dojrzałości.
-- **Paczka desktopowa i aktualizacje:** Dalsza stabilizacja środowiska uruchomieniowego macOS oraz bezpieczny mechanizm sprawdzania nowych wydań.
+- **Paczka desktopowa i aktualizacje:** Dalsza stabilizacja środowiska uruchomieniowego Windows (Zero-Setup) i macOS oraz bezpieczny mechanizm sprawdzania nowych wydań.
 - **Scenariusze i społeczność:** Przygotowanie narzędzi do wygodnego importu i edycji własnych śledztw społeczności.
 
 Zasady architektury, inwarianty inżynieryjne i dev cheat-sheet znajdziesz w [`CONTRIBUTING.md`](./CONTRIBUTING.md).
@@ -348,7 +348,7 @@ Direct reflection of settings in **Settings → Quality Profile** (session ≈ 3
 ## 🗺️ Roadmap
 
 - **Polishing Core Pillars:** Continuous evolution of the Investigator Compendium, Equipment, and Investigation Journal - in v0.9.5 they gained their proper architectural foundation, but remain under active UX refinement and development.
-- **Desktop Packaging & Updates:** Further hardening of the macOS standalone runtime and a safe release update checker.
+- **Desktop Packaging & Updates:** Further hardening of the Windows (Zero-Setup) and macOS standalone runtimes and a safe release update checker.
 - **Community Scenarios:** Tooling for streamlined import and editing of custom community investigations.
 
 System architecture, invariants, and developer guidelines are documented in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
