@@ -184,4 +184,74 @@ describe('EquipmentDetailDialog', () => {
     // Pasek narzędziowy czytnika diegetycznego w szmaragdowym akcencie
     expect(screen.getByTestId('diegetic-reader-toolbar')).toBeInTheDocument();
   });
+
+  it('renders friendly error message when API returns 402 prepayment credits depleted instead of leaking raw JSON', async () => {
+    const handleUpdate = jest.fn();
+    const rawGoogleError = JSON.stringify({
+      error: {
+        code: 402,
+        message: 'Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. ',
+        status: 'RESOURCE_EXHAUSTED',
+      },
+    });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 402,
+      json: async () => ({
+        error: rawGoogleError,
+        code: 'BYOK_CREDITS_DEPLETED',
+      }),
+    });
+
+    render(
+      <EquipmentDetailDialog
+        item={mockItem}
+        onClose={jest.fn()}
+        onUpdateItem={handleUpdate}
+      />
+    );
+
+    const button = screen.getByText('📖 Przeczytaj dokument');
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    // Upewnij się, że surowy JSON nie wyciekł do UI
+    expect(screen.queryByText(/\{"error":\{"code":402/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Błąd odczytu dokumentu')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Wyczerpano środki przedpłacone/i)
+    ).toBeInTheDocument();
+  });
+
+  it('renders friendly error message when API throws network error containing raw Google JSON', async () => {
+    const handleUpdate = jest.fn();
+    const rawGoogleError =
+      '{"error":{"code":402,"message":"Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. ","status":"RESOURCE_EXHAUSTED"}}';
+
+    global.fetch = jest.fn().mockRejectedValue(new Error(rawGoogleError));
+
+    render(
+      <EquipmentDetailDialog
+        item={mockItem}
+        onClose={jest.fn()}
+        onUpdateItem={handleUpdate}
+      />
+    );
+
+    const button = screen.getByText('📖 Przeczytaj dokument');
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/\{"error":\{"code":402/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Wyczerpano środki przedpłacone/i)
+    ).toBeInTheDocument();
+  });
 });

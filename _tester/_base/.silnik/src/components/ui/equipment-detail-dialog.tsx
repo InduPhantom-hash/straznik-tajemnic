@@ -14,6 +14,11 @@ import { CATEGORY_LABELS } from '@/lib/equipment-data';
 import { resolveGameEraContext, formatEraCurrency, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
+import {
+  isInvalidKeyError,
+  isQuotaOrCreditsError,
+  isPrepaymentCreditsError,
+} from '@/app/api/chat/_helpers/model-fallback';
 
 interface EquipmentDetailDialogProps {
   item: EquipmentItem | null;
@@ -211,8 +216,31 @@ export function EquipmentDetailDialog({
       });
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || t('readFailed'));
+        const errData = await res.json().catch(() => null);
+        const code = errData?.code;
+        const rawError = String(errData?.error || errData?.message || '');
+
+        if (code === 'BYOK_CREDITS_DEPLETED' || isPrepaymentCreditsError(rawError)) {
+          throw new Error(t('errorCreditsDepleted'));
+        }
+        if (code === 'BYOK_QUOTA_EXCEEDED' || isQuotaOrCreditsError(rawError)) {
+          throw new Error(t('errorQuotaExceeded'));
+        }
+        if (code === 'BYOK_KEY_INVALID' || isInvalidKeyError(rawError)) {
+          throw new Error(t('errorKeyInvalid'));
+        }
+
+        if (rawError.trim().startsWith('{')) {
+          if (isPrepaymentCreditsError(rawError)) {
+            throw new Error(t('errorCreditsDepleted'));
+          }
+          if (isQuotaOrCreditsError(rawError)) {
+            throw new Error(t('errorQuotaExceeded'));
+          }
+          throw new Error(t('readFailed'));
+        }
+
+        throw new Error(rawError || t('readFailed'));
       }
 
       const data = await res.json();
@@ -226,7 +254,16 @@ export function EquipmentDetailDialog({
       }
     } catch (err: unknown) {
       console.error(err);
-      const message = err instanceof Error ? err.message : t('readError');
+      let message = err instanceof Error ? err.message : t('readError');
+      if (isPrepaymentCreditsError(message)) {
+        message = t('errorCreditsDepleted');
+      } else if (isQuotaOrCreditsError(message)) {
+        message = t('errorQuotaExceeded');
+      } else if (isInvalidKeyError(message)) {
+        message = t('errorKeyInvalid');
+      } else if (message.trim().startsWith('{')) {
+        message = t('readFailed');
+      }
       setErrorMsg(message);
     } finally {
       setIsGenerating(false);
@@ -476,8 +513,15 @@ export function EquipmentDetailDialog({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {errorMsg && (
-                          <div className="text-xs text-destructive font-special-elite mb-1">
-                            ⚠️ {errorMsg}
+                          <div
+                            role="alert"
+                            className="p-3 bg-[#2a130f] border border-[#a83226]/60 text-xs text-[#fca5a5] font-special-elite rounded-sm mb-2 shadow-md flex flex-col gap-1 leading-relaxed animate-in fade-in-50 duration-200"
+                          >
+                            <div className="flex items-center gap-1.5 font-bold tracking-wider uppercase text-brass/90 text-[11px]">
+                              <span>⚠️</span>
+                              <span>{t('errorTitle')}</span>
+                            </div>
+                            <p className="text-foreground/90 font-serif text-xs italic">{errorMsg}</p>
                           </div>
                         )}
                         {onUpdateItem ? (
