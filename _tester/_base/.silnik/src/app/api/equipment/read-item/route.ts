@@ -5,6 +5,12 @@ import { stripAITags } from '@/lib/parsers/text-cleaner';
 import type { ResolvedEraContext } from '@/lib/era';
 import { assertExactEraContext } from '@/lib/world-setup';
 
+import {
+  isInvalidKeyError,
+  isQuotaOrCreditsError,
+  isPrepaymentCreditsError,
+} from '@/app/api/chat/_helpers/model-fallback';
+
 function resolveGeminiApiKey(request: NextRequest): string | null {
   const key = request.headers.get('X-Gemini-Api-Key')?.trim();
   return key || process.env.GEMINI_API_KEY?.trim() || null;
@@ -91,22 +97,35 @@ WYMAGANIA:
       content: cleanText,
     });
   } catch (error) {
-    const errMsg = error instanceof Error ? error.message : String(error);
-    if (/API[_ ]key not valid|API_KEY_INVALID|INVALID_ARGUMENT|PERMISSION_DENIED/i.test(errMsg)) {
+    if (isInvalidKeyError(error)) {
       return NextResponse.json(
         {
-          error: 'Podany klucz Gemini API jest nieprawidłowy lub wygasł. Zaktualizuj klucz w Ustawieniach.',
+          error: 'Podany klucz Gemini API jest nieprawidłowy lub wygasł. Zaktualizuj klucz w Ustawieniach gry.',
           code: 'BYOK_KEY_INVALID',
         },
         { status: 401 }
       );
     }
+    if (isQuotaOrCreditsError(error)) {
+      const isCredits = isPrepaymentCreditsError(error);
+      return NextResponse.json(
+        {
+          error: isCredits
+            ? 'Wyczerpano środki przedpłacone (prepayment credits) na Twoim koncie Gemini API. Doładuj konto w Google AI Studio lub zmień klucz w Ustawieniach gry.'
+            : 'Przekroczono limit zapytań (quota) dla Twojego klucza Gemini API. Odczekaj chwilę lub sprawdź limity konta w Google AI Studio.',
+          code: isCredits ? 'BYOK_CREDITS_DEPLETED' : 'BYOK_QUOTA_EXCEEDED',
+        },
+        { status: isCredits ? 402 : 429 }
+      );
+    }
+
+    const rawMsg = error instanceof Error ? error.message : String(error);
+    const isRawJson = rawMsg.trim().startsWith('{');
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Nie udało się wygenerować treści przedmiotu',
+        error: isRawJson
+          ? 'Wystąpił błąd zewnętrznego dostawcy AI podczas odczytywania dokumentu.'
+          : rawMsg || 'Nie udało się wygenerować treści przedmiotu',
       },
       { status: 500 }
     );
