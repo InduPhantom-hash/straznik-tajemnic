@@ -15,27 +15,17 @@ Kolejność najbliższych epików:
 5. Deterministyczny katalog wyposażenia oraz audyt portretów.
 6. Rozszerzanie mechaniki, stanu gry, historycznej wiedzy MG i regresji kosztów.
 
-## Priorytet prac (Zaktualizowano pod v0.9.4)
-- **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` / `gemini-3.8-flash` oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
-- **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟢 ZREALIZOWANE)
-- **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza, Akt Sprawy i Dedukcji Domenowej CoC 7e. (🟢 ZREALIZOWANE)
-- **Priorytet 2b (UI/UX):** Kompleksowy audyt i unifikacja stylu Dark Art Déco 1920s (Epic #165) oraz Faza Rozwoju Postaci d100 Weird Fiction. (🟢 ZREALIZOWANE)
-- **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji i packaging macOS. (🟡 W TRAKCIE)
-- **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz weryfikacja tłumaczeń. (🔵 TODO)
-
-### Szacowane koszty API dla presetów (USD per 1M tokenów)
-- **LOW:** Gemini 3.6 Flash (0.15 in / 0.60 out)
-- **MID:** Gemini 3.6 Flash (0.15 in / 0.60 out) + Lektor TTS
-- **HIGH:** Gemini 2.5 Flash / 3.8 Flash (0.075 in / 0.30 out) + Lektor TTS
-- **ULTRA:** Gemini 3.1 Pro Preview (2.00 in / 12.00 out) + Lektor TTS
-- **Dodatki:** Obrazy generuje `gemini-2.5-flash-image` przez `/api/imagen` za ~0,02 USD za udany obraz. Lektor używa `gemini-2.5-flash-preview-tts` (0,50 in / 1,50 out).
-
-## Najbliższe zadanie: obrazy scen i epoki
-
-- [ ] Pokazać obrazy czatu bez przycinania przez sztywny kadr.
-- [ ] Zagwarantować 1-3 obrazy dla znaczącej sceny: lokacja, ważny NPC, przedmiot lub punkt zwrotny.
-- [ ] Używać aktualnego roku gry dla promptów, nie pierwszego roku zakresu przygody.
-- [ ] Uaktualnić testy i opisy po dawnych providerach obrazów.
+## Priorytet prac (Stan na v0.9.5)
+- **Puryzm Walki Wręcz d100 RAW:** Karta starcia `OpposedMeleeCard`, Unik vs Kontratak vs Manewry bojowe, Build, Outnumbered i Dive for Cover (🟢 ZREALIZOWANE w v0.9.5).
+- **7 Silników Świata w Locie (World Engine Director):** Architektura dynamicznych wstrzyknięć behawioralnych do promptu w `src/lib/world-engine/` (🟢 ZREALIZOWANE w v0.9.5).
+- **16 Technik Narracyjnych i Reżyser Pacingu:** Zestaw kanonicznych technik scenopisarskich z rotacją cooldownu na CPU (🟢 ZREALIZOWANE w v0.9.5).
+- **Kompendium Badacza & Kodeks Zasad:** Mini-Obsidian w bocznym pasku narzędzi z lokalnym RAG zasad (🟢 ZREALIZOWANE w v0.9.5).
+- **Dziennik Śledztwa, Raporty Aktów i Licznik Poszlak:** Reżyseria scen, Quote-to-Input i purystyczny Idea Roll (🟢 ZREALIZOWANE w v0.9.5).
+- **Unifikacja Epok i Walut:** 6 epok ekonomicznych z przelicznikiem PPP i Credit Rating dla £/s/d, dolarów i złotych (🟢 ZREALIZOWANE w v0.9.5).
+- **Świadomy Ekwipunek (Brak Auto-Lootu):** Rekwizyty dodawane wyłącznie na wyraźne życzenie gracza (🟢 ZREALIZOWANE w v0.9.5).
+- **Kinowe Kadry 16:9 i Czyste Belki Lokacji:** Eliminacja przycinania obrazów i wycieków promptów wizualnych (🟢 ZREALIZOWANE w v0.9.5).
+- **Desktop Process Supervisor:** Nadzorca w czystym Node.js, tree-kill, Single Instance, launchery macOS/Windows (🟢 ZREALIZOWANE w v0.9.5).
+- **Najbliższy horyzont rozwojowy:** Dalszy szlif UX fundamentów (Kompendium, Ekwipunek, Dziennik), mechanizm bezpiecznych aktualizacji oraz narzędzia importu autorskich śledztw społeczności.
 
 ## Zasady architektury
 
