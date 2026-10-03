@@ -43,8 +43,12 @@ Przychodzi taki etap życia, że zebranie stałej ekipy na sesję RPG graniczy z
 
 ## ⬇️ Pobierz
 
-**[Pobierz paczkę macOS (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - uruchom aplikację na macOS dwuklikiem. Paczka nie zawiera klucza API ani podręcznika: przy pierwszym starcie wklejasz **własny** klucz Gemini (`https://aistudio.google.com/apikey`) i wgrywasz **swój** PDF z zasadami.
+- 🪟 **[Pobierz paczkę Windows (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/download/v0.9.5/straznik-tajemnic-windows.zip)** - samowystarczalna paczka Zero-Setup dla Windows (rozpakuj i kliknij `Graj - Strażnik Tajemnic.cmd`).
+- 🍎 **[Pobierz paczkę macOS (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/download/v0.9.5/straznik-tajemnic-macos.zip)** - uruchom aplikację na macOS dwuklikiem.
 
+Paczki nie zawierają klucza API ani podręcznika: przy pierwszym starcie wklejasz **własny** klucz Gemini (`https://aistudio.google.com/apikey`) i wgrywasz **swój** PDF z zasadami.
+
+> Wszystkie pliki wydań i sumy kontrolne znajdziesz w [GitHub Releases](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5).
 > Wolisz uruchomić ze źródeł? Sprawdź instrukcję poniżej (**Szybki start**).
 
 > [!IMPORTANT]
@@ -222,8 +226,12 @@ There comes a stage in life where gathering a full table for an RPG session is a
 
 ## ⬇️ Download
 
-**[Download the macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - launch the app on macOS with a double-click. It does not include an API key or rulebook: during the first run, you paste your **own** Gemini key (`https://aistudio.google.com/apikey`) and upload **your** PDF rulebook.
+- 🪟 **[Download Windows package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/download/v0.9.5/straznik-tajemnic-windows.zip)** - standalone Zero-Setup bundle for Windows (extract and run `Graj - Strażnik Tajemnic.cmd`).
+- 🍎 **[Download macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/download/v0.9.5/straznik-tajemnic-macos.zip)** - launch the app on macOS with a double-click.
 
+The packages do not include an API key or rulebook: during the first run, you paste your **own** Gemini key (`https://aistudio.google.com/apikey`) and upload **your** PDF rulebook.
+
+> All release assets and checksums are available on [GitHub Releases](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5).
 > Prefer running from source code? Follow the **Quick Start** guide below.
 
 > [!IMPORTANT]
