@@ -1150,7 +1150,7 @@ Progi: Zwykły ≤50 | Trudny ≤25 | Ekstremalny ≤10
         characters: [
           { name: 'Dr Constance Ward' },
           { name: 'Arthur Vance' },
-        ] as any,
+        ] as unknown as Character[],
       }).join('\n');
 
       expect(result).toContain('BEZWZGLĘDNA OCHRONA SPRAWCZOŚCI I FIZYCZNY IMMUNITET BADACZY (HOT SEAT / DRUŻYNA)');

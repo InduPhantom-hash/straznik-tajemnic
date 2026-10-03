@@ -260,7 +260,7 @@ function splitIntoSentenceSpans(text: string): SentenceSpan[] {
     const ch = text[i];
 
     if (ch === '\n') {
-      let end = i;
+      const end = i;
       while (i < len && text[i] === '\n') i++;
       const segment = text.slice(currentStart, end);
       if (segment.trim().length > 0) {
