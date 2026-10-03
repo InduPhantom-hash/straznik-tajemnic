@@ -5,18 +5,48 @@ Format oparty na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.9.4] - w przygotowaniu
+## [0.9.5] - 2026-09-28
 
-### Gotowe w gałęzi wydaniowej
-- Pełniejsza lokalizacja PL/EN, w tym ręczny wybór przygody i Sesja Zero.
-- Stabilniejszy start gotowych przygód bez zbędnego preflightu AI.
-- Deterministyczne zestawy startowego wyposażenia, które nie zależą od odpowiedzi modelu.
-- Fundament manifestów epok, preflight świata, opcjonalny zapis `worldSetup` oraz odnowione mapowania portretów.
-- Zachowanie obrazów scen przy narracji MG i ręczna kontynuacja odpowiedzi uciętej limitem tokenów.
+### ⚔️ Mechanika d100 Weird Fiction & Walka RAW
+- **Puryzm Walki Wręcz d100 (Starcia Przeciwstawne):** Karta obrony `OpposedMeleeCard` na czacie w stylu Dark Art Déco (Unik vs Kontratak vs Manewry bojowe), asymetria remisu (Unik wygrywa z atakiem, Kontratak przegrywa), modyfikatory Budowy (Build), kość premiowa za przewagę liczebną (*Outnumbered*) oraz rzut za osłonę (*Dive for Cover*) przeciw broni palnej (PR #361, PR #362).
+- **Rzut na Pomysł (Idea Roll RAW):** Purystyczna implementacja zasady Fail-Forward (s. 199 BMG) - dostępna wyłącznie w sytuacji impasu śledczego, bez możliwości forsowania i bez wydawania punktów Szczęścia (PR #359, PR #360).
+- **Unifikacja Systemu Miar i Walut per Epoka:** 6 kanonicznych epok ekonomicznych (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), tabele Credit Rating dla funtów wiktoriańskich (£/s/d), dolarów i złotych, dynamiczny przelicznik PPP oraz formatowanie zasięgu broni `formatWeaponRange` (PR #400).
+- **Świadomy Ekwipunek (Brak Auto-Lootu):** Całkowite odcięcie automatycznego mutowania ekwipunku badacza przy wzmiankach w narracji; rekwizyty trafiają do torby wyłącznie po świadomej decyzji gracza na karcie `[ZDOBYTY_PRZEDMIOT]` (PR #565, PR #475).
 
-### Przed publikacją
-- Pełne bramki techniczne, E2E PL/EN, zgodność save/load i test świeżej paczki macOS.
-- Tag, GitHub Release oraz paczka do pobrania wymagają osobnej akceptacji po przejściu bramek.
+### 🧠 Architektura AI, Silniki Świata & Narracja
+- **7 Dynamicznych Silników Świata (World Engine Director):** Architektura dynamicznych wstrzyknięć do promptu w `src/lib/world-engine/`: `NPCEngine` (fasada, skaza, opór), `SensoryEngine` (triada zmysłowa, somatyka, Zmienna Próżni), `NarrativeGraphEngine` (struktura branch-and-bottleneck), `PlotFrictionEngine` (plotki 70/30, tarcie społeczne), `MysteryClueEngine` (zasada 3 poszlak, fail-forward), `GeographyEngine` (chokepoints, hydraulika podziemi) oraz `OccultEngine` (prawa magii Sandersona, cena somatyczna) (PR #445, PR #447, PR #456).
+- **16 Technik Narracyjnych i Dynamiczny Reżyser Pacingu:** Kanoniczny zestaw technik narracyjnych i scenopisarskich rotowany dynamicznie na CPU z uwzględnieniem cooldownu zapobiegającego powtórzeniom (PR #535, PR #543).
+- **Lokalny Mikromodel CPU i Guardrail Epoki:** Klasyfikator dyspozytora na CPU orkiestrujący silniki świata i odciążający prompt o >35% w turach spokojnych, połączony z lokalnym strażnikiem epoki (`era-guardrail.ts`) odcinającym pytania techniczne i anachronizmy w czasie <1 ms bez zużycia tokenów API (PR #506, PR #514).
+- **Odporność Strumieniowania Gemini:** Zabezpieczenie generatora `pump` przed przerwaniem połączenia SSE przy błędzie SDK `Incomplete JSON segment at the end` (PR #600) oraz unarne wywołanie `provider.chat()` przy generowaniu historii postaci (PR #603).
+- **Dynamiczna Data Startowa i Pogoda:** Eliminacja wiecznego 14 stycznia na rzecz kanonicznych dat startowych i aury zależnej od scenariusza (`deriveStartGameTime`, `deriveInitialWeather`) (PR #611).
+- **Bezspoilerowe Wprowadzenie do Dossier:** 3-poziomowa kaskada nastrojowego wprowadzenia eliminująca wycieki żargonu ekstrakcji PDF (PR #613).
+
+### 🖥️ Interfejs, Immersion & Dark Art Déco
+- **Kompendium Badacza & Kodeks Zasad (Mini-Obsidian):** Trzyzakładkowy podręczny skarbiec wiedzy w bocznym pasku (Instrukcja & UI, Sztuka Odgrywania Fiction First/Fail Forward, Encyklopedia Wiedzy Lore + Kodeks Zasad z lokalnym RAG) (PR #461).
+- **Dziennik Śledztwa, Raporty Aktów i Licznik Poszlak:** Reżyseria scen (`[ZMIANA_SCENY]`, `[KARTA_SCENY]`), raporty etapowe (`[RAPORT_AKTU]`), dynamiczny licznik wskazówek oraz funkcja cytowania hipotezy prosto do pola czatu (Quote-to-Input) (PR #402, PR #481).
+- **Kinowe Kadry 16:9 i Czyste Belki Lokacji:** Ilustracje scen, potworów i wizji w pełnym kadrze 16:9, format pionowy 3:4 wyłącznie dla portretów NPC oraz usunięcie wycieków promptów wizualnych z belek lokacji (PR #570, PR #583).
+- **12 Retro-Rycin Wektorowych SVG i Filtr Umiejętności:** Historyczne ryciny profesji badaczy oraz filtr umiejętności (Wszystkie / Zawodowe / Rozwinięte) w Kreatorze Badacza (PR #457, PR #458).
+- **Ostrzeżenie 18+ i Powiększony Modal Języka:** Ciemny styl Dark Art Déco z dwujęzycznym epitafium H.P. Lovecrafta („I AM PROVIDENCE”) (PR #418).
+- **Wymóg Autorskiego Badacza w Manual Setup:** Ukrycie gotowych postaci w trybie ręcznym i wymóg powołania własnego badacza, z zachowaniem gotowców w Szybkiej Przygodzie (PR #527).
+- **Autozapis Kroniki Sesji:** Zabezpieczona procedura zakończenia sesji z autozapisem do archiwum i kartą statusu z opcją ponowienia (PR #575).
+
+### 🛡️ Trwałość Danych, Desktop & 100% Offline
+- **Desktop Process Supervisor:** Zintegrowany nadzorca procesów w czystym Node.js (`desktop/supervisor.mjs`) z kaskadowym usuwaniem procesów zombie (`tree-kill`), dynamicznym przydziałem portów i Single Instance, wraz z launcherem Windows (`launcher.cmd`) i macOS (`launcher.sh`) (PR #488).
+- **100% Self-Hosted Fonty WOFF2:** Pełna niezależność od CDN-ów zewnętrznych i brak opóźnień FOUT/FOIT w trybie offline (PR #483).
+- **Gzip IndexedDB & Trwały Ledger SQLite:** Optymalizacja pamięciowa dla dużych antologii (>50MB) oraz usunięcie rozbieżności dyrektyw systemowych przy zapisie tur (PR #454, PR #573).
+- **Auto-Synchronizacja Języka Sesji:** Pole `locale` w `FullGameSave` zapobiegające rozjeżdżaniu się języków interfejsu i narracji po wczytaniu zapisu (PR #492).
+
+---
+
+## [0.9.4] - 2026-08-30
+
+### ✨ Dodane i Ulepszone
+- Pełna lokalizacja PL/EN interfejsu i promptu MG, w tym ręczny wybór przygody i Sesja Zero.
+- Stabilny start gotowych przygód bez konieczności oczekiwania na preflight AI.
+- Deterministyczne zestawy startowego wyposażenia badaczy bazujące na profesji.
+- Fundament manifestów epok historycznych (`manifests.ts`), preflight świata oraz opcjonalny zapis `worldSetup`.
+- Zachowanie obrazów scen w historii narracji MG i ręczna kontynuacja uciętych odpowiedzi.
+- Wdrożenie wstępnych testów E2E PL/EN i weryfikacji zgodności formatów zapisu.
 
 ## [0.9.3] - 2026-08-15
 

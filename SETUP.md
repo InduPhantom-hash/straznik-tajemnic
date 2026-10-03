@@ -1,15 +1,17 @@
-# Instalacja i pierwsze uruchomienie
+# 🚀 Instalacja i pierwsze uruchomienie (v0.9.5)
 
-Krok po kroku - od zera do pierwszej sesji. Cała gra działa lokalnie na Twoim
-komputerze; nic nie jest wysyłane na serwery zewnętrzne poza zapytaniami do API Gemini
-(które wykonujesz **swoim** darmowym kluczem).
+Krok po kroku - od zera do pierwszej sesji. Cała gra działa lokalnie na Twoim komputerze w myśl zasady **Privacy-First**; nic nie jest wysyłane na serwery zewnętrzne poza zapytaniami do API Gemini (które wykonujesz **swoim** darmowym kluczem w modelu BYOK).
+
+---
 
 ## 1. Wymagania
 
 - **Node.js 18+** ([nodejs.org](https://nodejs.org)) oraz `npm`.
 - **Klucz Gemini** (darmowy) - do wygenerowania na [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
-- **Własny podręcznik** _Zew Cthulhu / Call of Cthulhu 7e_ w formacie PDF (darmowy starter wystarczy na początek).
-- _(opcjonalnie, tylko macOS)_ Google Chrome, jeśli chcesz korzystać z launchera `.app` na biurku.
+- **Własny podręcznik zasad d100** w formacie PDF (darmowy Starter d100 lub pełna Księga Zasad).
+- **Sprzęt:** Procesor 4-rdzeniowy z obsługą instrukcji AVX2 (Intel Core i3 / AMD Ryzen 3 lub Apple Silicon M1+), min. 8 GB RAM (aplikacja zużywa ~450 MB). Silnik posiada sprzętowy bezpiecznik (100 ms timeout), który w razie potrzeby automatycznie przełącza klasyfikację na natywne heurystyki TypeScript.
+
+---
 
 ## 2. Pobranie i instalacja
 
@@ -26,9 +28,11 @@ npm install
 ```
 
 > [!NOTE]
-> Kod produkcyjny silnika żyje w podkatalogu `_tester/_base/.silnik/`. Root repozytorium służy jako launcher i wrapper.
+> Kod produkcyjny silnika żyje w podkatalogu `_tester/_base/.silnik/`. Główny katalog repozytorium służy jako launcher i wrapper środowiska deweloperskiego.
 
-## 3. Klucz Gemini
+---
+
+## 3. Klucz Gemini (Model BYOK)
 
 1. Wejdź na **[aistudio.google.com/apikey](https://aistudio.google.com/apikey)**.
 2. Zaloguj się kontem Google i kliknij **Create API key**.
@@ -36,9 +40,11 @@ npm install
 
 > Darmowy tier Gemini w zupełności wystarcza do gry. Klucz wkleisz bezpośrednio w oknie aplikacji przy pierwszym starcie - nie musisz edytować plików konfiguracyjnych.
 
-## 4. Konfiguracja (opcjonalna)
+---
 
-Jeśli wolisz zapisać klucz na stałe w zmiennych środowiskowych:
+## 4. Konfiguracja środowiskowa (opcjonalna)
+
+Jeśli wolisz zapisać klucz na stałe w pliku lokalnym:
 
 ```bash
 # Będąc w _tester/_base/.silnik:
@@ -47,18 +53,22 @@ cp .env.example .env.local
 
 W pliku `.env.local` możesz wpisać `GEMINI_API_KEY=twoj_klucz`.
 
-## 5. Skąd wziąć podręcznik
+---
 
-Aplikacja **nie zawiera** żadnego podręcznika - wnosisz własny, legalny egzemplarz PDF:
+## 5. Skąd wziąć podręcznik (Doktryna BYOB)
 
-**Za darmo (na start w zupełności wystarczy):**
-- **Black Monk** - darmowe startery PL: [blackmonk.pl](https://blackmonk.pl) (sekcja „Do pobrania”).
-- **Chaosium** - _Quick-Start Rules_ (EN): [chaosium.com](https://www.chaosium.com/call-of-cthulhu-quick-start/).
+Aplikacja to czysty emulator zasad i **nie zawiera** żadnego podręcznika ani chronionych prawem autorskim tabel. Wnosisz własny, legalnie nabyty egzemplarz PDF:
 
-**Pełne wydania:**
+**Darmowe wydania na start (w zupełności wystarczą):**
+- **Black Monk** - darmowe startery d100 PL: [blackmonk.pl](https://blackmonk.pl) (sekcja „Do pobrania”).
+- **Chaosium** - _Call of Cthulhu Quick-Start Rules_ (EN): [chaosium.com](https://www.chaosium.com/call-of-cthulhu-quick-start/).
+
+**Pełne księgi zasad:**
 - [Black Monk](https://blackmonk.pl) (PL) · [DriveThruRPG](https://www.drivethrurpg.com) (EN) · [ProRPG](https://prorpg.store) (PL).
 
-## 6. Pierwsze uruchomienie
+---
+
+## 6. Pierwsze uruchomienie w przeglądarce
 
 Będąc w katalogu `_tester/_base/.silnik`:
 
@@ -73,22 +83,35 @@ Otwórz w przeglądarce **[http://localhost:3000](http://localhost:3000)**. Krea
 
 Po zakończeniu indeksowania przycisk **Graj** staje się aktywny.
 
-## 7. (macOS) Samodzielna aplikacja na biurku
+---
 
-Jeśli wolisz klikalną aplikację w macOS zamiast uruchamiania terminala:
+## 7. Aplikacja desktopowa (macOS oraz Windows)
 
+Silnik posiada zintegrowany **Desktop Process Supervisor** (`desktop/supervisor.mjs`) w czystym Node.js, który dba o eliminację procesów zombie, dynamiczny przydział wolnych portów oraz zasadę Single Instance (przywracanie aktywnego okna).
+
+### macOS:
+Z poziomu głównego katalogu repozytorium:
 ```bash
-# Z poziomu głównego katalogu repozytorium (/straznik-tajemnic):
+# Zbudowanie aplikacji .app i skrótu na Biurku:
 bash desktop/build-app.sh --rebuild
+
+# Szybki start deweloperski z supervisorem:
+bash desktop/launcher.sh
 ```
 
-Skrypt zbuduje produkcyjną aplikację `Strażnik Tajemnic AI.app` w Twoim katalogu `~/Applications` i utworzy skrót na Biurku.
+### Windows:
+W wierszu poleceń (CMD / PowerShell) w głównym katalogu repozytorium:
+```cmd
+desktop\launcher.cmd
+```
 
-### Reset i czyszczenie stanu (Cold Start):
+### Reset i czyszczenie stanu (Cold Start macOS):
 W razie chęci wyczyszczenia profilu sesji, pamięci RAG czy pamięci podręcznej przeglądarki uruchom:
 ```bash
 bash desktop/cold-start.sh
 ```
+
+---
 
 ## Rozwiązywanie problemów
 
@@ -97,7 +120,9 @@ bash desktop/cold-start.sh
 | „Brak klucza” mimo wklejenia | Upewnij się, że wklejony klucz nie zawiera spacji na początku lub końcu; przetestuj go w oknie modalu API. |
 | AI mówi, że „nie ma zasady w kontekście” | Wgraj podręcznik (krok 6) - bez niego lokalna baza RAG jest pusta. To zamierzone zabezpieczenie przed zmyślaniem reguł przez model. |
 | Obrazy się nie generują | Sprawdź limit zapytań w Google AI Studio; generowanie obrazów jest opcjonalne i nie blokuje przebiegu narracji. |
-| Port 3000 zajęty | Zatrzymaj inny proces node lub uruchom silnik na alternatywnym porcie: `PORT=3001 npm run dev`. |
+| Zajęty port sieciowy | Desktop Process Supervisor automatycznie wykrywa zajęty port i przydziela kolejny wolny (4050 -> 4051+) bez konieczności ręcznej konfiguracji. |
+
+---
 
 Więcej o samej rozgrywce i zasadach: [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md).  
-Wytyczne architektoniczne dla inżynierów: [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Wytyczne architektoniczne i standardy inżynieryjne: [`CONTRIBUTING.md`](./CONTRIBUTING.md).

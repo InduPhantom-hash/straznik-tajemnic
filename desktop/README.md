@@ -47,12 +47,14 @@ Narracja / RAG / TTS potrzebują ważnego `GEMINI_API_KEY` w `.env.local` (serwe
 
 ## Pliki
 
-| Plik           | Rola                                                                        |
-| -------------- | --------------------------------------------------------------------------- |
-| `launcher.sh`  | serce: zapewnia serwer → otwiera okno → pilnuje zamknięcia → ubija serwer   |
-| `build-app.sh` | generator `.app` + instalacja do `~/Applications` + kopia na biurku         |
-| `make-icon.sh` | ikona `.icns` (ciemne tło + emerald macka), Chrome headless + sips/iconutil |
-| `README.md`    | ten plik                                                                    |
+| Plik             | Rola                                                                        |
+| ---------------- | --------------------------------------------------------------------------- |
+| `supervisor.mjs` | Desktop Process Supervisor w Node.js: tree-kill zombie, porty, Single Instance |
+| `launcher.sh`    | launcher powłoki macOS: deleguje nadzór do supervisora                      |
+| `launcher.cmd`   | natywny launcher wsadowy dla systemu Windows                                |
+| `build-app.sh`   | generator `.app` + instalacja do `~/Applications` + kopia na biurku         |
+| `make-icon.sh`   | ikona `.icns` (ciemne tło + emerald macka), Chrome headless + sips/iconutil |
+| `README.md`      | ten plik                                                                    |
 
 Wygenerowane artefakty (`icon.icns`, `icon.png`, `../.desktop/`) są w `.gitignore` - w repo wersjonujemy tylko źródła.
 
@@ -60,5 +62,4 @@ Wygenerowane artefakty (`icon.icns`, `icon.png`, `../.desktop/`) są w `.gitigno
 
 - **Okno się nie otwiera / „nie działa"**: zajrzyj do `~/Library/Logs/straznik-tajemnic.log`.
 - **„command not found: npm"** w logu: launcher nie znalazł node. Przebuduj (`build-app.sh` zaszywa ścieżkę node z `command -v node`).
-- **Serwer został po zamknięciu**: `lsof -ti :4040 | xargs kill`.
-- **Port zajęty**: sprawdź, czy nie chodzi inna instancja (`lsof -i :4040`).
+- **Zajęty port**: supervisor automatycznie szuka wolnego portu od 4050 w górę. W razie potrzeby ręcznego czyszczenia: `lsof -ti :4050 | xargs kill`.

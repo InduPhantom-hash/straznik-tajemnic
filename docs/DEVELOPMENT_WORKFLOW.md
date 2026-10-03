@@ -1,54 +1,62 @@
-# Workflow rozwoju Strażnika Tajemnic
+# Workflow rozwoju Strażnika Tajemnic AI (v0.9.5)
 
-## Granice projektu
+Zasady inżynieryjne i procedury wytwórcze obowiązujące w projekcie **Strażnik Tajemnic AI**, oparte na uniwersalnym silniku `aios-vibe-coder` (V2.2).
 
-- Git root: `/Volumes/Karta/Developer/straznik-tajemnic`.
-- Runtime, testy i build: `_tester/_base/.silnik`.
-- Artefakt testowy macOS: `~/Applications/Straznik Tajemnic AI.app` oraz kopia
-  na Biurku, tworzona przez `bash desktop/build-app.sh --rebuild` w Git root.
-- Każdy nowy problem lub funkcja zaczyna się kartą
-  `.dev-pipeline/tasks/<task-id>/`.
+---
 
-## Cykl zadania
+## 🗺️ 1. Granice projektu i topologia
 
-1. Intake zapisuje cel, objaw, kryteria akceptacji, dozwolone ścieżki oraz
-   baseline brudnego drzewa.
-2. Plan sprawdza Graft i `docs/NAVIGATION_MAP.md`, wskazuje wpływ na routy,
-   modale, stan gry, API, PL/EN i testy.
-3. Po akceptacji planu zadanie działa na `codex/feature/<task-id>-<slug>`,
-   utworzonej z `develop`. Nie przełączaj branchy przy niezatwierdzonym drzewie.
-4. Implementacja zmienia wyłącznie ścieżki z karty zadania. Zmiana UI aktualizuje
-   rejestr `navigation/navigation-registry.json`, Mermaid i testy.
-5. Weryfikacja uruchamia typy, lint, testy powiązane i build. Zmiana UI wymaga
-   także E2E w PL i EN oraz kontroli błędów konsoli.
-6. Po zielonym buildzie agent uruchamia zbudowaną `.app`, wykonuje scenariusz
-   kryterium akceptacji, robi screenshot i wpisuje wynik do
-   `visual-review.md` według szablonu `.dev-pipeline/templates/visual-review.md`.
-7. `failed` wraca do naprawy. `not_applicable` wolno wpisać tylko dla zmiany bez
-   widocznego efektu. `passed` oznacza gotowość do Twojego testu `.app`.
-8. Dopiero po Twoim `akceptuję` wolno stworzyć commit, push i merge.
+- **Git Root:** `/Volumes/Karta/Developer/straznik-tajemnic`.
+- **Środowisko deweloperskie i testowe:** `_tester/_base/.silnik`.
+- **Artefakt testowy macOS:** `~/Applications/Straznik Tajemnic AI.app` oraz kopia na Biurku, tworzona przez `bash desktop/build-app.sh --rebuild` w głównym katalogu repozytorium.
+- **Jedno źródło prawdy (SSOT):** Wszystkie zadania, błędy i inicjatywy żyją wyłącznie w **GitHub Issues**. Zakaz tworzenia luźnych, lokalnych plików stanu (`state.md`, `zadania.md`).
 
-## Branche i wydania
+---
 
-- `main`: ostatnie stabilne wydanie.
-- `develop`: zaakceptowane zmiany oczekujące na wydanie.
-- `codex/feature/...`: pojedyncze zadanie.
-- `codex/release/vX.Y.Z`: stabilizacja wydania, tylko naprawy wydaniowe.
-- `codex/hotfix/vX.Y.Z`: pilna naprawa od `main`, wraca do `main` i `develop`.
-- SemVer: PATCH dla poprawki, MINOR dla funkcji, MAJOR dla niezgodnej zmiany.
+## 🔄 2. Sześć Faz Cyklu Deweloperskiego (`aios-vibe-coder`)
 
-## Mapa i graf zależności
+```
+[0. INTAKE & PRP]    -> Bramka 'Słoń' + Issue GitHub + Kontrakt PRP (Allowlist + Pętla Czerwona)
+[1. WORKTREE START]  -> Izolowany branch w .worktrees/issue-XX + Wczytanie reguł projektu
+[2. CHECKPOINT PO]   -> Zwięzły raport grafowy + Rekomendacja ⭐ (Klauzula Łącznej Autoryzacji)
+[3. IMPLEMENTACJA]   -> Kodowanie w granicach Allowlist + Testy jednostkowe + Zasada Ponytail
+[4. WERYFIKACJA & PR]-> Lokalne testy + Dwuosiowy Audyt Kodu + Obowiązkowy Test Gracza E2E + PR
+[5. MERGE & DELIVERY]-> Merge do main + Usunięcie worktree + Rebuild na Biurku
+```
 
-- `graft/.graph/wiring.json` jest dowodem technicznych zależności. Przed planem
-  sprawdź aktualność grafu; gdy środowisko pozwala, uruchom `graft check`.
-- `navigation/navigation-registry.json` jest źródłem prawdy dla doświadczenia
-  użytkownika: routów, modali i ważnych akcji, z nazwami PL i EN.
-- `npm run navigation:generate` tworzy `docs/NAVIGATION_MAP.md`.
-- `npm run navigation:check` zatrzymuje nieaktualną mapę. CI wymaga aktualizacji
-  rejestru przy zmianie pliku UI.
+### Faza 0: Intake i Kontrakt PRP
+1. Każde zadanie posiada swoje Issue na GitHubie.
+2. Zdefiniowany zostaje ścisły Kontrakt PRP:
+   - **Allowlist (Dozwolone pliki):** Minimalna lista plików do edycji.
+   - **Denylist & Anti-scope:** Ścieżki chronione i świadome wykluczenia.
+   - **Czerwona Pętla Repro (Bugi):** Test jednostkowy lub polecenie CLI potwierdzające usterkę przed dotknięciem kodu produkcyjnego.
+   - **Bramka testowa (Exit Criteria):** Polecenia kończące się kodem 0 (`npm run qa:quick`, `npm test`, `npm run build`).
 
-## Publikacja
+### Faza 1: Izolowany Start w Git Worktree
+Wszystkie prace developerskie prowadzone są w osobnym katalogu worktree, chroniąc stabilne środowisko głównego katalogu:
+```bash
+git worktree add .worktrees/issue-XX -b fix/issue-XX-nazwa
+```
 
-- Commit jest mały, opisowy i zawiera wyłącznie pliki zadania.
-- Push, merge, GitHub Release i deployment wymagają Twojej akceptacji testu
-  `.app`; nie są skutkiem samego zielonego CI.
+### Faza 2: Checkpoint Decyzyjny PO
+Przedstawienie zwięzłego raportu decyzyjnego dla Product Ownera (PO) z jedną rekomendowaną opcją ⭐. Zatwierdzenie stanowi łączną autoryzację na przejście do wdrożenia.
+
+### Faza 3: Implementacja w Worktree
+1. Modyfikowane są wyłącznie pliki z zatwierdzonej Allowlisty.
+2. **Zasada Ponytail (Search before Write):** Zakaz tworzenia zduplikowanych funkcji pomocniczych bez uprzedniego przeszukania `src/lib/`.
+3. **Symetria językowa:** Zmiany UI muszą równolegle zaktualizować `messages/pl.json` i `messages/en.json`.
+4. **Rejestr nawigacji:** Zmiany w ekranach lub modalach wymagają aktualizacji `navigation/navigation-registry.json`.
+
+### Faza 4: Weryfikacja Anty-Regresyjna & Bezpiecznik CPI
+1. **Bezpiecznik CPI (Circuit Breaker):** Limit 2 prób naprawy. W razie niepowodzenia: natychmiastowy STOP, rollback i raport blokady.
+2. **Obowiązkowy Test Gracza E2E:** Symulacja sesji Playwright ze zrzutem ekranu jako dowodem wizualnym oraz asercją na zero błędów w konsoli (`console.error` = 0).
+3. **Dwuosiowy Przegląd Kodu (Two-Axis Code Review):**
+   - **Oś 1 (Wierność Specyfikacji):** Sprawdzenie braku scope creepu i zgodności z PRP.
+   - **Oś 2 (Standardy i Czysty Kod):** Analiza tokenów Dark Art Déco, brak duplikacji (Ponytail) i zapachów Fowlera.
+4. **PR Impact Report:** Pull Request zawiera podsumowanie dotkniętych modułów, poziomu ryzyka i liczby linii.
+
+### Faza 5: Merge, Delivery & Handoff
+1. Scalenie do `main` po przejściu zielonego CI w GitHub Actions (`gh pr merge --squash --delete-branch`).
+2. Usunięcie katalogu worktree (`git worktree remove .worktrees/issue-XX`).
+3. Przebudowa aplikacji na Biurku (`bash desktop/build-app.sh --rebuild`).
+4. Raport odbioru dla PO z dokładnie jednym mikrokrokiem na 2 minuty.
