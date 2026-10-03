@@ -193,9 +193,31 @@ fs.rmSync(zipFile, { force: true });
 
 try {
   if (process.platform === 'win32') {
-    // Windows 10/11 / Windows Server 2022+ posiada wbudowany tar.exe obsługujący tworzenie zipów (-a -c -f)
-    console.log('  Używam natywnego tar.exe do kompresji ZIP...');
-    execSync(`tar.exe -a -c -f "${zipFile}" -C "${stagingRoot}" "${packageFolderName}"`, { stdio: 'inherit' });
+    let compressed = false;
+    // 1. 7z (standard w GitHub Actions Windows runners, szybki i odporny na litery dysków)
+    try {
+      console.log('  Używam 7z do kompresji ZIP...');
+      execSync(`7z a -tzip -mx=5 "${zipFile}" "${packageFolderName}"`, { cwd: stagingRoot, stdio: 'inherit' });
+      compressed = true;
+    } catch (_) {}
+
+    // 2. Natywny tar.exe z System32 z flagą --force-local (blokuje mylenie litery dysku np. D: ze zdalnym hostem)
+    if (!compressed) {
+      try {
+        console.log('  Fallback: Używam System32\\tar.exe (--force-local)...');
+        const tarExe = fs.existsSync('C:\\Windows\\System32\\tar.exe') ? 'C:\\Windows\\System32\\tar.exe' : 'tar.exe';
+        execSync(`"${tarExe}" --force-local -a -c -f "${zipFile}" -C "${stagingRoot}" "${packageFolderName}"`, { stdio: 'inherit' });
+        compressed = true;
+      } catch (_) {}
+    }
+
+    // 3. Fallback do PowerShell Compress-Archive
+    if (!compressed) {
+      console.log('  Fallback: Używam PowerShell Compress-Archive...');
+      const sourceFolder = path.join(stagingRoot, packageFolderName);
+      execSync(`powershell -NoProfile -Command "Compress-Archive -Path '${sourceFolder}' -DestinationPath '${zipFile}' -Force"`, { stdio: 'inherit' });
+      compressed = true;
+    }
   } else {
     // macOS / Linux runner
     try {
