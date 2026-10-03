@@ -949,7 +949,8 @@ export async function runChatPipeline({
       throw err;
     }
   }
-  const { stream: providerStream, getUsage, getFinishReason } = streamResult;
+  const { stream: providerStream } = streamResult;
+  let { getUsage, getFinishReason } = streamResult;
 
   // Sprawdzanie i ochrona sprawczości badaczy (Physical Immunity & Agency Linter)
   const investigatorNames: string[] = [];
