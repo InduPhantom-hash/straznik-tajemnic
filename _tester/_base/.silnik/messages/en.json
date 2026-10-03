@@ -721,8 +721,8 @@
       "next": "Next"
     },
     "sources": {
-      "blackMonk": "Distributor of d100 RPG materials - PDF/print rulebooks and free starter materials.",
-      "driveThru": "Official d100 RPG PDFs from official digital distributors.",
+      "blackMonk": "Free official d100 Quick-Start Rules PDF (Call of Cthulhu PL).",
+      "driveThru": "Official free Call of Cthulhu 7th Edition Quick-Start Rules PDF (Chaosium EN).",
       "description": "Keeper of Secrets is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
       "disclaimer": "Independent d100 investigative engine. Not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies (BYOB).",
       "back": "Back",
@@ -4737,8 +4737,8 @@
     "next": "Next"
   },
   "StepContentSources": {
-    "blackMonk": "Distributor of d100 RPG materials - PDF/print rulebooks and free starter materials.",
-    "driveThru": "Official d100 RPG PDFs from official digital distributors.",
+    "blackMonk": "Free official d100 Quick-Start Rules PDF (Call of Cthulhu PL).",
+    "driveThru": "Official free Call of Cthulhu 7th Edition Quick-Start Rules PDF (Chaosium EN).",
     "description": "Keeper of Secrets is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
     "disclaimer": "Independent d100 investigative engine. Not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies (BYOB).",
     "back": "Back",

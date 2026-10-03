@@ -47,8 +47,8 @@ Aplikacja **nie zawiera** żadnego podręcznika - wnosisz własny, legalny egzem
 
 **Za darmo (na start w zupełności wystarczy):**
 
-- **Black Monk** - darmowe startery PL: [blackmonk.pl](https://blackmonk.pl) (sekcja „Do pobrania").
-- **Chaosium** - _Quick-Start Rules_ (EN): [chaosium.com](https://www.chaosium.com/call-of-cthulhu-quick-start/).
+- **Black Monk** - darmowy Starter PL: [Pobierz Starter PDF](https://static.blackmonk.pl/file/ZC_Starter.pdf).
+- **Chaosium** - _Quick-Start Rules_ (EN): [Pobierz Quick-Start PDF](https://www.chaosium.com/content/FreePDFs/CoC/CHA23131%20Call%20of%20Cthulhu%207th%20Edition%20Quick-Start%20Rules.pdf?srsltid=AU7gw4V_wFSlDU2eHmVHyECBP8ZSusjVskZz5IzR5Kz01jIdG3KGoc-O).
 
 **Pełne wydania (płatne):**
 

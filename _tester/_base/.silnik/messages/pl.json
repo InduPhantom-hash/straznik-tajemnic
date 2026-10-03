@@ -721,8 +721,8 @@
       "next": "Dalej"
     },
     "sources": {
-      "blackMonk": "Dystrybucja materiałów RPG d100 - podręczniki PDF/druk oraz sekcja darmowych starterów.",
-      "driveThru": "Oficjalne podręczniki i przygody RPG d100 w PDF (DriveThruRPG).",
+      "blackMonk": "Darmowy oficjalny Starter d100 w PDF (Zew Cthulhu PL).",
+      "driveThru": "Oficjalny darmowy podręcznik zasad Quick-Start Rules PDF (Chaosium EN).",
       "description": "Strażnik Tajemnic to <strong>silnik</strong> - sam w sobie nie zawiera żadnego podręcznika. Podręcznik wnosisz Ty: pobierz darmowy starter albo kup pełne wydanie z legalnego źródła, a w następnym kroku wgraj swój plik PDF. Trafi on wyłącznie na Twój dysk.",
       "disclaimer": "Niezależny silnik emulatora śledztwa d100. Niewspierany i niezwiązany z Chaosium Inc. ani Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> to znaki towarowe Chaosium Inc. Korzystaj wyłącznie z własnych, legalnie nabytych egzemplarzy (BYOB).",
       "back": "Wstecz",
@@ -4737,8 +4737,8 @@
     "next": "Dalej"
   },
   "StepContentSources": {
-    "blackMonk": "Dystrybucja materiałów RPG d100 - podręczniki PDF/druk oraz sekcja darmowych starterów.",
-    "driveThru": "Oficjalne podręczniki i przygody RPG d100 w PDF (DriveThruRPG).",
+    "blackMonk": "Darmowy oficjalny Starter d100 w PDF (Zew Cthulhu PL).",
+    "driveThru": "Oficjalny darmowy podręcznik zasad Quick-Start Rules PDF (Chaosium EN).",
     "description": "Strażnik Tajemnic to <strong>silnik</strong> - sam w sobie nie zawiera żadnego podręcznika. Podręcznik wnosisz Ty: pobierz darmowy starter albo kup pełne wydanie z legalnego źródła, a w następnym kroku wgraj swój plik PDF. Trafi on wyłącznie na Twój dysk.",
     "disclaimer": "Niezależny silnik emulatora śledztwa d100. Niewspierany i niezwiązany z Chaosium Inc. ani Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> to znaki towarowe Chaosium Inc. Korzystaj wyłącznie z własnych, legalnie nabytych egzemplarzy (BYOB).",
     "back": "Wstecz",
