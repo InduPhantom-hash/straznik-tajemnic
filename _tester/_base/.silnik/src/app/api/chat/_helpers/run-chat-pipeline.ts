@@ -37,6 +37,12 @@ import { buildPdfStrategy, PdfMemoryAttachments } from './build-pdf-strategy';
 import { buildTimeContext } from './build-time-context';
 import { createSseStream } from './create-sse-stream';
 import {
+  lintAgencyViolations,
+  collectStreamChunks,
+  chunksToAsyncStream,
+} from './agency-linter';
+import type { StreamChunk } from '@/lib/ai-providers/types';
+import {
   detectPendingSanityTestResolution,
   type PendingSanityResolution,
 } from './sanity-resolution';
@@ -894,6 +900,7 @@ export async function runChatPipeline({
   // zwraca null, więc chatGeminiOptions nie ma cachedContent przypisanego do
   // martwego modelu → streamArgs bezpieczne do reuse na modelu fallback.
   let effectiveModelId = modelId;
+  let activeProvider = provider;
   let streamResult: Awaited<ReturnType<typeof provider.streamChat>>;
   try {
     streamResult = await provider.streamChat(streamArgs);
@@ -920,6 +927,7 @@ export async function runChatPipeline({
         apiKey,
         DEFAULT_GEMINI_MODEL
       );
+      activeProvider = fallbackProvider;
       try {
         streamResult = await fallbackProvider.streamChat(streamArgs);
       } catch (fallbackErr) {
@@ -941,13 +949,120 @@ export async function runChatPipeline({
       throw err;
     }
   }
-  const { stream: providerStream, getUsage, getFinishReason } = streamResult;
+  const { stream: providerStream } = streamResult;
+  let { getUsage, getFinishReason } = streamResult;
+
+  // Sprawdzanie i ochrona sprawczości badaczy (Physical Immunity & Agency Linter)
+  const investigatorNames: string[] = [];
+  if (character?.name) {
+    investigatorNames.push(character.name);
+  }
+  if (Array.isArray(characters)) {
+    for (const c of characters) {
+      if (c?.name && !investigatorNames.includes(c.name)) {
+        investigatorNames.push(c.name);
+      }
+    }
+  }
+  if (hotSeatConfig?.players && Array.isArray(hotSeatConfig.players)) {
+    for (const p of hotSeatConfig.players) {
+      if (p?.name && !investigatorNames.includes(p.name)) {
+        investigatorNames.push(p.name);
+      }
+      if (p?.characterName && !investigatorNames.includes(p.characterName)) {
+        investigatorNames.push(p.characterName);
+      }
+    }
+  }
+
+  const isDuetSession =
+    Boolean(hotSeatConfig?.enabled && (hotSeatConfig?.players?.length ?? 0) >= 2) ||
+    (Array.isArray(characters) && characters.length >= 2);
+
+  let collected = await collectStreamChunks(providerStream);
+  const lintResult = lintAgencyViolations(collected.fullText, investigatorNames, {
+    isDuet: isDuetSession,
+    locale: (locale ?? 'pl') as 'pl' | 'en',
+  });
+
+  if (lintResult.hasViolation) {
+    console.warn(
+      `⚠️ Wykryto naruszenie sprawczości badacza (${lintResult.violations.length} naruszeń: ${lintResult.violations.map((v) => v.reason).join('; ')}). Próba soft-retry...`
+    );
+
+    const violationDetails = lintResult.violations
+      .slice(0, 3)
+      .map((v) => `- Naruszenie: "${v.matchedSnippet}" (${v.reason})`)
+      .join('\n');
+
+    const correctiveDirective =
+      locale === 'en'
+        ? `\n\n[CRITICAL ERROR - AGENCY VIOLATION DETECTED]\nYour previous draft violated player agency and physical immunity of the investigator:\n${violationDetails}\nRULE: You are the Game Master, NOT the player. NEVER move investigators, draw weapons, open first aid kits, examine bodies/wounds, or speak for investigators. Stop on the threshold of action, describe senses and environment, and immediately ask "[What do you do?]". Regenerate the entire response now, strictly respecting player agency.`
+        : `\n\n[KRYTYCZNY BŁĄD - NARUSZENIE SPRAWCZOŚCI I FIZYCZNEGO IMMUNITETU BADACZA]\nTwój poprzedni projekt odpowiedzi odebrał sprawczość graczowi:\n${violationDetails}\nBEZWZGLĘDNA ZASADA: Jesteś Strażnikiem Tajemnic, a NIE graczem. NIGDY nie poruszaj badaczami (nie decyduj, że wchodzą, zeskakują, jadą), nie sięgaj do ich ekwipunku (apteczka, broń), nie przeprowadzaj samowolnych oględzin/badań ran ani nie wkładaj im słów w usta. Zatrzymaj się na progu zdarzenia, opisz otoczenie oraz zmysły i natychmiast zapytaj "${isDuetSession ? '[Co robicie?]' : '[Co robisz?]'}" przekazując turę graczom. Wygeneruj całą odpowiedź ponownie od zera, bez naruszania sprawczości.`;
+
+    try {
+      const retryGeminiOptions = {
+        ...streamArgs.geminiOptions,
+        additionalContext: [
+          ...(streamArgs.geminiOptions?.additionalContext ?? []),
+          correctiveDirective,
+        ],
+      };
+
+      const retryResult = await activeProvider.streamChat({
+        ...streamArgs,
+        geminiOptions: retryGeminiOptions,
+      });
+
+      const retryCollected = await collectStreamChunks(retryResult.stream);
+      const retryLint = lintAgencyViolations(
+        retryCollected.fullText,
+        investigatorNames,
+        {
+          isDuet: isDuetSession,
+          locale: (locale ?? 'pl') as 'pl' | 'en',
+        }
+      );
+
+      if (!retryLint.hasViolation) {
+        collected = retryCollected;
+        getUsage = retryResult.getUsage;
+        getFinishReason = retryResult.getFinishReason;
+      } else {
+        console.warn(
+          '⚠️ Soft-retry nadal zawiera naruszenie sprawczości; obcinanie narracji przed nieautoryzowaną akcją.'
+        );
+        const sanitized = retryLint.sanitizedText ?? lintResult.sanitizedText;
+        if (sanitized) {
+          collected = {
+            fullText: sanitized,
+            chunks: [{ text: sanitized }],
+          };
+        }
+        getUsage = retryResult.getUsage;
+        getFinishReason = retryResult.getFinishReason;
+      }
+    } catch (retryErr) {
+      console.warn(
+        '⚠️ Błąd podczas soft-retry; obcinanie pierwotnej odpowiedzi przed nieautoryzowaną akcją:',
+        retryErr
+      );
+      if (lintResult.sanitizedText) {
+        collected = {
+          fullText: lintResult.sanitizedText,
+          chunks: [{ text: lintResult.sanitizedText }],
+        };
+      }
+    }
+  }
+
+  const finalProviderStream = chunksToAsyncStream(collected.chunks);
 
   const pendingSanityResolutions = detectPendingSanityTestResolution(message);
 
   // === SSE STREAM + POST-STREAM SIDE EFFECTS - IND-71 micro 3/3 ===
   const sseStream = createSseStream({
-    providerStream,
+    providerStream: finalProviderStream,
     getUsage,
     getFinishReason,
     sessionId,

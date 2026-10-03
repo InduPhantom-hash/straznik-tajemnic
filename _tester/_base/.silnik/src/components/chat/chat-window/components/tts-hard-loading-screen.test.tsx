@@ -129,6 +129,36 @@ describe('TTSHardLoadingScreen (Issue #177, #364 & #482)', () => {
     expect(screen.getByText(/Prohibicja/i)).toBeInTheDocument();
   });
 
+  it('odrzuca techniczny żargon w lewym boksie i renderuje nastrojowy pattern z zawodem Badacza (Issue #612)', () => {
+    render(
+      <TTSHardLoadingScreen
+        isStarting={true}
+        startProgress={60}
+        adventureTitle="Krakowska Enigma"
+        adventureContext={{
+          title: 'Krakowska Enigma',
+          location: 'Warszawa',
+          country: 'Polska',
+          activeSceneYear: 1921,
+          eraLabel: 'Lata 20. XX w.',
+          description:
+            'Autorski scenariusz d100 wyekstrahowany w trybie lokalnym z pliku "Zew_Cthulhu_7ed._Krakowska_Enigma.pdf". Dokument zawiera 28 stron, 2 kluczowych postaci dramatu oraz 2 zidentyfikowanych poszlak i rekwizytów.',
+        }}
+        activeCharacter={{ name: 'Jan Kowalski', occupation: 'Dziennikarz' }}
+      />
+    );
+
+    // Brak wycieku technicznych fraz
+    expect(screen.queryByText(/wyekstrahowany/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/zawiera 28 stron/i)).not.toBeInTheDocument();
+
+    // Obecność nastrojowego patternu z zawodem Badacza i sprawą
+    expect(
+      screen.getByText(/Jako dociekliwy Dziennikarz podejmujesz śledztwo w sprawie znanej jako „Krakowska Enigma”/)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/1921 rok/)).toBeInTheDocument();
+  });
+
   it('obsługuje brak jakichkolwiek tekstów bezpiecznie cofając się do wartości domyślnych', () => {
     render(
       <TTSHardLoadingScreen

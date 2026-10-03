@@ -33,6 +33,8 @@ export interface TTSHardLoadingScreenProps {
   region?: string;
   eraContext?: ResolvedEraContext | null;
   adventureContext?: AdventureContext | null;
+  activeCharacter?: { name?: string; occupation?: string } | null;
+  characters?: Array<{ name?: string; occupation?: string }> | null;
   startError?: GameStartError | null;
   onRetry?: () => void;
   onCancel?: () => void;
@@ -50,6 +52,8 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   region,
   eraContext,
   adventureContext,
+  activeCharacter,
+  characters,
   startError,
   onRetry,
   onCancel,
@@ -86,16 +90,15 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   const location = region || adventureContext?.location || adventureContext?.country;
   const eraLabel = eraContext?.effectiveYear ? String(eraContext.effectiveYear) : undefined;
 
-  // Lewy panel: Bezspoilerowe Dossier dla Badacza (Issue #482)
+  // Lewy panel: Bezspoilerowe Dossier dla Badacza (Issue #482 & #612)
   const storyDossier = useMemo(() => {
-    if (adventureContext) {
-      return getSafeDossierIntro(adventureContext, t('defaultChronicleIntro'));
-    }
-    if (adventureDescription?.trim()) {
-      return adventureDescription.trim();
-    }
-    return t('defaultChronicleIntro');
-  }, [adventureContext, adventureDescription, t]);
+    return getSafeDossierIntro(adventureContext, {
+      character: activeCharacter,
+      characters,
+      locale,
+      fallbackDefault: adventureDescription?.trim() || t('defaultChronicleIntro'),
+    });
+  }, [adventureContext, activeCharacter, characters, locale, adventureDescription, t]);
 
   // Prawy panel: Realia Epoki i Świata (Issue #482)
   const settingTrivia = useMemo(() => {

@@ -1066,4 +1066,98 @@ Progi: Zwykły ≤50 | Trudny ≤25 | Ekstremalny ≤10
       expect(activeDirective?.content).not.toContain('Mrok 1');
     });
   });
+
+  describe('Bezwzględna ochrona sprawczości i Fizyczny Immunitet Badacza (R1 & R2)', () => {
+    const dummyGameContext: GameContext = {
+      mode: 'investigation',
+      hasNPCs: false,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
+    };
+
+    it('wstrzykuje blok twardej ochrony sprawczości i Fizycznego Immunitetu w trybie SOLO', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'TIME',
+        gmProtocol: 'PROTOCOL',
+        resolvedCachedContent: null,
+        gameContext: dummyGameContext,
+        playerCharacterName: 'Dr Constance Ward',
+      }).join('\n');
+
+      expect(result).toContain('BEZWZGLĘDNA OCHRONA SPRAWCZOŚCI I FIZYCZNY IMMUNITET BADACZA');
+      expect(result).toContain('Postać gracza: **Dr Constance Ward**');
+      expect(result).toContain('FIZYCZNY IMMUNITET BADACZA (ZAKAZ AUTOPILOTA)');
+      expect(result).toContain('ZAKAZ PRZEMIESZCZANIA');
+      expect(result).toContain('ZAKAZ SIĘGANIA DO EKWIPUNKU');
+      expect(result).toContain('ZAKAZ SAMOWOLNYCH BADAŃ I OGLĘDZIN');
+      expect(result).toContain('ZAKAZ MOTORYKI I DIALOGÓW');
+      expect(result).toContain('[Co robisz?]');
+    });
+
+    it('wstrzykuje twarde reguły sprawczości w trybie Hot Seat dla wszystkich badaczy (likwidacja luki)', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'TIME',
+        gmProtocol: 'PROTOCOL',
+        resolvedCachedContent: null,
+        gameContext: dummyGameContext,
+        hotSeatConfig: {
+          enabled: true,
+          players: [
+            { playerId: 'p1', characterName: 'Dr Constance Ward' },
+            { playerId: 'p2', characterName: 'Arthur Vance' },
+          ],
+        },
+      }).join('\n');
+
+      expect(result).toContain('BEZWZGLĘDNA OCHRONA SPRAWCZOŚCI I FIZYCZNY IMMUNITET BADACZY (HOT SEAT / DRUŻYNA)');
+      expect(result).toContain('Dr Constance Ward, Arthur Vance');
+      expect(result).toContain('KATEGORYCZNY ZAKAZ GRANIE ZA BADACZY (ZAKAZ AUTOPILOTA)');
+      expect(result).toContain('ZAKAZ PRZEMIESZCZANIA');
+      expect(result).toContain('ZAKAZ SIĘGANIA DO EKWIPUNKU');
+      expect(result).toContain('ZAKAZ SAMOWOLNYCH BADAŃ I OGLĘDZIN');
+      expect(result).toContain('[Co robicie?]');
+    });
+
+    it('eliminuje przykład narzucający ruch ("Wchodzicie...") z sekcji duetContext w trybie Hot Seat', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'TIME',
+        gmProtocol: 'PROTOCOL',
+        resolvedCachedContent: null,
+        gameContext: dummyGameContext,
+        hotSeatConfig: {
+          enabled: true,
+          players: [
+            { playerId: 'p1', characterName: 'Dr Constance Ward' },
+            { playerId: 'p2', characterName: 'Arthur Vance' },
+          ],
+        },
+      }).join('\n');
+
+      expect(result).toContain('## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT / DRUŻYNA)');
+      expect(result).not.toContain('Wchodzicie...');
+      expect(result).toContain('Widzicie...", "Stajecie przed...", "Słyszycie...');
+      expect(result).toContain('ZAKOŃCZENIE TURY I FIZYCZNY IMMUNITET');
+    });
+
+    it('wstrzykuje twarde reguły sprawczości dla wszystkich badaczy gdy characters ma 2+ postaci bez aktywnego hotSeatConfig', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'TIME',
+        gmProtocol: 'PROTOCOL',
+        resolvedCachedContent: null,
+        gameContext: dummyGameContext,
+        characters: [
+          { name: 'Dr Constance Ward' },
+          { name: 'Arthur Vance' },
+        ] as unknown as Character[],
+      }).join('\n');
+
+      expect(result).toContain('BEZWZGLĘDNA OCHRONA SPRAWCZOŚCI I FIZYCZNY IMMUNITET BADACZY (HOT SEAT / DRUŻYNA)');
+      expect(result).toContain('Dr Constance Ward, Arthur Vance');
+      expect(result).toContain('KATEGORYCZNY ZAKAZ GRANIE ZA BADACZY (ZAKAZ AUTOPILOTA)');
+      expect(result).toContain('[Co robicie?]');
+    });
+  });
 });
+
