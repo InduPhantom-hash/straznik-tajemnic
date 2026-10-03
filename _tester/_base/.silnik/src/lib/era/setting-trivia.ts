@@ -208,25 +208,172 @@ export function getSettingTrivia(
   };
 }
 
+export interface SafeDossierCharacterInfo {
+  name?: string;
+  occupation?: string;
+}
+
+export interface SafeDossierIntroOptions {
+  character?: SafeDossierCharacterInfo | null;
+  characters?: SafeDossierCharacterInfo[] | null;
+  locale?: 'pl' | 'en';
+  fallbackDefault?: string;
+}
+
 /**
- * Zwraca bezspoilerowy opis przygody dla Badacza.
+ * Wyrażenie regularne wykrywające techniczny żargon ekstrakcji plików i podsumowań PDF,
+ * który pod żadnym pozorem nie może trafić na ekran Badacza.
+ */
+export const TECHNICAL_EXTRACTION_REGEX =
+  /(wyekstrahowan|ekstrahowan|extracted|dokument zawiera|document contains|\bstron\b|\bpages\b|kluczowych postaci|poszlak i rekwizyt|zidentyfikowanych poszlak|autorski scenariusz d100|custom d100 scenario|suplement settingowy wyekstrahowany|księga wiedzy magicznej wyekstrahowana|bestiariusz wyekstrahowany)/i;
+
+/**
+ * Deterministyczny generator klimatycznego Dossier Badacza (Issue #612).
+ * Łączy czas/rok, lokację, aurę, zawód Badacza oraz tytuł sprawy w nastrojową,
+ * bezspoilerową całość w stylu Dark Art Déco.
+ */
+export function generateAtmosphericDossierPattern(
+  adventureContext?: AdventureContext | null,
+  options?: SafeDossierIntroOptions
+): string {
+  const isEn = options?.locale === 'en';
+
+  const title = adventureContext?.title?.trim() || (isEn ? 'The Mystery' : 'Niewyjaśniona Sprawa');
+  const location =
+    adventureContext?.location?.trim() ||
+    adventureContext?.country?.trim() ||
+    (isEn ? 'the city' : 'miasto');
+
+  // Ustalenie roku
+  const dateStr = typeof adventureContext?.startDate === 'string' ? adventureContext.startDate : '';
+  const dateYearMatch = dateStr.match(/^(\d{4})/)?.[1];
+  const yearMatch = adventureContext?.yearRange?.match(/\b\d{4}\b/)?.[0];
+  const year =
+    adventureContext?.activeSceneYear ||
+    (dateYearMatch ? Number.parseInt(dateYearMatch, 10) : undefined) ||
+    (yearMatch ? Number.parseInt(yearMatch, 10) : 1925);
+
+  // Ustalenie pory roku jeśli dostępna data lub miesiąc
+  let seasonPl = '';
+  let seasonEn = '';
+  const monthMatch = dateStr.match(/^\d{4}[-/.](\d{1,2})/);
+  if (monthMatch) {
+    const m = Number.parseInt(monthMatch[1], 10);
+    if (m >= 3 && m <= 5) {
+      seasonPl = 'Wiosna';
+      seasonEn = 'Spring';
+    } else if (m >= 6 && m <= 8) {
+      seasonPl = 'Lato';
+      seasonEn = 'Summer';
+    } else if (m >= 9 && m <= 11) {
+      seasonPl = 'Jesień';
+      seasonEn = 'Autumn';
+    } else {
+      seasonPl = 'Zima';
+      seasonEn = 'Winter';
+    }
+  }
+
+  // Segment 1: Czas i Miejsce
+  let part1 = '';
+  if (isEn) {
+    part1 = seasonEn ? `${seasonEn} ${year}, ${location}.` : `${year}, ${location}.`;
+  } else {
+    part1 = seasonPl ? `${seasonPl} ${year} roku, ${location}.` : `${year} rok, ${location}.`;
+  }
+
+  // Segment 2: Badacz / Duet i Sprawa
+  const characters = options?.characters;
+  const isDuet = Array.isArray(characters) && characters.length > 1;
+  const occupation = options?.character?.occupation?.trim();
+
+  let part2 = '';
+  if (isEn) {
+    if (isDuet) {
+      part2 = `Together with your partner, you undertake the investigation known as "${title}".`;
+    } else if (occupation) {
+      part2 = `As an inquiring ${occupation}, you take on the investigation known as "${title}".`;
+    } else {
+      part2 = `The Investigators are drawn into the perplexing case of "${title}".`;
+    }
+  } else {
+    if (isDuet) {
+      part2 = `Wraz z towarzyszem podejmujecie wspólne śledztwo w sprawie znanej jako „${title}”.`;
+    } else if (occupation) {
+      part2 = `Jako dociekliwy ${occupation} podejmujesz śledztwo w sprawie znanej jako „${title}”.`;
+    } else {
+      part2 = `Przed Badaczami staje zagadkowa sprawa znana jako „${title}”.`;
+    }
+  }
+
+  // Segment 3: Aura i nastrojowe domknięcie (100% bez spoilerów)
+  const rawWeather = adventureContext?.initialWeather?.trim();
+  const weather = rawWeather ? rawWeather.replace(/[.]+$/, '') : '';
+
+  let part3 = '';
+  if (isEn) {
+    if (weather) {
+      part3 = `${weather}. In the quiet shadows of the streets, the boundary between rational inquiry and unsettling mystery begins to blur.`;
+    } else {
+      part3 = `In the quiet shadows of the streets, the boundary between rational inquiry and unsettling mystery begins to blur.`;
+    }
+  } else {
+    if (weather) {
+      part3 = `${weather}. Wśród cieni i milczących zaułków zaczynają zacierać się granice między racjonalnym śledztwem a niepokojącą tajemnicą.`;
+    } else {
+      part3 = `Wśród cieni i milczących zaułków zaczynają zacierać się granice między racjonalnym śledztwem a niepokojącą tajemnicą.`;
+    }
+  }
+
+  return `${part1} ${part2} ${part3}`;
+}
+
+/**
+ * Zwraca bezspoilerowy opis przygody dla Badacza (Issue #482 & #612).
+ * Kaskada:
+ * 1. Czyste dedykowane `investigatorIntro` (jeśli brak żargonu ekstrakcji).
+ * 2. Czysty opis `description` (maksymalnie 2 zdania bez żargonu ekstrakcji).
+ * 3. Deterministyczny generator fabularny w oparciu o nastrojowy pattern.
  */
 export function getSafeDossierIntro(
   adventureContext?: AdventureContext | null,
-  fallbackDefault = ''
+  optionsOrFallback?: SafeDossierIntroOptions | string
 ): string {
-  if (adventureContext?.investigatorIntro?.trim()) {
-    return adventureContext.investigatorIntro.trim();
+  const options: SafeDossierIntroOptions =
+    typeof optionsOrFallback === 'string'
+      ? { fallbackDefault: optionsOrFallback }
+      : (optionsOrFallback || {});
+
+  const fallbackDefault = options.fallbackDefault || '';
+
+  // 1. Sprawdź dedykowany investigatorIntro
+  const explicitIntro = adventureContext?.investigatorIntro?.trim();
+  if (explicitIntro && !TECHNICAL_EXTRACTION_REGEX.test(explicitIntro)) {
+    return explicitIntro;
   }
 
+  // 2. Sprawdź description, jeśli nie zawiera żargonu ekstrakcji
   const rawDesc = adventureContext?.description?.trim();
-  if (!rawDesc) return fallbackDefault;
-
-  // Podział na zdania, wybór maksymalnie 2 pierwszych bez spoilerów
-  const sentences = rawDesc.split(/(?<=[.!?])\s+/);
-  if (sentences.length > 0) {
-    return sentences.slice(0, 2).join(' ').trim();
+  if (rawDesc && !TECHNICAL_EXTRACTION_REGEX.test(rawDesc)) {
+    const sentences = rawDesc.split(/(?<=[.!?])\s+/);
+    if (sentences.length > 0) {
+      const candidate = sentences.slice(0, 2).join(' ').trim();
+      if (!TECHNICAL_EXTRACTION_REGEX.test(candidate)) {
+        return candidate;
+      }
+    }
   }
 
-  return rawDesc;
+  // 3. Jeśli mamy kontekst przygody -> uruchom deterministyczny generator
+  if (
+    adventureContext?.title ||
+    adventureContext?.location ||
+    adventureContext?.activeSceneYear ||
+    adventureContext?.yearRange
+  ) {
+    return generateAtmosphericDossierPattern(adventureContext, options);
+  }
+
+  return fallbackDefault;
 }
+

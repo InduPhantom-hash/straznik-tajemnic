@@ -683,7 +683,10 @@ export interface NpcContextEntry {
 
 // IND-72: minimal Hot Seat player shape z body request (cleanup `any` z lin 291 route.ts).
 export interface HotSeatPlayerEntry {
+  playerId?: string;
+  characterId?: string;
   characterName?: string;
+  name?: string;
 }
 
 export {
@@ -901,16 +904,56 @@ export function buildAdditionalContext(
     additionalContext.push(sessionRecapSection);
   }
 
-  // IND-223: jawne oznaczenie postaci gracza (steruje człowiek). Wstrzykiwane
-  // ZAWSZE (nie cache'owane jak gmProtocol), by AI dostawało konkretne imię i
-  // twardy zakaz grania za gracza nawet po przejściu na compact protokół.
-  // IND-223: jawne oznaczenie postaci gracza w trybie SOLO. W trybie Hot Seat z 2+ postaciami
-  // ta sekcja jest zastępowana dedykowanym blokiem ## TRYB GRY DLA DWÓCH OSÓB.
-  const isHotSeatActive = hotSeatConfig?.enabled && (hotSeatConfig?.players?.length ?? 0) >= 2;
-  if (playerCharacterName && !isHotSeatActive) {
+  // R1 & R2: Bezwzględna ochrona sprawczości i Fizyczny Immunitet Badacza (Solo i Hot Seat / Drużyna)
+  // Wstrzykiwane ZAWSZE, aby AI dostawało konkretne imiona i twardy zakaz grania za postacie.
+  const isHotSeatActive = Boolean(hotSeatConfig?.enabled && (hotSeatConfig?.players?.length ?? 0) >= 2);
+  const isTeamSession = isHotSeatActive || (Array.isArray(characters) && characters.length >= 2);
+  if (isTeamSession) {
+    const gatheredNames: string[] = [];
+    if (hotSeatConfig?.players && Array.isArray(hotSeatConfig.players)) {
+      for (const p of hotSeatConfig.players) {
+        const charName = p.characterName?.trim() || p.name?.trim();
+        if (charName && charName !== 'Nieznany' && !gatheredNames.includes(charName)) {
+          gatheredNames.push(charName);
+        }
+      }
+    }
+    if (Array.isArray(characters)) {
+      for (const c of characters) {
+        const charName = c?.name?.trim();
+        if (charName && charName !== 'Nieznany' && !gatheredNames.includes(charName)) {
+          gatheredNames.push(charName);
+        }
+      }
+    }
+    const teamNames = gatheredNames.length >= 2
+      ? gatheredNames
+      : (playerCharacterName ? [playerCharacterName] : gatheredNames);
+
     additionalContext.push(
-      `\n## POSTAĆ GRACZA (STERUJE CZŁOWIEK)\nPostać gracza: **${playerCharacterName}**. To człowiek podejmuje jej decyzje, pisze jej kwestie i wykonuje jej akcje. NIGDY nie generuj wypowiedzi, myśli ani działań postaci ${playerCharacterName} - opisz świat i reakcje NPC, a potem zatrzymaj się na [Co robisz?] i czekaj na input gracza.`
+      `\n## BEZWZGLĘDNA OCHRONA SPRAWCZOŚCI I FIZYCZNY IMMUNITET BADACZY (HOT SEAT / DRUŻYNA)\n` +
+      `W grze uczestniczy zespół badaczy sterowanych przez żywych graczy: **${teamNames.join(', ')}**.\n` +
+      `KATEGORYCZNY ZAKAZ GRANIE ZA BADACZY (ZAKAZ AUTOPILOTA):\n` +
+      `- ZAKAZ PRZEMIESZCZANIA: MG nie ma prawa samowolnie przemieszczać badaczy (nie decyduj, że badacze wchodzą, podchodzą, wsiadają na wóz czy z niego zeskakują). Postacie zatrzymują się na progu zdarzenia.\n` +
+      `- ZAKAZ SIĘGANIA DO EKWIPUNKU: MG nie wyciąga za badaczy broni, apteczek ani przedmiotów bez deklaracji graczy.\n` +
+      `- ZAKAZ SAMOWOLNYCH BADAŃ I OGLĘDZIN: Zakaz orzekania, że badacze badają rany, oglądają zwłoki czy przeszukują meble bez deklaracji.\n` +
+      `- ZAKAZ MOTORYKI I DIALOGÓW: Zero kwestii dialogowych, myśli, gestów ani mimiki w imieniu któregokolwiek z badaczy (${teamNames.join(', ')}).\n` +
+      `Wprowadzenie sceny i incydent inicjujący (NPC) ZAWSZE zatrzymuje się na progu zdarzenia z pytaniem [Co robicie?]. Czekaj na deklaracje graczy.`
     );
+  } else {
+    const activeCharacterName = playerCharacterName || characters?.[0]?.name;
+    if (activeCharacterName) {
+      additionalContext.push(
+        `\n## BEZWZGLĘDNA OCHRONA SPRAWCZOŚCI I FIZYCZNY IMMUNITET BADACZA (STERUJE CZŁOWIEK)\n` +
+        `Postać gracza: **${activeCharacterName}**. To żywy człowiek podejmuje jej decyzje, pisze jej kwestie i deklaruje akcje.\n` +
+        `FIZYCZNY IMMUNITET BADACZA (ZAKAZ AUTOPILOTA):\n` +
+        `- ZAKAZ PRZEMIESZCZANIA: MG nie ma prawa samowolnie przemieszczać badacza (nie pisz "wchodzisz", "podchodzisz", "wsiadasz", "zeskakujesz"). Badacz zatrzymuje się przed progiem nowej przestrzeni.\n` +
+        `- ZAKAZ SIĘGANIA DO EKWIPUNKU: MG nigdy nie decyduje o dobyciu broni, wyjęciu apteczki czy użyciu przedmiotów badacza bez deklaracji gracza.\n` +
+        `- ZAKAZ SAMOWOLNYCH BADAŃ I OGLĘDZIN: MG nigdy nie decyduje, że badacz bada rany, bada zwłoki czy przeszukuje pomieszczenie bez deklaracji.\n` +
+        `- ZAKAZ MOTORYKI I DIALOGÓW: Zero kwestii dialogowych, myśli, uczuć ani odruchów motorycznych postaci ${activeCharacterName}.\n` +
+        `Wprowadzenie sceny i incydent inicjujący (NPC) ZAWSZE zatrzymuje się na progu zdarzenia z markerem [Co robisz?]. Czekaj na input gracza.`
+      );
+    }
   }
 
   // Profil wizualny Badacza (Visual DNA) - wyłącznie dla narracji tekstowej i reakcji NPC (zakaz w obrazach FPP)
@@ -1193,10 +1236,10 @@ export function buildAdditionalContext(
     if (characterNames.length >= 2) {
       let duetContext = `\n## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT / DRUŻYNA)\n` +
         `KRYTYCZNE NADPISANIE ROLI: Ta gra NIE jest jednoosobowa. W grze uczestniczy ZESPÓŁ badaczy: ${characterNames.join(', ')}.\n` +
-        `1. FORMA NARRACJI: Opisuj świat i sceny w liczbie mnogiej ("Widzicie...", "Stajecie przed...", "Wchodzicie...") lub w ujęciach adresowanych ("@${characterNames[0]}..., podczas gdy @${characterNames[1]}..."). NIGDY nie zwracaj się do nich jak do pojedynczej osoby w 2. osobie l.poj.\n` +
+        `1. FORMA NARRACJI: Opisuj świat i sceny w liczbie mnogiej ("Widzicie...", "Stajecie przed...", "Słyszycie...") lub w ujęciach adresowanych ("@${characterNames[0]}..., podczas gdy @${characterNames[1]}..."). NIGDY nie zwracaj się do nich jak do pojedynczej osoby w 2. osobie l.poj.\n` +
         `2. RELACJA I WSPÓLNY CEL: Prowadź grę z uwzględnieniem faktu, że bohaterowie współpracują. Podkreślaj ich wspólne wyzwania oraz to, co sprowadziło ich razem w dany punkt czasu i przestrzeni. NIGDY nie zmuszaj graczy do dyskusji między sobą na czacie.\n` +
         `3. ADRESOWANIE I AKCJE: Sceny wspólne opisuj dla obu postaci. Kwestie i akcje kierowane do JEDNEJ postaci poprzedzaj tagiem @ImięPostaci: (np. @${characterNames[0]}: ...).\n` +
-        `4. ZAKOŃCZENIE TURY: Zamiast pytania do każdej postaci z osobna ZAWSZE kończ prostym pytaniem skierowanym do drużyny: [Co robicie?].\n` +
+        `4. ZAKOŃCZENIE TURY I FIZYCZNY IMMUNITET: Zamiast pytania do każdej postaci z osobna ZAWSZE kończ prostym pytaniem skierowanym do drużyny: [Co robicie?]. PAMIĘTAJ O FIZYCZNYM IMMUNITECIE: nie wykonuj żadnych akcji fizycznych, nie przemieszczaj postaci, nie sięgaj do ich ekwipunku ani nie decyduj za ${characterNames.join(', ')}.\n` +
         `5. PRZYPISANIE SKUTKÓW: Przy zmianach SAN/HP/dziennika dodawaj prefiks @Imię: \`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`.\n`;
 
       if (isGameStart && characters && characters.length >= 2) {
