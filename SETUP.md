@@ -60,8 +60,8 @@ W pliku `.env.local` możesz wpisać `GEMINI_API_KEY=twoj_klucz`.
 Aplikacja to czysty emulator zasad i **nie zawiera** żadnego podręcznika ani chronionych prawem autorskim tabel. Wnosisz własny, legalnie nabyty egzemplarz PDF:
 
 **Darmowe wydania na start (w zupełności wystarczą):**
-- **Black Monk** - darmowe startery d100 PL: [blackmonk.pl](https://blackmonk.pl) (sekcja „Do pobrania”).
-- **Chaosium** - _Call of Cthulhu Quick-Start Rules_ (EN): [chaosium.com](https://www.chaosium.com/call-of-cthulhu-quick-start/).
+- **Black Monk** - darmowy Starter d100 PL: [Pobierz Starter PDF](https://static.blackmonk.pl/file/ZC_Starter.pdf).
+- **Chaosium** - _Call of Cthulhu Quick-Start Rules_ (EN): [Pobierz Quick-Start PDF](https://www.chaosium.com/content/FreePDFs/CoC/CHA23131%20Call%20of%20Cthulhu%207th%20Edition%20Quick-Start%20Rules.pdf?srsltid=AU7gw4V_wFSlDU2eHmVHyECBP8ZSusjVskZz5IzR5Kz01jIdG3KGoc-O).
 
 **Pełne księgi zasad:**
 - [Black Monk](https://blackmonk.pl) (PL) · [DriveThruRPG](https://www.drivethrurpg.com) (EN) · [ProRPG](https://prorpg.store) (PL).

@@ -18,13 +18,13 @@ interface Source {
 const SOURCES: Source[] = [
   {
     name: 'Black Monk',
-    desc: 'Dystrybucja materiałów RPG d100 - podręczniki PDF/druk oraz sekcja darmowych starterów.',
-    url: 'https://blackmonk.pl',
+    desc: 'Darmowy oficjalny Starter d100 w PDF (Zew Cthulhu PL).',
+    url: 'https://static.blackmonk.pl/file/ZC_Starter.pdf',
   },
   {
-    name: 'DriveThruRPG',
-    desc: 'Oficjalne podręczniki i przygody RPG d100 w PDF (DriveThruRPG).',
-    url: 'https://www.drivethrurpg.com',
+    name: 'Chaosium',
+    desc: 'Official free Call of Cthulhu 7th Edition Quick-Start Rules PDF (Chaosium EN).',
+    url: 'https://www.chaosium.com/content/FreePDFs/CoC/CHA23131%20Call%20of%20Cthulhu%207th%20Edition%20Quick-Start%20Rules.pdf?srsltid=AU7gw4V_wFSlDU2eHmVHyECBP8ZSusjVskZz5IzR5Kz01jIdG3KGoc-O',
   },
 ];
 

@@ -133,6 +133,16 @@ describe('RulebookModal - dwukolumnowe centrum podręczników i dodatków PDF', 
     expect(screen.getByTestId('optional-column')).toBeInTheDocument();
     expect(screen.queryByTestId('continue-to-game-btn')).not.toBeInTheDocument();
     expect(screen.getByTestId('locked-continue-hint')).toBeInTheDocument();
+
+    const blackMonkLink = screen.getByRole('link', { name: /Black Monk/i });
+    expect(blackMonkLink).toHaveAttribute('href', 'https://static.blackmonk.pl/file/ZC_Starter.pdf');
+
+    const chaosiumLink = screen.getByRole('link', { name: /Chaosium/i });
+    expect(chaosiumLink).toHaveAttribute(
+      'href',
+      'https://www.chaosium.com/content/FreePDFs/CoC/CHA23131%20Call%20of%20Cthulhu%207th%20Edition%20Quick-Start%20Rules.pdf?srsltid=AU7gw4V_wFSlDU2eHmVHyECBP8ZSusjVskZz5IzR5Kz01jIdG3KGoc-O'
+    );
+
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
     });

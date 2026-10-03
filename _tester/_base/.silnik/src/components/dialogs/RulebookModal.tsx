@@ -1031,7 +1031,7 @@ export const RulebookModal: FC<RulebookModalProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  href="https://blackmonk.pl"
+                  href="https://static.blackmonk.pl/file/ZC_Starter.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-brass/35 bg-brass/10 hover:bg-brass/20 transition-colors text-xs text-foreground font-medium"
@@ -1040,12 +1040,12 @@ export const RulebookModal: FC<RulebookModalProps> = ({
                   <ExternalLink className="w-3 h-3 text-brass" />
                 </a>
                 <a
-                  href="https://www.drivethrurpg.com"
+                  href="https://www.chaosium.com/content/FreePDFs/CoC/CHA23131%20Call%20of%20Cthulhu%207th%20Edition%20Quick-Start%20Rules.pdf?srsltid=AU7gw4V_wFSlDU2eHmVHyECBP8ZSusjVskZz5IzR5Kz01jIdG3KGoc-O"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-brass/35 bg-brass/10 hover:bg-brass/20 transition-colors text-xs text-foreground font-medium"
                 >
-                  <span>DriveThruRPG (EN)</span>
+                  <span>Chaosium (EN)</span>
                   <ExternalLink className="w-3 h-3 text-brass" />
                 </a>
               </div>
