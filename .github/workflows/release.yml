@@ -30,8 +30,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.tag_name || github.ref }}
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -89,8 +87,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.tag_name || github.ref }}
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -112,7 +108,7 @@ jobs:
 
       - name: Cold-Start Smoke Gate
         working-directory: _tester/_base/.silnik
-        run: npm test -- src/tests/smoke/cold-start-state.test.ts --silent
+        run: npm test -- cold-start-state.test.ts --silent
 
       - name: Build Next.js Production
         working-directory: _tester/_base/.silnik
