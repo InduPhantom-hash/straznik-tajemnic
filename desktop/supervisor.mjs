@@ -245,20 +245,45 @@ export async function runSupervisor(options = {}) {
   }
 
   // Uruchomienie jako osobna grupa procesów (detached)
+  // Jeśli w katalogu gry znajduje się binarka Next.js, uruchamiamy ją bezpośrednio przez bieżący proces node (process.execPath),
+  // co eliminuje zależność od obecności npm w systemie gracza (Zero-Setup portable runtime).
+  const nextBin = path.join(paths.gameDir, 'node_modules', 'next', 'dist', 'bin', 'next');
+  const hasDirectNext = fs.existsSync(nextBin);
+
   if (process.platform === 'win32') {
-    serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start'], {
-      cwd: paths.gameDir,
-      env,
-      detached: false,
-      stdio: serverStdio
-    });
+    if (hasDirectNext) {
+      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath}...`);
+      serverProcess = spawn(process.execPath, [nextBin, 'start', '--port', String(targetPort)], {
+        cwd: paths.gameDir,
+        env,
+        detached: false,
+        stdio: serverStdio
+      });
+    } else {
+      serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start'], {
+        cwd: paths.gameDir,
+        env,
+        detached: false,
+        stdio: serverStdio
+      });
+    }
   } else {
-    serverProcess = spawn('npm', ['start'], {
-      cwd: paths.gameDir,
-      env,
-      detached: true,
-      stdio: serverStdio
-    });
+    if (hasDirectNext) {
+      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath}...`);
+      serverProcess = spawn(process.execPath, [nextBin, 'start', '--port', String(targetPort)], {
+        cwd: paths.gameDir,
+        env,
+        detached: true,
+        stdio: serverStdio
+      });
+    } else {
+      serverProcess = spawn('npm', ['start'], {
+        cwd: paths.gameDir,
+        env,
+        detached: true,
+        stdio: serverStdio
+      });
+    }
   }
 
   serverStartedByUs = true;

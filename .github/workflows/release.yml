@@ -1,0 +1,154 @@
+name: Stable Release (macOS & Windows)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Docelowa platforma do zbudowania (all / windows / macos)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows
+          - macos
+      tag_name:
+        description: 'Tag wydania do zaktualizowania (np. v0.9.5)'
+        required: false
+        default: 'v0.9.5'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    if: github.event_name == 'push' || github.event.inputs.target == 'all' || github.event.inputs.target == 'macos'
+    runs-on: macos-15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag_name || github.ref }}
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: _tester/_base/.silnik/package-lock.json
+
+      - name: Determine target tag
+        id: meta
+        shell: bash
+        run: |
+          TARGET_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          echo "tag=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag and package version
+        working-directory: _tester/_base/.silnik
+        run: |
+          EXPECTED_VER="${{ steps.meta.outputs.tag }}"
+          EXPECTED_VER="${EXPECTED_VER#v}"
+          PKG_VER=$(node -p "require('./package.json').version")
+          if [ "$EXPECTED_VER" != "$PKG_VER" ]; then
+            echo "::warning::Tag ($EXPECTED_VER) nie odpowiada wersji w package.json ($PKG_VER)"
+          fi
+
+      - name: Install dependencies
+        working-directory: _tester/_base/.silnik
+        run: npm ci
+
+      - name: Build application bundle
+        run: bash desktop/build-app.sh --rebuild --output "$RUNNER_TEMP/release" --no-desktop-copy
+
+      - name: Package macOS application
+        run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/release/Straznik Tajemnic AI.app" "$RUNNER_TEMP/release/straznik-tajemnic-macos.zip"
+
+      - name: Create update manifest
+        run: >-
+          node desktop/create-update-manifest.mjs
+          "$RUNNER_TEMP/release/straznik-tajemnic-macos.zip"
+          "$RUNNER_TEMP/release/update-manifest.json"
+          "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.meta.outputs.tag }}/straznik-tajemnic-macos.zip"
+          "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.meta.outputs.tag }}"
+
+      - name: Upload macOS release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release-assets
+          path: |
+            ${{ runner.temp }}/release/straznik-tajemnic-macos.zip
+            ${{ runner.temp }}/release/update-manifest.json
+
+  build-windows:
+    if: github.event_name == 'push' || github.event.inputs.target == 'all' || github.event.inputs.target == 'windows'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag_name || github.ref }}
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: _tester/_base/.silnik/package-lock.json
+
+      - name: Determine target tag
+        id: meta
+        shell: bash
+        run: |
+          TARGET_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          echo "tag=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies (native Windows compilation)
+        working-directory: _tester/_base/.silnik
+        run: npm ci
+
+      - name: Cold-Start Smoke Gate
+        working-directory: _tester/_base/.silnik
+        run: npm test -- src/tests/smoke/cold-start-state.test.ts --silent
+
+      - name: Build Next.js Production
+        working-directory: _tester/_base/.silnik
+        run: npm run build
+
+      - name: Assemble Windows ZIP Package (Zero-Setup)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/dist"
+          node desktop/build-windows.mjs --output "$RUNNER_TEMP/dist"
+
+      - name: Upload Windows release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-assets
+          path: ${{ runner.temp }}/dist/straznik-tajemnic-windows.zip
+
+  publish:
+    needs: [build-macos, build-windows]
+    if: always() && !cancelled() && (needs.build-macos.result == 'success' || needs.build-windows.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-release-assets'
+          path: ${{ runner.temp }}/all-assets
+          merge-multiple: true
+
+      - name: Publish or update release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          generate_release_notes: true
+          prerelease: false
+          files: ${{ runner.temp }}/all-assets/*
