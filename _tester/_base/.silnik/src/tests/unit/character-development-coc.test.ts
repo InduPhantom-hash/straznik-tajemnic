@@ -153,6 +153,52 @@ describe("characterDevelopment - Call of Cthulhu 7e rules (Issue #28)", () => {
     });
   });
 
+  describe("rollEDUDevelopment (Księga Strażnika str. 106-108)", () => {
+    it("daje sukces i przyrost +1K10 gdy wynik rzutu jest wyższy niż aktualne EDU", () => {
+      // Szukamy nasiona, które da rzut > 60
+      let sawSuccess = false;
+      for (let seed = 1; seed <= 50; seed++) {
+        const res = characterDevelopment.rollEDUDevelopment(60, seed);
+        if (res.roll > 60) {
+          expect(res.success).toBe(true);
+          expect(res.oldValue).toBe(60);
+          expect(res.improvement).toBeGreaterThanOrEqual(1);
+          expect(res.improvement).toBeLessThanOrEqual(10);
+          expect(res.newValue).toBe(60 + (res.improvement || 0));
+          sawSuccess = true;
+          break;
+        }
+      }
+      expect(sawSuccess).toBe(true);
+    });
+
+    it("nie przyznaje przyrostu gdy wynik rzutu jest mniejszy lub równy aktualnemu EDU", () => {
+      // Szukamy nasiona, które da rzut <= 80
+      let sawFailure = false;
+      for (let seed = 1; seed <= 50; seed++) {
+        const res = characterDevelopment.rollEDUDevelopment(80, seed);
+        if (res.roll <= 80) {
+          expect(res.success).toBe(false);
+          expect(res.oldValue).toBe(80);
+          expect(res.improvement).toBeUndefined();
+          expect(res.newValue).toBeUndefined();
+          sawFailure = true;
+          break;
+        }
+      }
+      expect(sawFailure).toBe(true);
+    });
+
+    it("nie przekracza bezwzględnego pułapu 99 Wykształcenia", () => {
+      for (let seed = 1; seed <= 50; seed++) {
+        const res = characterDevelopment.rollEDUDevelopment(95, seed);
+        if (res.success && res.newValue !== undefined) {
+          expect(res.newValue).toBeLessThanOrEqual(99);
+        }
+      }
+    });
+  });
+
   describe("rollSelfHelp (Księga Strażnika str. 186-187)", () => {
     it("zwraca +1K6 SAN przy zdanym teście Poczytalności i -1 SAN przy porażce", () => {
       let sawSuccess = false;
