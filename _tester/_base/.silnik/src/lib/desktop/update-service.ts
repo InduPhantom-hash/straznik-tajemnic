@@ -380,8 +380,8 @@ export async function checkForDesktopUpdate(
       if (comparison.aheadBy !== undefined) {
         if (comparison.aheadBy > 0) {
           commitsBehind = comparison.aheadBy;
-        } else if (comparison.aheadBy === 0 && (comparison.behindBy ?? 0) > 0) {
-          // Local commit is strictly ahead of the published manifest commit
+        } else if (comparison.aheadBy === 0) {
+          // Local commit is equal to or ahead of the published manifest commit
           commitUpdateAvailable = false;
           commitsBehind = 0;
         }
@@ -504,10 +504,14 @@ export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Prom
         if (entry.startsWith('updater-node') && entry.endsWith('.exe')) {
           try {
             await fs.promises.unlink(path.join(updateDir, entry));
-          } catch (_) {}
+          } catch {
+            // ignore unlink errors
+          }
         }
       }
-    } catch (_) {}
+    } catch {
+      // ignore readdir errors
+    }
 
     const detachedNode = path.join(updateDir, 'updater-node.exe');
     try {
