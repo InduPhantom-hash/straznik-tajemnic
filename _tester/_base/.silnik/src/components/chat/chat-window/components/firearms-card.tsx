@@ -14,10 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   Crosshair,
   ShieldAlert,
-  Flame,
   CheckCircle2,
   AlertTriangle,
-  Skull,
 } from 'lucide-react';
 import { rollD100WithBonus, evaluateSkillCheck } from '@/lib/dice-utils';
 import { getSkillValue, type Character, type FirearmsAttackEventData } from '@/lib/types';
@@ -134,7 +132,7 @@ export const FirearmsCard: React.FC<FirearmsCardProps> = ({
           )}
           {firearmEvent.description && (
             <p className="font-sans italic text-stone-400 text-xs mt-1 pt-1 border-t border-stone-800/40">
-              "{firearmEvent.description}"
+              &quot;{firearmEvent.description}&quot;
             </p>
           )}
         </div>
