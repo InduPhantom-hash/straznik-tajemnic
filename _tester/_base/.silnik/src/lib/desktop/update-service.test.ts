@@ -1,17 +1,22 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { formatVersionWithCommit } from './update-client';
 import {
   canPerformSelfUpdate,
   checkForDesktopUpdate,
+  getCurrentCommitSha,
   getUpdatePackageForPlatform,
   isNewerStableVersion,
+  isSameCommit,
   readUpdateStatus,
   resolveAppTarget,
   validateManifest,
 } from './update-service';
 
 const sha = 'a'.repeat(64);
+const commitOld = '1111111111111111111111111111111111111111';
+const commitNew = '2222222222222222222222222222222222222222';
 const manifest = {
   schemaVersion: 1,
   version: '0.9.6',
@@ -26,15 +31,22 @@ describe('desktop update service', () => {
   const previousManifestUrl = process.env.ZEW_UPDATE_MANIFEST_URL;
   const previousSelfUpdate = process.env.ZEW_DESKTOP_SELF_UPDATE;
   const previousDataDir = process.env.ZEW_DATA_DIR;
+  const previousCommitSha = process.env.ZEW_CURRENT_COMMIT_SHA;
+  const previousBuildInfoPath = process.env.ZEW_BUILD_INFO_PATH;
 
   afterEach(() => {
     if (previousManifestUrl === undefined) delete process.env.ZEW_UPDATE_MANIFEST_URL; else process.env.ZEW_UPDATE_MANIFEST_URL = previousManifestUrl;
     if (previousSelfUpdate === undefined) delete process.env.ZEW_DESKTOP_SELF_UPDATE; else process.env.ZEW_DESKTOP_SELF_UPDATE = previousSelfUpdate;
     if (previousDataDir === undefined) delete process.env.ZEW_DATA_DIR; else process.env.ZEW_DATA_DIR = previousDataDir;
+    if (previousCommitSha === undefined) delete process.env.ZEW_CURRENT_COMMIT_SHA; else process.env.ZEW_CURRENT_COMMIT_SHA = previousCommitSha;
+    if (previousBuildInfoPath === undefined) delete process.env.ZEW_BUILD_INFO_PATH; else process.env.ZEW_BUILD_INFO_PATH = previousBuildInfoPath;
   });
 
   it('accepts only stable V1 manifests with HTTPS and the expected bundle ID', () => {
     expect(validateManifest(manifest)?.version).toBe('0.9.6');
+    expect(validateManifest({ ...manifest, commitSha: commitNew, shortCommit: '2222222', publishedAt: '2026-10-04T12:00:00.000Z' })?.commitSha).toBe(commitNew);
+    expect(validateManifest({ ...manifest, commitSha: 'not-a-hex-sha!' })).toBeNull();
+    expect(validateManifest({ ...manifest, publishedAt: 'invalid-date' })).toBeNull();
     expect(validateManifest({ ...manifest, version: '0.9.6-beta.1' })).toBeNull();
     expect(validateManifest({ ...manifest, bundleId: 'evil.bundle' })).toBeNull();
     expect(validateManifest({ ...manifest, minimumMacOSVersion: 'latest' })).toBeNull();
@@ -47,6 +59,25 @@ describe('desktop update service', () => {
     expect(isNewerStableVersion('0.9.3', '0.9.4-beta.1')).toBe(false);
   });
 
+  it('compares commit SHAs and formats version labels with short commit', () => {
+    expect(isSameCommit(commitOld, commitOld)).toBe(true);
+    expect(isSameCommit(commitOld, '1111111')).toBe(true);
+    expect(isSameCommit(commitOld, commitNew)).toBe(false);
+    expect(formatVersionWithCommit('0.9.5', commitNew)).toBe('0.9.5 (2222222)');
+    expect(formatVersionWithCommit('0.9.5')).toBe('0.9.5');
+  });
+
+  it('reads current commit SHA from build-info.json when present', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'build-info-'));
+    const buildInfoFile = path.join(tmpDir, 'build-info.json');
+    fs.writeFileSync(buildInfoFile, JSON.stringify({ version: '0.9.5', commitSha: commitOld, shortCommit: '1111111' }));
+    delete process.env.ZEW_CURRENT_COMMIT_SHA;
+    process.env.ZEW_BUILD_INFO_PATH = buildInfoFile;
+
+    await expect(getCurrentCommitSha()).resolves.toBe(commitOld);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
   it('reports an update but disables installation outside an app bundle', async () => {
     process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
     process.env.ZEW_DESKTOP_SELF_UPDATE = '0';
@@ -57,6 +88,115 @@ describe('desktop update service', () => {
     })) as unknown as typeof fetch;
     const result = await checkForDesktopUpdate(fetcher);
     expect(result).toMatchObject({ available: true, currentVersion: '0.9.5', canSelfUpdate: false });
+  });
+
+  it('detects commit-based updates on the same version and reports commitsBehind', async () => {
+    process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
+    process.env.ZEW_CURRENT_COMMIT_SHA = commitOld;
+    process.env.ZEW_DESKTOP_SELF_UPDATE = '1';
+
+    const sameVersionManifest = {
+      ...manifest,
+      version: '0.9.5',
+      commitSha: commitNew,
+    };
+
+    const fetcher = jest.fn(async (url: string | URL | Request) => {
+      const urlStr = String(url);
+      if (urlStr.includes('/compare/')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ahead_by: 4, behind_by: 0 }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => sameVersionManifest,
+      };
+    }) as unknown as typeof fetch;
+
+    const result = await checkForDesktopUpdate(fetcher);
+    expect(result).toMatchObject({
+      available: true,
+      currentVersion: '0.9.5',
+      currentCommitSha: commitOld,
+      currentShortCommit: '1111111',
+      commitsBehind: 4,
+      canSelfUpdate: true,
+    });
+    expect(result.manifest?.shortCommit).toBe('2222222');
+  });
+
+  it('reports up-to-date when version and commitSha match', async () => {
+    process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
+    process.env.ZEW_CURRENT_COMMIT_SHA = commitNew;
+
+    const sameCommitManifest = {
+      ...manifest,
+      version: '0.9.5',
+      commitSha: commitNew,
+    };
+
+    const fetcher = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => sameCommitManifest,
+    })) as unknown as typeof fetch;
+
+    const result = await checkForDesktopUpdate(fetcher);
+    expect(result.available).toBe(false);
+  });
+
+  it('does not offer a downgrade when local checkout is ahead of release commit', async () => {
+    process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
+    process.env.ZEW_CURRENT_COMMIT_SHA = commitNew;
+
+    const olderCommitManifest = {
+      ...manifest,
+      version: '0.9.5',
+      commitSha: commitOld,
+    };
+
+    const fetcher = jest.fn(async (url: string | URL | Request) => {
+      if (String(url).includes('/compare/')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ahead_by: 0, behind_by: 2 }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => olderCommitManifest,
+      };
+    }) as unknown as typeof fetch;
+
+    const result = await checkForDesktopUpdate(fetcher);
+    expect(result.available).toBe(false);
+    expect(result.commitsBehind).toBe(0);
+  });
+
+  it('offers an update when local package has no build-info commitSha yet but manifest has commitSha', async () => {
+    process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
+    process.env.ZEW_CURRENT_COMMIT_SHA = 'none';
+
+    const commitManifest = {
+      ...manifest,
+      version: '0.9.5',
+      commitSha: commitNew,
+    };
+
+    const fetcher = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => commitManifest,
+    })) as unknown as typeof fetch;
+
+    const result = await checkForDesktopUpdate(fetcher);
+    expect(result.available).toBe(true);
   });
 
   it('returns a durable idle status when no worker result exists', async () => {

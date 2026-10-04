@@ -33,3 +33,6 @@ data/cache/
 # Izolowane katalogi robocze agenta (Git Worktrees)
 .worktrees/
 
+# Lokalny znacznik buildu paczki desktopowej
+build-info.json
+

@@ -23,6 +23,7 @@ const target = path.resolve(args.target || args.bundle || '');
 const url = args.url || '';
 const expectedSha256 = (args.sha256 || '').toLowerCase();
 const version = args.version || '';
+const expectedCommit = (args.commit || '').trim().toLowerCase();
 const bundleId = args['bundle-id'] || 'com.aios.straznik-tajemnic-ai';
 const expectedSize = parseInt(args.size || '0', 10);
 const dataDir = path.resolve(args['data-dir'] || '');
@@ -46,11 +47,48 @@ let swapped = false;
 let backupLocation = null;
 let liveLocation = null;
 
+function verifyOrWriteBuildInfo(runtimeRoot) {
+  if (!runtimeRoot || !fs.existsSync(runtimeRoot)) return true;
+  const buildInfoPath = path.join(runtimeRoot, 'build-info.json');
+  if (fs.existsSync(buildInfoPath)) {
+    try {
+      const info = JSON.parse(fs.readFileSync(buildInfoPath, 'utf8'));
+      const actualCommit = typeof info.commitSha === 'string' ? info.commitSha.trim().toLowerCase() : '';
+      if (expectedCommit && actualCommit) {
+        if (actualCommit !== expectedCommit && !actualCommit.startsWith(expectedCommit) && !expectedCommit.startsWith(actualCommit)) {
+          return false;
+        }
+      }
+      if (expectedCommit && !actualCommit) {
+        info.commitSha = expectedCommit;
+        info.shortCommit = expectedCommit.slice(0, 7);
+        fs.writeFileSync(buildInfoPath, `${JSON.stringify(info, null, 2)}\n`);
+      }
+      return true;
+    } catch (_) {
+      return !expectedCommit;
+    }
+  }
+  if (expectedCommit) {
+    try {
+      const info = {
+        version,
+        commitSha: expectedCommit,
+        shortCommit: expectedCommit.slice(0, 7),
+        builtAt: new Date().toISOString(),
+      };
+      fs.writeFileSync(buildInfoPath, `${JSON.stringify(info, null, 2)}\n`);
+    } catch (_) {}
+  }
+  return true;
+}
+
 function writeStatus(state, message) {
   const payload = {
     id: operationId,
     state,
     version,
+    ...(expectedCommit ? { commitSha: expectedCommit } : {}),
     message,
     updatedAt: new Date().toISOString(),
   };
@@ -291,6 +329,13 @@ async function run() {
       cleanup();
       process.exit(1);
     }
+
+    const macRuntimeDir = path.join(stagedNewApp, 'Contents', 'Resources', 'runtime');
+    if (!verifyOrWriteBuildInfo(fs.existsSync(macRuntimeDir) ? macRuntimeDir : stagedNewApp)) {
+      writeStatus('failed', 'commit mismatch');
+      cleanup();
+      process.exit(1);
+    }
   } else {
     // Windows: Szukamy struktury runtime / package.json
     function findWindowsRuntime(dir) {
@@ -321,6 +366,12 @@ async function run() {
 
     if (version && pkgVersion && pkgVersion !== version) {
       writeStatus('failed', 'version mismatch');
+      cleanup();
+      process.exit(1);
+    }
+
+    if (!verifyOrWriteBuildInfo(stagedNewRuntime)) {
+      writeStatus('failed', 'commit mismatch');
       cleanup();
       process.exit(1);
     }

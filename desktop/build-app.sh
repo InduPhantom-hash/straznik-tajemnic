@@ -42,6 +42,9 @@ fi
 
 cd "$GAME_DIR"
 APP_VERSION="$(node -p "require('./package.json').version")"
+COMMIT_SHA="${GITHUB_SHA:-$(git -C "$APP_DIR" rev-parse HEAD 2>/dev/null || echo "")}"
+SHORT_COMMIT="$(printf '%s' "$COMMIT_SHA" | cut -c1-7)"
+BUILT_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
 echo "[0/5] Cold-Start Smoke Gate (Bramka Pierwszych 10 Sekund)..."
 npm test -- src/tests/smoke/cold-start-state.test.ts --silent
@@ -57,6 +60,17 @@ if [ "$REBUILD" = "1" ] || [ ! -f .next/BUILD_ID ]; then
 else
   echo "  build istnieje (.next/BUILD_ID) - pomijam. Wymus: bash desktop/build-app.sh --rebuild"
 fi
+
+node -e '
+const fs = require("fs");
+const info = {
+  version: process.argv[2],
+  commitSha: process.argv[3],
+  shortCommit: process.argv[4],
+  builtAt: process.argv[5],
+};
+fs.writeFileSync(process.argv[1], JSON.stringify(info, null, 2) + "\n");
+' "$GAME_DIR/build-info.json" "$APP_VERSION" "$COMMIT_SHA" "$SHORT_COMMIT" "$BUILT_AT"
 
 echo "[2/5] Ikona..."
 bash "$DESKTOP_DIR/make-icon.sh" "$DESKTOP_DIR" || echo "  ikona pominieta - .app dostanie domyslna"
@@ -84,6 +98,7 @@ rsync -a --delete \
   --exclude 'public/sounds/sfx' \
   "$GAME_DIR/" "$PACKAGE_RUNTIME/"
 rsync -a --delete "$DESKTOP_DIR/" "$PACKAGE_RUNTIME/desktop/"
+cp "$GAME_DIR/build-info.json" "$PACKAGE_RUNTIME/build-info.json"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -129,7 +144,7 @@ echo "[5/5] Gotowe."
 echo ""
 echo "  Aplikacja : $APP_BUNDLE"
 if [ "$COPY_TO_DESKTOP" = "1" ]; then echo "  Na biurku : $DESK_APP"; fi
-echo "  Wersja    : $APP_VERSION"
+echo "  Wersja    : $APP_VERSION ($SHORT_COMMIT)"
 echo "  Node      : $NODE_BIN_DIR"
 echo ""
 echo "  Uruchom: dwuklik ikony na biurku  albo  open \"$APP_BUNDLE\""

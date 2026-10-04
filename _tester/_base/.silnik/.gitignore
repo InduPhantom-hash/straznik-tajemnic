@@ -150,3 +150,6 @@ graft/
 # Raporty crash i feedback z runtime
 /data/crash-reports/
 /data/feedback/
+
+# Lokalny znacznik buildu paczki desktopowej
+build-info.json

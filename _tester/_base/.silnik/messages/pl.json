@@ -7176,6 +7176,7 @@
     "description": "Sprawdź stabilne wydania aplikacji i zainstaluj je bez utraty zapisów ani pamięci kampanii.",
     "currentVersion": "Bieżąca wersja: {version}",
     "availableVersion": "Dostępna wersja: {version}",
+    "commitsBehind": "{count, plural, one {# nowy commit w kanale stabilnym} few {# nowe commity w kanale stabilnym} many {# nowych commitów w kanale stabilnym} other {# nowych commitów w kanale stabilnym}}",
     "releaseNotes": "Opis zmian",
     "devMode": "Tryb deweloperski pozwala sprawdzać wersję, ale nie modyfikuje repozytorium.",
     "notConfigured": "Źródło aktualizacji nie jest skonfigurowane.",
