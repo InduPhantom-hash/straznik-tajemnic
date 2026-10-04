@@ -266,6 +266,7 @@ export default function Home() {
     setActiveGameState: charMgmt.setActiveGameState,
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
+    resetSessionEndState: chat.resetSessionEndState,
     currentLocale: gameLocale,
     router,
     pathname,
@@ -1036,6 +1037,7 @@ export default function Home() {
   const handleNewAdventure = () => {
     chat.setMessages([]);
     chat.setActiveChaseState(null);
+    chat.resetSessionEndState();
     localStorage.removeItem('chat-messages');
     tts.stopCurrentAudio();
     

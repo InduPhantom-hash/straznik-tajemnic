@@ -274,4 +274,75 @@ describe('useChat - sessionEndStatus (LOG-01)', () => {
     expect(result.current.sessionSaveStatus).toBe('saved');
     expect(saveCallCount).toBe(1);
   });
+
+  it('resetSessionEndState odblokowuje czat i przywraca stany idle (Issue #643)', async () => {
+    global.fetch = jest.fn((url: string | URL | Request) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('/api/chat')) {
+        return Promise.resolve(
+          createMockStreamResponse('Koniec przygody. [KONIEC_SESJI:POTWIERDZENIE]')
+        );
+      }
+      if (urlStr.includes('/api/game-save')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              saveId: 's1',
+              saveName: 'Koniec sesji',
+              size: 1024,
+              formattedSize: '1 KB',
+              messageCount: 1,
+              imageCount: 0,
+            }),
+        } as unknown as Response);
+      }
+      return Promise.reject(new Error(`Unhandled URL: ${urlStr}`));
+    });
+
+    const { result } = renderHook(() => useChat(defaultOptions));
+
+    await act(async () => {
+      await result.current.handleSendMessage('Kończymy.');
+    });
+
+    expect(result.current.sessionEndStatus).toBe('ended');
+    expect(result.current.isSessionEnded).toBe(true);
+    expect(result.current.sessionSaveStatus).toBe('saved');
+
+    act(() => {
+      result.current.resetSessionEndState();
+    });
+
+    expect(result.current.sessionEndStatus).toBe('idle');
+    expect(result.current.isSessionEnded).toBe(false);
+    expect(result.current.sessionSaveStatus).toBe('idle');
+
+    // Gracz kontynuuje grę - wysyła nową turę
+    let lastSentBody: Record<string, unknown> | null = null;
+    (global.fetch as jest.Mock).mockImplementation((url: string | URL | Request, init?: RequestInit) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('/api/chat')) {
+        if (init?.body) {
+          lastSentBody = JSON.parse(init.body as string);
+        }
+        return Promise.resolve(
+          createMockStreamResponse('Rozglądasz się po mrocznym korytarzu...')
+        );
+      }
+      return Promise.reject(new Error(`Unhandled URL: ${urlStr}`));
+    });
+
+    await act(async () => {
+      await result.current.handleSendMessage('Idziemy dalej badać piwnicę.');
+    });
+
+    expect(lastSentBody).not.toBeNull();
+    expect((lastSentBody as unknown as { message: string }).message).toBe('Idziemy dalej badać piwnicę.');
+    expect((lastSentBody as unknown as { message: string }).message).not.toContain('[KONIEC_SESJI:FINAL]');
+    expect(result.current.sessionEndStatus).toBe('idle');
+    expect(result.current.isSessionEnded).toBe(false);
+  });
 });
+

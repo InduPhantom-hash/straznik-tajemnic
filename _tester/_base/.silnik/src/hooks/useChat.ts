@@ -422,6 +422,8 @@ export interface UseChatReturn {
   sessionSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
   /** Funkcja ponowienia autozapisu kroniki po błędzie */
   retrySessionSave: () => Promise<void>;
+  /** Resetuje stan zakończenia sesji i odblokowuje czat (Issue #643) */
+  resetSessionEndState: () => void;
   // Retro Cheats
   cheatCombatModal: {
     attackerName: string;
@@ -749,6 +751,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const retrySessionSave = useCallback(async () => {
     await executeSessionAutoSave();
   }, [executeSessionAutoSave]);
+
+  const resetSessionEndState = useCallback(() => {
+    setIsSessionEnded(false);
+    setSessionEndStatus('idle');
+    setSessionSaveStatus('idle');
+    isSavingSessionRef.current = false;
+  }, []);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
   const [pendingDeclarations, setPendingDeclarations] = useState<
     PendingDeclaration[]
@@ -2869,6 +2878,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     sessionEndStatus,
     sessionSaveStatus,
     retrySessionSave,
+    resetSessionEndState,
     cheatCombatModal,
     setCheatCombatModal,
     cheatChaseModal,

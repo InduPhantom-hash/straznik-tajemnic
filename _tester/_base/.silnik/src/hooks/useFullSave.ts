@@ -66,6 +66,7 @@ export interface UseFullSaveOptions {
     characters: Character[]
   ) => boolean;
   clearDeclarations?: () => void;
+  resetSessionEndState?: () => void;
   currentLocale?: 'pl' | 'en';
   router?: FullSaveRouterLike;
   pathname?: string;
@@ -83,6 +84,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
     stopCurrentAudio,
     restoreHotSeatConfig,
     clearDeclarations,
+    resetSessionEndState,
     equipmentVisualEra,
     currentLocale,
     router,
@@ -123,11 +125,14 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         }
         const campaignMemory = restored.scope;
         clearDeclarations?.();
+        resetSessionEndState?.();
         // Wczytaj wiadomości
         const loadedMessages: Message[] = save.messages.map((msg, idx) => ({
           id: msg.id || `loaded_${idx}`,
           role: msg.role,
-          content: msg.content,
+          content: msg.content
+            ? msg.content.replace(/\[KONIEC_SESJI:POTWIERDZENIE\]/gi, '').trimEnd()
+            : msg.content,
           timestamp: new Date(msg.timestamp),
           illustrations: msg.illustrations || [],
           // Obrazy scen żyją w generatedImages (nie illustrations) - bez tego
@@ -278,6 +283,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       setAiSettings,
       restoreHotSeatConfig,
       clearDeclarations,
+      resetSessionEndState,
       equipmentVisualEra,
       currentLocale,
       router,
@@ -292,6 +298,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       )
     ) {
       clearDeclarations?.();
+      resetSessionEndState?.();
       // Wyczyść wiadomości
       setMessages([]);
 
@@ -326,6 +333,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
     }
   }, [
     clearDeclarations,
+    resetSessionEndState,
     setMessages,
     setPdfMemory,
     setActiveGameState,
