@@ -467,4 +467,119 @@ describe('useFullSave - status urwanej narracji', () => {
       expect(router.replace).not.toHaveBeenCalled();
     });
   });
+
+  describe('unblocking chat / session reset (Issue #643)', () => {
+    it('wywołuje resetSessionEndState podczas pełnego wczytywania save', async () => {
+      const resetSessionEndState = jest.fn();
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Unblock Save',
+        userId: 'local',
+        messages: [
+          {
+            id: 'msg-1',
+            role: 'assistant',
+            content: 'Koniec sesji',
+            timestamp: new Date('2026-10-04T20:00:00.000Z'),
+          },
+        ],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          setMessages: jest.fn(),
+          setCharacters: jest.fn(),
+          setActiveCharacter: jest.fn(),
+          setCampaigns: jest.fn(),
+          setPdfMemory: jest.fn(),
+          setActiveGameState: jest.fn(),
+          setAiSettings: jest.fn(),
+          stopCurrentAudio: jest.fn(),
+          resetSessionEndState,
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(resetSessionEndState).toHaveBeenCalledTimes(1);
+    });
+
+    it('wywołuje resetSessionEndState podczas startu nowej gry (handleStartNewGame)', () => {
+      const resetSessionEndState = jest.fn();
+      window.confirm = jest.fn(() => true);
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          setMessages: jest.fn(),
+          setCharacters: jest.fn(),
+          setActiveCharacter: jest.fn(),
+          setCampaigns: jest.fn(),
+          setPdfMemory: jest.fn(),
+          setActiveGameState: jest.fn(),
+          setAiSettings: jest.fn(),
+          stopCurrentAudio: jest.fn(),
+          resetSessionEndState,
+        })
+      );
+
+      act(() => {
+        result.current.handleStartNewGame();
+      });
+
+      expect(resetSessionEndState).toHaveBeenCalledTimes(1);
+    });
+
+    it('usuwa tag [KONIEC_SESJI:POTWIERDZENIE] z wczytywanych wiadomości', async () => {
+      const setMessages = jest.fn();
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Legacy End Save',
+        userId: 'local',
+        messages: [
+          {
+            id: 'msg-end',
+            role: 'assistant',
+            content: 'Mrok ogarnia Arkham.\n[KONIEC_SESJI:POTWIERDZENIE]',
+            timestamp: new Date('2026-10-04T20:00:00.000Z'),
+          },
+        ],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          setMessages,
+          setCharacters: jest.fn(),
+          setActiveCharacter: jest.fn(),
+          setCampaigns: jest.fn(),
+          setPdfMemory: jest.fn(),
+          setActiveGameState: jest.fn(),
+          setAiSettings: jest.fn(),
+          stopCurrentAudio: jest.fn(),
+          resetSessionEndState: jest.fn(),
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(setMessages).toHaveBeenCalledTimes(1);
+      const loaded = setMessages.mock.calls[0][0];
+      expect(loaded[0].content).toBe('Mrok ogarnia Arkham.');
+      expect(loaded[0].content).not.toContain('[KONIEC_SESJI:POTWIERDZENIE]');
+    });
+  });
 });
+

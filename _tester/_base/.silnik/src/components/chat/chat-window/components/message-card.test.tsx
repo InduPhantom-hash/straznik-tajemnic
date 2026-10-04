@@ -724,6 +724,21 @@ describe('MessageCard - zakończenie sesji i autozapis (Issue #559)', () => {
       screen.getByText('𓂀 KRONIKA ZAPISANA 𓂀')
     ).toBeInTheDocument();
   });
+
+  it('nie wyświetla potwierdzenia zapisu, gdy gra jest aktywna (sessionSaveStatus idle, isSessionEnded false)', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="idle"
+        isSessionEnded={false}
+      />
+    );
+
+    expect(
+      screen.queryByText('𓂀 KRONIKA ZAPISANA 𓂀')
+    ).not.toBeInTheDocument();
+  });
 });
 
 

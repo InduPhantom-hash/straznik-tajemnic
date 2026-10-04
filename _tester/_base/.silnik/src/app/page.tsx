@@ -202,6 +202,7 @@ export default function Home() {
     setActiveGameState: charMgmt.setActiveGameState,
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
+    resetSessionEndState: chat.resetSessionEndState,
     currentLocale: 'pl',
   });
 
@@ -774,6 +775,7 @@ export default function Home() {
   const handleNewAdventure = () => {
     chat.setMessages([]);
     chat.setActiveChaseState(null);
+    chat.resetSessionEndState();
     localStorage.removeItem('chat-messages');
     tts.stopCurrentAudio();
     // Muzyka tła (YouTube) gra tylko w trakcie gry - przy powrocie do menu cichnie.

@@ -318,7 +318,7 @@ export function MessageCard({
                       </>
                     )}
 
-                    {(sessionSaveStatus === 'saved' || sessionSaveStatus === 'idle') && (
+                    {(sessionSaveStatus === 'saved' || (sessionSaveStatus === 'idle' && isSessionEnded)) && (
                       <>
                         <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
                           <p className="font-semibold text-red-400 mb-1">{t('chronicleSavedTitle')}</p>
