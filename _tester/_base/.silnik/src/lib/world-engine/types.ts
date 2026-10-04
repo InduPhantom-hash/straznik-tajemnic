@@ -19,6 +19,8 @@ export interface SensoryContext {
   voidVariable?: string; // Czego w scenie brakuje (Zmienna Próżni)
   gritDetails: string[]; // Materialne zużycie, retro-ziarno epoki
   temperatureOrWeather?: string;
+  cadenceGear?: 1 | 2 | 3 | 4; // Biegi Kadencji: 1 = Dialog/Akcja, 2 = Szeroki Kadr, 3 = Cios/Zagrożenie, 4 = Szok/Pustka
+  lovecraftTheme?: string; // Wybrany motyw sensoryczny z korpusu Lovecrafta
 }
 
 export interface ClueNode {

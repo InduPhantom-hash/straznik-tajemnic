@@ -12,6 +12,7 @@ import {
   buildNarrativeStyleInstructions,
   buildActiveTurnAntiHabituationSection,
 } from '@/lib/prompts/narrative-style-instructions';
+import type { NPC } from '@/lib/types';
 
 describe('Scene Sensory Memory & Anti-Habituation (Issue #563)', () => {
   describe('Macro-Location & Zone Extraction', () => {
@@ -446,6 +447,35 @@ describe('Scene Sensory Memory & Anti-Habituation (Issue #563)', () => {
       expect(directives).toContain('Unikalne wyposażenie, przedmioty i detale właściwe wyłącznie dla tego pomieszczenia: Szpital Miejski w Arkham - Kostnica');
       expect(directives).toContain('[PAMIĘĆ_STREFY: Znana strefa "Szpital Miejski w Arkham"');
       expect(directives).not.toContain('ANTY-HABITUACJA (Tura w tej samej lokacji');
+    });
+  });
+
+  describe('Lovecraft Sensory Corpus & Cadence Gear (Issue #641)', () => {
+    it('applies Cadence Gear 1 (concise 1-2 sentences) during dialogue scenes', () => {
+      const directives = buildWorldEngineDirectives({
+        locale: 'pl',
+        currentLocation: 'Komisariat Policji w Arkham',
+        playerMessage: 'Inspektorze, co stało się z aktami Corbitta?',
+        npcs: [{ id: 'npc-1', name: 'Inspektor Hansen' }] as unknown as NPC[],
+        turnsInCurrentLocation: 1,
+      });
+
+      expect(directives).toContain('Bieg 1 (Dialog/Szybka akcja)');
+      expect(directives).toContain('Zwięzłe 1-2 zdania');
+      expect(directives).toContain('pomiń ciężkie opisy zmysłowe otoczenia');
+    });
+
+    it('injects Lovecraftian motifs during exploration turns in thematic locations', () => {
+      const directives = buildWorldEngineDirectives({
+        locale: 'pl',
+        currentLocation: 'Doki w Innsmouth',
+        playerMessage: 'Rozglądam się po nabrzeżu',
+        turnsInCurrentLocation: 0,
+        isNewMacroLocation: true,
+      });
+
+      expect(directives).toContain('fetor');
+      expect(directives).toContain('morszczyn');
     });
   });
 });
