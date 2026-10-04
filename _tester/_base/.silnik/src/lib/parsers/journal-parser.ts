@@ -463,6 +463,67 @@ export function extractItemTags(text: string): ExtractedItemTag[] {
   return items;
 }
 
+
+export interface ExtractedLocationGuardian {
+  locationName: string;
+  entryCondition?: string;
+  availableClues?: string[];
+}
+
+/**
+ * Wykrywa tag ustrukturyzowanej karty lokacji (bramkowanie):
+ * [STRAŻNIK_LOKACJI: Nazwa Lokacji]
+ * WARUNEK_WSTĘPU: ...
+ * DOSTĘPNE_POSZLAKI: ...
+ * [/STRAŻNIK_LOKACJI]
+ */
+export function extractLocationGuardianTag(text: string): ExtractedLocationGuardian | null {
+  if (!text) return null;
+  const match = text.match(/\[(?:STRAŻNIK_LOKACJI|LOCATION_GUARDIAN):?\s*([^\]]*)\]([\s\S]*?)\[\/(?:STRAŻNIK_LOKACJI|LOCATION_GUARDIAN)\]/i);
+  if (!match) return null;
+
+  const locationName = match[1].trim();
+  const body = match[2].trim();
+  
+  let entryCondition = undefined;
+  const availableClues = [];
+  
+  const lines = body.split('\n');
+  let currentSection = '';
+  
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    
+    if (/^(?:WARUNEK_WSTĘPU|WARUNEK_WSTEPU|ENTRY_CONDITION)\s*:/i.test(line)) {
+      currentSection = 'condition';
+      const inline = line.replace(/^(?:WARUNEK_WSTĘPU|WARUNEK_WSTEPU|ENTRY_CONDITION)\s*:\s*/i, '').trim();
+      if (inline) entryCondition = inline;
+      continue;
+    }
+    
+    if (/^(?:DOSTĘPNE_POSZLAKI|DOSTEPNE_POSZLAKI|AVAILABLE_CLUES)\s*:/i.test(line)) {
+      currentSection = 'clues';
+      const inline = line.replace(/^(?:DOSTĘPNE_POSZLAKI|DOSTEPNE_POSZLAKI|AVAILABLE_CLUES)\s*:\s*/i, '').trim();
+      if (inline) {
+        availableClues.push(...inline.split(/[,;]/).map(p => p.trim()).filter(Boolean));
+      }
+      continue;
+    }
+    
+    const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
+    if (!cleanItem) continue;
+    
+    if (currentSection === 'condition') {
+      entryCondition = entryCondition ? `${entryCondition} ${cleanItem}` : cleanItem;
+    } else if (currentSection === 'clues') {
+      availableClues.push(cleanItem);
+    }
+  }
+  
+  return { locationName, entryCondition, availableClues: availableClues.length > 0 ? availableClues : undefined };
+}
+
 export interface ExtractedSceneChange {
   newLocation: string;
   transitionType?: string;
@@ -758,6 +819,7 @@ export function cleanSceneTagsFromText(text: string): string {
     .replace(/\[(?:RAPORT_AKTU|ACT_REPORT)[^\]]*\][\s\S]*?(?:\[\/(?:RAPORT_AKTU|ACT_REPORT)\]|$)/gi, '')
     .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE)[^\]]*\]/gi, '')
     .replace(/\[(?:LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED)[^\]]*\]/gi, '')
+    .replace(/\[(?:STRAŻNIK_LOKACJI|LOCATION_GUARDIAN)[^\]]*\][\s\S]*?(?:\[\/(?:STRAŻNIK_LOKACJI|LOCATION_GUARDIAN)\]|$)/gi, '')
     .replace(/\[(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)[^\]]*\]/gi, '')
     .trim();
 }

@@ -8581,5 +8581,19 @@
     "investigator": "Investigator",
     "collapse": "Collapse",
     "expand": "Show combatants"
+  },
+  "InvestigationLog": {
+    "hardClues": "Hard Clues",
+    "personsAndPlaces": "Persons and Places",
+    "investigationAxis": "Investigation Axis"
+  },
+  "LocationGuardian": {
+    "entryCondition": "Entry Condition",
+    "availableClues": "Available Clues"
+  },
+  "ActReport": {
+    "facts": "Facts",
+    "gaps": "Gaps and Questions",
+    "recommendation": "Recommended Next Move"
   }
 }
