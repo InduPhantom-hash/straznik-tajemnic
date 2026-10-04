@@ -179,6 +179,36 @@ describe('desktop update service', () => {
     expect(result.commitsBehind).toBe(0);
   });
 
+  it('does not offer an update when compare returns ahead_by: 0 without behind_by', async () => {
+    process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
+    process.env.ZEW_CURRENT_COMMIT_SHA = commitNew;
+
+    const diffCommitManifest = {
+      ...manifest,
+      version: '0.9.5',
+      commitSha: commitOld,
+    };
+
+    const fetcher = jest.fn(async (url: string | URL | Request) => {
+      if (String(url).includes('/compare/')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ahead_by: 0 }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => diffCommitManifest,
+      };
+    }) as unknown as typeof fetch;
+
+    const result = await checkForDesktopUpdate(fetcher);
+    expect(result.available).toBe(false);
+    expect(result.commitsBehind).toBe(0);
+  });
+
   it('offers an update when local package has no build-info commitSha yet but manifest has commitSha', async () => {
     process.env.ZEW_UPDATE_MANIFEST_URL = 'https://example.com/manifest.json';
     process.env.ZEW_CURRENT_COMMIT_SHA = 'none';

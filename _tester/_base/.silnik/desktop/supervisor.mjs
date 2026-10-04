@@ -258,21 +258,54 @@ export async function runSupervisor(options = {}) {
     ...(defaultSelfUpdate !== undefined ? { ZEW_DESKTOP_SELF_UPDATE: defaultSelfUpdate } : {})
   };
 
+  let serverStdio = 'ignore';
+  try {
+    const logFd = fs.openSync(paths.logFile, 'a');
+    serverStdio = ['ignore', logFd, logFd];
+  } catch (err) {
+    log(`Nie udało się otworzyć pliku logów serwera: ${err.message}`);
+  }
+
   // Uruchomienie jako osobna grupa procesów (detached)
+  // Jeśli w katalogu gry znajduje się binarka Next.js, uruchamiamy ją bezpośrednio przez bieżący proces node (process.execPath),
+  // co eliminuje zależność od obecności npm w systemie gracza (Zero-Setup portable runtime).
+  const nextBin = path.join(paths.gameDir, 'node_modules', 'next', 'dist', 'bin', 'next');
+  const hasDirectNext = fs.existsSync(nextBin);
+
   if (process.platform === 'win32') {
-    serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start'], {
-      cwd: paths.gameDir,
-      env,
-      detached: false,
-      stdio: 'ignore'
-    });
+    if (hasDirectNext) {
+      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath}...`);
+      serverProcess = spawn(process.execPath, [nextBin, 'start', '--port', String(targetPort)], {
+        cwd: paths.gameDir,
+        env,
+        detached: false,
+        stdio: serverStdio
+      });
+    } else {
+      serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start'], {
+        cwd: paths.gameDir,
+        env,
+        detached: false,
+        stdio: serverStdio
+      });
+    }
   } else {
-    serverProcess = spawn('npm', ['start'], {
-      cwd: paths.gameDir,
-      env,
-      detached: true,
-      stdio: 'ignore'
-    });
+    if (hasDirectNext) {
+      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath}...`);
+      serverProcess = spawn(process.execPath, [nextBin, 'start', '--port', String(targetPort)], {
+        cwd: paths.gameDir,
+        env,
+        detached: true,
+        stdio: serverStdio
+      });
+    } else {
+      serverProcess = spawn('npm', ['start'], {
+        cwd: paths.gameDir,
+        env,
+        detached: true,
+        stdio: serverStdio
+      });
+    }
   }
 
   serverStartedByUs = true;
