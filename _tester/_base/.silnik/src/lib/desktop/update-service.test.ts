@@ -2,10 +2,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
+  canPerformSelfUpdate,
   checkForDesktopUpdate,
   getUpdatePackageForPlatform,
   isNewerStableVersion,
   readUpdateStatus,
+  resolveAppTarget,
   validateManifest,
 } from './update-service';
 
@@ -116,7 +118,6 @@ describe('desktop update service', () => {
       delete process.env.ZEW_APP_BUNDLE;
       delete process.env.ZEW_DESKTOP_SELF_UPDATE;
 
-      const { canPerformSelfUpdate, resolveAppTarget } = require('./update-service');
       expect(canPerformSelfUpdate()).toBe(false);
       expect(() => resolveAppTarget()).toThrow('Self-update is unavailable outside a packaged desktop installation');
     });
@@ -126,7 +127,6 @@ describe('desktop update service', () => {
       process.env.STRAZNIK_DESKTOP_COLD_START = '1';
       delete process.env.ZEW_DESKTOP_SELF_UPDATE;
 
-      const { canPerformSelfUpdate } = require('./update-service');
       expect(canPerformSelfUpdate()).toBe(true);
     });
   });
