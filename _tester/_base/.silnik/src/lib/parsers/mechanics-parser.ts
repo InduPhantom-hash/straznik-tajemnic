@@ -695,6 +695,79 @@ export function extractOpposedMeleeEvents(text: string): OpposedMeleeEventData[]
     return meleeEvents;
 }
 
+// Wykrywanie ataku bronią palną i reakcji Dive for Cover CoC 7e RAW (Rozdz. 6, s. 123-128)
+export function extractFirearmsAttackEvents(text: string): import('@/lib/types').FirearmsAttackEventData[] {
+    const firearmEvents: import('@/lib/types').FirearmsAttackEventData[] = [];
+    const pattern = /\[(?:WALKA_STRZAŁ|WALKA_STRZAL|ATAK_STRZELANIE|FIREARMS_ATTACK|RANGED_ATTACK):\s*(?:@([^:\]]+):\s*)?([^\]]+)\]/gi;
+
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+        let characterName = match[1]?.trim();
+        const content = match[2]?.trim() || '';
+        const parts = content.split('|').map((p) => p.trim());
+
+        const kv: Record<string, string> = {};
+        const positional: string[] = [];
+
+        for (const part of parts) {
+            const eqIdx = part.indexOf('=');
+            if (eqIdx !== -1) {
+                const k = part.slice(0, eqIdx).trim().toLowerCase();
+                const v = part.slice(eqIdx + 1).trim();
+                kv[k] = v;
+            } else {
+                positional.push(part);
+            }
+        }
+
+        if (!characterName && kv.cel) {
+            characterName = kv.cel.replace(/^@/, '').trim();
+        } else if (!characterName && kv.target) {
+            characterName = kv.target.replace(/^@/, '').trim();
+        }
+
+        const shooterName = kv.strzelec || kv.shooter || kv.napastnik || kv.wrog || positional[0] || 'Strzelec';
+        const rawSkill = kv.skill || kv.umiejetnosc || kv.umiejętność || kv.wartosc || positional[1];
+        const shooterSkill = rawSkill ? parseInt(rawSkill, 10) : 50;
+
+        const weaponName = kv.bron || kv.broń || kv.weapon || positional[2] || 'Pistolet .38';
+        const damageFormula = kv.obrazenia || kv.obrażenia || kv.dmg || kv.damage || positional[3] || '1d10';
+
+        const rawDistance = (kv.dystans || kv.distance || positional[4] || 'point_blank').toLowerCase();
+        let distanceCategory: 'point_blank' | 'normal' | 'long' | 'extreme' = 'point_blank';
+        if (rawDistance.includes('bliski') || rawDistance.includes('point') || rawDistance.includes('przyłożeni')) {
+            distanceCategory = 'point_blank';
+        } else if (rawDistance.includes('daleki') || rawDistance.includes('long')) {
+            distanceCategory = 'long';
+        } else if (rawDistance.includes('ekstremalny') || rawDistance.includes('extreme')) {
+            distanceCategory = 'extreme';
+        } else {
+            distanceCategory = 'normal';
+        }
+
+        const rawBullets = kv.kule || kv.bullets || kv.strzaly || kv.strzały;
+        const bulletsFired = rawBullets ? parseInt(rawBullets, 10) : 1;
+        const rawMalf = kv.malf || kv.zaciecie || kv.zacięcie;
+        const malfunction = rawMalf ? parseInt(rawMalf, 10) : 100;
+        const description = kv.opis || kv.desc || (positional.length > 5 ? positional[5] : undefined);
+
+        firearmEvents.push({
+            id: crypto.randomUUID(),
+            shooterName,
+            shooterSkill: Number.isFinite(shooterSkill) ? shooterSkill : 50,
+            weaponName,
+            damageFormula,
+            distanceCategory,
+            bulletsFired: Number.isFinite(bulletsFired) ? bulletsFired : 1,
+            malfunction: Number.isFinite(malfunction) ? malfunction : 100,
+            characterName: characterName?.replace(/^@/, '').trim(),
+            description,
+        });
+    }
+
+    return firearmEvents;
+}
+
 /**
  * Parsuje znaczniki ostatecznego kresu postaci [GAME_OVER: DEAD | INSANE: powód | ...]
  * Format: [GAME_OVER: @Imię | typ=DEAD/INSANE | powod=... | naglowek=... | tresc=... | lokacja=...]

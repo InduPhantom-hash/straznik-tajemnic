@@ -184,6 +184,7 @@ export interface Message {
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
   opposedMagicEvents?: OpposedMagicEventData[]; // Obrona przed wrogą magią CoC 7e RAW [OBRONA_MAGIA:...]
   opposedMeleeEvents?: OpposedMeleeEventData[]; // Obrona przed atakiem wręcz CoC 7e RAW [WALKA_ATAK:...] / [OBRONA_WALKA:...]
+  firearmsAttackEvents?: FirearmsAttackEventData[]; // Atak bronią palną i reakcja Dive for Cover CoC 7e RAW [WALKA_STRZAŁ:...]
   gameOverEvents?: GameOverEventData[]; // Ostateczny kres postaci i epilog CoC 7e RAW [GAME_OVER:...]
   refereeVetoEvents?: RefereeVetoEventData[]; // Twarde weto sędziego i guardrails [WETO_SEDZIEGO:...]
   tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
@@ -1214,6 +1215,21 @@ export interface OpposedMeleeEventData {
   description?: string;
   intent?: string;
   isOutnumbered?: boolean;
+}
+
+export interface FirearmsAttackEventData {
+  id: string;
+  shooterName: string;
+  shooterSkill: number;
+  weaponName: string;
+  damageFormula: string;
+  distanceCategory?: 'point_blank' | 'normal' | 'long' | 'extreme';
+  bulletsFired?: number;
+  burstCount?: number;
+  malfunction?: number;
+  characterName?: string;
+  characterId?: string;
+  description?: string;
 }
 
 export interface TomeStudyEventData {
