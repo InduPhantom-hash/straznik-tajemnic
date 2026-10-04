@@ -12,6 +12,7 @@ import {
   buildNarrativeStyleInstructions,
   buildActiveTurnAntiHabituationSection,
 } from '@/lib/prompts/narrative-style-instructions';
+import type { NPC } from '@/lib/types';
 
 describe('Scene Sensory Memory & Anti-Habituation (Issue #563)', () => {
   describe('Macro-Location & Zone Extraction', () => {
@@ -455,7 +456,7 @@ describe('Scene Sensory Memory & Anti-Habituation (Issue #563)', () => {
         locale: 'pl',
         currentLocation: 'Komisariat Policji w Arkham',
         playerMessage: 'Inspektorze, co stało się z aktami Corbitta?',
-        npcs: [{ id: 'npc-1', name: 'Inspektor Hansen' }] as any,
+        npcs: [{ id: 'npc-1', name: 'Inspektor Hansen' }] as unknown as NPC[],
         turnsInCurrentLocation: 1,
       });
 
