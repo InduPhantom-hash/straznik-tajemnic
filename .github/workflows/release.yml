@@ -65,21 +65,11 @@ jobs:
       - name: Package macOS application
         run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/release/Straznik Tajemnic AI.app" "$RUNNER_TEMP/release/straznik-tajemnic-macos.zip"
 
-      - name: Create update manifest
-        run: >-
-          node desktop/create-update-manifest.mjs
-          "$RUNNER_TEMP/release/straznik-tajemnic-macos.zip"
-          "$RUNNER_TEMP/release/update-manifest.json"
-          "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.meta.outputs.tag }}/straznik-tajemnic-macos.zip"
-          "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.meta.outputs.tag }}"
-
       - name: Upload macOS release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-release-assets
-          path: |
-            ${{ runner.temp }}/release/straznik-tajemnic-macos.zip
-            ${{ runner.temp }}/release/update-manifest.json
+          path: ${{ runner.temp }}/release/straznik-tajemnic-macos.zip
 
   build-windows:
     if: github.event_name == 'push' || github.event.inputs.target == 'all' || github.event.inputs.target == 'windows'
@@ -130,12 +120,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Download all release artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: '*-release-assets'
           path: ${{ runner.temp }}/all-assets
           merge-multiple: true
+
+      - name: Generate Unified Update Manifest
+        shell: bash
+        run: |
+          TARGET_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          node desktop/create-update-manifest.mjs \
+            --assets-dir "${{ runner.temp }}/all-assets" \
+            --output "${{ runner.temp }}/all-assets/update-manifest.json" \
+            --tag "${TARGET_TAG}" \
+            --repo "${GITHUB_REPOSITORY}"
 
       - name: Publish or update release assets
         uses: softprops/action-gh-release@v2
