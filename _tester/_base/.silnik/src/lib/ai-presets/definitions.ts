@@ -33,7 +33,7 @@ export const QUALITY_PRESETS = {
         dangerousContent: 'BLOCK_MEDIUM_AND_ABOVE' as const,
       },
       enableCache: true,
-      cacheTTL: 60 * 60 * 1000, // 1h
+      cacheTTL: 2 * 60 * 60 * 1000, // 2h (OPT-C04)
       // TTS settings - lektor wyłączony
       ttsEnabled: false,
       ttsProvider: 'gemini' as const,
@@ -69,7 +69,7 @@ export const QUALITY_PRESETS = {
         dangerousContent: 'BLOCK_MEDIUM_AND_ABOVE' as const,
       },
       enableCache: true,
-      cacheTTL: 60 * 60 * 1000, // 1h
+      cacheTTL: 2 * 60 * 60 * 1000, // 2h (OPT-C04)
       // TTS settings - Charon jako jeden stabilny lektor
       ttsEnabled: true,
       ttsProvider: 'gemini' as const,
@@ -109,7 +109,7 @@ export const QUALITY_PRESETS = {
         dangerousContent: 'BLOCK_ONLY_HIGH' as const,
       },
       enableCache: true,
-      cacheTTL: 60 * 60 * 1000, // 1h
+      cacheTTL: 2 * 60 * 60 * 1000, // 2h (OPT-C04)
 
       // === GEMINI TTS SŁUCHOWISKO ===
       ttsEnabled: true,

@@ -9,9 +9,19 @@ import { searchCampaignMemory, type CampaignMemoryRetrieval } from './retrieval'
 import type { CampaignMemoryScope, RevealedMemoryFact } from './types';
 
 export const COMPRESSION_THRESHOLD_RATIO = 0.5;
+export const ADAPTIVE_TOKEN_THRESHOLD = 20_000;
+export const ADAPTIVE_TURN_THRESHOLD = 20;
+export const MAX_HEAD_PRESERVED_MESSAGES = 4;
+export const MAX_TAIL_PRESERVED_MESSAGES = 10;
 const HEAD_BUDGET_RATIO = 0.1;
 const TAIL_BUDGET_RATIO = 0.25;
 const CHECKPOINT_STALENESS_MESSAGES = 20;
+
+export function countConversationTurns(messages: Message[]): number {
+  const userCount = messages.filter((m) => m.role === 'user').length;
+  return Math.max(userCount, Math.floor(messages.length / 2));
+}
+
 
 // The ledger owns persistence/migration of these optional fields. Legacy rows
 // remain readable, but are deliberately ineligible for checkpoint reuse.
@@ -94,13 +104,14 @@ export function fitContext(context: Compaction, budget: number): Compaction {
   };
 }
 
-function takeWithinBudget(messages: Message[], budget: number, fromEnd: boolean): Message[] {
+function takeWithinBudget(messages: Message[], budget: number, fromEnd: boolean, maxMessages?: number): Message[] {
   const selected: Message[] = [];
   let used = 0;
   const indexes = fromEnd
     ? Array.from({ length: messages.length }, (_, index) => messages.length - 1 - index)
     : Array.from({ length: messages.length }, (_, index) => index);
   for (const index of indexes) {
+    if (maxMessages !== undefined && selected.length >= maxMessages) break;
     const cost = estimateTokens(messages[index].content) + 8;
     if (used + cost > budget) break;
     selected.push(messages[index]);
@@ -167,6 +178,8 @@ export class CampaignContextEngine {
     sceneEntityIds?:string[];
     /** Remaining input budget after other prompt sections, output reserve and 10% margin. */
     availableContextTokens?: number;
+    adaptiveTokenThreshold?: number;
+    adaptiveTurnThreshold?: number;
   }): Promise<PreparedCampaignContext> {
     const messages = input.messages ?? [];
     const [compaction, retrieval] = await Promise.all([
@@ -178,6 +191,8 @@ export class CampaignContextEngine {
         locale: input.locale,
         contextLimitOverride: input.contextLimitOverride,
         availableContextTokens: input.availableContextTokens,
+        adaptiveTokenThreshold: input.adaptiveTokenThreshold,
+        adaptiveTurnThreshold: input.adaptiveTurnThreshold,
       }),
       input.scope ? this.searchCampaignMemory(input.scope, input.query, {
         queryEmbedding: input.queryEmbedding, locale: input.locale,
@@ -229,6 +244,8 @@ export class CampaignContextEngine {
     locale: 'pl' | 'en';
     contextLimitOverride?: number;
     availableContextTokens?: number;
+    adaptiveTokenThreshold?: number;
+    adaptiveTurnThreshold?: number;
   }): Promise<Pick<PreparedCampaignContext, 'messages' | 'summarySection' | 'compacted'>> {
     const limit = input.availableContextTokens ?? input.contextLimitOverride ?? getContextLimit(input.modelId);
     if (!Number.isFinite(limit) || limit < 0) throw new RangeError('Invalid available context token budget');
@@ -237,14 +254,36 @@ export class CampaignContextEngine {
     // Preflight before any compressor call, including cooldown and scope-less paths.
     const fallback = fitContext(original, budget);
     const total = input.messages.reduce((sum, entry) => sum + estimateTokens(entry.content) + 8, 0);
-    const threshold = input.availableContextTokens === undefined ? limit * COMPRESSION_THRESHOLD_RATIO : budget;
-    if (!input.scope || total <= threshold) {
+
+    const adaptiveTokenThreshold = input.adaptiveTokenThreshold ?? ADAPTIVE_TOKEN_THRESHOLD;
+    const adaptiveTurnThreshold = input.adaptiveTurnThreshold ?? ADAPTIVE_TURN_THRESHOLD;
+
+    const baseThreshold = input.availableContextTokens === undefined
+      ? limit * COMPRESSION_THRESHOLD_RATIO
+      : budget;
+    const tokenThreshold = Math.min(baseThreshold, adaptiveTokenThreshold);
+
+    const turnCount = countConversationTurns(input.messages);
+    const exceedsTurnThreshold = turnCount >= adaptiveTurnThreshold;
+    const exceedsTokenThreshold = total > tokenThreshold;
+
+    if (!input.scope || (!exceedsTokenThreshold && !exceedsTurnThreshold)) {
       return fallback;
     }
 
-    const head = takeWithinBudget(input.messages, Math.floor(limit * HEAD_BUDGET_RATIO), false);
+    const effectiveBudget = Math.min(budget, adaptiveTokenThreshold);
+    const headBudget = Math.floor(effectiveBudget * HEAD_BUDGET_RATIO);
+    const tailBudget = Math.floor(effectiveBudget * TAIL_BUDGET_RATIO);
+    const maxHeadMessages = budget > adaptiveTokenThreshold
+      ? MAX_HEAD_PRESERVED_MESSAGES
+      : undefined;
+    const maxTailMessages = budget > adaptiveTokenThreshold
+      ? MAX_TAIL_PRESERVED_MESSAGES
+      : undefined;
+
+    const head = takeWithinBudget(input.messages, headBudget, false, maxHeadMessages);
     const tailPool = input.messages.slice(head.length);
-    let tail = takeWithinBudget(tailPool, Math.floor(limit * TAIL_BUDGET_RATIO), true);
+    let tail = takeWithinBudget(tailPool, tailBudget, true, maxTailMessages);
     const lastUser = input.messages.map((message) => message.role).lastIndexOf('user');
     const protectedStart = Math.max(0, lastUser < 0 ? input.messages.length - 1 : lastUser);
     if (input.messages.length - tail.length > protectedStart) tail = input.messages.slice(Math.max(head.length, protectedStart));
@@ -277,9 +316,10 @@ export class CampaignContextEngine {
         summarySection: buildSummarySection(cached.summary, cached.sourceStartSequence, cached.sourceEndSequence, input.locale),
         compacted: true,
       };
-      // If appended messages no longer fit, refresh instead of silently losing them.
-      if (reused.messages.reduce((sum, message) => sum + messageTokens(message), 0)
-        + estimateTokens(reused.summarySection) <= budget) return reused;
+      // If appended messages no longer fit effective budget, refresh instead of silently losing them.
+      const reusedCost = reused.messages.reduce((sum, message) => sum + messageTokens(message), 0)
+        + estimateTokens(reused.summarySection);
+      if (reusedCost <= effectiveBudget) return reused;
     }
 
     const failure = this.ledger.getCompressionFailure(input.scope.playthroughId);

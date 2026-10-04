@@ -82,7 +82,7 @@ export const GEMINI_HELP: Record<string, GeminiHelpEntry> = {
     cacheTTL: {
         label: 'Czas życia cache',
         desc: 'Po ilu milisekundach cache wygasa.',
-        example: '3600000 = 1 godzina.',
+        example: '7200000 = 2 godziny.',
     },
     cachedContent: {
         label: 'Treść cachowana',

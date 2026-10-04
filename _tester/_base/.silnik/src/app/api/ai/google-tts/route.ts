@@ -171,8 +171,8 @@ export async function POST(request: NextRequest) {
           }
         };
 
-        // Cache the response
-        apiCacheService.set('google-tts', cacheKey, generatedAudio, 30 * 60 * 1000); // 30 minutes
+        // Cache the response in memory and persistent disk (OPT-C03)
+        apiCacheService.set('google-tts', cacheKey, generatedAudio, 7 * 24 * 60 * 60 * 1000); // 7 days
 
         return NextResponse.json(generatedAudio);
 

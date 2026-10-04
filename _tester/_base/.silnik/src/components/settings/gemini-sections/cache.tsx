@@ -64,10 +64,10 @@ export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
               type="number"
               min="60000"
               step="60000"
-              value={g.cacheTTL ?? 3600000}
+              value={g.cacheTTL ?? 7200000}
               onChange={(e) =>
                 updateGemini({
-                  cacheTTL: parseInt(e.target.value, 10) || 3600000,
+                  cacheTTL: parseInt(e.target.value, 10) || 7200000,
                 })
               }
               disabled={!g.enableCache}

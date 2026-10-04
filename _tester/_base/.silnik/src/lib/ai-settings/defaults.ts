@@ -21,7 +21,7 @@ export const defaultAISettings: AISettings = {
     responseSchema: undefined,
     // === Cache (placeholder dla IND-13) ===
     enableCache: true, // Domyślnie włączone
-    cacheTTL: 60 * 60 * 1000, // 1h (HIGH preset, definitions.ts)
+    cacheTTL: 2 * 60 * 60 * 1000, // 2h (HIGH preset, OPT-C04)
     cachedContent: undefined, // Brak cache (placeholder dla IND-13)
     // === Thinking ===
     thinkingLevel: 'high', // Preset HIGH - głębokie rozumowanie (w 3.1 wspiera low/medium/high)

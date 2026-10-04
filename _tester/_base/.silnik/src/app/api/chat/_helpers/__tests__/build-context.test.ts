@@ -27,6 +27,31 @@ describe('buildAdditionalContext', () => {
     expect(opts.gameContextPrompt).toBe('SYNTHETIC_DOCUMENT_CONTEXT');
     expect(opts.truthAnchor.culprit).toBe('SYNTHETIC_CULPRIT');
   });
+
+  it('OPT-C01: obsługuje zdeduplikowany timePromptSection i pomija gmProtocol gdy resolvedCachedContent jest aktywny', () => {
+    const dummyGameContext: GameContext = {
+      mode: 'investigation',
+      hasNPCs: false,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
+    };
+    const mockCachedContent = {
+      name: 'cachedContents/gemini-coc-cache',
+    } as any;
+
+    const result = buildAdditionalContext({
+      timePromptSection: '## KONTEKST CZASOWY\n(Zdeduplikowany czas bez eraRules)',
+      gmProtocol: 'GM PROTOCOL CONTENT',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: mockCachedContent,
+    });
+
+    expect(result).toContain('## KONTEKST CZASOWY\n(Zdeduplikowany czas bez eraRules)');
+    expect(result).not.toContain('GM PROTOCOL CONTENT');
+  });
+
   it('should include directorEventSection if provided', () => {
     const dummyGameContext: GameContext = {
       mode: 'investigation',

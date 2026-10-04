@@ -168,7 +168,7 @@ export interface AISettings {
     responseSchema?: object; // JSON Schema (wymaga responseMimeType=application/json)
     // === Cache (placeholder dla IND-13) ===
     enableCache?: boolean; // Włącz/wyłącz cache odpowiedzi (domyślnie true; pełna integracja w IND-13)
-    cacheTTL?: number; // Czas życia cache w milisekundach (domyślnie 1 godzina = 3600000)
+    cacheTTL?: number; // Czas życia cache w milisekundach (domyślnie 2 godziny = 7200000, OPT-C04)
     cachedContent?: string; // Nazwa istniejącego cache (np. cachedContents/abc123)
     // === Thinking ===
     thinkingLevel?: 'low' | 'medium' | 'high' | 'auto'; // Gemini 3.0+: kontrola głębokości rozumowania
