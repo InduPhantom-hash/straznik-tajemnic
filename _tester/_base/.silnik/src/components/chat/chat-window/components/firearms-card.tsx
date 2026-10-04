@@ -20,7 +20,7 @@ import {
   Skull,
 } from 'lucide-react';
 import { rollD100WithBonus, evaluateSkillCheck } from '@/lib/dice-utils';
-import type { Character, FirearmsAttackEventData } from '@/lib/types';
+import { getSkillValue, type Character, type FirearmsAttackEventData } from '@/lib/types';
 
 export interface FirearmsCardProps {
   firearmEvent: FirearmsAttackEventData;
@@ -46,7 +46,8 @@ export const FirearmsCard: React.FC<FirearmsCardProps> = ({
   } | null>(null);
 
   const isPointBlank = firearmEvent.distanceCategory === 'point_blank';
-  const dodgeSkill = activeCharacter?.skills?.['Unik'] ?? activeCharacter?.skills?.['Dodge'] ?? Math.floor((activeCharacter?.dex ?? 50) / 2);
+  const dodgeRaw = activeCharacter?.skills?.['Unik'] ?? activeCharacter?.skills?.['Dodge'];
+  const dodgeSkill = dodgeRaw !== undefined ? getSkillValue(dodgeRaw) : Math.floor((activeCharacter?.dex ?? 50) / 2);
 
   const handleDiveForCover = () => {
     if (isResolved) return;
@@ -54,7 +55,7 @@ export const FirearmsCard: React.FC<FirearmsCardProps> = ({
     // Rzut na Unik
     const roll = rollD100WithBonus(0);
     const outcome = evaluateSkillCheck(roll.total, dodgeSkill);
-    const success = outcome !== 'failure' && outcome !== 'fumble';
+    const success = outcome !== 'fail' && outcome !== 'fumble';
 
     // Aktualizacja stanu Badacza: padnięcie na ziemię (isProne = true)
     if (activeCharacter && onCharacterUpdate) {

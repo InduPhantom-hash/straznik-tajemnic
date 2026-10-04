@@ -654,6 +654,7 @@ export interface Character {
   move?: number;
   damageBonus?: string;
   build?: number;
+  isProne?: boolean; // Czy postać leży na ziemi (np. po manewrze Padnij za osłonę / Dive for Cover CoC 7e RAW)
 
   // === MAGIA I TOMISKA MITÓW (CoC 7e RAW & Wielki Grymuar) ===
   magic?: CharacterMagicState;
