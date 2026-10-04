@@ -5,6 +5,9 @@ import {
   resolveFireDamage,
   resolvePoisonEffect,
   resolveSuffocationRound,
+  resolveVehicleCollision,
+  resolveVehicleExternalDamage,
+  COC7E_VEHICLES,
 } from '@/lib/hazards-engine';
 
 describe('hazards-engine CoC 7e RAW', () => {
@@ -106,6 +109,77 @@ describe('hazards-engine CoC 7e RAW', () => {
       expect(normalizePoisonSeverity('cyanide')).toBe('lethal');
       expect(normalizePoisonSeverity('nieznana')).toBeNull();
       expect(normalizePoisonSeverity(undefined, 65)).toBe('strong');
+    });
+  });
+
+  describe('pojazdy i kolizje (Księga Strażnika str. 162-167, Tabela V i VI RAW)', () => {
+    it('zawiera poprawne statystyki pojazdów z Tabeli V', () => {
+      expect(COC7E_VEHICLES.standard_car).toEqual({
+        id: 'standard_car',
+        nameKey: 'Samochód standardowy',
+        movement: 14,
+        build: 4,
+        armor: 2,
+        passengers: 5,
+      });
+      expect(COC7E_VEHICLES.six_ton_truck.build).toBe(7);
+      expect(COC7E_VEHICLES.eighteen_wheeler.build).toBe(9);
+    });
+
+    it('zderzenie z drzewem (Poważna kolizja) redukuje Krzepę pojazdu', () => {
+      const res = resolveVehicleCollision(4, 'major', 4, { fixedBuildDamage: 2 });
+      expect(res.buildDamage).toBe(2);
+      expect(res.remainingBuild).toBe(2);
+      // Krzepa 2 z 4 to 50% -> nakłada kość karną do prowadzenia
+      expect(res.penaltyDieApplied).toBe(true);
+      expect(res.destroyedInSingleEvent).toBe(false);
+      expect(res.passengerDamage).toBe(0);
+    });
+
+    it('zniszczenie pojazdu w pojedynczym zdarzeniu katastrofalnym wymaga rzutu na Szczęście', () => {
+      // Katastrofalne uderzenie (obrażenia 5 >= Krzepa 4)
+      const resLucky = resolveVehicleCollision(4, 'catastrophic', 4, {
+        fixedBuildDamage: 5,
+        passengerLuck: 60,
+        fixedLuckRoll: 40, // sukces w teście Szczęścia
+        fixedPassengerDamage: 12,
+      });
+      expect(resLucky.remainingBuild).toBe(0);
+      expect(resLucky.destroyedInSingleEvent).toBe(true);
+      expect(resLucky.luckRollRequired).toBe(true);
+      expect(resLucky.luckRollPassed).toBe(true);
+      expect(resLucky.passengerKilledInstantly).toBe(false);
+      expect(resLucky.passengerDamageFormula).toBe('2d10');
+      expect(resLucky.passengerDamage).toBe(12);
+
+      // Porażka w teście Szczęścia oznacza natychmiastową śmierć
+      const resUnlucky = resolveVehicleCollision(4, 'catastrophic', 4, {
+        fixedBuildDamage: 5,
+        passengerLuck: 30,
+        fixedLuckRoll: 75, // porażka
+      });
+      expect(resUnlucky.luckRollPassed).toBe(false);
+      expect(resUnlucky.passengerKilledInstantly).toBe(true);
+    });
+
+    it('skumulowane wyzerowanie Krzepy zadaje 1K10 obrażeń bez natychmiastowego zgonu', () => {
+      // Pojazd miał 1 Krzepę z 4 (wcześniej uszkodzony), drobna kolizja dobija go o 1
+      const res = resolveVehicleCollision(1, 'minor', 4, {
+        fixedBuildDamage: 1,
+        fixedPassengerDamage: 6,
+      });
+      expect(res.remainingBuild).toBe(0);
+      expect(res.destroyedInSingleEvent).toBe(false);
+      expect(res.passengerDamageFormula).toBe('1d10');
+      expect(res.passengerDamage).toBe(6);
+      expect(res.passengerKilledInstantly).toBe(false);
+    });
+
+    it('obrażenia z zewnątrz: każde pełne 10 pkt odejmuje 1 Krzepę, mniejsze są ignorowane', () => {
+      expect(resolveVehicleExternalDamage(4, 9)).toEqual({ buildLost: 0, remainingBuild: 4 });
+      expect(resolveVehicleExternalDamage(4, 15)).toEqual({ buildLost: 1, remainingBuild: 3 });
+      expect(resolveVehicleExternalDamage(4, 25)).toEqual({ buildLost: 2, remainingBuild: 2 });
+      expect(resolveVehicleExternalDamage(4, 50)).toEqual({ buildLost: 5, remainingBuild: 0 });
     });
   });
 });
