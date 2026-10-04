@@ -1,11 +1,19 @@
 import { copyFile, mkdir, readFile } from 'node:fs/promises';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { getWritableDataDir } from '@/lib/paths';
 
 export const UPDATE_BUNDLE_ID = 'com.aios.straznik-tajemnic-ai';
 export const UPDATE_STATUS_FILE = 'status.json';
+export const DEFAULT_GITHUB_REPO = 'InduPhantom-hash/straznik-tajemnic';
+
+export interface BuildInfo {
+  version?: string;
+  commitSha?: string;
+  shortCommit?: string;
+  builtAt?: string;
+}
 
 export interface PackageInfo {
   name: string;
@@ -17,6 +25,9 @@ export interface PackageInfo {
 export interface DesktopUpdateManifest {
   schemaVersion: 1;
   version: string;
+  commitSha?: string;
+  shortCommit?: string;
+  publishedAt?: string;
   channel: 'stable';
   bundleId: string;
   minimumMacOSVersion?: string;
@@ -42,6 +53,7 @@ export interface DesktopUpdateStatus {
   id: string;
   state: 'idle' | 'downloading' | 'verifying' | 'installing' | 'restarting' | 'succeeded' | 'rolled_back' | 'failed';
   version?: string;
+  commitSha?: string;
   message?: string;
   updatedAt: string;
 }
@@ -53,6 +65,27 @@ function parseVersion(value: string): [number, number, number] | null {
 
 function isMacOSVersion(value: string): boolean {
   return /^\d+\.\d+(?:\.\d+)?$/.test(value);
+}
+
+export function isValidCommitSha(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{7,40}$/i.test(value.trim());
+}
+
+export function normalizeCommitSha(value?: string | null): string | undefined {
+  if (!isValidCommitSha(value)) return undefined;
+  return value.trim().toLowerCase();
+}
+
+export function toShortCommit(value?: string | null): string | undefined {
+  const normalized = normalizeCommitSha(value);
+  return normalized ? normalized.slice(0, 7) : undefined;
+}
+
+export function isSameCommit(a?: string | null, b?: string | null): boolean {
+  const normA = normalizeCommitSha(a);
+  const normB = normalizeCommitSha(b);
+  if (!normA || !normB) return false;
+  return normA === normB || normA.startsWith(normB) || normB.startsWith(normA);
 }
 
 function isValidPackageInfo(pkg: unknown): pkg is PackageInfo {
@@ -128,6 +161,20 @@ export function validateManifest(value: unknown): DesktopUpdateManifest | null {
     !parseVersion(manifest.version ?? '')
   ) {
     return null;
+  }
+
+  if (manifest.commitSha !== undefined && !isValidCommitSha(manifest.commitSha)) {
+    return null;
+  }
+
+  if (manifest.shortCommit !== undefined && !isValidCommitSha(manifest.shortCommit)) {
+    return null;
+  }
+
+  if (manifest.publishedAt !== undefined) {
+    if (typeof manifest.publishedAt !== 'string' || Number.isNaN(Date.parse(manifest.publishedAt))) {
+      return null;
+    }
   }
 
   if (manifest.minimumMacOSVersion !== undefined) {
@@ -209,18 +256,145 @@ export async function getCurrentVersion(): Promise<string> {
   return typeof pkg.version === 'string' ? pkg.version : '0.0.0';
 }
 
-export async function checkForDesktopUpdate(fetcher: typeof fetch = fetch) {
+export async function getCurrentCommitSha(): Promise<string | undefined> {
+  const envCommit = process.env.ZEW_CURRENT_COMMIT_SHA;
+  if (envCommit !== undefined) {
+    if (envCommit === '' || envCommit.toLowerCase() === 'none') return undefined;
+    return normalizeCommitSha(envCommit);
+  }
+
+  const explicitBuildInfo = process.env.ZEW_BUILD_INFO_PATH;
+  if (explicitBuildInfo !== undefined) {
+    try {
+      const info = JSON.parse(await readFile(explicitBuildInfo, 'utf8')) as BuildInfo;
+      return normalizeCommitSha(info.commitSha);
+    } catch {
+      return undefined;
+    }
+  }
+
+  try {
+    const info = JSON.parse(await readFile(path.join(process.cwd(), 'build-info.json'), 'utf8')) as BuildInfo;
+    const parsed = normalizeCommitSha(info.commitSha);
+    if (parsed) return parsed;
+  } catch {
+    // Fallback to git below if running from a source checkout
+  }
+
+  if (process.env.ZEW_DISABLE_GIT_FALLBACK === '1') return undefined;
+
+  try {
+    const out = execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 2000,
+    });
+    return normalizeCommitSha(out);
+  } catch {
+    return undefined;
+  }
+}
+
+async function fetchCommitsComparison(
+  currentCommitSha: string,
+  targetCommitSha: string,
+  fetcher: typeof fetch
+): Promise<{ aheadBy?: number; behindBy?: number }> {
+  const repo = process.env.ZEW_GITHUB_REPO || DEFAULT_GITHUB_REPO;
+  const compareUrl = `https://api.github.com/repos/${repo}/compare/${currentCommitSha}...${targetCommitSha}`;
+  try {
+    const res = await fetcher(compareUrl, {
+      cache: 'no-store',
+      headers: { Accept: 'application/vnd.github+json' },
+    });
+    if (!res || !res.ok || typeof res.json !== 'function') return {};
+    const payload = (await res.json()) as { ahead_by?: unknown; behind_by?: unknown } | null;
+    if (!payload || typeof payload !== 'object') return {};
+    const aheadBy =
+      typeof payload.ahead_by === 'number' && Number.isInteger(payload.ahead_by) && payload.ahead_by >= 0
+        ? payload.ahead_by
+        : undefined;
+    const behindBy =
+      typeof payload.behind_by === 'number' && Number.isInteger(payload.behind_by) && payload.behind_by >= 0
+        ? payload.behind_by
+        : undefined;
+    return { aheadBy, behindBy };
+  } catch {
+    return {};
+  }
+}
+
+export interface DesktopUpdateCheckResult {
+  available: boolean;
+  configured: boolean;
+  currentVersion: string;
+  currentCommitSha?: string;
+  currentShortCommit?: string;
+  commitsBehind?: number;
+  manifest?: DesktopUpdateManifest;
+  canSelfUpdate?: boolean;
+}
+
+export async function checkForDesktopUpdate(
+  fetcher: typeof fetch = fetch
+): Promise<DesktopUpdateCheckResult> {
   const currentVersion = await getCurrentVersion();
+  const currentCommitSha = await getCurrentCommitSha();
+  const currentShortCommit = toShortCommit(currentCommitSha);
   const manifestUrl = process.env.ZEW_UPDATE_MANIFEST_URL?.trim();
-  if (!manifestUrl) return { available: false, configured: false, currentVersion };
+  if (!manifestUrl) {
+    return {
+      available: false,
+      configured: false,
+      currentVersion,
+      ...(currentCommitSha ? { currentCommitSha, currentShortCommit } : {}),
+    };
+  }
   if (!manifestUrl.startsWith('https://')) throw new Error('Update manifest URL must use HTTPS');
   const response = await fetcher(manifestUrl, { cache: 'no-store' });
   if (!response.ok) throw new Error(`Manifest download failed: ${response.status}`);
   const manifest = validateManifest(await response.json());
   if (!manifest) throw new Error('Invalid update manifest');
 
-  const targetPackage = getUpdatePackageForPlatform(manifest);
-  const isAvailable = isNewerStableVersion(currentVersion, manifest.version) && targetPackage !== null;
+  const manifestCommitSha = normalizeCommitSha(manifest.commitSha);
+  const manifestShortCommit = toShortCommit(manifest.shortCommit ?? manifestCommitSha);
+  const normalizedManifest: DesktopUpdateManifest = {
+    ...manifest,
+    ...(manifestCommitSha ? { commitSha: manifestCommitSha, shortCommit: manifestShortCommit } : {}),
+  };
+
+  const targetPackage = getUpdatePackageForPlatform(normalizedManifest);
+  const newerVersion = isNewerStableVersion(currentVersion, normalizedManifest.version);
+  const sameVersion = currentVersion === normalizedManifest.version;
+
+  let commitUpdateAvailable = false;
+  let commitsBehind: number | undefined;
+
+  if (sameVersion && manifestCommitSha) {
+    if (!currentCommitSha) {
+      commitUpdateAvailable = true;
+    } else if (!isSameCommit(currentCommitSha, manifestCommitSha)) {
+      commitUpdateAvailable = true;
+      const comparison = await fetchCommitsComparison(currentCommitSha, manifestCommitSha, fetcher);
+      if (comparison.aheadBy !== undefined) {
+        if (comparison.aheadBy > 0) {
+          commitsBehind = comparison.aheadBy;
+        } else if (comparison.aheadBy === 0 && (comparison.behindBy ?? 0) > 0) {
+          // Local commit is strictly ahead of the published manifest commit
+          commitUpdateAvailable = false;
+          commitsBehind = 0;
+        }
+      }
+    }
+  } else if (newerVersion && currentCommitSha && manifestCommitSha && !isSameCommit(currentCommitSha, manifestCommitSha)) {
+    const comparison = await fetchCommitsComparison(currentCommitSha, manifestCommitSha, fetcher);
+    if (comparison.aheadBy !== undefined && comparison.aheadBy > 0) {
+      commitsBehind = comparison.aheadBy;
+    }
+  }
+
+  const isAvailable = (newerVersion || (sameVersion && commitUpdateAvailable)) && targetPackage !== null;
   const selfUpdateAvailable = canPerformSelfUpdate();
 
   // If running in desktop mode on Windows where self-update is available, ensure env is synced for API routes
@@ -232,7 +406,9 @@ export async function checkForDesktopUpdate(fetcher: typeof fetch = fetch) {
     available: isAvailable,
     configured: true,
     currentVersion,
-    manifest,
+    ...(currentCommitSha ? { currentCommitSha, currentShortCommit } : {}),
+    ...(commitsBehind !== undefined ? { commitsBehind } : {}),
+    manifest: normalizedManifest,
     canSelfUpdate: selfUpdateAvailable,
   };
 }
@@ -363,6 +539,9 @@ export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Prom
 
   if (manifest.minimumMacOSVersion) {
     args.push('--minimum-macos', manifest.minimumMacOSVersion);
+  }
+  if (manifest.commitSha) {
+    args.push('--commit', manifest.commitSha);
   }
 
   const child = spawn(workerExecPath, args, {

@@ -7176,6 +7176,7 @@
     "description": "Check stable app releases and install them without losing saves or campaign memory.",
     "currentVersion": "Current version: {version}",
     "availableVersion": "Available version: {version}",
+    "commitsBehind": "{count, plural, one {# new commit on the stable channel} other {# new commits on the stable channel}}",
     "releaseNotes": "Release notes",
     "devMode": "Development mode can check versions but never modifies the repository.",
     "notConfigured": "The update source is not configured.",

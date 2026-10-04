@@ -227,13 +227,35 @@ export async function runSupervisor(options = {}) {
   let serverProcess = null;
   let serverStartedByUs = false;
 
+  const defaultManifestUrl = 'https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest/download/update-manifest.json';
+  let defaultSelfUpdate = process.env.ZEW_DESKTOP_SELF_UPDATE;
+  if (defaultSelfUpdate === undefined) {
+    if (process.platform === 'darwin') {
+      const appBundle = process.env.ZEW_APP_BUNDLE;
+      if ((appBundle && appBundle.endsWith('.app')) || paths.appDir.includes('.app/Contents/')) {
+        defaultSelfUpdate = '1';
+      }
+    } else if (process.platform === 'win32') {
+      const parentDir = path.resolve(paths.gameDir, '..');
+      if (
+        fs.existsSync(path.join(paths.appDir, 'Graj - Strażnik Tajemnic.cmd')) ||
+        fs.existsSync(path.join(parentDir, 'Graj - Strażnik Tajemnic.cmd'))
+      ) {
+        defaultSelfUpdate = '1';
+      }
+    }
+  }
+
   const env = {
     ...process.env,
     PORT: String(targetPort),
     ZEW_APP_PORT: String(targetPort),
     ZEW_DATA_DIR: paths.dataRoot,
     RAG_DATA_DIR: path.join(paths.dataRoot, 'rag'),
-    STRAZNIK_DESKTOP_COLD_START: '1'
+    STRAZNIK_DESKTOP_COLD_START: '1',
+    STRAZNIK_DESKTOP_UPDATE: process.env.STRAZNIK_DESKTOP_UPDATE || '1',
+    ZEW_UPDATE_MANIFEST_URL: process.env.ZEW_UPDATE_MANIFEST_URL || defaultManifestUrl,
+    ...(defaultSelfUpdate !== undefined ? { ZEW_DESKTOP_SELF_UPDATE: defaultSelfUpdate } : {})
   };
 
   let serverStdio = 'ignore';

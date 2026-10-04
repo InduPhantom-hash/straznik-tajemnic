@@ -2,7 +2,12 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { checkDesktopUpdate, startDesktopUpdate, type UpdateCheckView } from '@/lib/desktop/update-client';
+import {
+  checkDesktopUpdate,
+  formatVersionWithCommit,
+  startDesktopUpdate,
+  type UpdateCheckView,
+} from '@/lib/desktop/update-client';
 
 export function UpdateSettings() {
   const t = useTranslations('UpdateSettings');
@@ -33,16 +38,26 @@ export function UpdateSettings() {
     }
   };
 
+  const currentVersionLabel = result
+    ? formatVersionWithCommit(result.currentVersion, result.currentCommitSha, result.currentShortCommit)
+    : '';
+  const availableVersionLabel = result?.manifest
+    ? formatVersionWithCommit(result.manifest.version, result.manifest.commitSha, result.manifest.shortCommit)
+    : '';
+
   return (
     <section data-testid="update-settings" className="space-y-3 border border-brass/30 bg-card p-4">
       <div>
         <h3 className="font-display text-sm font-semibold uppercase tracking-[0.18em] text-brass">{t('title')}</h3>
         <p className="mt-1 text-sm text-muted-foreground">{t('description')}</p>
       </div>
-      {result && <p className="text-sm">{t('currentVersion', { version: result.currentVersion })}</p>}
+      {result && <p className="text-sm">{t('currentVersion', { version: currentVersionLabel })}</p>}
       {result?.available && result.manifest && (
         <div className="space-y-2 border-l-2 border-primary pl-3">
-          <p className="text-sm">{t('availableVersion', { version: result.manifest.version })}</p>
+          <p className="text-sm">{t('availableVersion', { version: availableVersionLabel })}</p>
+          {typeof result.commitsBehind === 'number' && result.commitsBehind > 0 && (
+            <p className="text-xs text-muted-foreground">{t('commitsBehind', { count: result.commitsBehind })}</p>
+          )}
           {result.manifest.releaseNotes && (
             <a className="text-sm text-primary underline" href={result.manifest.releaseNotes} target="_blank" rel="noreferrer">
               {t('releaseNotes')}

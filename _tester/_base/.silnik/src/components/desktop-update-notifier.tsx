@@ -2,12 +2,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { checkDesktopUpdate, getDesktopUpdateStatus, startDesktopUpdate, type UpdateCheckView, type UpdateStatusView } from '@/lib/desktop/update-client';
+import {
+  checkDesktopUpdate,
+  formatVersionWithCommit,
+  getDesktopUpdateStatus,
+  startDesktopUpdate,
+  type UpdateCheckView,
+  type UpdateStatusView,
+} from '@/lib/desktop/update-client';
 
 const DAY_MS = 86_400_000;
 const LAST_CHECK_KEY = 'zew-update-last-check';
 const DISMISSED_UNTIL_KEY = 'zew-update-dismissed-until';
+const DISMISSED_TARGET_KEY = 'zew-update-dismissed-target';
 const SEEN_RESULT_KEY = 'zew-update-result-seen';
+
+function getTargetIdentity(view?: UpdateCheckView | null): string {
+  if (!view?.manifest) return '';
+  return `${view.manifest.version}@${view.manifest.commitSha ?? ''}`;
+}
 
 export function DesktopUpdateNotifier() {
   const t = useTranslations('UpdateSettings');
@@ -23,7 +36,11 @@ export function DesktopUpdateNotifier() {
     try {
       const response = await checkDesktopUpdate();
       const dismissedUntil = Number(localStorage.getItem(DISMISSED_UNTIL_KEY) || 0);
-      if (response.available && Date.now() >= dismissedUntil) setUpdate(response);
+      const dismissedTarget = localStorage.getItem(DISMISSED_TARGET_KEY) || '';
+      const currentTarget = getTargetIdentity(response);
+      const isDismissed =
+        Date.now() < dismissedUntil && (!dismissedTarget || dismissedTarget === currentTarget);
+      if (response.available && !isDismissed) setUpdate(response);
     } catch { /* automatyczne sprawdzanie pozostaje ciche */ }
   }, []);
 
@@ -32,7 +49,7 @@ export function DesktopUpdateNotifier() {
       if (!['succeeded', 'rolled_back', 'failed'].includes(status.state) || localStorage.getItem(SEEN_RESULT_KEY) === status.id) return;
       localStorage.setItem(SEEN_RESULT_KEY, status.id); setResult(status);
     }).catch(() => {});
-    const timer = window.setTimeout(() => check(true), 30_000);
+    const timer = window.setTimeout(() => check(true), 4_000);
     const onFocus = () => check(false);
     window.addEventListener('focus', onFocus);
     return () => { window.clearTimeout(timer); window.removeEventListener('focus', onFocus); };
@@ -40,7 +57,12 @@ export function DesktopUpdateNotifier() {
 
   if (!update?.available && !result) return null;
   const resultLabel = result?.state === 'succeeded' ? t('result.succeeded') : result?.state === 'rolled_back' ? t('result.rolled_back') : t('result.failed');
-  const later = () => { localStorage.setItem(DISMISSED_UNTIL_KEY, String(Date.now() + DAY_MS)); setUpdate(null); };
+  const later = () => {
+    localStorage.setItem(DISMISSED_UNTIL_KEY, String(Date.now() + DAY_MS));
+    const target = getTargetIdentity(update);
+    if (target) localStorage.setItem(DISMISSED_TARGET_KEY, target);
+    setUpdate(null);
+  };
   const start = async () => {
     setIsStarting(true);
     setError(null);
@@ -52,6 +74,12 @@ export function DesktopUpdateNotifier() {
     }
   };
 
+  const targetVersionLabel = formatVersionWithCommit(
+    update?.manifest?.version,
+    update?.manifest?.commitSha,
+    update?.manifest?.shortCommit
+  );
+
   return (
     <aside data-testid="desktop-update-notification" className="fixed bottom-5 right-5 z-[110] w-[min(92vw,420px)] space-y-3 rounded-lg border border-brass/50 bg-card p-5 shadow-2xl">
       {result ? (
@@ -62,8 +90,11 @@ export function DesktopUpdateNotifier() {
         </>
       ) : (
         <>
-          <h2 className="font-display font-semibold text-brass">{t('notificationTitle', { version: update?.manifest?.version ?? '' })}</h2>
+          <h2 className="font-display font-semibold text-brass">{t('notificationTitle', { version: targetVersionLabel })}</h2>
           <p className="text-sm text-muted-foreground">{t('notificationDescription')}</p>
+          {typeof update?.commitsBehind === 'number' && update.commitsBehind > 0 && (
+            <p className="text-xs text-muted-foreground">{t('commitsBehind', { count: update.commitsBehind })}</p>
+          )}
           {update?.manifest?.releaseNotes && (
             <a className="text-sm text-primary underline" href={update.manifest.releaseNotes} target="_blank" rel="noreferrer">
               {t('releaseNotes')}

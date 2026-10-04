@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -23,6 +24,7 @@ let releaseNotesUrl = '';
 let tag = '';
 let repo = '';
 let versionArg = '';
+let commitArg = '';
 let assetsDir = '';
 let macosArchive = '';
 let macosUrl = '';
@@ -42,6 +44,7 @@ for (let i = 0; i < rawArgs.length; i++) {
     else if (key === 'tag') tag = val;
     else if (key === 'repo') repo = val;
     else if (key === 'version') versionArg = val;
+    else if (key === 'commit') commitArg = val;
     else if (key === 'assets-dir') assetsDir = val;
     else if (key === 'macos-archive') macosArchive = val;
     else if (key === 'macos-url') macosUrl = val;
@@ -54,7 +57,7 @@ if (!isFlagMode) {
   const [archiveArg, outArg, downloadUrl, notesUrl = ''] = rawArgs;
   if (!archiveArg || !outArg || !downloadUrl) {
     console.error('Usage (legacy): node desktop/create-update-manifest.mjs <archive> <output> <download-url> [release-notes-url]');
-    console.error('Usage (unified): node desktop/create-update-manifest.mjs --assets-dir <dir> --output <output> --tag <tag> --repo <repo>');
+    console.error('Usage (unified): node desktop/create-update-manifest.mjs --assets-dir <dir> --output <output> --tag <tag> --repo <repo> [--commit <sha>]');
     process.exit(2);
   }
   outputArg = outArg;
@@ -70,6 +73,29 @@ if (!isFlagMode) {
 }
 
 const targetVersion = versionArg || (tag ? tag.replace(/^v/, '') : pkg.version);
+
+function resolveCommitSha(explicitCommit) {
+  if (explicitCommit && /^[a-f0-9]{7,40}$/i.test(explicitCommit.trim())) {
+    return explicitCommit.trim().toLowerCase();
+  }
+  if (process.env.GITHUB_SHA && /^[a-f0-9]{7,40}$/i.test(process.env.GITHUB_SHA.trim())) {
+    return process.env.GITHUB_SHA.trim().toLowerCase();
+  }
+  try {
+    const out = execSync('git rev-parse HEAD', { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (/^[a-f0-9]{7,40}$/i.test(out)) return out.toLowerCase();
+  } catch (_) {}
+  try {
+    const buildInfoPath = path.join(runtime, 'build-info.json');
+    if (fs.existsSync(buildInfoPath)) {
+      const info = JSON.parse(fs.readFileSync(buildInfoPath, 'utf8'));
+      if (typeof info.commitSha === 'string' && /^[a-f0-9]{7,40}$/i.test(info.commitSha.trim())) {
+        return info.commitSha.trim().toLowerCase();
+      }
+    }
+  } catch (_) {}
+  return '';
+}
 
 // Auto-discover from assets-dir if given
 if (assetsDir && fs.existsSync(assetsDir)) {
@@ -148,10 +174,14 @@ if (windowsPkg) {
 }
 
 const defaultPkg = macosPkg || packages.darwin || windowsPkg || packages.win32;
+const resolvedCommitSha = resolveCommitSha(commitArg) || existingManifest?.commitSha || '';
+const publishedAt = new Date().toISOString();
 
 const manifest = {
   schemaVersion: 1,
   version: targetVersion,
+  ...(resolvedCommitSha ? { commitSha: resolvedCommitSha, shortCommit: resolvedCommitSha.slice(0, 7) } : {}),
+  publishedAt,
   channel: 'stable',
   bundleId: 'com.aios.straznik-tajemnic-ai',
   minimumMacOSVersion: '11.0',
@@ -164,4 +194,4 @@ const manifest = {
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(`Pomyślnie wygenerowano manifest aktualizacji: ${outputPath}`);
-console.log(`Wersja: ${manifest.version}, Pakiety: ${Object.keys(packages).join(', ')}`);
+console.log(`Wersja: ${manifest.version}${resolvedCommitSha ? ` (${resolvedCommitSha.slice(0, 7)})` : ''}, Pakiety: ${Object.keys(packages).join(', ')}`);

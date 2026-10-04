@@ -24,6 +24,7 @@ const args = process.argv.slice(2);
 let outputDir = path.resolve(__dirname, '..', 'dist');
 let nodeVersion = 'v22.12.0';
 let skipDownload = false;
+let commitShaArg = '';
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--output' && args[i + 1]) {
@@ -32,6 +33,8 @@ for (let i = 0; i < args.length; i++) {
     nodeVersion = args[++i];
   } else if (args[i] === '--skip-download') {
     skipDownload = true;
+  } else if (args[i] === '--commit' && args[i + 1]) {
+    commitShaArg = args[++i];
   }
 }
 
@@ -45,8 +48,32 @@ if (fs.existsSync(path.join(engineDir, 'package.json'))) {
 const pkg = JSON.parse(fs.readFileSync(path.join(gameDir, 'package.json'), 'utf8'));
 const version = pkg.version || '0.9.5';
 
+function resolveCommitSha() {
+  if (commitShaArg && /^[a-f0-9]{7,40}$/i.test(commitShaArg.trim())) {
+    return commitShaArg.trim().toLowerCase();
+  }
+  if (process.env.GITHUB_SHA && /^[a-f0-9]{7,40}$/i.test(process.env.GITHUB_SHA.trim())) {
+    return process.env.GITHUB_SHA.trim().toLowerCase();
+  }
+  try {
+    const out = execSync('git rev-parse HEAD', { cwd: rootDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (/^[a-f0-9]{7,40}$/i.test(out)) return out.toLowerCase();
+  } catch (_) {}
+  try {
+    const existing = JSON.parse(fs.readFileSync(path.join(gameDir, 'build-info.json'), 'utf8'));
+    if (typeof existing.commitSha === 'string' && /^[a-f0-9]{7,40}$/i.test(existing.commitSha.trim())) {
+      return existing.commitSha.trim().toLowerCase();
+    }
+  } catch (_) {}
+  return '';
+}
+
+const commitSha = resolveCommitSha();
+const shortCommit = commitSha ? commitSha.slice(0, 7) : '';
+const builtAt = new Date().toISOString();
+
 console.log('====================================================');
-console.log(` Strażnik Tajemnic AI v${version} - Budowanie Paczki Windows`);
+console.log(` Strażnik Tajemnic AI v${version}${shortCommit ? ` (${shortCommit})` : ''} - Budowanie Paczki Windows`);
 console.log('====================================================\n');
 
 const stagingRoot = path.join(outputDir, '_staging');
@@ -147,8 +174,12 @@ if (fs.existsSync(desktopDir)) {
   });
 }
 
-// Kopiowanie package.json
+// Kopiowanie package.json i zapis build-info.json
 fs.copyFileSync(path.join(gameDir, 'package.json'), path.join(runtimeDir, 'package.json'));
+fs.writeFileSync(
+  path.join(runtimeDir, 'build-info.json'),
+  `${JSON.stringify({ version, commitSha, shortCommit, builtAt }, null, 2)}\n`
+);
 
 // Kopiowanie opcjonalnych danych startowych (np. data/ z wykluczeniami)
 const dataDir = path.join(gameDir, 'data');

@@ -397,7 +397,115 @@ function runWorker(env, argsList) {
   console.log('✓ PASS: Sukces aktualizacji przy uruchomieniu workera z zewnętrznej binarki Node poza runtime');
 }
 
+// -------------------------------------------------------------
+// Test 12: Weryfikacja i zapis build-info.json przy aktualizacji commit-aware
+// -------------------------------------------------------------
+{
+  const c = prepareWindowsCase('win-commit-success', { version: '0.9.5', archiveVersion: '0.9.5' });
+  const targetCommit = 'ac826c9d11111111111111111111111111111111';
+  const res = runWorker({}, [
+    '--target', c.appDir,
+    '--url', 'https://example.com/update.zip',
+    '--sha256', c.sha256,
+    '--version', '0.9.5',
+    '--commit', targetCommit,
+    '--size', String(c.size),
+    '--data-dir', c.dataDir,
+    '--platform', 'win32',
+    '--test-archive', c.zipPath,
+  ]);
+
+  assert.strictEqual(res.status, 0, `Worker powinien zakończyć z kodem 0. stderr: ${res.stderr}`);
+  const status = JSON.parse(fs.readFileSync(path.join(c.dataDir, 'updates', 'status.json'), 'utf8'));
+  assert.strictEqual(status.state, 'succeeded');
+  assert.strictEqual(status.commitSha, targetCommit);
+  const buildInfo = JSON.parse(fs.readFileSync(path.join(c.liveRuntime, 'build-info.json'), 'utf8'));
+  assert.strictEqual(buildInfo.commitSha, targetCommit);
+  assert.strictEqual(buildInfo.shortCommit, 'ac826c9');
+  console.log('✓ PASS: Aktualizacja commit-aware zapisuje i weryfikuje build-info.json');
+}
+
+// -------------------------------------------------------------
+// Test 13: Blokada przy niezgodności commitSha w build-info.json
+// -------------------------------------------------------------
+{
+  const caseDir = path.join(TEST_ROOT, 'commit-mismatch');
+  const dataDir = path.join(caseDir, 'data');
+  const appDir = path.join(caseDir, 'straznik-tajemnic-windows');
+  const liveRuntime = path.join(appDir, 'runtime');
+  const pkgStaging = path.join(caseDir, 'pkg-staging', 'straznik-tajemnic-windows', 'runtime');
+  const zipPath = path.join(caseDir, 'update.zip');
+
+  fs.mkdirSync(liveRuntime, { recursive: true });
+  fs.mkdirSync(pkgStaging, { recursive: true });
+  fs.mkdirSync(dataDir, { recursive: true });
+
+  fs.writeFileSync(path.join(liveRuntime, 'marker.txt'), 'old');
+  fs.writeFileSync(path.join(liveRuntime, 'package.json'), JSON.stringify({ name: 'straznik-tajemnic', version: '0.9.5' }));
+  fs.writeFileSync(path.join(pkgStaging, 'marker.txt'), 'new');
+  fs.writeFileSync(path.join(pkgStaging, 'package.json'), JSON.stringify({ name: 'straznik-tajemnic', version: '0.9.5' }));
+  fs.writeFileSync(path.join(pkgStaging, 'build-info.json'), JSON.stringify({
+    version: '0.9.5',
+    commitSha: '1111111111111111111111111111111111111111',
+    shortCommit: '1111111',
+  }));
+
+  createZip(path.join(caseDir, 'pkg-staging'), zipPath);
+  const bytes = fs.readFileSync(zipPath);
+  const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+
+  const res = runWorker({}, [
+    '--target', appDir,
+    '--url', 'https://example.com/update.zip',
+    '--sha256', sha256,
+    '--version', '0.9.5',
+    '--commit', '2222222222222222222222222222222222222222',
+    '--size', String(bytes.length),
+    '--data-dir', dataDir,
+    '--platform', 'win32',
+    '--test-archive', zipPath,
+  ]);
+
+  assert.strictEqual(res.status, 1);
+  const status = JSON.parse(fs.readFileSync(path.join(dataDir, 'updates', 'status.json'), 'utf8'));
+  assert.strictEqual(status.state, 'failed');
+  assert(status.message.includes('commit mismatch'));
+  assert.strictEqual(fs.readFileSync(path.join(liveRuntime, 'marker.txt'), 'utf8').trim(), 'old');
+  console.log('✓ PASS: Blokada przy niezgodności commitSha wewnątrz paczki (commit mismatch)');
+}
+
+// -------------------------------------------------------------
+// Test 14: Generator manifestu zapisuje commitSha, shortCommit i publishedAt
+// -------------------------------------------------------------
+{
+  const c = prepareWindowsCase('manifest-gen', { version: '0.9.5', archiveVersion: '0.9.5' });
+  const assetsDir = path.join(c.caseDir, 'assets');
+  fs.mkdirSync(assetsDir, { recursive: true });
+  fs.copyFileSync(c.zipPath, path.join(assetsDir, 'straznik-tajemnic-windows.zip'));
+  const manifestOut = path.join(assetsDir, 'update-manifest.json');
+  const testCommit = 'ac826c9d99999999999999999999999999999999';
+
+  const manifestScript = path.join(__dirname, 'create-update-manifest.mjs');
+  const res = spawnSync(process.execPath, [
+    manifestScript,
+    '--assets-dir', assetsDir,
+    '--output', manifestOut,
+    '--tag', 'v0.9.5',
+    '--commit', testCommit,
+    '--repo', 'InduPhantom-hash/straznik-tajemnic',
+  ], { encoding: 'utf8' });
+
+  assert.strictEqual(res.status, 0, `create-update-manifest powinien zakończyć z kodem 0: ${res.stderr}`);
+  const generated = JSON.parse(fs.readFileSync(manifestOut, 'utf8'));
+  assert.strictEqual(generated.version, '0.9.5');
+  assert.strictEqual(generated.commitSha, testCommit);
+  assert.strictEqual(generated.shortCommit, 'ac826c9');
+  assert.ok(generated.publishedAt && !Number.isNaN(Date.parse(generated.publishedAt)));
+  assert.ok(generated.packages.win32);
+  console.log('✓ PASS: Generator manifestu (create-update-manifest.mjs) zapisuje commitSha, shortCommit i publishedAt');
+}
+
 console.log('\n============================================================');
-console.log(' Wszystkie testy update-worker zakończone sukcesem (11/11)!');
+console.log(' Wszystkie testy update-worker zakończone sukcesem (14/14)!');
 console.log('============================================================\n');
 

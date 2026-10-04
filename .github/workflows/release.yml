@@ -2,6 +2,8 @@ name: Stable Release (macOS & Windows)
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -18,7 +20,11 @@ on:
       tag_name:
         description: 'Tag wydania do zaktualizowania (np. v0.9.5)'
         required: false
-        default: 'v0.9.5'
+        default: ''
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -42,7 +48,15 @@ jobs:
         id: meta
         shell: bash
         run: |
-          TARGET_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          PKG_VER=$(node -p "require('./_tester/_base/.silnik/package.json').version")
+          INPUT_TAG="${{ github.event.inputs.tag_name }}"
+          if [ -n "$INPUT_TAG" ]; then
+            TARGET_TAG="$INPUT_TAG"
+          elif [[ "${GITHUB_REF_NAME}" == v* ]]; then
+            TARGET_TAG="${GITHUB_REF_NAME}"
+          else
+            TARGET_TAG="v${PKG_VER}"
+          fi
           echo "tag=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Verify tag and package version
@@ -89,7 +103,15 @@ jobs:
         id: meta
         shell: bash
         run: |
-          TARGET_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          PKG_VER=$(node -p "require('./_tester/_base/.silnik/package.json').version")
+          INPUT_TAG="${{ github.event.inputs.tag_name }}"
+          if [ -n "$INPUT_TAG" ]; then
+            TARGET_TAG="$INPUT_TAG"
+          elif [[ "${GITHUB_REF_NAME}" == v* ]]; then
+            TARGET_TAG="${GITHUB_REF_NAME}"
+          else
+            TARGET_TAG="v${PKG_VER}"
+          fi
           echo "tag=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies (native Windows compilation)
@@ -104,7 +126,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/dist"
-          node desktop/build-windows.mjs --output "$RUNNER_TEMP/dist"
+          node desktop/build-windows.mjs --output "$RUNNER_TEMP/dist" --commit "${GITHUB_SHA}"
 
       - name: Upload Windows release artifacts
         uses: actions/upload-artifact@v4
@@ -125,6 +147,21 @@ jobs:
         with:
           node-version: 22
 
+      - name: Determine target tag and commit
+        id: meta
+        shell: bash
+        run: |
+          PKG_VER=$(node -p "require('./_tester/_base/.silnik/package.json').version")
+          INPUT_TAG="${{ github.event.inputs.tag_name }}"
+          if [ -n "$INPUT_TAG" ]; then
+            TARGET_TAG="$INPUT_TAG"
+          elif [[ "${GITHUB_REF_NAME}" == v* ]]; then
+            TARGET_TAG="${GITHUB_REF_NAME}"
+          else
+            TARGET_TAG="v${PKG_VER}"
+          fi
+          echo "tag=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
+
       - name: Download all release artifacts
         uses: actions/download-artifact@v4
         with:
@@ -135,17 +172,18 @@ jobs:
       - name: Generate Unified Update Manifest
         shell: bash
         run: |
-          TARGET_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
           node desktop/create-update-manifest.mjs \
             --assets-dir "${{ runner.temp }}/all-assets" \
             --output "${{ runner.temp }}/all-assets/update-manifest.json" \
-            --tag "${TARGET_TAG}" \
+            --tag "${{ steps.meta.outputs.tag }}" \
+            --commit "${GITHUB_SHA}" \
             --repo "${GITHUB_REPOSITORY}"
 
       - name: Publish or update release assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          tag_name: ${{ steps.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
           prerelease: false
           files: ${{ runner.temp }}/all-assets/*
