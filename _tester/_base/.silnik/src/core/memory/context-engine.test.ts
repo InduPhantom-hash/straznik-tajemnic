@@ -1,9 +1,14 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { CampaignContextEngine, CampaignContextBudgetError } from './context-engine';
+import {
+  CampaignContextEngine,
+  CampaignContextBudgetError,
+  countConversationTurns,
+} from './context-engine';
 import { CampaignMemoryLedgerStore } from './ledger-store';
 import type { CampaignMemoryScope } from './types';
+import type { Message } from '@/lib/types';
 import { getGeminiClient } from '@/lib/gemini-client-pool';
 import { searchCampaignMemory } from './retrieval';
 
@@ -313,4 +318,291 @@ describe('CampaignContextEngine', () => {
     expect(ledger.getLatestCheckpoint(scope.playthroughId)?.summary).toContain('Odkryto zamknięte drzwi.');
     expect(ledger.getLatestCheckpoint(scope.playthroughId)?.summary).not.toContain('ukryty sekret');
   });
+
+  describe('OPT-C02 Adaptive Context Window Compression', () => {
+    it('does not compact long-context model sessions under turn and token thresholds', async () => {
+      const input = messages(20, 50); // 10 turns, ~340 tokens
+      const result = await new CampaignContextEngine(ledger).compactIfNeeded({
+        messages: input,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+      });
+      expect(result.messages).toEqual(input);
+      expect(result.compacted).toBe(false);
+      expect(getGeminiClient).not.toHaveBeenCalled();
+    });
+
+    it('compacts sessions exceeding turn threshold (> 20 turns) on models with 1M context limit', async () => {
+      (getGeminiClient as jest.Mock).mockReturnValue({
+        models: {
+          generateContent: jest.fn(async () => ({
+            text: JSON.stringify({
+              events: ['Rozpoczęto śledztwo w Arkham.'],
+              investigatorDecisions: ['Badacze zbadali stary dom.'],
+              revealedClues: ['Dziwny symbol na ścianie.'],
+              npcStatus: ['Profesor Armitage jest bezpieczny.'],
+              consequences: ['Świadkowie uciekli.'],
+              unresolvedThreads: ['Kto wybił okno?'],
+            }),
+          })),
+        },
+      });
+
+      const input = messages(44, 100); // 22 turns
+      const result = await new CampaignContextEngine(ledger).compactIfNeeded({
+        messages: input,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+      });
+
+      expect(result.compacted).toBe(true);
+      expect(result.summarySection).toContain('PODSUMOWANIE KONTEKSTU KAMPANII');
+      expect(result.summarySection).toContain('Rozpoczęto śledztwo w Arkham.');
+      expect(getGeminiClient).toHaveBeenCalledTimes(1);
+
+      // Verify outbound messages are bounded
+      expect(result.messages.length).toBeLessThan(input.length);
+      expect(result.messages[0].id).toBe('m-0');
+      expect(result.messages.at(-1)?.id).toBe('m-43');
+
+      // Verify checkpoint saved in SQLite ledger
+      const checkpoint = ledger.getLatestCheckpoint(scope.playthroughId);
+      expect(checkpoint).not.toBeNull();
+      expect(checkpoint?.summary).toContain('Rozpoczęto śledztwo w Arkham.');
+      expect(checkpoint?.sourceStartSequence).toBeGreaterThanOrEqual(1);
+      expect(checkpoint?.sourceEndSequence).toBeLessThan(43);
+    });
+
+    it('compacts sessions exceeding token threshold (> 20,000 tokens) even with fewer turns', async () => {
+      (getGeminiClient as jest.Mock).mockReturnValue({
+        models: {
+          generateContent: jest.fn(async () => ({
+            text: JSON.stringify({
+              events: ['Długa naracja o rytuale.'],
+              investigatorDecisions: ['Przerwanie obrzędu.'],
+              revealedClues: ['Księga Eibona.'],
+              npcStatus: [],
+              consequences: ['Mgła opadła.'],
+              unresolvedThreads: [],
+            }),
+          })),
+        },
+      });
+
+      // 8 turns (16 messages), each with 6,000 characters (~1,508 tokens * 16 = ~24,128 tokens)
+      const input = messages(16, 6000);
+      const result = await new CampaignContextEngine(ledger).compactIfNeeded({
+        messages: input,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+      });
+
+      expect(result.compacted).toBe(true);
+      expect(result.summarySection).toContain('Długa naracja o rytuale.');
+      expect(getGeminiClient).toHaveBeenCalledTimes(1);
+    });
+
+    it('reuses ledger checkpoint on subsequent turns in adaptive context window without redundant AI calls', async () => {
+      const generateContent = jest.fn(async () => ({
+        text: JSON.stringify({
+          events: ['Przeszukanie archiwum.'],
+          investigatorDecisions: [],
+          revealedClues: ['Stara mapa bagniska.'],
+          npcStatus: [],
+          consequences: [],
+          unresolvedThreads: [],
+        }),
+      }));
+      (getGeminiClient as jest.Mock).mockReturnValue({ models: { generateContent } });
+
+      const engine = new CampaignContextEngine(ledger);
+      const initial = messages(44, 100); // 22 turns
+      const first = await engine.compactIfNeeded({
+        messages: initial,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+      });
+      expect(first.compacted).toBe(true);
+      expect(generateContent).toHaveBeenCalledTimes(1);
+
+      // Next turn: 23 turns (46 messages)
+      const expanded = messages(46, 100);
+      const second = await engine.compactIfNeeded({
+        messages: expanded,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+      });
+
+      expect(second.compacted).toBe(true);
+      // generateContent should NOT be called again - checkpoint must be reused!
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      expect(second.summarySection).toContain('Przeszukanie archiwum.');
+      expect(second.messages.at(-1)?.id).toBe('m-45');
+    });
+
+    it('respects custom adaptiveTurnThreshold and adaptiveTokenThreshold overrides in prepareContext', async () => {
+      (getGeminiClient as jest.Mock).mockReturnValue({
+        models: {
+          generateContent: jest.fn(async () => ({
+            text: JSON.stringify({
+              events: ['Wczesne podsumowanie po 8 turach.'],
+              investigatorDecisions: [],
+              revealedClues: [],
+              npcStatus: [],
+              consequences: [],
+              unresolvedThreads: [],
+            }),
+          })),
+        },
+      });
+
+      const input = messages(16, 50); // 8 turns
+      const result = await new CampaignContextEngine(ledger).prepareContext({
+        messages: input,
+        query: 'archiwum',
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+        adaptiveTurnThreshold: 6, // override to trigger at 6 turns
+      });
+
+      expect(result.compacted).toBe(true);
+      expect(result.summarySection).toContain('Wczesne podsumowanie po 8 turach.');
+      expect(getGeminiClient).toHaveBeenCalledTimes(1);
+    });
+
+    it('correctly calculates conversation turns even with sparse or irregular user messages', () => {
+      expect(countConversationTurns([])).toBe(0);
+      expect(countConversationTurns(messages(40, 10))).toBe(20);
+
+      // 1 user message, 25 assistant messages -> total 26 messages -> Math.max(1, 13) = 13 turns
+      const irregular: Message[] = [
+        { id: 'm-0', role: 'user', content: 'Cześć', timestamp: new Date() },
+        ...Array.from({ length: 25 }, (_, i) => ({
+          id: `a-${i}`,
+          role: 'assistant' as const,
+          content: `Odpowiedź ${i}`,
+          timestamp: new Date(),
+        })),
+      ];
+      expect(countConversationTurns(irregular)).toBe(13);
+    });
+
+    it('compacts sessions exceeding turn threshold even when availableContextTokens is explicitly passed', async () => {
+      (getGeminiClient as jest.Mock).mockReturnValue({
+        models: {
+          generateContent: jest.fn(async () => ({
+            text: JSON.stringify({
+              events: ['Podsumowanie z dostępnym budżetem tokenów.'],
+              investigatorDecisions: [],
+              revealedClues: [],
+              npcStatus: [],
+              consequences: [],
+              unresolvedThreads: [],
+            }),
+          })),
+        },
+      });
+
+      const input = messages(44, 100); // 22 turns
+      const result = await new CampaignContextEngine(ledger).compactIfNeeded({
+        messages: input,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+        availableContextTokens: 60_000, // Explicit token budget > adaptive threshold
+      });
+
+      expect(result.compacted).toBe(true);
+      expect(result.summarySection).toContain('Podsumowanie z dostępnym budżetem tokenów.');
+      expect(getGeminiClient).toHaveBeenCalledTimes(1);
+    });
+
+    it('gracefully returns fallback when all messages fit into head and tail without middle segment', async () => {
+      const input = messages(8, 50); // 4 turns: 4 head + 4 tail -> no middle
+      const result = await new CampaignContextEngine(ledger).compactIfNeeded({
+        messages: input,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+        adaptiveTurnThreshold: 2, // low threshold to force evaluation
+      });
+
+      expect(result.compacted).toBe(false);
+      expect(result.messages).toEqual(input);
+      expect(result.summarySection).toBeNull();
+      expect(getGeminiClient).not.toHaveBeenCalled();
+    });
+
+    it('refreshes checkpoint when appended uncovered messages exceed effective adaptive budget', async () => {
+      let callCount = 0;
+      const generateContent = jest.fn(async () => {
+        callCount += 1;
+        return {
+          text: JSON.stringify({
+            events: [`Podsumowanie #${callCount}`],
+            investigatorDecisions: [],
+            revealedClues: [],
+            npcStatus: [],
+            consequences: [],
+            unresolvedThreads: [],
+          }),
+        };
+      });
+      (getGeminiClient as jest.Mock).mockReturnValue({ models: { generateContent } });
+
+      const engine = new CampaignContextEngine(ledger);
+      const initial = messages(44, 100); // 22 turns
+      const first = await engine.compactIfNeeded({
+        messages: initial,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+        adaptiveTokenThreshold: 3_000,
+      });
+      expect(first.compacted).toBe(true);
+      expect(generateContent).toHaveBeenCalledTimes(1);
+
+      // Add messages where uncovered middle is heavy (exceeds adaptiveTokenThreshold of 3,000)
+      const expanded = [
+        ...initial,
+        // Huge messages in middle that cause reusedCost to exceed 3,000 tokens
+        ...Array.from({ length: 4 }, (_, i) => ({
+          id: `m-extra-${i}`,
+          role: (i % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+          content: 'x'.repeat(4000), // ~1008 tokens each
+          timestamp: new Date(),
+        })),
+      ];
+
+      const second = await engine.compactIfNeeded({
+        messages: expanded,
+        modelId: 'gemini-2.5-flash',
+        apiKey: 'key',
+        scope,
+        locale: 'pl',
+        adaptiveTokenThreshold: 3_000,
+      });
+
+      expect(second.compacted).toBe(true);
+      // Checkpoint must NOT be blindly reused; it must refresh!
+      expect(generateContent).toHaveBeenCalledTimes(2);
+      expect(second.summarySection).toContain('Podsumowanie #2');
+    });
+  });
 });
+

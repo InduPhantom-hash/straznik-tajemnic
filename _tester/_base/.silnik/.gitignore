@@ -126,6 +126,8 @@ CODE_MAP.md
 /data/usage/
 # Cache auto-fetch cennika Gemini (IND-273 T5b) - runtime, TTL 24h
 /data/pricing/
+# Cache audio TTS na dysku (OPT-C03) - runtime, pliki lokalne
+/data/cache/
 
 # Desktop launcher: runtime (PID serwera, profil okna Chrome) + generowane ikony.
 # Wersjonujemy tylko zrodla w desktop/*.sh + README.

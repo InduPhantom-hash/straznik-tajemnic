@@ -45,6 +45,8 @@ export interface RunRAGAndSummaryOpts {
   recipientIds?:string[];
   sceneEntityIds?:string[];
   allowedNamespaces?:string[];
+  adaptiveTokenThreshold?: number;
+  adaptiveTurnThreshold?: number;
 }
 
 /**
@@ -122,6 +124,8 @@ export async function runRAGAndSummary(
     scope: memoryScope,
     locale: locale ?? 'pl',
     queryEmbedding,recipientIds:opts.recipientIds,sceneEntityIds:opts.sceneEntityIds,
+    adaptiveTokenThreshold: opts.adaptiveTokenThreshold,
+    adaptiveTurnThreshold: opts.adaptiveTurnThreshold,
   });
 
   const [retrieval, campaignContext] = await Promise.all([

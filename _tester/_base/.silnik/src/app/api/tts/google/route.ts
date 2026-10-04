@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logApiEvent, generateTraceId, startTimer } from '@/lib/telemetry';
 import { cleanResponseText } from '@/lib/parsers/text-cleaner';
+import { apiCacheService } from '@/lib/api-cache-service';
 
 // IND-160: typy dla GET /api/tts/google (lista głosów Google Cloud TTS).
 // Wcześniej `voice: any` w map() i `(a: any, b: any)` w sort() — cleanup
@@ -77,25 +78,52 @@ export async function POST(request: NextRequest) {
       console.log('🔑 Using user-provided API key for Google TTS');
     }
 
+    // Safely resolve settings with defaults to prevent runtime TypeErrors
+    const safeSettings = settings || {};
     // Chirp3-HD voices don't support pitch parameter
-    // Chirp3-HD voices don't support pitch parameter
-    const isChirp3Voice = settings.voiceName?.includes('Chirp3');
+    const isChirp3Voice = safeSettings.voiceName?.includes('Chirp3');
 
     const requestPayload = {
       input: { text: compressedText },
       voice: {
-        languageCode: settings.languageCode || 'pl-PL',
-        name: settings.voiceName,
-        ssmlGender: settings.gender || 'NEUTRAL',
+        languageCode: safeSettings.languageCode || 'pl-PL',
+        name: safeSettings.voiceName,
+        ssmlGender: safeSettings.gender || 'NEUTRAL',
       },
       audioConfig: {
         audioEncoding: 'MP3',
-        speakingRate: settings.speakingRate || 1.0,
-        ...(isChirp3Voice ? {} : { pitch: settings.pitch || 0 }),
-        volumeGainDb: settings.volumeGainDb || 0,
-        effectsProfileId: settings.effectsProfileId || [],
+        speakingRate: safeSettings.speakingRate || 1.0,
+        ...(isChirp3Voice ? {} : { pitch: safeSettings.pitch || 0 }),
+        volumeGainDb: safeSettings.volumeGainDb || 0,
+        effectsProfileId: safeSettings.effectsProfileId || [],
       },
     };
+
+    const cacheKey = {
+      text: compressedText,
+      voiceName: requestPayload.voice.name,
+      languageCode: requestPayload.voice.languageCode,
+      ssmlGender: requestPayload.voice.ssmlGender,
+      speakingRate: requestPayload.audioConfig.speakingRate,
+      pitch: (requestPayload.audioConfig as Record<string, unknown>).pitch ?? 0,
+      volumeGainDb: requestPayload.audioConfig.volumeGainDb,
+      effectsProfileId: requestPayload.audioConfig.effectsProfileId,
+    };
+
+    const cachedResponse = apiCacheService.get<{
+      success: boolean;
+      audioUrl: string;
+      duration: number;
+      cost: number;
+      timestamp: string;
+      originalLength: number;
+      compressedLength: number;
+    }>('google-tts-v2', cacheKey);
+
+    if (cachedResponse) {
+      console.log('🎯 Persistent cache hit for /api/tts/google');
+      return NextResponse.json(cachedResponse);
+    }
 
     console.log(
       `📡 Sending to Google TTS: Voice=${requestPayload.voice.name}, Gender=${requestPayload.voice.ssmlGender}`
@@ -130,9 +158,12 @@ export async function POST(request: NextRequest) {
 
     // Szacunkowy koszt (Google TTS: $4 per 1M characters for WaveNet)
     const cost = (compressedText.length / 1000000) * 4;
-    const duration = estimateDuration(compressedText, settings.speakingRate);
+    const duration = estimateDuration(
+      compressedText,
+      safeSettings.speakingRate || 1.0
+    );
 
-    return NextResponse.json({
+    const responsePayload = {
       success: true,
       audioUrl: audioDataUrl,
       duration,
@@ -140,7 +171,17 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       originalLength: text.length,
       compressedLength: compressedText.length,
-    });
+    };
+
+    // Cache in RAM and persistent disk (7 days)
+    apiCacheService.set(
+      'google-tts-v2',
+      cacheKey,
+      responsePayload,
+      7 * 24 * 60 * 60 * 1000
+    );
+
+    return NextResponse.json(responsePayload);
   } catch (error) {
     const errorMsg =
       error instanceof Error ? error.stack || error.message : String(error);
@@ -185,7 +226,7 @@ function compressTextForTTS(text: string): string {
   return compressed;
 }
 
-function estimateDuration(text: string, speakingRate: number): number {
+function estimateDuration(text: string, speakingRate: number = 1.0): number {
   // Średnio 150 słów na minutę przy normalnej prędkości (1.0)
   const wordsPerMinute = 150 * speakingRate;
   const words = text.split(/\s+/).length;

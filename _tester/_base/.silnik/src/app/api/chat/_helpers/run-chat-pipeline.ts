@@ -56,6 +56,7 @@ import { resolveUserId, scopeSessionId } from '@/lib/auth-user';
 import { isModelNotFoundError, isInvalidKeyError } from './model-fallback';
 import { fetchImmersionContext } from './build-immersion-context';
 import {
+  buildEraNarrativeRules,
   isResolvedEraContext,
   resolveGameEraContext,
   type ResolvedEraContext,
@@ -512,9 +513,8 @@ export async function runChatPipeline({
   const provider = new GeminiChatProvider(apiKey, modelId);
 
   // === TIME & ERA CONTEXT === - IND-183 micro 2/5
-  const { timePromptSection, eraRules } = buildTimeContext({
-    eraContext,
-  });
+  // eraRules są wymagane w stableInstructions dla chmurowego Gemini Context Cache (OPT-26)
+  const eraRules = buildEraNarrativeRules(eraContext);
 
   // Wyciagnij date gry z time-managera (YYYY-MM-DD) dla immersji.
   const gameDate = `${currentGameTime.year}-${String(currentGameTime.month + 1).padStart(2, '0')}-${String(currentGameTime.day).padStart(2, '0')}`;
@@ -649,6 +649,16 @@ export async function runChatPipeline({
     contextMessages,
     campaignMemorySection,
   } = ragResult;
+
+  // === OPT-C01: DEDUPLIKACJA REGUŁ EPOKI PRZY AKTYWNYM GEMINI CONTEXT CACHE ===
+  // Jeśli cache jest aktywny (resolvedCachedContent != null), reguły epoki (eraRules)
+  // znajdują się już w stableInstructions w chmurowym cache (resolve-gemini-cache.ts:33).
+  // Przekazanie resolvedCachedContent automatycznie pomija eraRules w timePromptSection,
+  // eliminując redundancję ~1000-1500 tokenów na każdą turę (lub załącza je, gdy cache jest nieaktywny).
+  const { timePromptSection } = buildTimeContext({
+    eraContext,
+    resolvedCachedContent,
+  });
 
   // === BUDUJ KONTEKST (additionalContext) - IND-71 micro 1/3 ===
   // C1: recap przy wznowieniu zapisanej gry (isGameStart + istnieje historia rozmowy).

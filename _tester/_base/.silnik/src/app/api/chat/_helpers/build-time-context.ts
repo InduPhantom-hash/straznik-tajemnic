@@ -22,6 +22,7 @@
  * `@/lib/*` - mockowalne przez jest.
  */
 
+import type { CachedContent } from '@google/genai';
 import { timeManager } from '@/lib/time-manager';
 import { getAtmosphereDirective } from '@/lib/time-atmosphere';
 import { buildEraNarrativeRules, type ResolvedEraContext } from '@/lib/era';
@@ -29,6 +30,17 @@ import { buildEraNarrativeRules, type ResolvedEraContext } from '@/lib/era';
 // Helper przyjmuje wyłącznie kanoniczny kontekst epoki.
 export interface BuildTimeContextOpts {
   eraContext: ResolvedEraContext;
+  /**
+   * OPT-C01: Pomija wstrzykiwanie `eraRules` do `timePromptSection`.
+   * Stosowane, gdy reguły epoki są już zamrożone w Gemini Context Caching
+   * (`resolvedCachedContent` aktywny), eliminując dublowanie 1000-1500 tokenów na turę.
+   */
+  omitEraRules?: boolean;
+  /**
+   * OPT-C01: Alternatywnie przyjmuje obiekt cache z Gemini (`resolvedCachedContent`).
+   * Jeśli obecny i nie-null, `eraRules` są automatycznie pomijane w `timePromptSection`.
+   */
+  resolvedCachedContent?: CachedContent | null | unknown;
 }
 
 export interface BuildTimeContextResult {
@@ -42,18 +54,22 @@ export function buildTimeContext(
   const timeContext = timeManager.formatForPrompt();
   const eraRules = buildEraNarrativeRules(opts.eraContext);
 
-
   const weather = timeManager.getWeather();
   const atmosphere = getAtmosphereDirective(
     timeManager.getTime().hour,
     timeManager.getMoonPhase()
   );
 
+  const shouldOmitEraRules =
+    typeof opts.omitEraRules === 'boolean'
+      ? opts.omitEraRules
+      : Boolean(opts.resolvedCachedContent);
+  const eraSection =
+    shouldOmitEraRules || !eraRules?.trim() ? '' : `\n\n${eraRules.trim()}`;
+
   const timePromptSection = `
 ## KONTEKST CZASOWY
-${timeContext}
-
-${eraRules}
+${timeContext}${eraSection}
 
 **Aktualna Pogoda & Warunki:** ${weather}
 **Atmosfera:** ${atmosphere}
