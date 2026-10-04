@@ -97,6 +97,14 @@ describe('desktop update service', () => {
       expect(getUpdatePackageForPlatform(winOnlyManifest as never, 'darwin')).toBeNull();
       expect(getUpdatePackageForPlatform(winOnlyManifest as never, 'win32')).toEqual(winPkg);
     });
+
+    it('falls back to manifest.package on non-windows non-darwin platforms (e.g. linux CI)', () => {
+      const genericManifest = {
+        ...manifest,
+        package: macPkg,
+      };
+      expect(getUpdatePackageForPlatform(genericManifest as never, 'linux')).toEqual(macPkg);
+    });
   });
 
   describe('canPerformSelfUpdate and resolveAppTarget', () => {

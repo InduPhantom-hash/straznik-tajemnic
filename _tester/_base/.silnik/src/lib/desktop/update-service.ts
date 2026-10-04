@@ -114,7 +114,7 @@ export function getUpdatePackageForPlatform(
     return null;
   }
 
-  return manifest.packages?.[platform] ?? null;
+  return manifest.packages?.[platform] ?? manifest.package ?? null;
 }
 
 export function validateManifest(value: unknown): DesktopUpdateManifest | null {
