@@ -85,25 +85,36 @@ export function getUpdatePackageForPlatform(
   platform: NodeJS.Platform = process.platform
 ): PackageInfo | null {
   if (platform === 'win32') {
-    return (
+    const pkg =
       manifest.packages?.win32 ??
       manifest.platforms?.windows ??
       manifest.packages?.windows ??
-      (manifest.package && manifest.package.name.toLowerCase().includes('win') ? manifest.package : null) ??
-      manifest.package ??
-      null
-    );
+      null;
+    if (pkg) return pkg;
+
+    // Fallback wyłącznie jeśli pojedyncza paczka jawnie celuje w Windows
+    if (manifest.package && manifest.package.name.toLowerCase().includes('win')) {
+      return manifest.package;
+    }
+    return null;
   }
+
   if (platform === 'darwin') {
-    return (
+    const pkg =
       manifest.packages?.darwin ??
       manifest.platforms?.macos ??
       manifest.packages?.macos ??
-      manifest.package ??
-      null
-    );
+      null;
+    if (pkg) return pkg;
+
+    // Fallback dla legacy manifestów (pojedyncza paczka bez oznaczenia Windows)
+    if (manifest.package && !manifest.package.name.toLowerCase().includes('win')) {
+      return manifest.package;
+    }
+    return null;
   }
-  return manifest.packages?.[platform] ?? manifest.package ?? null;
+
+  return manifest.packages?.[platform] ?? null;
 }
 
 export function validateManifest(value: unknown): DesktopUpdateManifest | null {
@@ -171,11 +182,23 @@ export function canPerformSelfUpdate(): boolean {
   }
 
   if (process.platform === 'win32') {
-    return !!(
-      process.env.STRAZNIK_DESKTOP_COLD_START === '1' ||
-      process.env.ZEW_APP_DIR ||
-      process.env.ZEW_DATA_DIR
-    );
+    if (process.env.STRAZNIK_DESKTOP_COLD_START === '1') return true;
+    const explicit = process.env.ZEW_APP_DIR || process.env.ZEW_APP_BUNDLE;
+    if (explicit && fs.existsSync(explicit)) {
+      return (
+        fs.existsSync(path.join(explicit, 'Graj - Strażnik Tajemnic.cmd')) ||
+        fs.existsSync(path.join(explicit, 'runtime'))
+      );
+    }
+    const cwd = process.cwd();
+    const parent = path.resolve(cwd, '..');
+    if (
+      fs.existsSync(path.join(parent, 'Graj - Strażnik Tajemnic.cmd')) &&
+      fs.existsSync(path.join(parent, 'runtime'))
+    ) {
+      return true;
+    }
+    return false;
   }
 
   return false;
@@ -226,7 +249,7 @@ export async function readUpdateStatus(): Promise<DesktopUpdateStatus> {
   }
 }
 
-function resolveAppTarget(): string {
+export function resolveAppTarget(): string {
   const platform = process.platform;
   if (platform === 'darwin') {
     const appBundle = process.env.ZEW_APP_BUNDLE;
@@ -236,20 +259,35 @@ function resolveAppTarget(): string {
 
   if (platform === 'win32') {
     const explicit = process.env.ZEW_APP_DIR || process.env.ZEW_APP_BUNDLE;
-    if (explicit && fs.existsSync(explicit)) return explicit;
+    if (explicit && fs.existsSync(explicit)) {
+      if (
+        fs.existsSync(path.join(explicit, 'Graj - Strażnik Tajemnic.cmd')) ||
+        fs.existsSync(path.join(explicit, 'runtime'))
+      ) {
+        return explicit;
+      }
+    }
 
     const cwd = process.cwd();
     const parent = path.resolve(cwd, '..');
-    if (fs.existsSync(path.join(parent, 'Graj - Strażnik Tajemnic.cmd')) || fs.existsSync(path.join(parent, 'runtime'))) {
+    if (
+      fs.existsSync(path.join(parent, 'Graj - Strażnik Tajemnic.cmd')) &&
+      fs.existsSync(path.join(parent, 'runtime'))
+    ) {
       return parent;
     }
-    if (fs.existsSync(path.join(cwd, 'Graj - Strażnik Tajemnic.cmd')) || fs.existsSync(path.join(cwd, 'runtime'))) {
+    if (
+      fs.existsSync(path.join(cwd, 'Graj - Strażnik Tajemnic.cmd')) &&
+      fs.existsSync(path.join(cwd, 'runtime'))
+    ) {
       return cwd;
     }
-    return cwd;
+    throw new Error('Self-update is unavailable outside a packaged desktop installation');
   }
 
-  return process.env.ZEW_APP_DIR || process.cwd();
+  const explicit = process.env.ZEW_APP_DIR;
+  if (explicit && fs.existsSync(explicit)) return explicit;
+  throw new Error('Self-update is unavailable outside an application bundle');
 }
 
 export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Promise<number> {
@@ -258,7 +296,7 @@ export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Prom
   }
 
   const platform = process.platform;
-  const targetPackage = getUpdatePackageForPlatform(manifest, platform) || manifest.package;
+  const targetPackage = getUpdatePackageForPlatform(manifest, platform);
   if (!targetPackage) {
     throw new Error(`No compatible package found for platform: ${platform}`);
   }
@@ -280,6 +318,36 @@ export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Prom
   const detachedWorker = path.join(updateDir, 'update-worker.mjs');
   await copyFile(sourceWorker, detachedWorker);
 
+  let workerExecPath = process.execPath;
+  if (platform === 'win32') {
+    // Na Windows uruchomienie workera bezpośrednio z runtime/bin/node.exe blokuje katalog runtime przed podmianą.
+    // Kopiujemy Node do katalogu updates (poza runtime), aby worker mógł bezpiecznie wykonać renameSync.
+    try {
+      const entries = await fs.promises.readdir(updateDir);
+      for (const entry of entries) {
+        if (entry.startsWith('updater-node') && entry.endsWith('.exe')) {
+          try {
+            await fs.promises.unlink(path.join(updateDir, entry));
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+
+    const detachedNode = path.join(updateDir, 'updater-node.exe');
+    try {
+      await copyFile(process.execPath, detachedNode);
+      workerExecPath = detachedNode;
+    } catch {
+      const fallbackNode = path.join(updateDir, `updater-node-${Date.now()}.exe`);
+      try {
+        await copyFile(process.execPath, fallbackNode);
+        workerExecPath = fallbackNode;
+      } catch {
+        workerExecPath = process.execPath;
+      }
+    }
+  }
+
   const args = [
     detachedWorker,
     '--target', targetPath,
@@ -297,7 +365,7 @@ export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Prom
     args.push('--minimum-macos', manifest.minimumMacOSVersion);
   }
 
-  const child = spawn(process.execPath, args, {
+  const child = spawn(workerExecPath, args, {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,

@@ -359,6 +359,45 @@ function runWorker(env, argsList) {
   console.log('✓ PASS: Atomowy Rollback przy awarii health checka na macOS (przywrócenie stanu pierwotnego)');
 }
 
+// -------------------------------------------------------------
+// Test 11: Bezpieczne zatrzymywanie serwera (PID) i start z zewnętrznej binarki
+// -------------------------------------------------------------
+{
+  const c = prepareWindowsCase('win-detached-node');
+  // Symulacja pliku server.pid i profilu w dataDir
+  const desktopDataDir = path.join(c.dataDir, 'desktop');
+  fs.mkdirSync(desktopDataDir, { recursive: true });
+  fs.writeFileSync(path.join(desktopDataDir, 'server.pid'), '999999');
+
+  // Symulacja uruchomienia workera z kopii Node poza runtime (np. %APPDATA%/updates/updater-node)
+  const updatesDir = path.join(c.dataDir, 'updates');
+  fs.mkdirSync(updatesDir, { recursive: true });
+  const detachedNode = path.join(updatesDir, 'updater-node-test');
+  fs.copyFileSync(process.execPath, detachedNode);
+  fs.chmodSync(detachedNode, 0o755);
+
+  const res = spawnSync(detachedNode, [WORKER_SCRIPT, ...[
+    '--target', c.appDir,
+    '--url', 'https://example.com/update.zip',
+    '--sha256', c.sha256,
+    '--version', c.version,
+    '--size', String(c.size),
+    '--data-dir', c.dataDir,
+    '--platform', 'win32',
+    '--test-archive', c.zipPath,
+  ]], {
+    env: { ...process.env, TEST_MODE: '1' },
+    encoding: 'utf8',
+  });
+
+  assert.strictEqual(res.status, 0, `Worker z zewnętrznej binarki powinien zakończyć z kodem 0. stderr: ${res.stderr}`);
+  const status = JSON.parse(fs.readFileSync(path.join(c.dataDir, 'updates', 'status.json'), 'utf8'));
+  assert.strictEqual(status.state, 'succeeded');
+  assert.strictEqual(fs.readFileSync(path.join(c.liveRuntime, 'marker.txt'), 'utf8').trim(), 'new');
+  console.log('✓ PASS: Sukces aktualizacji przy uruchomieniu workera z zewnętrznej binarki Node poza runtime');
+}
+
 console.log('\n============================================================');
-console.log(' Wszystkie testy update-worker zakończone sukcesem (10/10)!');
+console.log(' Wszystkie testy update-worker zakończone sukcesem (11/11)!');
 console.log('============================================================\n');
+

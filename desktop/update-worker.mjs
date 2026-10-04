@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { execSync, spawn } from 'node:child_process';
+import { execFileSync, spawnSync, spawn } from 'node:child_process';
 import http from 'node:http';
 
 // Parse CLI arguments
@@ -122,7 +122,7 @@ if (platform === 'darwin' && minimumMacOS) {
   let currentMacOs = '';
   try {
     const swVersBin = process.env.SW_VERS_BIN || '/usr/bin/sw_vers';
-    currentMacOs = execSync(`${swVersBin} -productVersion`, { encoding: 'utf8' }).trim();
+    currentMacOs = execFileSync(swVersBin, ['-productVersion'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   } catch (_) {}
 
   if (currentMacOs) {
@@ -208,13 +208,13 @@ async function run() {
 
   try {
     if (process.platform === 'darwin') {
-      execSync(`ditto -x -k "${archivePath}" "${unpackedDir}"`);
+      execFileSync('ditto', ['-x', '-k', archivePath, unpackedDir]);
     } else {
       // Windows / Linux
       try {
-        execSync(`tar -xf "${archivePath}" -C "${unpackedDir}"`);
+        execFileSync('tar', ['-xf', archivePath, '-C', unpackedDir]);
       } catch (_) {
-        execSync(`powershell -NoProfile -Command "Expand-Archive -LiteralPath '${archivePath}' -DestinationPath '${unpackedDir}' -Force"`);
+        execFileSync('powershell', ['-NoProfile', '-Command', 'Expand-Archive', '-LiteralPath', archivePath, '-DestinationPath', unpackedDir, '-Force']);
       }
     }
   } catch (err) {
@@ -260,9 +260,9 @@ async function run() {
     let actualVersion = '';
     let actualExecutable = '';
     try {
-      actualId = execSync(`/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${plist}" 2>/dev/null`, { encoding: 'utf8' }).trim();
-      actualVersion = execSync(`/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${plist}" 2>/dev/null`, { encoding: 'utf8' }).trim();
-      actualExecutable = execSync(`/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${plist}" 2>/dev/null`, { encoding: 'utf8' }).trim();
+      actualId = execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleIdentifier', plist], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      actualVersion = execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleShortVersionString', plist], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      actualExecutable = execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleExecutable', plist], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
     } catch (_) {
       // Fallback prosty parser XML
       const idMatch = plistContent.match(/<key>CFBundleIdentifier<\/key>\s*<string>([^<]+)<\/string>/);
@@ -411,32 +411,48 @@ function stopRunningServer() {
     if (fs.existsSync(pidFile)) {
       try {
         const pid = fs.readFileSync(pidFile, 'utf8').trim();
-        execSync(`taskkill /F /T /PID ${pid} 2>nul`);
+        if (/^\d+$/.test(pid)) {
+          spawnSync('taskkill', ['/F', '/T', '/PID', pid], { stdio: 'ignore' });
+        }
       } catch (_) {}
     }
     // Zwolnienie portu
     try {
-      const output = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
+      const output = execFileSync('netstat', ['-ano'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
       const lines = output.trim().split('\n');
       for (const line of lines) {
-        const match = line.trim().match(/\s+(\d+)$/);
-        if (match && match[1] && match[1] !== '0') {
-          execSync(`taskkill /F /PID ${match[1]} 2>nul`);
+        if (line.includes(`:${port}`)) {
+          const match = line.trim().match(/\s+(\d+)$/);
+          if (match && match[1] && match[1] !== '0') {
+            spawnSync('taskkill', ['/F', '/PID', match[1]], { stdio: 'ignore' });
+          }
         }
       }
     } catch (_) {}
   } else {
     // macOS / Linux
-    try { execSync(`pkill -f "user-data-dir=${profile}" 2>/dev/null || true`); } catch (_) {}
+    try {
+      spawnSync('pkill', ['-f', `user-data-dir=${profile}`], { stdio: 'ignore' });
+    } catch (_) {}
     if (fs.existsSync(pidFile)) {
       try {
         const serverPid = fs.readFileSync(pidFile, 'utf8').trim();
-        execSync(`pkill -P "${serverPid}" 2>/dev/null || true`);
-        execSync(`kill "${serverPid}" 2>/dev/null || true`);
+        if (/^\d+$/.test(serverPid)) {
+          spawnSync('pkill', ['-P', serverPid], { stdio: 'ignore' });
+          spawnSync('kill', [serverPid], { stdio: 'ignore' });
+        }
       } catch (_) {}
     }
     try {
-      execSync(`lsof -ti :${port} 2>/dev/null | xargs kill 2>/dev/null || true`);
+      if (Number.isInteger(port) && port > 0) {
+        const lsofOut = execFileSync('lsof', ['-ti', `:${port}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+        if (lsofOut) {
+          const pids = lsofOut.split(/\s+/).filter((p) => /^\d+$/.test(p));
+          for (const p of pids) {
+            spawnSync('kill', [p], { stdio: 'ignore' });
+          }
+        }
+      }
     } catch (_) {}
   }
 }
@@ -449,14 +465,12 @@ function launchApplication(appPath) {
     if (platform === 'darwin') {
       spawn('open', [appPath], { detached: true, stdio: 'ignore' }).unref();
     } else {
-      const launcherCmd = path.join(target, 'Graj - Strażnik Tajemnic.cmd');
-      if (fs.existsSync(launcherCmd)) {
-        spawn('cmd.exe', ['/c', 'start', '""', launcherCmd], { detached: true, stdio: 'ignore' }).unref();
-      } else {
-        const supervisorPath = path.join(appPath, 'desktop', 'supervisor.mjs');
-        if (fs.existsSync(supervisorPath)) {
-          spawn(process.execPath, [supervisorPath], { detached: true, stdio: 'ignore' }).unref();
-        }
+      const targetNode = path.join(appPath, 'bin', 'node.exe');
+      const supervisorPath = path.join(appPath, 'desktop', 'supervisor.mjs');
+      if (fs.existsSync(targetNode) && fs.existsSync(supervisorPath)) {
+        spawn(targetNode, [supervisorPath], { detached: true, stdio: 'ignore', cwd: appPath }).unref();
+      } else if (fs.existsSync(supervisorPath)) {
+        spawn(process.execPath, [supervisorPath], { detached: true, stdio: 'ignore', cwd: appPath }).unref();
       }
     }
   } catch (_) {}
