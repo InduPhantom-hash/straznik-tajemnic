@@ -8581,5 +8581,19 @@
     "investigator": "Badacz",
     "collapse": "Zwiń",
     "expand": "Pokaż uczestników"
+  },
+  "InvestigationLog": {
+    "hardClues": "Twarde Poszlaki",
+    "personsAndPlaces": "Osoby i Miejsca",
+    "investigationAxis": "Oś Śledztwa"
+  },
+  "LocationGuardian": {
+    "entryCondition": "Warunek Wstępu",
+    "availableClues": "Dostępne Poszlaki"
+  },
+  "ActReport": {
+    "facts": "Fakty",
+    "gaps": "Luki i Pytania",
+    "recommendation": "Rekomendowany Kolejny Ruch"
   }
 }

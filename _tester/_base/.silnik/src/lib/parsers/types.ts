@@ -186,5 +186,6 @@ export interface ParsedResponse {
   equipmentEvents: EquipmentEvent[];
   timeUpdate: TimeUpdate | null;
   gmMetadata?: { thoughts?: string; mood?: string; narrativeGoal?: string };
+  locationGuardianEvent?: import('./journal-parser').ExtractedLocationGuardian | null;
   rawText: string;
 }
