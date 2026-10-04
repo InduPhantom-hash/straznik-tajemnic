@@ -1,6 +1,6 @@
 import { ParsedResponse, ParsedEvent, NPCPosition } from './types';
 import { extractNPCs, extractLocations, extractItems } from './event-parser';
-import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractSpellCastEvents, extractOpposedMagicEvents, extractOpposedMeleeEvents, extractTomeStudyEvents, extractMeleeAttackReferences, extractRefereeVetoEvents } from './mechanics-parser';
+import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractSpellCastEvents, extractOpposedMagicEvents, extractOpposedMeleeEvents, extractFirearmsAttackEvents, extractTomeStudyEvents, extractMeleeAttackReferences, extractRefereeVetoEvents } from './mechanics-parser';
 import { extractDialogues } from './dialogue-parser';
 import { extractImages, detectSFX } from './media-parser';
 import { extractJournalTags } from './journal-parser';
@@ -219,6 +219,8 @@ export function parseAIResponse(responseText: string): ParsedResponse {
     const opposedMagicEvents = extractOpposedMagicEvents(responseText);
     // NOWE: Ekstrakcja starć wręcz CoC 7e RAW (Faza 4 - Issue #361)
     const opposedMeleeEvents = extractOpposedMeleeEvents(responseText);
+    // NOWE: Ekstrakcja ataku bronią palną i Dive for Cover CoC 7e RAW (TASK-RAW-02)
+    const firearmsAttackEvents = extractFirearmsAttackEvents(responseText);
     // NOWE: Ekstrakcja badania tomów Mitów CoC 7e RAW (Issue #252)
     const tomeStudyEvents = extractTomeStudyEvents(responseText);
     const meleeAttacks = extractMeleeAttackReferences(responseText);
@@ -255,6 +257,7 @@ export function parseAIResponse(responseText: string): ParsedResponse {
         spellCastEvents,
         opposedMagicEvents,
         opposedMeleeEvents,
+        firearmsAttackEvents,
         tomeStudyEvents,
         meleeAttacks,
         equipmentEvents,

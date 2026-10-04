@@ -179,6 +179,7 @@ export interface ParsedResponse {
   spellCastEvents?: SpellCastEventData[];
   opposedMagicEvents?: OpposedMagicEventData[];
   opposedMeleeEvents?: OpposedMeleeEventData[];
+  firearmsAttackEvents?: import('@/lib/types').FirearmsAttackEventData[];
   gameOverEvents?: import('@/lib/types').GameOverEventData[];
   refereeVetoEvents?: import('@/lib/types').RefereeVetoEventData[];
   tomeStudyEvents?: TomeStudyEventData[];

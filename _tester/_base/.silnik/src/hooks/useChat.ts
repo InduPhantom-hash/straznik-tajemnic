@@ -38,6 +38,7 @@ import {
   extractTomeStudyEvents,
   extractOpposedMagicEvents,
   extractOpposedMeleeEvents,
+  extractFirearmsAttackEvents,
   extractRefereeVetoEvents,
   extractGameOverEvents,
   stripMeleeAttackTags,
@@ -1957,6 +1958,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const tomeStudyEvents = extractTomeStudyEvents(fullText);
         const opposedMagicEvents = extractOpposedMagicEvents(fullText);
         const opposedMeleeEvents = extractOpposedMeleeEvents(fullText);
+        const firearmsAttackEvents = extractFirearmsAttackEvents(fullText);
         const refereeVetoEvents = extractRefereeVetoEvents(fullText);
         const gameOverEvents = extractGameOverEvents(fullText);
         const currentChase = activeChaseStateRef.current;
@@ -1966,6 +1968,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           tomeStudyEvents.length > 0 ||
           opposedMagicEvents.length > 0 ||
           opposedMeleeEvents.length > 0 ||
+          firearmsAttackEvents.length > 0 ||
           refereeVetoEvents.length > 0 ||
           gameOverEvents.length > 0 ||
           currentChase
@@ -1980,6 +1983,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
                     ...(opposedMagicEvents.length > 0 ? { opposedMagicEvents } : {}),
                     ...(opposedMeleeEvents.length > 0 ? { opposedMeleeEvents } : {}),
+                    ...(firearmsAttackEvents.length > 0 ? { firearmsAttackEvents } : {}),
                     ...(refereeVetoEvents.length > 0 ? { refereeVetoEvents } : {}),
                     ...(gameOverEvents.length > 0 ? { gameOverEvents } : {}),
                     ...(currentChase ? { chaseState: currentChase } : {}),

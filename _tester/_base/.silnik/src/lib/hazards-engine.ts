@@ -274,3 +274,151 @@ export function resolvePoisonEffect(
     halvedByExtremeCon: extremeSuccess,
   };
 }
+
+// ============================================================================
+// POJAZDY I KOLIZJE (CoC 7e Księga Strażnika Rozdział 7, Tabela V i Tabela VI)
+// ============================================================================
+
+export type VehicleCollisionSeverity = 'minor' | 'moderate' | 'major' | 'catastrophic' | 'road_kill';
+
+export interface VehicleDefinition {
+  id: string;
+  nameKey: string;
+  movement: number;
+  build: number;
+  armor: number; // pancerz dla pasażerów/kierowcy
+  passengers: number;
+}
+
+export const COC7E_VEHICLES: Record<string, VehicleDefinition> = {
+  economy_car: { id: 'economy_car', nameKey: 'Samochód ekonomiczny', movement: 13, build: 3, armor: 1, passengers: 4 },
+  standard_car: { id: 'standard_car', nameKey: 'Samochód standardowy', movement: 14, build: 4, armor: 2, passengers: 5 },
+  luxury_car: { id: 'luxury_car', nameKey: 'Samochód luksusowy', movement: 15, build: 4, armor: 2, passengers: 6 },
+  sports_car: { id: 'sports_car', nameKey: 'Samochód sportowy', movement: 16, build: 4, armor: 2, passengers: 5 },
+  van: { id: 'van', nameKey: 'Furgonetka', movement: 13, build: 5, armor: 2, passengers: 14 },
+  six_ton_truck: { id: 'six_ton_truck', nameKey: 'Ciężarówka sześciotonowa', movement: 11, build: 7, armor: 2, passengers: 3 },
+  eighteen_wheeler: { id: 'eighteen_wheeler', nameKey: 'Ciężarówka osiemnastokołowa', movement: 10, build: 9, armor: 2, passengers: 3 },
+  light_motorcycle: { id: 'light_motorcycle', nameKey: 'Lekki motocykl', movement: 13, build: 1, armor: 0, passengers: 1 },
+  heavy_motorcycle: { id: 'heavy_motorcycle', nameKey: 'Ciężki motocykl', movement: 16, build: 3, armor: 0, passengers: 1 },
+};
+
+export interface VehicleCollisionDamageConfig {
+  severity: VehicleCollisionSeverity;
+  buildDamageFormula: string;
+  descriptionKey: string;
+}
+
+export const COC7E_COLLISIONS: Record<VehicleCollisionSeverity, VehicleCollisionDamageConfig> = {
+  minor: { severity: 'minor', buildDamageFormula: '1d3', descriptionKey: 'Drobna kolizja (otarcie, słupek)' },
+  moderate: { severity: 'moderate', buildDamageFormula: '1d6', descriptionKey: 'Umiarkowana kolizja (zwierzę, lekki pojazd)' },
+  major: { severity: 'major', buildDamageFormula: '1d10', descriptionKey: 'Poważna kolizja (drzewo, standardowe auto)' },
+  catastrophic: { severity: 'catastrophic', buildDamageFormula: '2d10', descriptionKey: 'Katastrofa (ciężarówka, autobus, stary mur)' },
+  road_kill: { severity: 'road_kill', buildDamageFormula: '5d10', descriptionKey: 'Śmierć na drodze (pociąg, czołg, meteor)' },
+};
+
+export interface VehicleCollisionResolution {
+  severity: VehicleCollisionSeverity;
+  initialBuild: number;
+  buildDamage: number;
+  remainingBuild: number;
+  penaltyDieApplied: boolean;
+  destroyedInSingleEvent: boolean;
+  passengerDamageFormula: string;
+  passengerDamage: number;
+  luckRollRequired: boolean;
+  luckRollPassed?: boolean;
+  passengerKilledInstantly: boolean;
+}
+
+/**
+ * Rozstrzyga kolizję pojazdu wg reguł Księgi Strażnika str. 162-167 (Tabela V i VI).
+ *
+ * @param vehicleBuild Aktualna Krzepa pojazdu
+ * @param severity Kategoria kolizji z Tabeli VI
+ * @param maxBuild Maksymalna (początkowa) Krzepa pojazdu
+ * @param options Opcje testowe (stałe rzuty)
+ */
+export function resolveVehicleCollision(
+  vehicleBuild: number,
+  severity: VehicleCollisionSeverity,
+  maxBuild: number,
+  options: {
+    fixedBuildDamage?: number;
+    fixedPassengerDamage?: number;
+    passengerLuck?: number;
+    fixedLuckRoll?: number;
+  } = {}
+): VehicleCollisionResolution {
+  const config = COC7E_COLLISIONS[severity];
+  let buildDamage = 0;
+
+  if (options.fixedBuildDamage !== undefined) {
+    buildDamage = options.fixedBuildDamage;
+  } else {
+    const rolled = rollDamageFormula(config.buildDamageFormula).total;
+    // Dla drobnej kolizji RAW mówi 1K3-1 (minimum 0)
+    buildDamage = severity === 'minor' ? Math.max(0, rolled - 1) : rolled;
+  }
+
+  const remainingBuild = Math.max(0, vehicleBuild - buildDamage);
+  const halfBuild = Math.floor(maxBuild / 2);
+  const penaltyDieApplied = remainingBuild <= halfBuild && remainingBuild > 0;
+
+  // Czy zniszczony w pojedynczym zdarzeniu katastrofalnym (obrażenia >= początkowa Krzepa pojazdu, RAW s. 162)
+  const destroyedInSingleEvent = buildDamage >= maxBuild;
+
+  let passengerDamageFormula = '0';
+  let luckRollRequired = false;
+  let luckRollPassed: boolean | undefined = undefined;
+  let passengerKilledInstantly = false;
+
+  if (remainingBuild === 0) {
+    if (destroyedInSingleEvent) {
+      luckRollRequired = true;
+      if (options.passengerLuck !== undefined) {
+        const roll = options.fixedLuckRoll ?? rollD100WithBonus(0).total;
+        luckRollPassed = roll <= options.passengerLuck;
+        passengerKilledInstantly = !luckRollPassed;
+      }
+      // Szczęśliwcy wyrzuceni z pojazdu otrzymują 2K10 obrażeń (RAW s. 162)
+      passengerDamageFormula = '2d10';
+    } else {
+      // Skumulowane wyzerowanie: wypadek skutkujący 1K10 obrażeń (RAW s. 162)
+      passengerDamageFormula = '1d10';
+    }
+  }
+
+  const passengerDamage = options.fixedPassengerDamage !== undefined
+    ? options.fixedPassengerDamage
+    : (passengerDamageFormula !== '0' ? rollDamageFormula(passengerDamageFormula).total : 0);
+
+  return {
+    severity,
+    initialBuild: vehicleBuild,
+    buildDamage,
+    remainingBuild,
+    penaltyDieApplied,
+    destroyedInSingleEvent,
+    passengerDamageFormula,
+    passengerDamage,
+    luckRollRequired,
+    luckRollPassed,
+    passengerKilledInstantly,
+  };
+}
+
+/**
+ * Rozstrzyga obrażenia zadane pojazdowi z zewnątrz (np. ostrzał z broni palnej lub atak wręcz).
+ * Zgodnie z RAW str. 162:
+ * "Każde pełne 10 punktów obrażeń zmniejsza Krzepę pojazdu o 1 punkt (zaokrąglając w dół);
+ * obrażenia poniżej 10 punktów można zignorować."
+ */
+export function resolveVehicleExternalDamage(
+  currentBuild: number,
+  incomingDamage: number
+): { buildLost: number; remainingBuild: number } {
+  const buildLost = Math.floor(incomingDamage / 10);
+  const remainingBuild = Math.max(0, currentBuild - buildLost);
+  return { buildLost, remainingBuild };
+}
+

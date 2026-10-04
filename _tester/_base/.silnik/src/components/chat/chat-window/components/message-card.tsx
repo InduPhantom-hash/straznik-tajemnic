@@ -32,6 +32,7 @@ import { getEraImageFilter } from '@/lib/era-visual-style';
 import { ChaseCard } from './chase-card';
 import { CombatCard } from './combat-card';
 import { OpposedMeleeCard } from './opposed-melee-card';
+import { FirearmsCard } from './firearms-card';
 import { GameOverCard } from './game-over-card';
 import { RefereeVetoCard } from './referee-veto-card';
 import type { Character, Message } from '@/lib/types';
@@ -550,6 +551,22 @@ export function MessageCard({
                 </div>
               );
             })()}
+
+            {/* Atak bronią palną i reakcja Dive for Cover CoC 7e RAW (TASK-RAW-02) */}
+            {message.firearmsAttackEvents && message.firearmsAttackEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.firearmsAttackEvents.map((firearm) => (
+                  <FirearmsCard
+                    key={firearm.id}
+                    firearmEvent={firearm}
+                    activeCharacter={activeCharacter}
+                    completed={resolvedCombatIds?.has(firearm.id)}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onSendChat={onSendCombatResult}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Bliskie starcie wręcz CoC 7e RAW (Issue #302 - Fiction First w czacie) */}
             {message.pendingMeleeAttacks && message.pendingMeleeAttacks.length > 0 && (
