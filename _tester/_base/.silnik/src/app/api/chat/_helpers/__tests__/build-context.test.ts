@@ -11,6 +11,7 @@ import {
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
+import type { CachedContent } from '@google/genai';
 
 describe('buildAdditionalContext', () => {
   it.each(['pl', 'en'] as const)('drops source channels without dropping campaign memory (%s)', (locale) => {
@@ -39,7 +40,7 @@ describe('buildAdditionalContext', () => {
     };
     const mockCachedContent = {
       name: 'cachedContents/gemini-coc-cache',
-    } as any;
+    } as unknown as CachedContent;
 
     const result = buildAdditionalContext({
       timePromptSection: '## KONTEKST CZASOWY\n(Zdeduplikowany czas bez eraRules)',

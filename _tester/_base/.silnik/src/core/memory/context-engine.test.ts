@@ -1,7 +1,11 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { CampaignContextEngine, CampaignContextBudgetError } from './context-engine';
+import {
+  CampaignContextEngine,
+  CampaignContextBudgetError,
+  countConversationTurns,
+} from './context-engine';
 import { CampaignMemoryLedgerStore } from './ledger-store';
 import type { CampaignMemoryScope } from './types';
 import type { Message } from '@/lib/types';
@@ -479,7 +483,6 @@ describe('CampaignContextEngine', () => {
     });
 
     it('correctly calculates conversation turns even with sparse or irregular user messages', () => {
-      const { countConversationTurns } = require('./context-engine');
       expect(countConversationTurns([])).toBe(0);
       expect(countConversationTurns(messages(40, 10))).toBe(20);
 

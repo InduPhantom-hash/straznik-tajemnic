@@ -3,6 +3,7 @@ import {
   DEFAULT_GEMINI_CACHE_TTL_MS,
 } from '../resolve-gemini-cache';
 import { getOrCreateGeminiCache } from '@/lib/gemini-cache-service';
+import type { CachedContent } from '@google/genai';
 
 jest.mock('@/lib/gemini-cache-service', () => ({
   DEFAULT_CACHE_TTL_SECONDS: 7200,
@@ -46,7 +47,7 @@ describe('resolveGeminiCache (OPT-26 & OPT-C04)', () => {
   });
 
   it('domyślnie używa 2h (7200s) gdy cacheTTL nie jest zdefiniowane', async () => {
-    const mockCache = { name: 'cachedContents/test-cache' } as any;
+    const mockCache = { name: 'cachedContents/test-cache' } as unknown as CachedContent;
     (getOrCreateGeminiCache as jest.Mock).mockResolvedValueOnce(mockCache);
 
     const result = await resolveGeminiCache({
@@ -65,7 +66,7 @@ describe('resolveGeminiCache (OPT-26 & OPT-C04)', () => {
   });
 
   it('poprawnie konwertuje niestandardowe cacheTTL z ms na sekundy', async () => {
-    const mockCache = { name: 'cachedContents/custom-cache' } as any;
+    const mockCache = { name: 'cachedContents/custom-cache' } as unknown as CachedContent;
     (getOrCreateGeminiCache as jest.Mock).mockResolvedValueOnce(mockCache);
 
     const result = await resolveGeminiCache({
@@ -96,7 +97,7 @@ describe('resolveGeminiCache (OPT-26 & OPT-C04)', () => {
   });
 
   it('używa domyślnego TTL (7200s) gdy cacheTTL jest niedodatnie lub niepoprawne', async () => {
-    const mockCache = { name: 'cachedContents/test-cache' } as any;
+    const mockCache = { name: 'cachedContents/test-cache' } as unknown as CachedContent;
     (getOrCreateGeminiCache as jest.Mock).mockResolvedValueOnce(mockCache);
 
     const result = await resolveGeminiCache({
