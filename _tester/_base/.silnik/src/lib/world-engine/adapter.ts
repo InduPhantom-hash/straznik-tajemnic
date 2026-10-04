@@ -6,6 +6,7 @@ import {
   formatSceneDirective,
   type SceneTechniqueSelection,
 } from '../narrative-engine/scene-director';
+import { pickLovecraftianSensoryTheme } from './lovecraft-lexicon';
 export * from './dispatcher';
 import type {
   NPCEntity,
@@ -76,6 +77,7 @@ export interface WorldEngineAdapterParams {
   activeEngines?: Partial<Record<WorldEngineId, boolean>> | null;
   sceneTechniqueSelection?: SceneTechniqueSelection | null;
   turnsInCurrentLocation?: number;
+  messagesCount?: number;
   visitedMacroLocations?: string[];
   isNewMacroLocation?: boolean;
 }
@@ -328,7 +330,15 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
   const locale = params.locale ?? 'pl';
   const currentLocation = params.currentLocation?.trim() || '';
 
-  const isDialogueScene = params.sceneTechniqueSelection?.sceneState === 'dialogue';
+  const isDialogueScene =
+    params.sceneTechniqueSelection?.sceneState === 'dialogue' ||
+    (Boolean(params.npcs && params.npcs.length > 0) &&
+      Boolean(
+        params.playerMessage &&
+          /(\?|mówi|pyta|dzień dobry|proszę|pan|pani|kto|gdzie|dlaczego|co|czy|powiedz|odpowiedz)/i.test(
+            params.playerMessage
+          )
+      ));
   const turnsInCurrentLocation = params.turnsInCurrentLocation ?? 0;
   const isSubsequentTurn = turnsInCurrentLocation > 0;
   const rawMacroLocation = currentLocation ? extractMacroLocation(currentLocation) : undefined;
@@ -356,7 +366,7 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     isNewMacroLocation = false;
   }
 
-  // 1. SensoryEngine (02) - mikrosensoryka z pamięcią sceny
+  // 1. SensoryEngine (02) - mikrosensoryka z pamięcią sceny i korpusem Lovecrafta
   const isDesertedOrSpooky =
     !isSubsequentTurn &&
     isNewMacroLocation &&
@@ -365,9 +375,31 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
       currentLocation.toLowerCase()
     );
 
+  const lovecraftMotif = pickLovecraftianSensoryTheme({
+    turnCount: params.messagesCount || 0,
+    locationName: currentLocation,
+    isSpooky: isDesertedOrSpooky,
+  });
+
+  const cadenceGear: 1 | 2 = isDialogueScene ? 1 : 2;
+
   const sensory: SensoryContext = {
-    primarySense: isSubsequentTurn || !isNewMacroLocation ? 'tactile' : 'olfactory',
-    secondarySense: isSubsequentTurn ? 'visual' : 'auditory',
+    primarySense: isDialogueScene
+      ? 'auditory'
+      : isSubsequentTurn || !isNewMacroLocation
+      ? 'tactile'
+      : (lovecraftMotif.senses.primary || 'olfactory'),
+    secondarySense: isDialogueScene
+      ? 'tactile'
+      : isSubsequentTurn
+      ? 'visual'
+      : !isNewMacroLocation
+      ? 'auditory'
+      : (lovecraftMotif.senses.secondary || 'auditory'),
+    cadenceGear,
+    lovecraftTheme: isDialogueScene
+      ? undefined
+      : (locale === 'en' ? lovecraftMotif.promptFragmentEn : lovecraftMotif.promptFragmentPl),
     gritDetails: isDialogueScene
       ? [
           locale === 'en'
@@ -391,9 +423,11 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
             ? (locale === 'en' ? `Atmosphere and age of the place: ${currentLocation}` : `Ślady zużycia i atmosfera miejsca: ${currentLocation}`)
             : (locale === 'en' ? 'Patina of time and period retro-grain' : 'Patina czasu i retro-ziarno epoki'),
         ],
-    voidVariable: isDesertedOrSpooky
+    voidVariable: isDialogueScene
+      ? undefined
+      : isDesertedOrSpooky
       ? (locale === 'en' ? 'Unsettling silence or absence of natural human bustle' : 'Złowroga cisza lub brak zwyczajnego ludzkiego gwaru')
-      : undefined,
+      : (locale === 'en' ? lovecraftMotif.voidVariableEn : lovecraftMotif.voidVariablePl),
   };
 
   // 2. NPCEngine (01) - pierwszy obecny NPC
@@ -555,23 +589,32 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
 
   const finalLines: string[] = [];
 
-  // 1. Sensory Directive (PO Decision 1: Anti-Habituation on subsequent turns)
+  // 1. Sensory Directive (PO Decision 1: Anti-Habituation on subsequent turns & Cadence Gears)
   if (isEngineEnabled('sensory')) {
-    const senses = [sensory.primarySense, sensory.secondarySense].filter(Boolean).join('+');
-    if (isSubsequentTurn) {
+    if (cadenceGear === 1) {
       finalLines.push(
         locale === 'en'
-          ? `[SENSORY_DIRECTIVE: ANTI-HABITUATION (Turn in current location: ${turnsInCurrentLocation + 1} | Dynamic senses rotation: ${senses}). STRICTLY FORBID repeating static ambient backdrop, persistent smells or baseline cold/weather (sensory habituation: carbolic acid, cold, dead silence, tiled stoves are already established). Describe ONLY dynamic environmental shifts (e.g. flickering candle, sudden sound) or focus 100% on examined details]`
-          : `[SENSORY_DYREKTYWA: ANTY-HABITUACJA (Tura w tej samej lokacji: ${turnsInCurrentLocation + 1} | Rotacja na zmysły dynamiczne: dotyk+wzrok (${senses})). ZAKAZ powtarzania stałego tła, zapachu i chłodu/mrozu lokacji (habituacja zmysłów: karbol, mróz, cisza, piece kaflowe zostały już zarejestrowane). Opisuj WYŁĄCZNIE dynamiczne zmiany otoczenia (np. dopalająca się świeca, nagły dźwięk) lub skup się w 100% na badanych detalach]`
+          ? `[SENSORY_DIRECTIVE: Cadence Gear 1 (Dialogue/Action) - Concise 1-2 sentences. Prioritize NPC dialogue and facial tension; omit heavy environmental sensory cues]`
+          : `[SENSORY_DYREKTYWA: Bieg 1 (Dialog/Szybka akcja) - Zwięzłe 1-2 zdania. Priorytet ma wypowiedź NPC i mikrogesty; pomiń ciężkie opisy zmysłowe otoczenia]`
       );
     } else {
-      const voidPart = sensory.voidVariable ? ` | Void: ${sensory.voidVariable}` : '';
-      const gritPart = sensory.gritDetails.length > 0 ? ` | Grit: ${sensory.gritDetails[0]}` : '';
-      finalLines.push(
-        locale === 'en'
-          ? `[SENSORY_DIRECTIVE: Focus senses (${senses})${voidPart}${gritPart} | Avoid generic visuals, describe somatic body response]`
-          : `[SENSORY_DYREKTYWA: Oprzyj kadr na zmysłach (${senses})${voidPart}${gritPart} | Zero etykiet emocji, opisz somatykę ciała]`
-      );
+      const senses = [sensory.primarySense, sensory.secondarySense].filter(Boolean).join('+');
+      if (isSubsequentTurn) {
+        finalLines.push(
+          locale === 'en'
+            ? `[SENSORY_DIRECTIVE: ANTI-HABITUATION (Turn in current location: ${turnsInCurrentLocation + 1} | Dynamic senses rotation: ${senses}). STRICTLY FORBID repeating static ambient backdrop, persistent smells or baseline cold/weather (sensory habituation: carbolic acid, cold, dead silence, tiled stoves are already established). Describe ONLY dynamic environmental shifts (e.g. flickering candle, sudden sound) or focus 100% on examined details]`
+            : `[SENSORY_DYREKTYWA: ANTY-HABITUACJA (Tura w tej samej lokacji: ${turnsInCurrentLocation + 1} | Rotacja na zmysły dynamiczne: dotyk+wzrok (${senses})). ZAKAZ powtarzania stałego tła, zapachu i chłodu/mrozu lokacji (habituacja zmysłów: karbol, mróz, cisza, piece kaflowe zostały już zarejestrowane). Opisuj WYŁĄCZNIE dynamiczne zmiany otoczenia (np. dopalająca się świeca, nagły dźwięk) lub skup się w 100% na badanych detalach]`
+        );
+      } else {
+        const voidPart = sensory.voidVariable ? ` | Void: ${sensory.voidVariable}` : '';
+        const gritPart = sensory.gritDetails.length > 0 ? ` | Grit: ${sensory.gritDetails[0]}` : '';
+        const lovecraftPart = sensory.lovecraftTheme ? ` | Motyw Lovecrafta: ${sensory.lovecraftTheme}` : '';
+        finalLines.push(
+          locale === 'en'
+            ? `[SENSORY_DIRECTIVE: Focus senses (${senses})${voidPart}${gritPart}${sensory.lovecraftTheme ? ` | Lovecraftian Motif: ${sensory.lovecraftTheme}` : ''} | Avoid generic visuals, describe somatic body response]`
+            : `[SENSORY_DYREKTYWA: Oprzyj kadr na zmysłach (${senses})${voidPart}${gritPart}${lovecraftPart} | Zero etykiet emocji, opisz somatykę ciała]`
+        );
+      }
     }
   }
 

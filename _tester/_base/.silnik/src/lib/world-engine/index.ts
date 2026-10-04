@@ -25,14 +25,23 @@ export class NPCEngine {
  */
 export class SensoryEngine {
   formatDirective(context: SensoryContext, locale: 'pl' | 'en' = 'pl'): string {
+    // Bieg 1 (Ping-Pong / Dialog): redukcja lub wyciszenie zbędnej sensoryki
+    if (context.cadenceGear === 1) {
+      if (locale === 'en') {
+        return `[SENSORY_DIRECTIVE: Cadence Gear 1 (Dialogue/Action) - Concise 1-2 sentences. Prioritize NPC dialogue and facial tension; omit heavy environmental sensory cues]`;
+      }
+      return `[SENSORY_DYREKTYWA: Bieg 1 (Dialog/Szybka akcja) - Zwięzłe 1-2 zdania. Priorytet ma wypowiedź NPC i mikrogesty; pomiń ciężkie opisy zmysłowe otoczenia]`;
+    }
+
     const senses = [context.primarySense, context.secondarySense].filter(Boolean).join('+');
     const voidPart = context.voidVariable ? ` | Void: ${context.voidVariable}` : '';
     const gritPart = context.gritDetails.length > 0 ? ` | Grit: ${context.gritDetails[0]}` : '';
+    const lovecraftPart = context.lovecraftTheme ? ` | Lovecraftian Motif: ${context.lovecraftTheme}` : '';
 
     if (locale === 'en') {
-      return `[SENSORY_DIRECTIVE: Focus senses (${senses})${voidPart}${gritPart} | Avoid generic visuals, describe somatic body response]`;
+      return `[SENSORY_DIRECTIVE: Focus senses (${senses})${voidPart}${gritPart}${lovecraftPart} | Avoid generic visuals, describe somatic body response]`;
     }
-    return `[SENSORY_DYREKTYWA: Oprzyj kadr na zmysłach (${senses})${voidPart}${gritPart} | Zero etykiet emocji, opisz somatykę ciała]`;
+    return `[SENSORY_DYREKTYWA: Oprzyj kadr na zmysłach (${senses})${voidPart}${gritPart}${lovecraftPart} | Zero etykiet emocji, opisz somatykę ciała]`;
   }
 }
 
