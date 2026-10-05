@@ -75,5 +75,7 @@ export interface WorldEngineDirectives {
   occultDirective?: string;
   anchorFramingDirective?: string;
   heatDirective?: string;
+  secretsDirective?: string;
+  closedCircleDirective?: string;
 }
 

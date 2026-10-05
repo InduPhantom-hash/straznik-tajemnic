@@ -21,12 +21,20 @@ export type ClueProvenance = 'observed' | 'testimony' | 'deduction' | 'handout';
  */
 export type MiceQuotientType = 'milieu' | 'inquiry' | 'character' | 'event';
 
+/**
+ * Podział poszlak: Core (krytyczne, odblokowujące węzły śledztwa) vs Flavor (smaczki i tło klimatyczne).
+ * Działa w 100% pod maską i w [MYŚLI_MG] - niewidzialny dla gracza w UI Notesu Badacza (Issue #648 Faza 2 R3).
+ */
+export type ClueType = 'core' | 'flavor';
+
 export interface ClueEntry {
   id: string;
   title: string;
   description: string;
   category: ClueCategory;
   status: ClueStatus;
+  /** Kategoryzacja poszlaki pod maską: Core vs Flavor (Issue #648 Faza 2 R3) */
+  clueType?: ClueType;
   /** Status odkrycia poszlaki w ramach epistemicznej mgły wojny (Concordia pattern) */
   discoveryStatus?: ClueDiscoveryStatus;
   /** Warstwa epistemiczna: obiektywna prawda MG vs wiedza badacza */
@@ -215,16 +223,61 @@ export function createEmptyDossier(): InvestigatorDossier {
 }
 
 /**
+ * Normalizuje lub wnioskuje typ poszlaki: krytyczna dla węzłów (core) vs tło klimatyczne (flavor).
+ * Działa w 100% pod maską i w [MYŚLI_MG] - niewidzialny w UI Notesu Badacza (Issue #648 Faza 2 R3).
+ */
+export function normalizeClueType(raw?: {
+  clueType?: unknown;
+  isKeyClue?: unknown;
+  targetNodeId?: unknown;
+  tags?: unknown;
+  title?: unknown;
+  name?: unknown;
+  description?: unknown;
+} | string | null): ClueType {
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim().toLowerCase();
+    if (trimmed === 'core' || trimmed === 'flavor') {
+      return trimmed as ClueType;
+    }
+  }
+  if (raw && typeof raw === 'object') {
+    if (typeof raw.clueType === 'string') {
+      const lowerClueType = raw.clueType.trim().toLowerCase();
+      if (lowerClueType === 'core' || lowerClueType === 'flavor') {
+        return lowerClueType as ClueType;
+      }
+    }
+    if (raw.isKeyClue === true || raw.isKeyClue === 'true' || Boolean(raw.targetNodeId)) {
+      return 'core';
+    }
+    if (Array.isArray(raw.tags)) {
+      const hasCore = raw.tags.some(
+        (t) => typeof t === 'string' && /core|kluczowa|key|główn/i.test(t)
+      );
+      if (hasCore) return 'core';
+    }
+    const text = `${String(raw.title || raw.name || '')} ${String(raw.description || '')}`.toLowerCase();
+    if (/klucz|core|key|główn/i.test(text)) {
+      return 'core';
+    }
+  }
+  return 'flavor';
+}
+
+/**
  * Type guard sprawdzający, czy obiekt to ClueEntry.
  */
 export function isClueEntry(item: unknown): item is ClueEntry {
   if (!item || typeof item !== 'object') return false;
   const c = item as Record<string, unknown>;
+  const rawClueType = typeof c.clueType === 'string' ? c.clueType.trim().toLowerCase() : c.clueType;
   return (
     typeof c.id === 'string' &&
     typeof c.title === 'string' &&
     typeof c.category === 'string' &&
-    typeof c.status === 'string'
+    typeof c.status === 'string' &&
+    (rawClueType === undefined || rawClueType === null || rawClueType === 'core' || rawClueType === 'flavor')
   );
 }
 

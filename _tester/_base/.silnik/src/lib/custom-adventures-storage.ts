@@ -27,6 +27,7 @@ import type {
   AdventureNPC,
   AdventureLocation,
 } from './types';
+import { normalizeClueType } from './journal/dossier-types';
 
 
 export const DB_NAME = 'zew-custom-adventures';
@@ -376,7 +377,8 @@ export async function decompressPayload<T = unknown>(
  *    chroniac komponenty UI i hooki czatu przed awaria (brakujace wlasnosci).
  */
 export function normalizeAdventureGraph(
-  graph: unknown
+  graph: unknown,
+  options?: { inferClueType?: boolean }
 ): AdventureGraph & { nodes: AdventureNode[] } {
 
   if (!graph || typeof graph !== 'object') {
@@ -548,7 +550,11 @@ export function normalizeAdventureGraph(
       name: c.name || `Poszlaka ${idx + 1}`,
       description: c.description || '',
       ...(c.sourceType ? { sourceType: c.sourceType } : {}),
-      ...(c.clueType ? { clueType: c.clueType } : {}),
+      ...(c.clueType
+        ? { clueType: normalizeClueType({ clueType: c.clueType }) }
+        : options?.inferClueType
+        ? { clueType: normalizeClueType({ ...c, targetNodeId }) }
+        : {}),
       ...(targetNodeId ? { targetNodeId } : {}),
       ...(sourceNodeId ? { sourceNodeId } : {}),
       ...(c.requiredSkill ? { requiredSkill: c.requiredSkill } : {}),

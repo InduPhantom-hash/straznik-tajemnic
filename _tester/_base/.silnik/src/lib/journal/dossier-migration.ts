@@ -19,6 +19,7 @@ import {
   isNpcDossierEntry,
   isPlayerNoteEntry,
   linkClueNpcLocation,
+  normalizeClueType,
 } from './dossier-types';
 import {
   inferClueProvenance,
@@ -396,6 +397,7 @@ export function migrateLegacyJournalToDossier(
         tags,
         imageUrl: entry.imageUrl || entry.metadata?.imageUrl,
         isKeyClue: tags.includes('kluczowa') || tags.includes('core') || tags.includes('key'),
+        clueType: normalizeClueType({ tags, isKeyClue: tags.includes('kluczowa') || tags.includes('core') || tags.includes('key'), title: entry.title, description: entry.content }),
         sourceJournalEntryId: entry.id,
       };
       result.clues.push(clue);
@@ -452,11 +454,13 @@ export function ensureCharacterDossier<
       const norm = normalizeEntityTitle(c.title);
       if (norm && seenClueTitles.has(norm)) continue;
       if (norm) seenClueTitles.add(norm);
-      cleanedClues.push(
-        !c.provenance
-          ? { ...c, provenance: inferClueProvenance(c.title, c.description, c.category) }
-          : c
-      );
+      cleanedClues.push({
+        ...c,
+        clueType: normalizeClueType(c),
+        ...(!c.provenance
+          ? { provenance: inferClueProvenance(c.title, c.description, c.category) }
+          : {}),
+      });
     }
 
     // Sanitizacja lokacji w dossier

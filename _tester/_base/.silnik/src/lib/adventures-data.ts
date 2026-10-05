@@ -142,6 +142,11 @@ export interface AdventureContext {
   isStrefa11?: boolean;
   /** Predefiniowane handouty fabularne (dokumenty, mapy, taśmy audio) */
   handouts?: AdventureHandout[];
+  /** Diegetyczne granice sprawy (Closed Circle Mystery - Seth Skorkowsky) (Issue #648 Faza 2 R2) */
+  boundarySummary?: string;
+  /** Pula sekretów Mike'a Shea z 3 bezpiecznikami anty-pleasing (Issue #648 Faza 2 R1) */
+  secretsPool?: Array<string | { id?: string; text?: string; description?: string; isDiscovered?: boolean }>;
+  secrets?: Array<string | { id?: string; text?: string; description?: string; isDiscovered?: boolean }>;
 }
 
 // ============================================================================
