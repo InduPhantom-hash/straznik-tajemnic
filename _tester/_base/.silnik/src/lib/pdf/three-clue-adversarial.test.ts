@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Adwersarski pakiet testowy dla ThreeClueRuleValidator (Milestone M2 Stress & Boundary Testing)
  *

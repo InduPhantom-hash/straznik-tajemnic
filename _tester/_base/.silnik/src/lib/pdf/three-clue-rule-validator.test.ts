@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Pakiet testow jednostkowych i adwersarskich dla ThreeClueRuleValidator (Milestone M2)
  *
