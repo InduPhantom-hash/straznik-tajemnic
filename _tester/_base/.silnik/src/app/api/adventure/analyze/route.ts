@@ -3,11 +3,13 @@ import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-m
 import { GoogleGenAI } from '@google/genai';
 import type {
   AdventureGraph,
+  AdventureNode,
   AdventureNPC,
   AdventureLocation,
   AdventureClue,
   GraphConnection
 } from '@/lib/types';
+import { normalizeAdventureGraph } from '@/lib/custom-adventures-storage';
 import type { DocumentType, LorebookData } from '@/types/adventure';
 import { classifyDocumentAsCampaign } from '@/lib/data/official-campaigns';
 
@@ -214,6 +216,35 @@ const validateGraph = (raw: unknown): AdventureGraph | null => {
         })
     : [];
 
+  const nodes: AdventureNode[] = Array.isArray(rawObj?.nodes)
+    ? rawObj.nodes
+        .filter((e: unknown) => {
+          if (!e || typeof e !== 'object') return false;
+          const obj = e as Record<string, unknown>;
+          return Boolean(obj.id && obj.name);
+        })
+        .map((e: unknown) => {
+          const obj = e as Record<string, unknown>;
+          return {
+            id: String(obj.id),
+            name: String(obj.name),
+            type: (['intro', 'location', 'npc', 'event', 'climax'].includes(String(obj.type))
+              ? obj.type
+              : 'location') as AdventureNode['type'],
+            description: String(obj.description || ''),
+            leadInClueIds: Array.isArray(obj.leadInClueIds) ? obj.leadInClueIds.map(String) : [],
+            leadOutClueIds: Array.isArray(obj.leadOutClueIds) ? obj.leadOutClueIds.map(String) : [],
+            isBottleneck: typeof obj.isBottleneck === 'boolean' ? obj.isBottleneck : undefined,
+            isClimax: typeof obj.isClimax === 'boolean' ? obj.isClimax : undefined,
+            atmosphere: obj.atmosphere ? String(obj.atmosphere) : undefined,
+            secret: obj.secret ? String(obj.secret) : undefined,
+            statsSummary: obj.statsSummary ? String(obj.statsSummary) : undefined,
+            locationId: obj.locationId ? String(obj.locationId) : undefined,
+            npcIds: Array.isArray(obj.npcIds) ? obj.npcIds.map(String) : undefined,
+          };
+        })
+    : [];
+
   const clues: AdventureClue[] = Array.isArray(rawObj?.clues)
     ? rawObj.clues
         .filter((e: unknown) => {
@@ -227,7 +258,13 @@ const validateGraph = (raw: unknown): AdventureGraph | null => {
             id: String(obj.id),
             name: String(obj.name),
             description: String(obj.description || ''),
+            sourceType: obj.sourceType ? (String(obj.sourceType) as AdventureClue['sourceType']) : undefined,
+            clueType: obj.clueType ? (String(obj.clueType) as AdventureClue['clueType']) : undefined,
+            targetNodeId: obj.targetNodeId ? String(obj.targetNodeId) : undefined,
+            sourceNodeId: obj.sourceNodeId ? String(obj.sourceNodeId) : undefined,
+            requiredSkill: obj.requiredSkill ? String(obj.requiredSkill) : undefined,
             isRedHerring: Boolean(obj.isRedHerring),
+            isSynthesized: typeof obj.isSynthesized === 'boolean' ? obj.isSynthesized : undefined,
           };
         })
     : [];
@@ -245,15 +282,22 @@ const validateGraph = (raw: unknown): AdventureGraph | null => {
             fromId: String(obj.fromId),
             toId: String(obj.toId),
             description: String(obj.description || ''),
+            clueId: obj.clueId ? String(obj.clueId) : undefined,
           };
         })
     : [];
 
-  if (npcs.length === 0 && locations.length === 0 && clues.length === 0) {
+  if (nodes.length === 0 && npcs.length === 0 && locations.length === 0 && clues.length === 0) {
     return null;
   }
 
-  return { npcs, locations, clues, connections };
+  return normalizeAdventureGraph({
+    nodes: nodes.length > 0 ? nodes : undefined,
+    npcs,
+    locations,
+    clues,
+    connections,
+  });
 };
 
 export async function POST(request: NextRequest) {

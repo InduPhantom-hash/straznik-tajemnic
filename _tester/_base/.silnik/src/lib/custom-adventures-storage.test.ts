@@ -24,6 +24,8 @@ import {
   uint8ArrayToBase64,
   base64ToUint8Array,
   extractHeavyData,
+  sanitizeCustomAdventureForStorage,
+  normalizeAdventureGraph,
   hydrateLeanAdventure,
   reconstructAdventure,
   exportAsJSON,
@@ -39,7 +41,8 @@ import {
   StoredLeanAdventures,
 } from './custom-adventures-storage';
 import type { CustomAdventure } from './adventures-data';
-import type { AdventureGraph } from './types';
+import type { AdventureGraph, AdventureNode } from './types';
+
 
 interface IDBTarget<T> {
   target: T;
@@ -205,6 +208,26 @@ describe('custom-adventures-storage (Issue #419)', () => {
   });
 
   const sampleGraph: AdventureGraph = {
+    nodes: [
+      {
+        id: 'loc-1',
+        name: 'Biblioteka Orne',
+        type: 'location',
+        description: 'Mroczne sale pełne zakazanych woluminów.',
+        leadInClueIds: [],
+        leadOutClueIds: [],
+        locationId: 'loc-1',
+      },
+      {
+        id: 'npc-1',
+        name: 'Profesor Armitage',
+        type: 'npc',
+        description: 'Uczony o głębokiej wiedzy o Necronomiconie.',
+        leadInClueIds: [],
+        leadOutClueIds: [],
+        npcIds: ['npc-1'],
+      },
+    ],
     locations: [
       {
         id: 'loc-1',
@@ -420,8 +443,9 @@ describe('custom-adventures-storage (Issue #419)', () => {
       expect(hydrated.title).toBe('Tylko tytuł');
       expect(Array.isArray(hydrated.themes)).toBe(true);
       expect(hydrated.themes.length).toBeGreaterThan(0);
-      expect(hydrated.graph).toEqual({ npcs: [], locations: [], clues: [], connections: [] });
+      expect(hydrated.graph).toEqual({ nodes: [], npcs: [], locations: [], clues: [], connections: [] });
       expect(Array.isArray(hydrated.suggestedOccupations)).toBe(true);
+
       expect(hydrated.hook).toBeDefined();
     });
   });
@@ -694,4 +718,263 @@ describe('custom-adventures-storage (Issue #419)', () => {
       expect(parseImportJSON('{"adventures": "not an array"}')).toBeNull();
     });
   });
+
+  describe('Normalizacja grafu węzłowego i The Alexandrian Canon (Issue #502 / M1)', () => {
+    it('generuje węzły nodes ze starych struktur npcs i locations gdy węzłów brakuje', () => {
+      const legacyGraph = {
+        locations: [
+          { id: 'loc-arkham', name: 'Ratusz w Arkham', description: 'Archiwa miejskie.', atmosphere: 'Zimny wiatr' },
+          { id: 'loc-sanctum', name: 'Rytualna Krypta - Finał', description: 'Miejsce kultu.' },
+        ],
+        npcs: [
+          { id: 'npc-cultist', name: 'Enoch Bowen', description: 'Przywódca kultu.', secret: 'Posiada czarny kryształ' },
+        ],
+        clues: [
+          { id: 'clue-scroll', name: 'Zwój Thotha', description: 'Starożytny pergamin.' },
+        ],
+        connections: [
+          { fromId: 'loc-arkham', toId: 'loc-sanctum', clueId: 'clue-scroll', description: 'Zwój wskazuje drogę do krypty' },
+        ],
+      };
+
+      const normalized = normalizeAdventureGraph(legacyGraph);
+      expect(normalized.nodes).toHaveLength(3);
+
+      const locNode = normalized.nodes.find((n) => n.id === 'loc-arkham');
+      expect(locNode).toBeDefined();
+      expect(locNode?.type).toBe('location');
+      expect(locNode?.leadOutClueIds).toContain('clue-scroll');
+
+      const climaxNode = normalized.nodes.find((n) => n.id === 'loc-sanctum');
+      expect(climaxNode).toBeDefined();
+      expect(climaxNode?.type).toBe('climax');
+      expect(climaxNode?.leadInClueIds).toContain('clue-scroll');
+
+      const npcNode = normalized.nodes.find((n) => n.id === 'npc-cultist');
+      expect(npcNode).toBeDefined();
+      expect(npcNode?.type).toBe('npc');
+      expect(npcNode?.secret).toBe('Posiada czarny kryształ');
+
+      // Zachowuje wsteczne npcs i locations
+      expect(normalized.npcs).toHaveLength(1);
+      expect(normalized.locations).toHaveLength(2);
+    });
+
+    it('rzutuje npcs i locations z węzłów nodes chroniąc komponenty UI przed awarią', () => {
+      const nodeOnlyGraph = {
+        nodes: [
+
+          {
+            id: 'node-intro',
+            name: 'Prolog w Kostnicy',
+            type: 'intro',
+            description: 'Identyfikacja ofiary morderstwa.',
+            leadInClueIds: [],
+            leadOutClueIds: ['clue-tag'],
+            atmosphere: 'Zapach formaliny',
+          },
+          {
+            id: 'node-coroner',
+            name: 'Dr Jeffrey Corey',
+            type: 'npc',
+            description: 'Lekarz sądowy badający dziwne rany.',
+            leadInClueIds: ['clue-tag'],
+            leadOutClueIds: ['clue-scalpel'],
+            secret: 'Ukrywa brakujące serce ofiary',
+            statsSummary: 'Wykształcenie 75%, Medycyna 80%',
+            npcIds: ['npc-corey'],
+          },
+          {
+            id: 'node-docks',
+            name: 'Opuszczone Doki w Innsmouth',
+            type: 'location',
+            description: 'Zbutwiałe magazyny nad rzeką Manuxet.',
+            leadInClueIds: ['clue-scalpel'],
+            leadOutClueIds: [],
+            isBottleneck: true,
+            locationId: 'loc-docks',
+          },
+        ],
+        clues: [
+          {
+            id: 'clue-tag',
+            name: 'Identyfikator z prosektorium',
+            description: 'Numer 44-B z inicjałami J.C.',
+            sourceType: 'material',
+            clueType: 'core',
+            targetNodeId: 'node-coroner',
+          },
+          {
+            id: 'clue-scalpel',
+            name: 'Zdobiony skalpel',
+            description: 'Narzędzie wykonane ze stopu złota i meteorytu.',
+            sourceType: 'material',
+            clueType: 'core',
+            targetNodeId: 'node-docks',
+          },
+        ],
+        connections: [
+          { fromId: 'node-intro', toId: 'node-coroner', clueId: 'clue-tag', description: 'Ślad z prosektorium' },
+          { fromId: 'node-coroner', toId: 'node-docks', clueId: 'clue-scalpel', description: 'Podejrzenie dostaw ze składu portowego' },
+        ],
+      };
+
+      const normalized = normalizeAdventureGraph(nodeOnlyGraph);
+      // Gwarantuje, ze npcs i locations zostaly wygenerowane z nodes
+      expect(normalized.npcs).toHaveLength(1);
+      expect(normalized.npcs?.[0].id).toBe('npc-corey');
+      expect(normalized.npcs?.[0].name).toBe('Dr Jeffrey Corey');
+      expect(normalized.npcs?.[0].secret).toBe('Ukrywa brakujące serce ofiary');
+
+      expect(normalized.locations).toHaveLength(2); // intro oraz location
+      const dockLoc = normalized.locations?.find((l) => l.id === 'loc-docks');
+      expect(dockLoc).toBeDefined();
+      expect(dockLoc?.name).toBe('Opuszczone Doki w Innsmouth');
+
+      // Węzły zachowane bez zmian
+      expect(normalized.nodes).toHaveLength(3);
+    });
+
+    it('bezpiecznie normalizuje pusty lub uszkodzony graf zwracając domyślne tablice', () => {
+      const empty = normalizeAdventureGraph(null);
+      expect(empty).toEqual({
+        nodes: [],
+        clues: [],
+        connections: [],
+        npcs: [],
+        locations: [],
+      });
+
+      const invalid = normalizeAdventureGraph('invalid-json');
+      expect(invalid).toEqual({
+        nodes: [],
+        clues: [],
+        connections: [],
+        npcs: [],
+        locations: [],
+      });
+    });
+
+    it('generuje węzły nodes ze starych struktur gdy nodes jest pustą tablicą []', () => {
+      const legacyWithEmptyNodes = {
+        nodes: [] as AdventureNode[],
+        locations: [
+          { id: 'loc-miskatonic', name: 'Uniwersytet Miskatonic', description: 'Zabytkowy kampus.' },
+          { id: 'loc-vault', name: 'Skarbiec - Kulminacja śledztwa', description: 'Ostateczne starcie.' },
+        ],
+        npcs: [
+          { id: 'npc-armitage', name: 'Dr Henry Armitage', description: 'Bibliotekarz.' },
+        ],
+        clues: [
+          { id: 'clue-book', name: 'Necronomicon', description: 'Księga w skarbcu' },
+        ],
+        connections: [
+          { fromId: 'loc-miskatonic', toId: 'loc-vault', clueId: 'clue-book', description: 'Ścieżka do skarbca' },
+        ],
+      };
+
+      const normalized = normalizeAdventureGraph(legacyWithEmptyNodes);
+      expect(normalized.nodes).toHaveLength(3);
+      expect(normalized.nodes.find((n) => n.id === 'loc-miskatonic')?.type).toBe('location');
+      expect(normalized.nodes.find((n) => n.id === 'loc-vault')?.type).toBe('climax');
+      expect(normalized.nodes.find((n) => n.id === 'npc-armitage')?.type).toBe('npc');
+      expect(normalized.locations).toHaveLength(2);
+      expect(normalized.npcs).toHaveLength(1);
+    });
+
+    it('bezpiecznie filtruje elementy null i falsy w tablicach wejściowych nodes, clues, connections, npcs, locations', () => {
+      const corruptPayload = {
+        nodes: [null, undefined, { id: 'node-clean', name: 'Czysty węzeł', type: 'location' as const }],
+        clues: [null, { id: 'clue-clean', name: 'Czysta poszlaka' }],
+        connections: [null, { fromId: 'node-clean', toId: 'node-clean', clueId: 'clue-clean', description: 'Pętla' }],
+        npcs: [null, { id: 'npc-clean', name: 'Czysty NPC' }],
+        locations: [null, { id: 'loc-clean', name: 'Czysta lokacja' }],
+      };
+
+      let result: ReturnType<typeof normalizeAdventureGraph> | null = null;
+      expect(() => {
+        result = normalizeAdventureGraph(corruptPayload);
+      }).not.toThrow();
+
+      expect(result).not.toBeNull();
+      expect(result!.nodes).toHaveLength(1);
+      expect(result!.nodes[0].id).toBe('node-clean');
+      expect(result!.clues).toHaveLength(1);
+      expect(result!.clues[0].id).toBe('clue-clean');
+      expect(result!.connections).toHaveLength(1);
+      expect(result!.npcs).toHaveLength(1);
+      expect(result!.npcs[0].id).toBe('npc-clean');
+      expect(result!.locations.some((l) => l.id === 'loc-clean')).toBe(true);
+    });
+
+    it('zapisuje i bezstratnie odczytuje przygodę z grafem węzłowym z IndexedDB', async () => {
+      const nodeAdv: CustomAdventure = {
+        ...sampleAdventure,
+        id: 'node-adv-test-1',
+        title: 'Cienie nad Innsmouth (Node-Based)',
+        graph: normalizeAdventureGraph({
+          nodes: [
+            {
+              id: 'node-1',
+              name: 'Gilman House',
+              type: 'location',
+              description: 'Nędzny hotel z podejrzaną obsługą.',
+              leadInClueIds: [],
+              leadOutClueIds: ['clue-key'],
+              atmosphere: 'Rybi odór i skrzypiące podłogi',
+            },
+            {
+              id: 'node-2',
+              name: 'Zadok Allen',
+              type: 'npc',
+              description: 'Miejscowy pijak znający prawdziwą historię miasteczka.',
+              leadInClueIds: ['clue-whiskey'],
+              leadOutClueIds: ['clue-tiara'],
+              secret: 'Był świadkiem rytuałów Marshów na Rafie Diabelskiej',
+            },
+          ],
+          clues: [
+            {
+              id: 'clue-key',
+              name: 'Mosiężny klucz',
+              description: 'Klucz do pokoju na poddaszu.',
+              sourceType: 'material',
+              clueType: 'core',
+              targetNodeId: 'node-2',
+            },
+          ],
+          connections: [
+            { fromId: 'node-1', toId: 'node-2', clueId: 'clue-key', description: 'Notatka w pokoju wymienia Zadoka' },
+          ],
+        }),
+      };
+
+
+      // Sprawdzamy wyodrębnienie ciężkich danych przez sanitizeCustomAdventureForStorage
+      const { leanAdv, heavyData, hasHeavy } = sanitizeCustomAdventureForStorage(nodeAdv);
+      expect(hasHeavy).toBe(true);
+      expect(heavyData.graph?.nodes).toHaveLength(2);
+      expect(leanAdv.graph?.nodes).toEqual([]);
+
+      // Zapisujemy pojedynczy rekord
+      await saveAdventureRecord(nodeAdv);
+
+      // Wczytujemy rekord z magazynu
+      const loaded = await loadAdventureRecord('node-adv-test-1');
+      expect(loaded).not.toBeNull();
+      expect(loaded?.graph?.nodes).toHaveLength(2);
+      expect(loaded?.graph?.nodes?.[0].name).toBe('Gilman House');
+      expect(loaded?.graph?.nodes?.[1].secret).toBe('Był świadkiem rytuałów Marshów na Rafie Diabelskiej');
+
+      // Weryfikujemy projekcję npcs/locations dla ochrony UI
+      expect(loaded?.graph?.npcs).toHaveLength(1);
+      expect(loaded?.graph?.npcs?.[0].name).toBe('Zadok Allen');
+      expect(loaded?.graph?.locations).toHaveLength(1);
+      expect(loaded?.graph?.locations?.[0].name).toBe('Gilman House');
+
+      // Sprzątamy
+      await deleteAdventureRecord('node-adv-test-1');
+    });
+  });
 });
+

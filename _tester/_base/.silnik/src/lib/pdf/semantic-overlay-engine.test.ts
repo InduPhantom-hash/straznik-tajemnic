@@ -115,5 +115,35 @@ describe("semantic-overlay-engine - Silnik Nakładek Semantycznych DLC", () => {
       expect(adv.campaignHierarchy!.acts[0].scenes.length).toBeGreaterThanOrEqual(3);
       expect(adv.campaignHierarchy!.acts[0].crossRegionalLinks.length).toBeGreaterThan(0);
     });
+
+    it('nie uzywa sztywnego szablonu atrap ("Wprowadzenie i Zlecenie", "Śledztwo w terenie") w One-Shot', () => {
+      const text = "Trzeba karmić ogień. Zwięzły scenariusz do gry d100.\nPosiadłość rodziny Vance na odludziu.\nArthur Vance, lat 60, samotny nestor rodu.\nPiwnica posiadłości kryje piec ofiarny.\n";
+      const fingerprint = detectRulebookProfile(text);
+      const overlay = generateSemanticOverlay(text, fingerprint, "trzeba-karmic-ogien.pdf");
+
+      const nodes = overlay.entities.adventures[0].nodes;
+      expect(nodes).toBeDefined();
+      expect(nodes!.length).toBeGreaterThanOrEqual(3);
+
+      const nodeTitles = nodes!.map((n) => n.title);
+      expect(nodeTitles).not.toContain("Wprowadzenie i Zlecenie");
+      expect(nodeTitles).not.toContain("Śledztwo w terenie i badanie poszlak");
+      expect(nodeTitles).not.toContain("Punkt kulminacyjny i konfrontacja");
+    });
+
+    it('nie uzywa sztywnego szablonu atrap ("Prolog i Poszlaki Wejściowe", "Śledztwo Regionalne") w Antologii', () => {
+      const text = "Cienie Tatr. Antologia scenariuszy d100.\nScenariusz 1: Na Grani\nPrzewodnik Staszek, lat 50.\nScenariusz 2: Morskie Oko w Mroku\nDoktor Janina, lat 38.\n";
+      const fingerprint = detectRulebookProfile(text);
+      const overlay = generateSemanticOverlay(text, fingerprint, "cienie-tatr.pdf");
+
+      const subAdventures = overlay.entities.adventures[0].subAdventures;
+      expect(subAdventures).toBeDefined();
+      for (const sub of subAdventures!) {
+        const titles = (sub.nodes || []).map((n) => n.title);
+        expect(titles).not.toContain("Prolog i Poszlaki Wejściowe");
+        expect(titles).not.toContain("Śledztwo Regionalne");
+        expect(titles).not.toContain("Finał Sprawy");
+      }
+    });
   });
 });

@@ -18,7 +18,16 @@
  */
 
 import type { CustomAdventure } from './adventures-data';
-import type { AdventureGraph } from './types';
+import type {
+  AdventureGraph,
+  AdventureNode,
+  AdventureNodeType,
+  AdventureClue,
+  GraphConnection,
+  AdventureNPC,
+  AdventureLocation,
+} from './types';
+
 
 export const DB_NAME = 'zew-custom-adventures';
 export const DB_VERSION = 2;
@@ -358,6 +367,220 @@ export async function decompressPayload<T = unknown>(
 }
 
 /**
+ * Normalizuje graf przygody do modelu The Alexandrian Canon (Issue #502 / Milestone M1).
+ *
+ * Gwarantuje dwukierunkowa spojnosc:
+ * 1. Jesli wezly `nodes` brakuja (np. starszy rekord z IDB lub starszy generator),
+ *    generuje je z istniejacych tablic `locations` i `npcs`.
+ * 2. Jesli `nodes` sa zdefiniowane, rzutuje je na tablice wsteczne `npcs` i `locations`,
+ *    chroniac komponenty UI i hooki czatu przed awaria (brakujace wlasnosci).
+ */
+export function normalizeAdventureGraph(
+  graph: unknown
+): AdventureGraph & { nodes: AdventureNode[] } {
+
+  if (!graph || typeof graph !== 'object') {
+    return {
+      nodes: [],
+      clues: [],
+      connections: [],
+      npcs: [],
+      locations: [],
+    };
+  }
+
+  const raw = graph as Partial<AdventureGraph> & {
+    nodes?: AdventureNode[];
+    npcs?: AdventureNPC[];
+    locations?: AdventureLocation[];
+    clues?: AdventureClue[];
+    connections?: GraphConnection[];
+  };
+
+  const rawNodes = Array.isArray(raw.nodes)
+    ? raw.nodes.filter((n): n is AdventureNode => Boolean(n && typeof n === 'object'))
+    : [];
+  const rawClues = Array.isArray(raw.clues)
+    ? raw.clues.filter((c): c is AdventureClue => Boolean(c && typeof c === 'object'))
+    : [];
+  const rawConnections = Array.isArray(raw.connections)
+    ? raw.connections.filter((conn): conn is GraphConnection => Boolean(conn && typeof conn === 'object'))
+    : [];
+  const rawNpcs = Array.isArray(raw.npcs)
+    ? raw.npcs.filter((n): n is AdventureNPC => Boolean(n && typeof n === 'object'))
+    : [];
+  const rawLocations = Array.isArray(raw.locations)
+    ? raw.locations.filter((l): l is AdventureLocation => Boolean(l && typeof l === 'object'))
+    : [];
+
+  const hasNodes = rawNodes.length > 0;
+
+  let nodes: AdventureNode[] = [];
+  if (hasNodes) {
+    nodes = rawNodes.map((n) => ({
+      id: String(n.id || `node-${Math.random().toString(36).substring(2, 9)}`),
+      name: String(n.name || 'Nienazwany wezel'),
+      type: (n.type as AdventureNodeType) || 'location',
+      description: String(n.description || ''),
+      leadInClueIds: Array.isArray(n.leadInClueIds) ? n.leadInClueIds : [],
+      leadOutClueIds: Array.isArray(n.leadOutClueIds) ? n.leadOutClueIds : [],
+      ...(typeof n.isBottleneck === 'boolean' ? { isBottleneck: n.isBottleneck } : {}),
+      ...(typeof n.isClimax === 'boolean' ? { isClimax: n.isClimax } : n.type === 'climax' ? { isClimax: true } : {}),
+      ...(n.atmosphere ? { atmosphere: n.atmosphere } : {}),
+      ...(n.secret ? { secret: n.secret } : {}),
+      ...(n.statsSummary ? { statsSummary: n.statsSummary } : {}),
+      ...(n.locationId ? { locationId: n.locationId } : {}),
+      ...(Array.isArray(n.npcIds) ? { npcIds: n.npcIds } : {}),
+    }));
+  } else if (rawLocations.length > 0 || rawNpcs.length > 0) {
+    // Generowanie wezlow ze starych struktur locations i npcs gdy nodes brakuja
+    const generatedNodes: AdventureNode[] = [];
+
+    for (const loc of rawLocations) {
+      if (!loc || !loc.id) continue;
+      const leadInClues = rawConnections
+        .filter((c) => c.toId === loc.id && c.clueId)
+        .map((c) => c.clueId as string);
+      const leadOutClues = rawConnections
+        .filter((c) => c.fromId === loc.id && c.clueId)
+        .map((c) => c.clueId as string);
+
+      const nameLower = (loc.name || '').toLowerCase();
+      const descLower = (loc.description || '').toLowerCase();
+      const locRecord = loc as unknown as Record<string, unknown>;
+      const isClimax =
+        Boolean(locRecord.isClimax) ||
+        locRecord.type === 'climax' ||
+        nameLower.includes('finał') ||
+        nameLower.includes('final') ||
+        nameLower.includes('kulminacj') ||
+        nameLower.includes('climax') ||
+        descLower.includes('finał') ||
+        descLower.includes('final') ||
+        descLower.includes('kulminacj') ||
+        descLower.includes('climax');
+
+      generatedNodes.push({
+        id: loc.id,
+        name: loc.name || 'Nieznana lokacja',
+        type: isClimax ? 'climax' : 'location',
+        description: loc.description || '',
+        leadInClueIds: leadInClues,
+        leadOutClueIds: leadOutClues,
+        ...(isClimax ? { isClimax: true } : {}),
+        ...(loc.atmosphere ? { atmosphere: loc.atmosphere } : {}),
+        locationId: loc.id,
+      });
+    }
+
+    for (const npc of rawNpcs) {
+      if (!npc || !npc.id) continue;
+      const leadInClues = rawConnections
+        .filter((c) => c.toId === npc.id && c.clueId)
+        .map((c) => c.clueId as string);
+      const leadOutClues = rawConnections
+        .filter((c) => c.fromId === npc.id && c.clueId)
+        .map((c) => c.clueId as string);
+
+      generatedNodes.push({
+        id: npc.id,
+        name: npc.name || 'Nieznany NPC',
+        type: 'npc',
+        description: npc.description || '',
+        leadInClueIds: leadInClues,
+        leadOutClueIds: leadOutClues,
+        ...(npc.secret ? { secret: npc.secret } : {}),
+        ...(npc.statsSummary ? { statsSummary: npc.statsSummary } : {}),
+        npcIds: [npc.id],
+      });
+    }
+
+    nodes = generatedNodes;
+  }
+
+  // 2. Rzutowanie npcs i locations z nodes (ochrona komponentow UI)
+  const npcs: AdventureNPC[] = [...rawNpcs];
+  const existingNpcIds = new Set(npcs.map((n) => n.id));
+
+  for (const node of nodes) {
+    if (node.type === 'npc') {
+      const npcId = node.npcIds?.[0] || node.id;
+      if (!existingNpcIds.has(npcId)) {
+        npcs.push({
+          id: npcId,
+          name: node.name,
+          description: node.description,
+          ...(node.secret ? { secret: node.secret } : {}),
+          ...(node.statsSummary ? { statsSummary: node.statsSummary } : {}),
+        });
+        existingNpcIds.add(npcId);
+      }
+    }
+  }
+
+  const locations: AdventureLocation[] = [...rawLocations];
+  const existingLocIds = new Set(locations.map((l) => l.id));
+
+  for (const node of nodes) {
+    if (node.type === 'location' || node.type === 'climax' || node.type === 'intro' || node.locationId) {
+      const locId = node.locationId || node.id;
+      if (!existingLocIds.has(locId)) {
+        locations.push({
+          id: locId,
+          name: node.name,
+          description: node.description,
+          ...(node.atmosphere ? { atmosphere: node.atmosphere } : {}),
+        });
+        existingLocIds.add(locId);
+      }
+    }
+  }
+
+  // 3. Normalizacja poszlak (AdventureClue)
+  const clues: AdventureClue[] = rawClues.map((c, idx) => {
+    const clueId = c.id || `clue-${idx + 1}`;
+    const matchingConn = rawConnections.find((conn) => conn.clueId === clueId);
+    const targetNodeId = c.targetNodeId || matchingConn?.toId || '';
+    const sourceNodeId = c.sourceNodeId || matchingConn?.fromId || undefined;
+
+    return {
+      id: clueId,
+      name: c.name || `Poszlaka ${idx + 1}`,
+      description: c.description || '',
+      ...(c.sourceType ? { sourceType: c.sourceType } : {}),
+      ...(c.clueType ? { clueType: c.clueType } : {}),
+      ...(targetNodeId ? { targetNodeId } : {}),
+      ...(sourceNodeId ? { sourceNodeId } : {}),
+      ...(c.requiredSkill ? { requiredSkill: c.requiredSkill } : {}),
+      ...(typeof c.isRedHerring === 'boolean' ? { isRedHerring: c.isRedHerring } : {}),
+      ...(typeof c.isSynthesized === 'boolean' ? { isSynthesized: c.isSynthesized } : {}),
+    };
+  });
+
+  // 4. Normalizacja polaczen (GraphConnection)
+  const connections: GraphConnection[] = rawConnections.map((conn) => ({
+    fromId: conn.fromId || '',
+    toId: conn.toId || '',
+    description: conn.description || '',
+    ...(conn.clueId ? { clueId: conn.clueId } : {}),
+  }));
+
+  return {
+    nodes,
+    clues,
+    connections,
+    npcs,
+    locations,
+  };
+}
+
+/**
+ * Sanityzacja i wyodrebnienie ciezkich struktur przygody przed zapisem w pamieci (Issue #419, M1).
+ * Alias kompatybilnosciowy dla extractHeavyData.
+ */
+export const sanitizeCustomAdventureForStorage = extractHeavyData;
+
+/**
  * Wyodrębnia ciężkie struktury (graf, syntezę narracyjną, lorebook, zagadki, wycinki handoutów) z przygody
  * i tworzy prawdziwie oczyszczony obiekt bazy leanAdv.
  */
@@ -387,12 +610,13 @@ export function extractHeavyData(adv: CustomAdventure): {
   if (
     graph &&
     typeof graph === 'object' &&
-    ((graph as AdventureGraph).locations?.length ||
+    ((graph as AdventureGraph).nodes?.length ||
+      (graph as AdventureGraph).locations?.length ||
       (graph as AdventureGraph).npcs?.length ||
       (graph as AdventureGraph).clues?.length ||
       (graph as AdventureGraph).connections?.length)
   ) {
-    heavyData.graph = graph as AdventureGraph;
+    heavyData.graph = normalizeAdventureGraph(graph);
     hasHeavy = true;
   }
 
@@ -418,11 +642,12 @@ export function extractHeavyData(adv: CustomAdventure): {
 
   const leanAdv = {
     ...rest,
-    graph: { npcs: [], locations: [], clues: [], connections: [] },
+    graph: { nodes: [], npcs: [], locations: [], clues: [], connections: [] },
   } as unknown as CustomAdventure;
 
   return { leanAdv, heavyData, hasHeavy };
 }
+
 
 /**
  * Uzupełnia brakujące pola w ultralekkiej kopii metadanych, gwarantując bezpieczne
@@ -474,8 +699,8 @@ export function hydrateLeanAdventure(raw: Partial<CustomAdventure>): CustomAdven
     isAnalyzed: raw.isAnalyzed ?? true,
     graph:
       raw.graph && typeof raw.graph === 'object'
-        ? raw.graph
-        : { npcs: [], locations: [], clues: [], connections: [] },
+        ? normalizeAdventureGraph(raw.graph)
+        : { nodes: [], npcs: [], locations: [], clues: [], connections: [] },
     documentType: raw.documentType || 'scenario',
     lorebookData: raw.lorebookData,
     attachedLorebookIds: raw.attachedLorebookIds || [],
@@ -511,7 +736,8 @@ export async function reconstructAdventure(
 
   return {
     ...hydrated,
-    ...(heavyData?.graph ? { graph: heavyData.graph } : {}),
+    ...(heavyData?.graph ? { graph: normalizeAdventureGraph(heavyData.graph) } : {}),
+
     ...(heavyData?.fullNarrativeSummary
       ? { fullNarrativeSummary: heavyData.fullNarrativeSummary }
       : {}),
