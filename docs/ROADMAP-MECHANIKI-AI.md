@@ -37,31 +37,31 @@ Kolejność najbliższych epików:
 - każda integracja zewnętrzna musi mieć timeout, komunikat błędu i lokalny fallback;
 - tryb bez sieci powinien nadal pozwalać na pracę z zapisanymi materiałami i lokalnym stanem gry, o ile funkcja nie wymaga modelu Google.
 
-## Etap 0 - bezpieczny system aktualizacji aplikacji
+## Etap 0 - bezpieczny system aktualizacji aplikacji (🟢 ZREALIZOWANE w v0.9.5)
 
 Aktualizacja dotyczy wyłącznie kodu i artefaktów aplikacji. Nie może nadpisywać danych użytkownika.
 
 ### Programistyczne
 
-- [ ] Ustalić źródło wydań - GitHub Releases - oraz publiczny format manifestu aktualizacji: wersja, platforma, URL, rozmiar, checksum i data wydania.
-- [ ] Dodać okresowe sprawdzanie nowej wersji z kontrolą timeoutu, cache'em i możliwością wyłączenia automatycznego sprawdzania.
-- [ ] Pokazywać graczowi informację o nowej wersji z przyciskiem „Pobierz i zaktualizuj”.
-- [ ] Pobierać aktualizację do katalogu tymczasowego, sprawdzać checksum i odrzucać niepełny lub zmieniony plik.
-- [ ] Wykonywać backup przed aktualizacją: save'y, lokalny RAG, pamięć sesji, postacie, ustawienia i lokalne assety.
-- [ ] Stosować atomową podmianę wersji albo katalogów wersji, tak aby przerwane pobieranie nie uszkodziło działającej aplikacji.
-- [ ] Przekazać aktualizację do launchera `.app`, zamknąć serwer, podmienić kod, uruchomić nową wersję i ponownie otworzyć aplikację.
-- [ ] Oddzielić katalog kodu aplikacji od katalogu danych użytkownika.
-- [ ] Dodać migracje formatu save'ów, ustawień, indeksu RAG i pamięci sesji z wersją schematu.
-- [ ] Zapewnić rollback do poprzedniej wersji po nieudanym starcie lub błędzie migracji.
-- [ ] Dodać testy: brak sieci, brak miejsca, przerwane pobieranie, zła suma kontrolna, przerwanie restartu, migracja i rollback.
+- [x] Ustalić źródło wydań - GitHub Releases - oraz publiczny format manifestu aktualizacji: wersja, platforma, URL, rozmiar, checksum i data wydania.
+- [x] Dodać okresowe sprawdzanie nowej wersji z kontrolą timeoutu, cache'em i możliwością wyłączenia automatycznego sprawdzania.
+- [x] Pokazywać graczowi informację o nowej wersji z przyciskiem „Pobierz i zaktualizuj”.
+- [x] Pobierać aktualizację do katalogu tymczasowego, sprawdzać checksum i odrzucać niepełny lub zmieniony plik.
+- [x] Wykonywać backup przed aktualizacją: save'y, lokalny RAG, pamięć sesji, postacie, ustawienia i lokalne assety.
+- [x] Stosować atomową podmianę wersji albo katalogów wersji, tak aby przerwane pobieranie nie uszkodziło działającej aplikacji.
+- [x] Przekazać aktualizację do launchera `.app`, zamknąć serwer, podmienić kod, uruchomić nową wersję i ponownie otworzyć aplikację.
+- [x] Oddzielić katalog kodu aplikacji od katalogu danych użytkownika.
+- [x] Dodać migracje formatu save'ów, ustawień, indeksu RAG i pamięci sesji z wersją schematu.
+- [x] Zapewnić rollback do poprzedniej wersji po nieudanym starcie lub błędzie migracji.
+- [x] Dodać testy: brak sieci, brak miejsca, przerwane pobieranie, zła suma kontrolna, przerwanie restartu, migracja i rollback.
 
 ### Nieprogramistyczne
 
-- [ ] Ustalić politykę wydań i numerowania wersji.
-- [ ] Ustalić, czy aktualizacje są tylko sugerowane, czy krytyczne wersje mogą wymagać aktualizacji.
-- [ ] Przygotować komunikaty dla gracza i politykę prywatności dla sprawdzania wydań.
-- [ ] Ustalić minimalny okres przechowywania poprzedniej wersji i backupów.
-- [ ] Zweryfikować dystrybucję ZIP/.app oraz uprawnienia systemowe macOS i Windows.
+- [x] Ustalić politykę wydań i numerowania wersji.
+- [x] Ustalić, czy aktualizacje są tylko sugerowane, czy krytyczne wersje mogą wymagać aktualizacji.
+- [x] Przygotować komunikaty dla gracza i politykę prywatności dla sprawdzania wydań.
+- [x] Ustalić minimalny okres przechowywania poprzedniej wersji i backupów.
+- [x] Zweryfikować dystrybucję ZIP/.app oraz uprawnienia systemowe macOS i Windows.
 
 Zależności: stabilny układ katalogów danych, wersjonowanie schematów i działający launcher. System aktualizacji nie może zależeć od Google AI ani od Pinecone.
 
