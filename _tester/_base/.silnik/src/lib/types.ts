@@ -1112,12 +1112,46 @@ export interface AdventureConflict {
   resource: string; // Wspólny punkt zderzenia (np. las, przedmiot, wiedza)
 }
 
-// === GRAPH (ADVENTURE PREP ENGINE) ===
+// === GRAPH (ADVENTURE PREP ENGINE: THE ALEXANDRIAN CANON) ===
+
+export type AdventureNodeType = 'intro' | 'location' | 'npc' | 'event' | 'climax';
+export type ClueSourceType = 'material' | 'testimony' | 'document' | 'anomaly';
+export type ClueType = 'core' | 'flavor';
+
+export interface AdventureNode {
+  id: string;
+  name: string;
+  type: AdventureNodeType;
+  description: string;
+  leadInClueIds: string[];
+  leadOutClueIds: string[];
+  isBottleneck?: boolean;
+  isClimax?: boolean;
+  atmosphere?: string;
+  secret?: string;
+  statsSummary?: string;
+  locationId?: string;
+  npcIds?: string[];
+}
+
+export interface AdventureClue {
+  id: string;
+  name: string;
+  description: string;
+  sourceType?: ClueSourceType;
+  clueType?: ClueType;
+  targetNodeId?: string;
+  sourceNodeId?: string;
+  requiredSkill?: string;
+  isRedHerring?: boolean;
+  isSynthesized?: boolean;
+}
 
 export interface GraphConnection {
   fromId: string;
   toId: string;
   description: string;
+  clueId?: string;
 }
 
 export interface AdventureNPC {
@@ -1135,19 +1169,15 @@ export interface AdventureLocation {
   atmosphere?: string; // Sensoryczny opis
 }
 
-export interface AdventureClue {
-  id: string;
-  name: string;
-  description: string;
-  isRedHerring?: boolean;
-}
-
 export interface AdventureGraph {
-  npcs: AdventureNPC[];
-  locations: AdventureLocation[];
+  nodes?: AdventureNode[];
   clues: AdventureClue[];
   connections: GraphConnection[];
+  npcs: AdventureNPC[];
+  locations: AdventureLocation[];
 }
+
+
 
 // === ZAGROŻENIA ŚRODOWISKOWE I TRUCIZNY CoC 7e RAW (Issue #60) ===
 export type HazardType =

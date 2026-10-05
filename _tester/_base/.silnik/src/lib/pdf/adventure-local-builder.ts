@@ -19,7 +19,14 @@ import type {
   AdventureLocation,
   AdventureClue,
   GraphConnection,
+  AdventureNode,
+  AdventureNodeType,
+  ClueSourceType,
 } from '@/lib/types';
+import {
+  validateAndEnforceThreeClueRule,
+  ThreeClueRuleValidator,
+} from './three-clue-rule-validator';
 import type { DocumentType } from '@/types/adventure';
 import type {
   OverlayDescriptor,
@@ -425,7 +432,7 @@ export function extractScenarioDetailedMetadata(
   const handouts: AdventureHandout[] = [];
   const handoutMatches = Array.from(
     textSlice.matchAll(
-      /(?:^|\n)\s*(?:(?:POMOC(?:E|Y)?\s+DLA\s+GRACZ[YÓW]|Pomoc(?:e|y)?\s+dla\s+gracz[yów])\s*(?:#|NR\s*|nr\s*)?(\d+)|(?:DODATEK|Dodatek)\s+(\d+|[A-HJ-VX-Z])\b)(?:\s*[:\-–—]\s*([^\n]+))?/g
+      /(?:^|\n)\s*(?:(?:POMOC(?:E|Y)?\s+DLA\s+GRACZ[YÓW]|Pomoc(?:e|y)?\s+dla\s+gracz[yów])\s*(?:#|NR\s*|nr\s*)?(\d+)|(?:DODATEK|Dodatek)\s+(\d+|[A-HJ-VX-Z])\b)(?:\s*[:\-\u2013\u2014]\s*([^\n]+))?/g
     )
   );
 
@@ -469,48 +476,249 @@ export function extractScenarioDetailedMetadata(
   };
 }
 
+const IGNORED_NPC_TERMS = new Set([
+  'zew cthulhu', 'mity cthulhu', 'księga strażnika', 'podręcznik badacza',
+  'strażnik tajemnic', 'mistrz gry', 'black monk', 'chaosium',
+  'pierwsza pomoc', 'szybkie rozpoznanie', 'spis treści', 'legenda oznaczenia',
+  'arkham', 'boston', 'nowy jork', 'londyn', 'warszawa', 'kraków', 'poznań',
+  'wielki przedwieczny', 'starszy znak', 'punkty magii', 'punkty wytrzymałości',
+  'utrata poczytalności', 'test umiejętności', 'kość premiowa', 'kość karna',
+]);
+
+/**
+ * Autentyczna ekstrakcja postaci z tekstu scenariusza w TypeScript:
+ * 1. Stat-blocki CoC 7e (atrybuty SIŁ/STR, INT, EDU, POW)
+ * 2. Tytuły zawodowe i honorowe z nazwiskami (Profesor, Doktor, Inspektor, Agent itp.)
+ * 3. Tagi dialogowe CoC („...” - powiedział X)
+ */
+export function extractAuthenticNPCsFromText(
+  text: string,
+  locationInfo?: { location: string; country: string }
+): AdventureNPC[] {
+  const npcs: AdventureNPC[] = [];
+  const seenNames = new Set<string>();
+
+  const isExcluded = (candidate: string): boolean => {
+    const clean = candidate.trim().toLowerCase();
+    if (clean.length < 3 || clean.length > 40) return true;
+    if (IGNORED_NPC_TERMS.has(clean)) return true;
+    return false;
+  };
+
+  // Heurystyka 1: Bloki statystyk CoC 7e
+  const statBlockRegex = /(?:([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźżA-ZĄĆĘŁŃÓŚŹŻ\s'’-]{3,40}?)[,\n\r]+(?:lat\s*\d+|wiek\s*\d+|[^\n]{0,40})?[\n\r]+)?(?:SIŁ|STR)\s*\d+[\s\S]{1,120}?(?:INT|WYK|EDU)\s*\d+/gi;
+  let match: RegExpExecArray | null;
+  while ((match = statBlockRegex.exec(text)) !== null) {
+    const rawName = match[1]?.trim();
+    if (rawName && !isExcluded(rawName) && !seenNames.has(rawName.toLowerCase())) {
+      seenNames.add(rawName.toLowerCase());
+      npcs.push({
+        id: `npc-${slugifyText(rawName)}`,
+        name: rawName,
+        description: `Postać ze statystykami CoC 7e w ${locationInfo?.location || 'scenariuszu'}.`,
+        secret: 'Powiązana z osią fabularną lub zagrożeniem.',
+        statsSummary: 'Profil statystyczny CoC 7e',
+      });
+    }
+  }
+
+  // Heurystyka 2: Tytuły zawodowe i honorowe z imieniem lub określeniem
+  const titleRegex = /\b(Profesor|Prof\.|Doktor|Dr\.|Docent|Inspektor|Komisarz|Detektyw|Posterunkowy|Sierżant|Kapitan|Porucznik|Major|Ojciec|Ksiądz|Ks\.|Pastor|Mecenas|Mec\.|Inżynier|Inż\.|Hrabia|Baron|Dyrektor|Redaktor|Agent|Agentka|Szeryf|Burmistrz)\s+([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż]+)?)\b/g;
+  while ((match = titleRegex.exec(text)) !== null) {
+    const title = match[1].trim();
+    const nameOnly = match[2].trim();
+    const fullName = `${title} ${nameOnly}`;
+    if (!isExcluded(nameOnly) && !seenNames.has(fullName.toLowerCase()) && !seenNames.has(nameOnly.toLowerCase())) {
+      seenNames.add(fullName.toLowerCase());
+      seenNames.add(nameOnly.toLowerCase());
+      npcs.push({
+        id: `npc-${slugifyText(fullName)}`,
+        name: fullName,
+        description: `${title} powiązany ze śledztwem w: ${locationInfo?.location || 'regionie'}.`,
+        secret: 'Posiada istotne informacje lub dokumentację śledczą.',
+        statsSummary: `${title} (${locationInfo?.location || 'Świadek'})`,
+      });
+    }
+  }
+
+  // Heurystyka 3: Tagi dialogowe
+  const dialogueRegex = /(?:„[^”\n]{5,100}”|"[^"\n]{5,100}")\s*[:\-\u2013\u2014]?\s*(?:powiedział|powiedziała|rzekł|rzekła|krzyknął|krzyknęła|wycedził|wycedziła|wyszeptał|wyszeptała|odparł|odparła|zapytał|zapytała|ostrzegł|ostrzegła|dodał|dodała|zawołał|zawołała)\s+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)/g;
+  while ((match = dialogueRegex.exec(text)) !== null) {
+    const speaker = match[1].trim();
+    if (!isExcluded(speaker) && !seenNames.has(speaker.toLowerCase())) {
+      seenNames.add(speaker.toLowerCase());
+      npcs.push({
+        id: `npc-${slugifyText(speaker)}`,
+        name: speaker,
+        description: 'Świadek lub uczestnik dialogu w toku dochodzenia.',
+        secret: 'Ujawnia relację na temat tajemniczych wydarzeń.',
+        statsSummary: 'Świadek zdarzeń',
+      });
+    }
+  }
+
+  return npcs;
+}
+
+/**
+ * Konstruuje węzły dochodzenia AdventureNode[] w topologii Alexandrian Canon.
+ */
+export function extractAuthenticNodesFromText(
+  text: string,
+  title: string,
+  locations: AdventureLocation[],
+  npcs: AdventureNPC[]
+): AdventureNode[] {
+  const nodes: AdventureNode[] = [];
+  const seenNodeIds = new Set<string>();
+  const cleanTitle = title.trim() || 'Śledztwo';
+
+  // 1. Węzeł wprowadzenia (intro)
+  const introId = `node-intro-${slugifyText(cleanTitle)}`;
+  nodes.push({
+    id: introId,
+    name: `Wprowadzenie: ${cleanTitle}`,
+    type: 'intro',
+    description: 'Początek śledztwa, zawiązanie akcji i pierwsze tropy w sprawie.',
+    leadInClueIds: [],
+    leadOutClueIds: [],
+  });
+  seenNodeIds.add(introId);
+
+  // 2. Węzły lokacji
+  for (let i = 0; i < locations.length; i++) {
+    const loc = locations[i];
+    const nodeId = `node-loc-${slugifyText(loc.name || loc.id)}`;
+    if (seenNodeIds.has(nodeId)) continue;
+    seenNodeIds.add(nodeId);
+
+    const isLast = i === locations.length - 1 && locations.length > 1;
+    const nameLower = (loc.name || '').toLowerCase();
+    const descLower = (loc.description || '').toLowerCase();
+    const isClimaxLoc =
+      isLast ||
+      nameLower.includes('finał') ||
+      nameLower.includes('kulminacj') ||
+      nameLower.includes('rytuał') ||
+      descLower.includes('finał') ||
+      descLower.includes('kulminacj');
+
+    nodes.push({
+      id: nodeId,
+      name: loc.name,
+      type: isClimaxLoc ? 'climax' : 'location',
+      description: loc.description || `Obszar dochodzenia śledczego w ${loc.name}.`,
+      leadInClueIds: [],
+      leadOutClueIds: [],
+      ...(isClimaxLoc ? { isClimax: true, isBottleneck: true } : { isBottleneck: i === 1 }),
+      ...(loc.atmosphere ? { atmosphere: loc.atmosphere } : {}),
+      locationId: loc.id,
+    });
+  }
+
+  // 3. Węzły kluczowych postaci (przesłuchania)
+  for (let i = 0; i < Math.min(npcs.length, 3); i++) {
+    const npc = npcs[i];
+    const nodeId = `node-npc-${slugifyText(npc.name || npc.id)}`;
+    if (seenNodeIds.has(nodeId)) continue;
+    seenNodeIds.add(nodeId);
+
+    nodes.push({
+      id: nodeId,
+      name: `Przesłuchanie: ${npc.name}`,
+      type: 'npc',
+      description: `Konfrontacja ze świadkiem: ${npc.description}`,
+      leadInClueIds: [],
+      leadOutClueIds: [],
+      isBottleneck: false,
+      npcIds: [npc.id],
+    });
+  }
+
+  // Gwarancja Alexandrian Canon: upewnij się, że istnieje węzeł kulminacyjny i minimum 3 węzły
+  const hasClimax = nodes.some((n) => n.type === 'climax' || n.isClimax === true);
+  if (!hasClimax) {
+    if (nodes.length > 1) {
+      const last = nodes[nodes.length - 1];
+      last.type = 'climax';
+      last.isClimax = true;
+      last.isBottleneck = true;
+    } else {
+      const climaxId = `node-climax-${slugifyText(cleanTitle)}`;
+      nodes.push({
+        id: climaxId,
+        name: `Konfrontacja: ${cleanTitle}`,
+        type: 'climax',
+        description: 'Ostateczne starcie ze źródłem niebezpieczeństwa i rozwiązanie intrygi.',
+        leadInClueIds: [],
+        leadOutClueIds: [],
+        isClimax: true,
+        isBottleneck: true,
+      });
+      seenNodeIds.add(climaxId);
+    }
+  }
+
+  // Jeśli węzłów nadal jest mniej niż 3, dodaj węzeł badania poszlak
+  if (nodes.length < 3) {
+    const invId = `node-loc-badanie-${slugifyText(cleanTitle)}`;
+    if (!seenNodeIds.has(invId)) {
+      const climaxIdx = nodes.findIndex((n) => n.type === 'climax' || n.isClimax === true);
+      const intermediateNode: AdventureNode = {
+        id: invId,
+        name: `Badanie poszlak: ${cleanTitle}`,
+        type: 'location',
+        description: 'Eksploracja terenu dochodzenia i zabezpieczanie śladów.',
+        leadInClueIds: [],
+        leadOutClueIds: [],
+        isBottleneck: true,
+      };
+      if (climaxIdx >= 0) {
+        nodes.splice(climaxIdx, 0, intermediateNode);
+      } else {
+        nodes.push(intermediateNode);
+      }
+      seenNodeIds.add(invId);
+    }
+  }
+
+  return nodes;
+}
+
 /**
  * Buduje spójny graf przygody (AdventureGraph) z wyekstrahowanych jednostek overlay
+ * w pełnej zgodności z Alexandrian Canon i Zasadą 3 Poszlak (RAW).
  */
 export function buildAdventureGraph(
   overlay: OverlayDescriptor,
-  eraInfo: { eraLabel: string; yearRange: string },
-  locationInfo: { location: string; country: string }
-): AdventureGraph {
+  eraInfo: { eraLabel: string; yearRange: string; era?: string; activeSceneYear?: number },
+  locationInfo: { location: string; country: string },
+  scenarioText?: string
+): AdventureGraph & { nodes: AdventureNode[] } {
   const rawNpcs = overlay.entities.npcs || [];
   const rawHandouts = overlay.entities.handouts || [];
   const rawAdventures = overlay.entities.adventures || [];
 
-  // 1. Postacie niezależne (AdventureNPC)
+  // 1. Postacie: najpierw z overlay
   const npcs: AdventureNPC[] = rawNpcs.map((n: OverlayNPC, idx: number) => ({
     id: n.id || `npc-${idx + 1}`,
-    name: n.name || `Świadek ${idx + 1}`,
+    name: n.name || (n.role ? `${n.role}` : `Postać ${idx + 1}`),
     description: n.role || n.description || 'Postać powiązana ze śledztwem',
     secret: n.hiddenGoal || 'Ukrywa istotny motyw lub powiązanie',
     statsSummary: n.mask || `Postać niezależna (${locationInfo.location})`,
   }));
 
-  // Jeśli brak wykrytych NPC, stwórz postacie bazowe na podstawie klimatu
-  if (npcs.length === 0) {
-    npcs.push(
-      {
-        id: 'npc-informator',
-        name: 'Główny Informator',
-        description: 'Świadek pierwszych niepokojących zdarzeń wprowadzający badaczy w sprawę.',
-        secret: 'Obawia się odwetu osób zaangażowanych w kult.',
-        statsSummary: 'Świadek kluczowy',
-      },
-      {
-        id: 'npc-podejrzany',
-        name: 'Kluczowa Postać',
-        description: 'Osoba w centrum dziwnych wydarzeń lub powiązana z miejscem zbrodni.',
-        secret: 'Posiada wiedzę o mrocznych rytuałach lub ukrytych poszlakach.',
-        statsSummary: 'Podejrzany / Antagonista',
+  // Ekstrakcja autentycznych postaci z tekstu scenariusza (zero atrap!)
+  if (scenarioText) {
+    const extractedNpcs = extractAuthenticNPCsFromText(scenarioText, locationInfo);
+    for (const en of extractedNpcs) {
+      if (!npcs.some((n) => n.name.toLowerCase() === en.name.toLowerCase())) {
+        npcs.push(en);
       }
-    );
+    }
   }
 
-  // 2. Lokacje i Sceny (AdventureLocation)
+  // 2. Lokacje
   const locations: AdventureLocation[] = [];
   const seenLocs = new Set<string>();
 
@@ -523,19 +731,20 @@ export function buildAdventureGraph(
   });
   seenLocs.add(locationInfo.location.toLowerCase());
 
-  // Zbieraj węzły scenariuszy
+  // Zbieraj węzły scenariuszy z overlay
   for (const adv of rawAdventures) {
-    const nodes: OverlayAdventureNode[] = [
+    const advNodes: OverlayAdventureNode[] = [
       ...(adv.nodes || []),
       ...(adv.subAdventures?.flatMap((s) => s.nodes || []) || []),
     ];
 
-    for (const node of nodes) {
-      if (!seenLocs.has(node.title.toLowerCase())) {
-        seenLocs.add(node.title.toLowerCase());
+    for (const node of advNodes) {
+      const nodeName = node.name || node.title;
+      if (!seenLocs.has(nodeName.toLowerCase())) {
+        seenLocs.add(nodeName.toLowerCase());
         locations.push({
           id: node.id,
-          name: node.title,
+          name: nodeName,
           description: node.description || 'Węzeł dochodzenia śledczego.',
           atmosphere: 'Ślady obecności nieznanych sił i narastające napięcie.',
         });
@@ -543,58 +752,92 @@ export function buildAdventureGraph(
     }
   }
 
-  // 3. Poszlaki i Dowody (AdventureClue)
+  // 3. Poszlaki z handoutów
   const clues: AdventureClue[] = rawHandouts.map((h: OverlayHandout, idx: number) => ({
     id: h.id || `clue-${idx + 1}`,
-    name: h.title || `Poszlaka ${idx + 1}`,
+    name: h.title || (h.number ? `Dokument ${h.number}` : `Zapiski archiwalne ${idx + 1}`),
     description: h.content || 'Dokument lub rekwizyt wymagający zbadania.',
     isRedHerring: false,
+    sourceType: 'document',
+    clueType: 'core',
   }));
 
-  if (clues.length === 0) {
-    clues.push(
-      {
-        id: 'clue-wstepny-trop',
-        name: 'Wstępny Trop / List Zlecający',
-        description: 'Początkowy dokument wprowadzający badaczy w sprawę.',
-        isRedHerring: false,
-      },
-      {
-        id: 'clue-dziennik-zapisków',
-        name: 'Tajemnicze Notatki',
-        description: 'Fragmenty zapisków wskazujące na powiązania z lokalną anomalią.',
-        isRedHerring: false,
+  // 4. Budowa węzłów Alexandrian Canon
+  const nodes = extractAuthenticNodesFromText(
+    scenarioText || '',
+    overlay.title || locationInfo.location,
+    locations,
+    npcs
+  );
+
+  // 5. Powiązanie istniejących poszlak z węzłami
+  const introNode = nodes.find((n) => n.type === 'intro') || nodes[0];
+  const bottleneckOrClimax =
+    nodes.find((n) => n.isBottleneck && n.id !== introNode?.id) ||
+    nodes.find((n) => n.isClimax || n.type === 'climax') ||
+    nodes[nodes.length - 1];
+
+  for (let i = 0; i < clues.length; i++) {
+    const clue = clues[i];
+    if (!clue.targetNodeId && bottleneckOrClimax) {
+      clue.targetNodeId = bottleneckOrClimax.id;
+      bottleneckOrClimax.leadInClueIds = bottleneckOrClimax.leadInClueIds || [];
+      if (!bottleneckOrClimax.leadInClueIds.includes(clue.id)) {
+        bottleneckOrClimax.leadInClueIds.push(clue.id);
       }
-    );
+    }
+    if (!clue.sourceNodeId && introNode) {
+      clue.sourceNodeId = introNode.id;
+      introNode.leadOutClueIds = introNode.leadOutClueIds || [];
+      if (!introNode.leadOutClueIds.includes(clue.id)) {
+        introNode.leadOutClueIds.push(clue.id);
+      }
+    }
   }
 
-  // 4. Relacje w grafie (GraphConnection)
+  // 6. Relacje w grafie (GraphConnection)
   const connections: GraphConnection[] = [];
 
-  // Połącz NPC z lokacją główną i poszlakami
+  // Połącz NPC z lokacjami
   npcs.forEach((npc, i) => {
     const targetLoc = locations[i % locations.length] || locations[0];
-    connections.push({
-      fromId: npc.id,
-      toId: targetLoc.id,
-      description: 'Często widywany w tym miejscu lub posiada tam swoje biuro/mieszkanie.',
-    });
-
-    if (clues[i]) {
+    if (targetLoc) {
       connections.push({
         fromId: npc.id,
-        toId: clues[i].id,
-        description: 'Powiązany z powstaniem lub odnalezieniem tej poszlaki.',
+        toId: targetLoc.id,
+        description: 'Często widywany w tym miejscu lub posiada tam swoje biuro/mieszkanie.',
       });
     }
   });
 
-  return {
-    npcs,
+  // Połącz istniejące poszlaki krawędziami
+  for (const clue of clues) {
+    if (clue.sourceNodeId && clue.targetNodeId) {
+      connections.push({
+        fromId: clue.sourceNodeId,
+        toId: clue.targetNodeId,
+        clueId: clue.id,
+        description: `Poszlaka prowadząca do węzła: ${clue.name}`,
+      });
+    }
+  }
+
+  const rawGraph: AdventureGraph = {
+    nodes,
     locations,
+    npcs,
     clues,
     connections,
   };
+
+  // 7. WPIĘCIE WALIDATORA ZASADY 3 POSZLAK (RAW)
+  const validationResult = validateAndEnforceThreeClueRule(
+    rawGraph,
+    eraInfo,
+    locationInfo
+  );
+
+  return validationResult.graph;
 }
 
 /**
@@ -790,9 +1033,13 @@ export function parseScenariosFromAnthologyText(
 function buildDedicatedScenarioGraph(
   npcs: AdventureNPC[],
   locations: AdventureLocation[],
-  clues: AdventureClue[]
-): AdventureGraph {
+  clues: AdventureClue[],
+  eraInfo?: { eraLabel: string; yearRange: string; era?: string; activeSceneYear?: number } | string,
+  locationInfo?: { location: string; country: string } | string
+): AdventureGraph & { nodes: AdventureNode[] } {
   const connections: GraphConnection[] = [];
+
+  // Wstępne połączenia NPC z lokacjami
   npcs.forEach((npc, i) => {
     const targetLoc = locations[i % locations.length] || locations[0];
     if (targetLoc) {
@@ -802,22 +1049,79 @@ function buildDedicatedScenarioGraph(
         description: 'Kluczowa postać powiązana z tą lokacją lub wydarzeniem.',
       });
     }
-    const targetClue = clues[i % clues.length];
-    if (targetClue) {
-      connections.push({
-        fromId: npc.id,
-        toId: targetClue.id,
-        description: 'Posiada wiedzę lub bezpośredni związek z tym tropem.',
-      });
-    }
   });
 
-  return {
+  // Generowanie węzłów Alexandrian Canon
+  const locTitle = typeof locationInfo === 'object' && locationInfo?.location
+    ? locationInfo.location
+    : locations[0]?.name || 'Scenariusz';
+
+  const nodes = extractAuthenticNodesFromText(
+    '',
+    locTitle,
+    locations,
+    npcs
+  );
+
+  const introNode = nodes.find((n) => n.type === 'intro') || nodes[0];
+  const bottleneckNodes = nodes.filter((n) => n.isBottleneck && n.id !== introNode?.id);
+  const climaxNode = nodes.find((n) => n.isClimax || n.type === 'climax') || nodes[nodes.length - 1];
+
+  // Przypisanie istniejących poszlak do węzłów
+  for (let i = 0; i < clues.length; i++) {
+    const clue = clues[i];
+    if (!clue.targetNodeId) {
+      const target = (bottleneckNodes.length > 0 && i < bottleneckNodes.length)
+        ? bottleneckNodes[i % bottleneckNodes.length]
+        : climaxNode;
+      if (target) {
+        clue.targetNodeId = target.id;
+        target.leadInClueIds = target.leadInClueIds || [];
+        if (!target.leadInClueIds.includes(clue.id)) {
+          target.leadInClueIds.push(clue.id);
+        }
+      }
+    }
+    if (!clue.sourceNodeId && introNode) {
+      clue.sourceNodeId = introNode.id;
+      introNode.leadOutClueIds = introNode.leadOutClueIds || [];
+      if (!introNode.leadOutClueIds.includes(clue.id)) {
+        introNode.leadOutClueIds.push(clue.id);
+      }
+    }
+    if (!clue.sourceType) {
+      clue.sourceType = 'document';
+    }
+    if (!clue.clueType) {
+      clue.clueType = 'core';
+    }
+
+    if (clue.sourceNodeId && clue.targetNodeId) {
+      connections.push({
+        fromId: clue.sourceNodeId,
+        toId: clue.targetNodeId,
+        clueId: clue.id,
+        description: `Poszlaka prowadząca do węzła: ${clue.name}`,
+      });
+    }
+  }
+
+  const rawGraph: AdventureGraph = {
+    nodes,
     npcs,
     locations,
     clues,
     connections,
   };
+
+  // Wpięcie walidatora Zasady 3 Poszlak (RAW)
+  const validationResult = validateAndEnforceThreeClueRule(
+    rawGraph,
+    eraInfo,
+    locationInfo
+  );
+
+  return validationResult.graph;
 }
 
 function sliceScenarioBodyText(
@@ -1056,7 +1360,7 @@ export function extractCoreRulebookScenarios(
     const handouts = sliceMeta?.handouts?.length
       ? [...defaultHandouts, ...sliceMeta.handouts]
       : defaultHandouts;
-    const graph = buildDedicatedScenarioGraph(npcs, locations, clues);
+    const graph = buildDedicatedScenarioGraph(npcs, locations, clues, eraInfo, locationInfo);
 
     coreAdventures.push({
       id,
@@ -1295,7 +1599,7 @@ export function extractCoreRulebookScenarios(
     const handouts = sliceMeta?.handouts?.length
       ? [...defaultHandouts, ...sliceMeta.handouts]
       : defaultHandouts;
-    const graph = buildDedicatedScenarioGraph(npcs, locations, clues);
+    const graph = buildDedicatedScenarioGraph(npcs, locations, clues, eraInfo, locationInfo);
 
     coreAdventures.push({
       id,
@@ -1708,7 +2012,7 @@ export function extractPulpRulebookScenarios(
       location: isEn ? spec.locationEn : spec.locationPl,
       country: spec.country,
     };
-    const graph = buildDedicatedScenarioGraph(spec.npcs, spec.locations, spec.clues);
+    const graph = buildDedicatedScenarioGraph(spec.npcs, spec.locations, spec.clues, eraInfo, locationInfo);
 
     pulpAdventures.push({
       id,
@@ -1795,7 +2099,7 @@ export function buildLocalCustomAdventures(
         const meta = extractScenarioDetailedMetadata(scen.textSlice, scen.title, fingerprint.detectedLanguage);
         const locationInfo = detectLocationAndCountry(scen.textSlice, fingerprint.detectedLanguage);
         const toneInfo = detectToneAndOccupations(scen.textSlice);
-        const graph = buildAdventureGraph(overlay, { eraLabel: meta.eraLabel, yearRange: meta.yearRange }, locationInfo);
+        const graph = buildAdventureGraph(overlay, { eraLabel: meta.eraLabel, yearRange: meta.yearRange }, locationInfo, scen.textSlice);
 
         // Ekstrakcja otwierającego akapitu scenariusza
         const paragraphs = scen.textSlice
@@ -1879,7 +2183,7 @@ export function buildLocalCustomAdventures(
     };
     const locationInfo = { location: 'Boston / Massachusetts', country: 'USA' };
     const toneInfo = detectToneAndOccupations(pdfText);
-    const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+    const graph = buildAdventureGraph(overlay, eraInfo, locationInfo, pdfText);
 
     const hook = isHaunting
       ? 'Pan Knott wynajmuje Badaczy do zbadania starej posiadłości Corbitta w Bostonie, w której poprzedni lokatorzy popadli w obłęd lub zginęli w niewyjaśnionych okolicznościach.'
@@ -2061,7 +2365,7 @@ export function buildLocalCustomAdventures(
   const meta = extractScenarioDetailedMetadata(pdfText, titleClean, fingerprint.detectedLanguage);
   const locationInfo = detectLocationAndCountry(pdfText, fingerprint.detectedLanguage);
   const toneInfo = detectToneAndOccupations(pdfText);
-  const graph = buildAdventureGraph(overlay, { eraLabel: meta.eraLabel, yearRange: meta.yearRange }, locationInfo);
+  const graph = buildAdventureGraph(overlay, { eraLabel: meta.eraLabel, yearRange: meta.yearRange }, locationInfo, pdfText);
 
   let documentType: DocumentType = meta.documentType;
   if (fingerprint.profile === 'mega_campaign') {

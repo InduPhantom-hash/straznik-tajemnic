@@ -10,6 +10,17 @@ export type {
   AdventureHandout,
 } from '@/lib/adventures-data';
 
+export type {
+  AdventureNodeType,
+  ClueSourceType,
+  ClueType,
+  AdventureNode,
+  AdventureClue,
+  GraphConnection,
+  AdventureGraph,
+} from '@/lib/types';
+
+
 export interface AdventureNPC {
   id: string;
   name: string;

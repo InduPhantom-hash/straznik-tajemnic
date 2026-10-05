@@ -14,6 +14,7 @@ import type {
   SceneDossierEntry,
 } from '../journal/dossier-types';
 import type { AdventureGraph } from '../types';
+import { normalizeAdventureGraph } from '../custom-adventures-storage';
 import type { DramatronAdventure } from './types';
 
 /**
@@ -48,6 +49,8 @@ export function dramatronToAdventureContext(
     connections: forPlayer ? [] : clueWeb.connections,
   };
 
+  const normalizedGraph = normalizeAdventureGraph(graph);
+
   return {
     id: premise.id,
     title: premise.title,
@@ -69,7 +72,7 @@ export function dramatronToAdventureContext(
     playerCount: '1-4 badaczy',
     difficulty: 'normal',
     isCustom: true,
-    graph,
+    graph: normalizedGraph,
   };
 }
 

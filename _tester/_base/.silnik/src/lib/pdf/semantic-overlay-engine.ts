@@ -16,6 +16,7 @@ import {
   RulebookFingerprintResult,
   SemanticTag,
 } from "./rulebook-fingerprint";
+import type { AdventureClue, AdventureNodeType } from "@/lib/types";
 
 export interface OverlayNPC {
   id: string;
@@ -71,9 +72,16 @@ export interface OverlayHandout {
 export interface OverlayAdventureNode {
   id: string;
   title: string;
-  type: "intro" | "location" | "clue" | "climax";
+  name?: string;
+  type: AdventureNodeType;
   description: string;
   leadsTo?: string[];
+  leadInClueIds?: string[];
+  leadOutClueIds?: string[];
+  isBottleneck?: boolean;
+  isClimax?: boolean;
+  locationId?: string;
+  npcIds?: string[];
 }
 
 export interface OverlaySubAdventure {
@@ -209,7 +217,7 @@ export function extractNPCs(text: string, defaultAdventureId?: string): OverlayN
   };
 
   // Wzorzec 2: Nagłówki NPC / Dramatis Personae (np. "Dramatis Personae: Jackson Elias" lub sekcja DRAMATIS PERSONAE)
-  const headerNpcRegex = /(?:Dramatis Personae|NPC|Postacie niezależne|Bohaterowie niezależni)[^\n]*\n+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]+)+)\s*[-–—:]\s*([^\n\.]+)/g;
+  const headerNpcRegex = /(?:Dramatis Personae|NPC|Postacie niezależne|Bohaterowie niezależni)[^\n]*\n+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż'’-]+)+)\s*[:\-\u2013\u2014]\s*([^\n\.]+)/g;
   while ((match = headerNpcRegex.exec(text)) !== null) {
     const name = match[1].trim();
     if (!isCapitalizedName(name)) continue;
@@ -232,7 +240,7 @@ export function extractNPCs(text: string, defaultAdventureId?: string): OverlayN
   let blockMatch: RegExpExecArray | null;
   while ((blockMatch = dramatisBlockRegex.exec(text)) !== null) {
     const block = blockMatch[1];
-    const entryRegex = /(?:^|\n)\s*([A-ZĄĆĘŁŃÓŚŹŻ][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'’-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'’-]+){1,2})\s*(?:[-–—:]|,\s*(?=[a-ząćęłńóśźż]))\s*([^\n\.]{4,90})/g;
+    const entryRegex = /(?:^|\n)\s*([A-ZĄĆĘŁŃÓŚŹŻ][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'’-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'’-]+){1,2})\s*(?:[:\-\u2013\u2014]|,\s*(?=[a-ząćęłńóśźż]))\s*([^\n\.]{4,90})/g;
     let entryMatch: RegExpExecArray | null;
     while ((entryMatch = entryRegex.exec(block)) !== null) {
       const rawName = entryMatch[1]
@@ -367,7 +375,7 @@ export function extractHandouts(text: string, defaultAdventureId?: string): Over
   const handouts: OverlayHandout[] = [];
   const seen = new Set<string>();
 
-  const handoutRegex = /\b(?:Rekwizyt|Handout|Pomoc(?:e)?\s+dla\s+graczy)\s+(?:#|nr\s*)?(\d+[A-Za-z]?|[A-Z])\b\s*[-–—:]?\s*([^\n]*)\n+([\s\S]{20,400}?)(?=\n\s*(?:Rekwizyt|Handout|Pomoc(?:e)?\s+dla\s+graczy|Rozdział|Scena|Akt|$))/gi;
+  const handoutRegex = /\b(?:Rekwizyt|Handout|Pomoc(?:e)?\s+dla\s+graczy)\s+(?:#|nr\s*)?(\d+[A-Za-z]?|[A-Z])\b\s*[:\-\u2013\u2014]?\s*([^\n]*)\n+([\s\S]{20,400}?)(?=\n\s*(?:Rekwizyt|Handout|Pomoc(?:e)?\s+dla\s+graczy|Rozdział|Scena|Akt|$))/gi;
   let match: RegExpExecArray | null;
 
   while ((match = handoutRegex.exec(text)) !== null) {
@@ -437,40 +445,211 @@ export function extractRules(fingerprint: RulebookFingerprintResult): OverlayRul
 }
 
 /**
+ * Ekstrahuje autentyczne węzły scenariusza (AdventureNode) bez generycznych atrap i sztywnego szablonu.
+ */
+export function extractDynamicAdventureNodes(
+  text: string,
+  scenarioTitle: string,
+  advId: string,
+  associatedNpcs: OverlayNPC[] = [],
+  associatedHandouts: OverlayHandout[] = []
+): { nodes: OverlayAdventureNode[]; clues: AdventureClue[] } {
+  const nodes: OverlayAdventureNode[] = [];
+  const clues: AdventureClue[] = [];
+  const cleanTitle = scenarioTitle.trim() || 'Śledztwo';
+
+  // 1. Węzeł wprowadzenia (intro)
+  const introNodeId = `${advId}-intro`;
+  const introNode: OverlayAdventureNode = {
+    id: introNodeId,
+    title: `Wprowadzenie: ${cleanTitle}`,
+    name: `Wprowadzenie: ${cleanTitle}`,
+    type: 'intro',
+    description: `Początek śledztwa, zawiązanie akcji i zapoznanie badaczy z pierwszym tropem w sprawie: ${cleanTitle}.`,
+    leadsTo: [],
+    leadInClueIds: [],
+    leadOutClueIds: [],
+  };
+  nodes.push(introNode);
+
+  // 2. Ekstrakcja sekcji, scen i lokacji z tekstu
+  const intermediateNodes: OverlayAdventureNode[] = [];
+  const seenTitles = new Set<string>();
+  seenTitles.add(introNode.title.toLowerCase());
+
+  // Heurystyka 2a: Nagłówki scen i rozdziałów
+  const sceneRegex = /(?:^|\n)\s*(?:###?\s+|(?:\d+[\.\)]\s+)?)(?:Scena|Scene|Akt|Act|Część|Part|Rozdział|Chapter)\s*(?:\d+|[A-ZIVXLCDM]+)?\s*[:\-\u2013\u2014]?\s*([^\n]{3,70})/gi;
+  let match: RegExpExecArray | null;
+  while ((match = sceneRegex.exec(text)) !== null) {
+    const rawScene = match[1].trim().replace(/^[:\-\s]+/, '');
+    if (rawScene && rawScene.length >= 3 && !seenTitles.has(rawScene.toLowerCase())) {
+      seenTitles.add(rawScene.toLowerCase());
+      const sId = `${advId}-scena-${slugify(rawScene)}`;
+      intermediateNodes.push({
+        id: sId,
+        title: rawScene,
+        name: rawScene,
+        type: 'location',
+        description: `Węzeł dochodzeniowy sceny: ${rawScene}.`,
+        leadsTo: [],
+        leadInClueIds: [],
+        leadOutClueIds: [],
+      });
+    }
+  }
+
+  // Heurystyka 2b: Lokacje fizyczne i topografia CoC
+  const locRegex = /(?:^|\n)\s*(?:###?\s+)?(?:Lokacja|Miejsce|Location|Site)\s*[:\-\u2013\u2014]\s*([^\n]{3,70})/gi;
+  while ((match = locRegex.exec(text)) !== null) {
+    const rawLoc = match[1].trim();
+    if (rawLoc && rawLoc.length >= 3 && !seenTitles.has(rawLoc.toLowerCase())) {
+      seenTitles.add(rawLoc.toLowerCase());
+      const lId = `${advId}-loc-${slugify(rawLoc)}`;
+      intermediateNodes.push({
+        id: lId,
+        title: rawLoc,
+        name: rawLoc,
+        type: 'location',
+        description: `Eksploracja i badanie poszlak w lokacji: ${rawLoc}.`,
+        leadsTo: [],
+        leadInClueIds: [],
+        leadOutClueIds: [],
+      });
+    }
+  }
+
+  // Heurystyka 2c: Rzeczowniki lokacyjne CoC w nagłówkach lub liniach
+  const topoRegex = /(?:^|\n)\s*(?:###?\s+)?([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźżA-ZĄĆĘŁŃÓŚŹŻ\s'’-]{2,40}?\b(?:Posiadłość|Dom|Willa|Dwór|Biblioteka|Kostnica|Cmentarz|Szpital|Archiwum|Magazyn|Doki|Kościół|Piwnica|Jaskinia|Las|Góry|Dolina|Klub|Ratusz|Posterunek|Komisariat|Katedra|Hotel|Piec|Schron|Laboratorium|Majątek|Pracownia|Rafineria)\b[^\n]{0,40})/gi;
+  while ((match = topoRegex.exec(text)) !== null) {
+    const rawTopo = match[1].trim();
+    if (rawTopo && rawTopo.length >= 4 && !seenTitles.has(rawTopo.toLowerCase())) {
+      seenTitles.add(rawTopo.toLowerCase());
+      const tId = `${advId}-loc-${slugify(rawTopo)}`;
+      intermediateNodes.push({
+        id: tId,
+        title: rawTopo,
+        name: rawTopo,
+        type: 'location',
+        description: `Obszar dochodzenia śledczego: ${rawTopo}.`,
+        leadsTo: [],
+        leadInClueIds: [],
+        leadOutClueIds: [],
+      });
+    }
+  }
+
+  // Heurystyka 2d: Węzły przesłuchań NPC (dla pierwszych powiązanych postaci)
+  for (let i = 0; i < Math.min(associatedNpcs.length, 2); i++) {
+    const npc = associatedNpcs[i];
+    const npcTitle = `Przesłuchanie: ${npc.name}`;
+    if (!seenTitles.has(npcTitle.toLowerCase())) {
+      seenTitles.add(npcTitle.toLowerCase());
+      intermediateNodes.push({
+        id: `${advId}-npc-${slugify(npc.name)}`,
+        title: npcTitle,
+        name: npcTitle,
+        type: 'npc',
+        description: `Konfrontacja ze świadkiem: ${npc.name} (${npc.role || 'świadek'}).`,
+        leadsTo: [],
+        leadInClueIds: [],
+        leadOutClueIds: [],
+        npcIds: [npc.id],
+      });
+    }
+  }
+
+  // Fallback anty-trap: gdy brak wykrytych węzłów pośrednich, stwórz węzeł dynamiczny dla scenariusza
+  if (intermediateNodes.length === 0) {
+    const fallbackTitle = `Badanie poszlak: ${cleanTitle}`;
+    intermediateNodes.push({
+      id: `${advId}-investigation`,
+      title: fallbackTitle,
+      name: fallbackTitle,
+      type: 'location',
+      description: `Główny etap śledztwa: poszukiwanie powiązań i analiza tropów w sprawie: ${cleanTitle}.`,
+      leadsTo: [],
+      leadInClueIds: [],
+      leadOutClueIds: [],
+      isBottleneck: true,
+    });
+  }
+
+  // 3. Węzeł punktu kulminacyjnego (climax)
+  const climaxRegex = /(?:^|\n)\s*(?:###?\s+|(?:\d+[\.\)]\s+)?)(?:Punkt\s+kulminacyjny|Konfrontacja|Finał|Zakończenie|Starcie|Rytuał|Rozwiązanie|Epilog|Climax|Showdown|Confrontation|Finale)\b\s*[:\-\u2013\u2014]?\s*([^\n]{0,70})/gi;
+  const climaxMatch = climaxRegex.exec(text);
+  const rawClimaxSuffix = climaxMatch ? climaxMatch[1]?.trim() : '';
+  const climaxTitle = rawClimaxSuffix && rawClimaxSuffix.length > 2
+    ? `Konfrontacja: ${rawClimaxSuffix}`
+    : `Konfrontacja: ${cleanTitle}`;
+
+  const climaxNodeId = `${advId}-climax`;
+  const climaxNode: OverlayAdventureNode = {
+    id: climaxNodeId,
+    title: climaxTitle,
+    name: climaxTitle,
+    type: 'climax',
+    description: `Ostateczna konfrontacja z zagrożeniem i rozwiązanie zagadki: ${cleanTitle}.`,
+    leadsTo: [],
+    leadInClueIds: [],
+    leadOutClueIds: [],
+    isClimax: true,
+    isBottleneck: true,
+  };
+
+  // 4. Dołączenie węzłów pośrednich i kulminacji
+  nodes.push(...intermediateNodes);
+  nodes.push(climaxNode);
+
+  // 5. Powiązania nieliniowe (Alexandrian Canon leadsTo)
+  introNode.leadsTo = intermediateNodes.map((n) => n.id);
+  intermediateNodes.forEach((node, idx) => {
+    node.leadsTo = [climaxNodeId];
+    if (idx === 0) {
+      node.isBottleneck = true;
+    }
+  });
+
+  // 6. Powiązanie poszlak z handoutów
+  associatedHandouts.forEach((h, idx) => {
+    const clueId = `clue-${advId}-${idx + 1}`;
+    const targetNode = intermediateNodes[idx % intermediateNodes.length] || climaxNode;
+    clues.push({
+      id: clueId,
+      name: h.title || `Dokument ${idx + 1}`,
+      description: h.content || 'Rekwizyt lub dokument w toku dochodzenia.',
+      sourceType: 'document',
+      clueType: 'core',
+      targetNodeId: targetNode.id,
+      sourceNodeId: introNodeId,
+      isRedHerring: false,
+    });
+
+    targetNode.leadInClueIds = targetNode.leadInClueIds || [];
+    targetNode.leadInClueIds.push(clueId);
+    introNode.leadOutClueIds = introNode.leadOutClueIds || [];
+    introNode.leadOutClueIds.push(clueId);
+  });
+
+  return { nodes, clues };
+}
+
+/**
  * Parsuje format One-Shot / Broszura (16-48 stron, 1 zwarty graf poszlak)
  */
 function parseOneShotAdventure(
   text: string,
   fingerprint: RulebookFingerprintResult,
-  fileName: string
+  fileName: string,
+  allNpcs: OverlayNPC[] = [],
+  allHandouts: OverlayHandout[] = []
 ): OverlayAdventure {
   const advId = `adv-${slugify(fileName)}`;
-  const nodes: OverlayAdventureNode[] = [
-    {
-      id: `${advId}-intro`,
-      title: "Wprowadzenie i Zlecenie",
-      type: "intro",
-      description: "Początek śledztwa, zawiązanie akcji i zapoznanie badaczy z pierwszym tropem.",
-      leadsTo: [`${advId}-investigation`],
-    },
-    {
-      id: `${advId}-investigation`,
-      title: "Śledztwo w terenie i badanie poszlak",
-      type: "location",
-      description: "Główny etap dochodzenia: badanie kluczowych lokacji, konfrontacja świadków i rekwizytów.",
-      leadsTo: [`${advId}-climax`],
-    },
-    {
-      id: `${advId}-climax`,
-      title: "Punkt kulminacyjny i konfrontacja",
-      type: "climax",
-      description: "Ostateczne starcie z zagrożeniem, rytuałem lub rozwiązanie zagadki.",
-    },
-  ];
+  const title = fingerprint.title || fileName.replace(/\.pdf$/i, "").replace(/[-_]/g, " ");
+  const { nodes } = extractDynamicAdventureNodes(text, title, advId, allNpcs, allHandouts);
 
   return {
     id: advId,
-    title: fingerprint.title || fileName,
+    title,
     type: "one_shot",
     synopsis: `Zwięzły scenariusz typu One-Shot wyekstrahowany z ${fileName}.`,
     nodes,
@@ -490,62 +669,95 @@ function parseAnthologyAdventure(
   const advId = `anthology-${slugify(fileName)}`;
   const subAdventures: OverlaySubAdventure[] = [];
 
-  const scenarioRegex = /(?:Scenariusz|Przygoda|Rozdział|Scenario)\s*(\d+|[A-ZIVXLCDM]+)\s*[-–—:]\s*([^\n]+)/gi;
+  const scenarioRegex = /(?:Scenariusz|Przygoda|Rozdział|Scenario)\s*(\d+|[A-ZIVXLCDM]+)\s*[:\-\u2013\u2014]\s*([^\n]+)/gi;
   let match: RegExpExecArray | null;
-  const detectedScenarios: Array<{ id: string; title: string }> = [];
+  const detectedScenarios: Array<{ id: string; title: string; textSlice: string }> = [];
 
+  const matches: Array<{ num: string; title: string; index: number }> = [];
   while ((match = scenarioRegex.exec(text)) !== null) {
-    const num = match[1].trim();
-    const title = match[2].trim();
-    detectedScenarios.push({
-      id: `${advId}-scen-${num}`,
-      title: `Scenariusz ${num}: ${title}`,
+    matches.push({
+      num: match[1].trim(),
+      title: match[2].trim(),
+      index: match.index,
     });
   }
 
-  if (detectedScenarios.length === 0) {
-    detectedScenarios.push(
-      { id: `${advId}-scen-1`, title: "Scenariusz 1: Wrota Tajemnicy" },
-      { id: `${advId}-scen-2`, title: "Scenariusz 2: Echo Otchłani" }
-    );
+  if (matches.length > 0) {
+    for (let i = 0; i < matches.length; i++) {
+      const cur = matches[i];
+      const nextIndex = i + 1 < matches.length ? matches[i + 1].index : text.length;
+      const slice = text.slice(cur.index, nextIndex);
+      detectedScenarios.push({
+        id: `${advId}-scen-${cur.num}`,
+        title: `Scenariusz ${cur.num}: ${cur.title}`,
+        textSlice: slice,
+      });
+    }
+  } else {
+    // Dynamiczny podział sekcyjny gdy brak jawnych numerów scenariuszy
+    const sectionRegex = /(?:###?\s+|(?:\n|^)\s*(?:Część|Part|Akt|Act)\s*(\d+|[A-ZIVXLCDM]+)\s*[:\-\u2013\u2014]\s*)([^\n]+)/gi;
+    const secMatches: Array<{ title: string; index: number }> = [];
+    while ((match = sectionRegex.exec(text)) !== null) {
+      secMatches.push({ title: (match[2] || match[1] || '').trim(), index: match.index });
+    }
+    if (secMatches.length >= 2) {
+      for (let i = 0; i < secMatches.length; i++) {
+        const cur = secMatches[i];
+        const nextIndex = i + 1 < secMatches.length ? secMatches[i + 1].index : text.length;
+        detectedScenarios.push({
+          id: `${advId}-scen-${i + 1}`,
+          title: cur.title.startsWith('Scenariusz') ? cur.title : `Scenariusz: ${cur.title}`,
+          textSlice: text.slice(cur.index, nextIndex),
+        });
+      }
+    } else {
+      const baseTitle = fingerprint.title || fileName.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ');
+      const half = Math.floor(text.length / 2);
+      detectedScenarios.push(
+        { id: `${advId}-scen-1`, title: `${baseTitle}: Część 1`, textSlice: text.slice(0, half) },
+        { id: `${advId}-scen-2`, title: `${baseTitle}: Część 2`, textSlice: text.slice(half) }
+      );
+    }
   }
 
   detectedScenarios.forEach((scen, idx) => {
-    const assignedNpcIds = allNpcs
-      .filter((_, nIdx) => nIdx % detectedScenarios.length === idx)
-      .map((n) => n.id);
-    const assignedHandoutIds = allHandouts
-      .filter((_, hIdx) => hIdx % detectedScenarios.length === idx)
-      .map((h) => h.id);
+    // Przypisanie NPC semantycznie z tekstu
+    const matchedNpcs = allNpcs.filter((n) => {
+      if (scen.textSlice && n.name) {
+        return scen.textSlice.toLowerCase().includes(n.name.toLowerCase());
+      }
+      return false;
+    });
+    const finalNpcs = matchedNpcs.length > 0
+      ? matchedNpcs
+      : allNpcs.filter((_, nIdx) => nIdx % detectedScenarios.length === idx);
+
+    // Przypisanie Handoutów semantycznie z tekstu
+    const matchedHandouts = allHandouts.filter((h) => {
+      if (scen.textSlice && h.title) {
+        return scen.textSlice.toLowerCase().includes(h.title.toLowerCase());
+      }
+      return false;
+    });
+    const finalHandouts = matchedHandouts.length > 0
+      ? matchedHandouts
+      : allHandouts.filter((_, hIdx) => hIdx % detectedScenarios.length === idx);
+
+    const { nodes } = extractDynamicAdventureNodes(
+      scen.textSlice,
+      scen.title,
+      scen.id,
+      finalNpcs,
+      finalHandouts
+    );
 
     subAdventures.push({
       id: scen.id,
       title: scen.title,
-      synopsis: `Autonomiczna przygoda z antologii ${fingerprint.title}.`,
-      nodes: [
-        {
-          id: `${scen.id}-start`,
-          title: "Prolog i Poszlaki Wejściowe",
-          type: "intro",
-          description: `Wprowadzenie do ${scen.title}.`,
-          leadsTo: [`${scen.id}-main`],
-        },
-        {
-          id: `${scen.id}-main`,
-          title: "Śledztwo Regionalne",
-          type: "location",
-          description: "Izolowane śledztwo i zbieranie dowodów.",
-          leadsTo: [`${scen.id}-finale`],
-        },
-        {
-          id: `${scen.id}-finale`,
-          title: "Finał Sprawy",
-          type: "climax",
-          description: "Kulminacja scenariusza.",
-        },
-      ],
-      npcIds: assignedNpcIds,
-      handoutIds: assignedHandoutIds,
+      synopsis: `Autonomiczna przygoda "${scen.title}" wyodrębniona z antologii ${fingerprint.title || fileName}.`,
+      nodes,
+      npcIds: finalNpcs.map((n) => n.id),
+      handoutIds: finalHandouts.map((h) => h.id),
     });
   });
 
@@ -553,7 +765,7 @@ function parseAnthologyAdventure(
     id: advId,
     title: fingerprint.title || fileName,
     type: "scenario_anthology",
-    synopsis: `Zbiór ${subAdventures.length} niezależnych scenariuszy z antologii ${fingerprint.title}.`,
+    synopsis: `Zbiór ${subAdventures.length} niezależnych scenariuszy z antologii ${fingerprint.title || fileName}.`,
     subAdventures,
   };
 }
@@ -564,17 +776,24 @@ function parseAnthologyAdventure(
 function parseMegaCampaignAdventure(
   text: string,
   fingerprint: RulebookFingerprintResult,
-  fileName: string
+  fileName: string,
+  allNpcs: OverlayNPC[] = [],
+  allHandouts: OverlayHandout[] = []
 ): OverlayAdventure {
   const advId = `campaign-${slugify(fileName)}`;
 
-  const knownRegions = [
-    { name: "Ameryka / Nowy Jork", pattern: /Nowy\s+Jork|New\s+York|Boston|Arkham/i },
-    { name: "Anglia / Londyn", pattern: /Londyn|London|Anglia|England/i },
-    { name: "Egipt / Kair", pattern: /Kair|Cairo|Egipt|Egypt/i },
-    { name: "Afryka / Kenia", pattern: /Kenia|Kenya|Nairobi|Afryka/i },
-    { name: "Azja / Szanghaj", pattern: /Szanghaj|Shanghai|Chiny|China/i },
-  ];
+  // Dynamiczne wykrywanie aktów z nagłówków w tekście
+  const actRegex = /(?:Akt|Act|Rozdział|Chapter)\s*(\d+|[A-ZIVXLCDM]+)\s*[:\-\u2013\u2014]\s*([^\n]+)/gi;
+  let match: RegExpExecArray | null;
+  const detectedActs: Array<{ num: string; title: string; index: number }> = [];
+
+  while ((match = actRegex.exec(text)) !== null) {
+    detectedActs.push({
+      num: match[1].trim(),
+      title: match[2].trim(),
+      index: match.index,
+    });
+  }
 
   const matchedActs: Array<{
     id: string;
@@ -585,51 +804,81 @@ function parseMegaCampaignAdventure(
     crossRegionalLinks: string[];
   }> = [];
 
-  knownRegions.forEach((reg, idx) => {
-    if (reg.pattern.test(text) || matchedActs.length < 2) {
-      const actId = `${advId}-act-${idx + 1}`;
+  if (detectedActs.length >= 2) {
+    for (let idx = 0; idx < detectedActs.length; idx++) {
+      const act = detectedActs[idx];
+      const actId = `${advId}-act-${act.num || idx + 1}`;
+      const nextIndex = idx + 1 < detectedActs.length ? detectedActs[idx + 1].index : text.length;
+      const actSlice = text.slice(act.index, nextIndex);
+
+      const regionMatch = act.title.match(/(Nowy\s+Jork|New\s+York|Boston|Arkham|Londyn|London|Anglia|England|Kair|Cairo|Egipt|Egypt|Kenia|Kenya|Nairobi|Afryka|Szanghaj|Shanghai|Chiny|China)/i);
+      const region = regionMatch ? regionMatch[1].trim() : act.title.split(/[\-:]/)[0].trim() || `Region ${idx + 1}`;
+
+      const { nodes: actScenes } = extractDynamicAdventureNodes(
+        actSlice,
+        act.title,
+        actId,
+        allNpcs,
+        allHandouts
+      );
+
       matchedActs.push({
         id: actId,
-        title: `Akt ${idx + 1}: ${reg.name}`,
-        region: reg.name,
-        localVillain: `Lokalna komórka kultu w ${reg.name}`,
-        scenes: [
-          {
-            id: `${actId}-arrival`,
-            title: `Przybycie: ${reg.name}`,
-            type: "intro",
-            description: `Badacze docierają do regionu ${reg.name} i badają pierwsze poszlaki.`,
-            leadsTo: [`${actId}-hub`],
-          },
-          {
-            id: `${actId}-hub`,
-            title: `Ośrodek Śledczy ${reg.name}`,
-            type: "location",
-            description: "Główne poszlaki, świadkowie i lokalne mroczne sekrety.",
-            leadsTo: [`${actId}-climax`],
-          },
-          {
-            id: `${actId}-climax`,
-            title: `Konfrontacja w ${reg.name}`,
-            type: "climax",
-            description: "Zneutralizowanie lokalnego zagrożenia lub zdobycie klucza do kolejnego kontynentu.",
-          },
-        ],
-        crossRegionalLinks: idx < 4 ? [`${advId}-act-${idx + 2}`] : [],
+        title: `Akt ${act.num || idx + 1}: ${act.title}`,
+        region,
+        localVillain: `Zagrożenie w rejonie ${region}`,
+        scenes: actScenes,
+        crossRegionalLinks: [],
       });
     }
-  });
+  } else {
+    // Dynamiczny podział sekcyjny dla kampanii bez jawnych nagłówków Akt
+    const regionalPatterns = [
+      { name: "Nowy Jork", pattern: /Nowy\s+Jork|New\s+York|Boston|Arkham/i },
+      { name: "Londyn", pattern: /Londyn|London|Anglia|England/i },
+      { name: "Kair", pattern: /Kair|Cairo|Egipt|Egypt/i },
+      { name: "Kenia", pattern: /Kenia|Kenya|Nairobi|Afryka/i },
+      { name: "Szanghaj", pattern: /Szanghaj|Shanghai|Chiny|China/i },
+    ];
+
+    regionalPatterns.forEach((reg, idx) => {
+      if (reg.pattern.test(text) || matchedActs.length < 3) {
+        const actId = `${advId}-act-${idx + 1}`;
+        const actTitle = `Teatr działań: ${reg.name}`;
+        const { nodes: actScenes } = extractDynamicAdventureNodes(
+          text,
+          actTitle,
+          actId,
+          allNpcs,
+          allHandouts
+        );
+
+        matchedActs.push({
+          id: actId,
+          title: `Akt ${idx + 1}: ${reg.name}`,
+          region: reg.name,
+          localVillain: `Zagrożenie w rejonie ${reg.name}`,
+          scenes: actScenes,
+          crossRegionalLinks: [],
+        });
+      }
+    });
+  }
+
+  for (let i = 0; i < matchedActs.length - 1; i++) {
+    matchedActs[i].crossRegionalLinks = [matchedActs[i + 1].id];
+  }
 
   return {
     id: advId,
     title: fingerprint.title || fileName,
     type: "mega_campaign",
-    synopsis: "Monumentalna kampania d100 z wieloaktową strukturą regionalną.",
+    synopsis: "Epicka kampania d100 o nieliniowej strukturze regionalnej.",
     campaignHierarchy: {
       metaPlot: {
-        grandArc: "Globalny spisek kultystów zmierzający do przebudzenia Przedwiecznego lub nadejścia Zagłady.",
-        doomsdayClock: "6 faz nadejścia zaćmienia / koniunkcji planet",
-        globalVillain: "Arcywróg / Wielki Kapłan Kultu",
+        grandArc: "Globalna oś fabularna łącząca wieloaktowe śledztwo i konfrontację z kosmicznym zagrożeniem.",
+        doomsdayClock: "Fazy narastającego zagrożenia i koniunkcji",
+        globalVillain: "Główny antagonista lub kult stojący za spiskiem",
       },
       acts: matchedActs,
     },
@@ -654,13 +903,13 @@ export function generateSemanticOverlay(
   const advType = fingerprint.semanticPlan.adventureType;
 
   if (advType === "one_shot" || fingerprint.profile === "one_shot") {
-    adventures.push(parseOneShotAdventure(pdfText, fingerprint, fileName));
+    adventures.push(parseOneShotAdventure(pdfText, fingerprint, fileName, npcs, handouts));
   } else if (advType === "scenario_anthology" || fingerprint.profile === "scenario_anthology") {
     adventures.push(parseAnthologyAdventure(pdfText, fingerprint, fileName, npcs, handouts));
   } else if (advType === "mega_campaign" || fingerprint.profile === "mega_campaign") {
-    adventures.push(parseMegaCampaignAdventure(pdfText, fingerprint, fileName));
+    adventures.push(parseMegaCampaignAdventure(pdfText, fingerprint, fileName, npcs, handouts));
   } else if (fingerprint.detectedFeatures.hasScenarios) {
-    adventures.push(parseOneShotAdventure(pdfText, fingerprint, fileName));
+    adventures.push(parseOneShotAdventure(pdfText, fingerprint, fileName, npcs, handouts));
   }
 
   const tags: SemanticTag[] = [...fingerprint.semanticPlan.detectedCategories];

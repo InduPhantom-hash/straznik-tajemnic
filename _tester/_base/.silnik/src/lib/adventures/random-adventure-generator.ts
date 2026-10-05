@@ -1,5 +1,6 @@
 import { AdventureContext } from '../adventures-data';
 import { AdventureGraph } from '../types';
+import { normalizeAdventureGraph } from '../custom-adventures-storage';
 
 export interface SurpriseAdventureSeed {
   era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern';
@@ -453,6 +454,6 @@ export function generateSurpriseAdventure(preferredEra?: string): AdventureConte
     difficulty: 'normal',
     isCustom: true,
     documentType: 'scenario',
-    graph: template.graph,
+    graph: normalizeAdventureGraph(template.graph),
   };
 }

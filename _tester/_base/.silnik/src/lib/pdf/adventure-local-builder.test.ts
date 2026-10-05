@@ -4,6 +4,7 @@ import {
 } from './adventure-local-builder';
 import { detectRulebookProfile } from './rulebook-fingerprint';
 import type { OverlayDescriptor } from './semantic-overlay-engine';
+import type { AdventureNodeType } from '@/lib/types';
 
 describe('adventure-local-builder', () => {
   const dummyOverlay: OverlayDescriptor = {
@@ -410,6 +411,224 @@ Krótki scenariusz do gry d100 w Arkham w 1924 roku. Badacze odkrywają tajemnic
       expect(advsPulp.every((a) => a.tone === 'pulp' && a.documentType === 'scenario')).toBe(true);
       expect(advsPulp.every((a) => (a.handouts?.length ?? 0) >= 1 && (a.graph?.locations?.length ?? 0) >= 2)).toBe(true);
       expect(advsPulp[0].graph?.npcs?.[0]?.name).not.toBe(advsPulp[1].graph?.npcs?.[0]?.name);
+    });
+  });
+
+  describe('Node-Based Scenario Graph & Three Clue Rule RAW Integration (Milestone M3)', () => {
+    it('gwarantuje calkowity brak atrap NPC ("Glowny Informator", "Kluczowa Postac") i atrap poszlak przy pustym overlayu', () => {
+      const text = `
+Scenariusz Jednorazowy: Cienie nad Innsmouth
+Wprowadzenie: Agent federalny przybywa do portowego miasteczka Innsmouth w 1927 roku.
+Śledztwo w rafinerii Marsha ujawnia mroczny kult Dagona.
+      `;
+      const fp = detectRulebookProfile(text, 'Cienie_nad_Innsmouth.pdf');
+      const emptyOverlay: OverlayDescriptor = {
+        ...dummyOverlay,
+        entities: {
+          npcs: [],
+          creatures: [],
+          spells: [],
+          rules: [],
+          handouts: [],
+          adventures: [],
+        },
+      };
+
+      const advs = buildLocalCustomAdventures(text, fp, emptyOverlay, 'Cienie_nad_Innsmouth.pdf', 30);
+      expect(advs.length).toBeGreaterThanOrEqual(1);
+      const adv = advs[0];
+      const graph = adv.graph;
+      expect(graph).toBeDefined();
+
+      // a) Brak atrap w kolekcji npcs
+      const dummyNpcNames = ['Główny Informator', 'Kluczowa Postać', 'Glowny Informator', 'Kluczowa Postac'];
+      const actualNpcNames = graph?.npcs?.map((n) => n.name) || [];
+      for (const dummy of dummyNpcNames) {
+        expect(actualNpcNames).not.toContain(dummy);
+      }
+
+      // b) Brak atrap w wezlach nodes
+      const actualNodeNames = graph?.nodes?.map((n) => n.name) || [];
+      for (const dummy of dummyNpcNames) {
+        expect(actualNodeNames).not.toContain(dummy);
+      }
+
+      // c) Brak atrap poszlak
+      const dummyClueNames = [
+        'Wstępny Trop / List Zlecający',
+        'Tajemnicze Notatki',
+        'Wstepny Trop / List Zlecajacy',
+      ];
+      const actualClueNames = graph?.clues?.map((c) => c.name) || [];
+      for (const dummy of dummyClueNames) {
+        expect(actualClueNames).not.toContain(dummy);
+      }
+    });
+
+    it('generuje autentyczne wezly AdventureNode z prawidlowymi typami (intro, location, npc, event, climax)', () => {
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+        ROZDZIAŁ 15.2 - SCENARIUSZE
+        SZKARŁATNE LITERY 414
+      `;
+      const fpPl = detectRulebookProfile(coreFullTocPl, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf');
+      const advs = buildLocalCustomAdventures(coreFullTocPl, fpPl, dummyOverlay, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf', 484);
+
+      expect(advs).toHaveLength(2);
+      for (const adv of advs) {
+        const nodes = adv.graph?.nodes;
+        expect(Array.isArray(nodes)).toBe(true);
+        expect(nodes!.length).toBeGreaterThanOrEqual(3);
+
+        const allowedTypes: AdventureNodeType[] = ['intro', 'location', 'npc', 'event', 'climax'];
+        for (const node of nodes!) {
+          expect(allowedTypes).toContain(node.type);
+          expect(typeof node.id).toBe('string');
+          expect(node.id.length).toBeGreaterThan(0);
+          expect(typeof node.name).toBe('string');
+          expect(node.name.length).toBeGreaterThan(0);
+          expect(Array.isArray(node.leadInClueIds)).toBe(true);
+          expect(Array.isArray(node.leadOutClueIds)).toBe(true);
+        }
+
+        // Wezel wstepny oraz kulminacyjny musza wystapic w kompletnym grafie
+        const introNodes = nodes!.filter((n) => n.type === 'intro');
+        expect(introNodes.length).toBeGreaterThanOrEqual(1);
+
+        const climaxNodes = nodes!.filter((n) => n.type === 'climax' || n.isClimax === true);
+        expect(climaxNodes.length).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it('automatycznie wywoluje ThreeClueRuleValidator i zapewnia minimum 3 poszlaki wejsciowe ze zroznicowanych zrodel dla waskich gardel', () => {
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+        ROZDZIAŁ 15.2 - SCENARIUSZE
+        SZKARŁATNE LITERY 414
+      `;
+      const fpPl = detectRulebookProfile(coreFullTocPl, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf');
+      const advs = buildLocalCustomAdventures(coreFullTocPl, fpPl, dummyOverlay, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf', 484);
+
+      for (const adv of advs) {
+        const graph = adv.graph!;
+        expect(graph.nodes).toBeDefined();
+        const bottlenecks = graph.nodes!.filter((n) => n.isBottleneck || n.isClimax || n.type === 'climax');
+        expect(bottlenecks.length).toBeGreaterThanOrEqual(1);
+
+        for (const bn of bottlenecks) {
+          const leadInClues = graph.clues.filter((c) => {
+            const isTargetMatch = c.targetNodeId === bn.id;
+            const isLeadInMatch = bn.leadInClueIds.includes(c.id);
+            const isConnMatch = graph.connections.some(
+              (conn) => conn.toId === bn.id && conn.clueId === c.id
+            );
+            return (isTargetMatch || isLeadInMatch || isConnMatch) && !c.isRedHerring;
+          });
+
+          // Wymog 1: Minimum 3 wloty poszlak do waskiego gardla
+          expect(leadInClues.length).toBeGreaterThanOrEqual(3);
+
+          // Wymog 2: Dywersyfikacja zrodel dowodowych (min. 2 rozne kategorie sourceType)
+          const sources = new Set(leadInClues.map((c) => c.sourceType).filter(Boolean));
+          expect(sources.size).toBeGreaterThanOrEqual(2);
+        }
+      }
+    });
+
+    it('zapewnia scisla spojnosc referencyjna i topologiczna grafu (brak wiszacych krawedzi i osieroconych poszlak)', () => {
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+      `;
+      const fpPl = detectRulebookProfile(coreFullTocPl, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf');
+      const advs = buildLocalCustomAdventures(coreFullTocPl, fpPl, dummyOverlay, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf', 484);
+      const adv = advs[0];
+      const graph = adv.graph!;
+
+      const nodeIds = new Set(graph.nodes!.map((n) => n.id));
+      const clueIds = new Set(graph.clues.map((c) => c.id));
+
+      for (const node of graph.nodes!) {
+        for (const cId of node.leadInClueIds) {
+          expect(clueIds.has(cId)).toBe(true);
+        }
+        for (const cId of node.leadOutClueIds) {
+          expect(clueIds.has(cId)).toBe(true);
+        }
+      }
+
+      for (const clue of graph.clues) {
+        if (clue.targetNodeId) {
+          expect(nodeIds.has(clue.targetNodeId)).toBe(true);
+        }
+      }
+
+      for (const conn of graph.connections) {
+        expect(conn.fromId).toBeDefined();
+        expect(conn.toId).toBeDefined();
+        if (conn.clueId) {
+          expect(clueIds.has(conn.clueId)).toBe(true);
+        }
+      }
+    });
+
+    it('poprawnie wypelnia graf wezlowy dla wszystkich 4 scenariuszy Pulp Cthulhu', () => {
+      const pulpFullToc = `
+        PULP CTHULHU - Two-Fisted Action And Adventure Against The Mythos.
+        CHAPTER 10: THE DISINTEGRATOR, SCENARIO 135
+        CHAPTER 11: WAITING FOR THE HURRICANE, SCENARIO 158
+        CHAPTER 12: PANDORA’S BOX, SCENARIO 176
+        CHAPTER 13: SLOW BOAT TO CHINA, SCENARIO 205
+      `;
+      const fpPulp = detectRulebookProfile(pulpFullToc, 'Call_of_Cthulhu_Pulp_Cthulhu.pdf');
+      const advsPulp = buildLocalCustomAdventures(pulpFullToc, fpPulp, dummyOverlay, 'Call_of_Cthulhu_Pulp_Cthulhu.pdf', 274);
+
+      expect(advsPulp).toHaveLength(4);
+      for (const adv of advsPulp) {
+        expect(adv.graph?.nodes).toBeDefined();
+        expect(adv.graph!.nodes!.length).toBeGreaterThanOrEqual(3);
+        const climax = adv.graph!.nodes!.find((n) => n.isClimax || n.type === 'climax');
+        expect(climax).toBeDefined();
+        expect(climax!.leadInClueIds.length).toBeGreaterThanOrEqual(3);
+      }
+    });
+
+    it('zachowuje pelna kolekcje npcs i locations dla wstecznej kompatybilnosci z UI i trybem offline', () => {
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+      `;
+      const fpPl = detectRulebookProfile(coreFullTocPl, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf');
+      const advs = buildLocalCustomAdventures(coreFullTocPl, fpPl, dummyOverlay, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf', 484);
+      const adv = advs[0];
+
+      expect(Array.isArray(adv.graph?.npcs)).toBe(true);
+      expect(adv.graph!.npcs.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(adv.graph?.locations)).toBe(true);
+      expect(adv.graph!.locations.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('gwarantuje absolutny brak znakow em-dash i en-dash w strukturach grafu', () => {
+      const coreFullTocPl = `
+        Zew Cthulhu Księga Strażnika. Edycja polska.
+        ROZDZIAŁ 15.1 - SCENARIUSZE
+        POŚRÓD PRADAWNYCH DRZEW 394
+        ROZDZIAŁ 15.2 - SCENARIUSZE
+        SZKARŁATNE LITERY 414
+      `;
+      const fpPl = detectRulebookProfile(coreFullTocPl, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf');
+      const advs = buildLocalCustomAdventures(coreFullTocPl, fpPl, dummyOverlay, 'ZewCthulhu_KsiegaStraznika_v.1.3.pdf', 484);
+
+      for (const adv of advs) {
+        const serialized = JSON.stringify(adv.graph);
+        expect(serialized).not.toMatch(/[\u2014\u2013]/);
+      }
     });
   });
 });
