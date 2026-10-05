@@ -5,7 +5,20 @@ Format oparty na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.9.5] - 2026-09-28
+## [0.9.5] - 2026-10-05
+
+### 📜 Narratologia, Graf Węzłowy & Zasada 3 Poszlak (The Alexandrian)
+- **Node-Based Scenario Architecture & Zasada 3 Poszlak RAW:** Zreformowany model grafu scenariusza (`AdventureNode`, `AdventureClue`) z walidatorem `three-clue-rule-validator.ts` egzekwującym min. 3 niezależne poszlaki wiodące do każdego kluczowego węzła oraz eliminacją atrap NPC ze skanera PDF (PR #646).
+- **Żelazny Zakaz Konkluzji (No-Conclusions Rule):** Odcięcie autospoilerów i wybiegania przed dedukcję gracza w prozie MG, 4 Biegi Kadencji Pacingu z dynamicznym przełączaniem oraz zasilenie SensoryEngine leksykonem Lovecrafta (PR #642, PR #644).
+- **Matryca Audytu Narratologii i Worldbuildingu (SSOT):** Opracowanie oficjalnego dokumentu mapującego 36 obszarów narratologii na kod i prompty silnika w `docs/narratologia-i-worldbuilding.md` (PR #641).
+- **Odblokowanie Czatu po Wczytaniu Zapisu:** Reset stanu `isGenerating`, `isStreamPending` i synchronizacja odtwarzacza po załadowaniu pliku save (PR #645).
+
+### 🚀 Dystrybucja, Rolling Updates & Bezpieczeństwo
+- **Wieloplatformowy In-App Auto-Update (Windows & macOS):** Odczepiony worker Node.js (`desktop/update-worker.mjs`) wykonujący bezpieczną, dwufazową podmianę katalogu runtime z atomowym rollbackiem i sumami SHA-256 (PR #632, PR #633).
+- **Commit-Aware Rolling Updates (Wzorzec Hermes Agent):** Śledzenie różnicy commitów (`commitsBehind`, SHA) z dyskretnym powiadomieniem w UI i przyciskiem restartu (PR #634, PR #635, PR #636).
+- **Dwuwarstwowy Cache Tokenów i Optymalizacja Kosztów:** Zmniejszenie narzutu tokenów API poprzez selektywny cache pamięciowy i plikowy (PR #630).
+- **Samowystarczalna Paczka ZIP dla Windows (Zero-Setup):** Zunifikowany workflow `.github/workflows/release.yml`, generator `desktop/build-windows.mjs` z portable Node.js x64 oraz odporna kompresja 7z (PR #618, PR #619, PR #621, PR #622, PR #623, PR #624).
+- **Aktualizacje Bezpieczeństwa Dependabot:** Podbicie `next` do 16.3.8 (łata CVE na ImageResponse) oraz `dompurify` do 3.4.16 (PR #620).
 
 ### ⚔️ Mechanika d100 Weird Fiction & Walka RAW
 - **Puryzm Walki Wręcz d100 (Starcia Przeciwstawne):** Karta obrony `OpposedMeleeCard` na czacie w stylu Dark Art Déco (Unik vs Kontratak vs Manewry bojowe), asymetria remisu (Unik wygrywa z atakiem, Kontratak przegrywa), modyfikatory Budowy (Build), kość premiowa za przewagę liczebną (*Outnumbered*) oraz rzut za osłonę (*Dive for Cover*) przeciw broni palnej (PR #361, PR #362).
