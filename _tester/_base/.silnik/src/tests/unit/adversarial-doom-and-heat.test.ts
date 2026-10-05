@@ -4,7 +4,7 @@
  * - R2: deriveHeatFromMessages and buildWorldEngineDirectives edge cases, rapid fire, Polish accents, clamping
  */
 
-import { timeManager, DOOM_CLOCK_STAGES, type DoomClockPhase } from '@/lib/time-manager';
+import { timeManager } from '@/lib/time-manager';
 import { deriveHeatFromMessages, buildWorldEngineDirectives } from '@/lib/world-engine/adapter';
 
 describe('Adversarial Challenger Suite: R2 - Heat Counter (deriveHeatFromMessages)', () => {
@@ -13,19 +13,19 @@ describe('Adversarial Challenger Suite: R2 - Heat Counter (deriveHeatFromMessage
       expect(deriveHeatFromMessages(null)).toBe(0);
       expect(deriveHeatFromMessages(undefined)).toBe(0);
       expect(deriveHeatFromMessages([])).toBe(0);
-      expect(deriveHeatFromMessages('invalid' as any)).toBe(0);
-      expect(deriveHeatFromMessages({} as any)).toBe(0);
+      expect(deriveHeatFromMessages('invalid' as unknown as Array<{ role?: string; content?: string }>)).toBe(0);
+      expect(deriveHeatFromMessages({} as unknown as Array<{ role?: string; content?: string }>)).toBe(0);
     });
 
     it('safely skips null, undefined, or empty objects within the message array without throwing', () => {
       const messages = [
-        null as any,
-        undefined as any,
+        null as unknown as { role?: string; content?: string },
+        undefined as unknown as { role?: string; content?: string },
         {},
         { role: 'user' }, // no content
-        { role: 'user', content: null as any },
-        { role: 'user', content: undefined as any },
-        { role: 'user', content: 12345 as any },
+        { role: 'user', content: null as unknown as string },
+        { role: 'user', content: undefined as unknown as string },
+        { role: 'user', content: 12345 as unknown as string },
         { role: 'user', content: '' },
       ];
       expect(() => deriveHeatFromMessages(messages)).not.toThrow();
