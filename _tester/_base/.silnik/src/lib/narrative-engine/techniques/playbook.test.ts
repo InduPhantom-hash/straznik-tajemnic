@@ -10,17 +10,17 @@ import {
 } from './playbook';
 import type { TechniqueCategory, SceneState, TechniqueId } from './types';
 
-describe('GM Technique Playbook (Issue #535)', () => {
-  it('zawiera dokładnie 16 kanonicznych technik narracyjnych', () => {
-    expect(GM_TECHNIQUES).toHaveLength(16);
-    expect(TECHNIQUE_IDS).toHaveLength(16);
-    expect(Object.keys(TECHNIQUES_MAP)).toHaveLength(16);
-    expect(getAllTechniques()).toHaveLength(16);
+describe('GM Technique Playbook (Issue #535 & Issue #648 Faza 3)', () => {
+  it('zawiera dokładnie 19 kanonicznych technik narracyjnych', () => {
+    expect(GM_TECHNIQUES).toHaveLength(19);
+    expect(TECHNIQUE_IDS).toHaveLength(19);
+    expect(Object.keys(TECHNIQUES_MAP)).toHaveLength(19);
+    expect(getAllTechniques()).toHaveLength(19);
   });
 
   it('każda technika ma unikalny identyfikator', () => {
     const idSet = new Set(TECHNIQUE_IDS);
-    expect(idSet.size).toBe(16);
+    expect(idSet.size).toBe(19);
   });
 
   it('zapewnia 100% symetrię językową (PL + EN) bez pustych pól i bez półpauz', () => {
