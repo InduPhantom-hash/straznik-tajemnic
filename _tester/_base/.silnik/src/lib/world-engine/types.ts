@@ -77,5 +77,7 @@ export interface WorldEngineDirectives {
   heatDirective?: string;
   secretsDirective?: string;
   closedCircleDirective?: string;
+  deadlockDirective?: string;
+  valueChargeDirective?: string;
 }
 

@@ -10,15 +10,18 @@ export type TechniqueId =
   | 'foreshadowing'
   | 'cut_to_action'
   | 'slow_burn'
+  | 'value_charge_shift'
   // Postacie NPC
   | 'agenda_first'
   | 'social_leverage'
   | 'distinct_voice'
   | 'status_dynamic'
+  | 'prep_situations'
   // Informacja i śledztwo
   | 'three_clue_rule'
   | 'fail_forward'
   | 'cognitive_anchor'
+  | 'exposition_through_action'
   // Sensoryka
   | 'single_sensory_anchor'
   // Kognitywistyka grozy i atmosfera
