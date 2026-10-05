@@ -58,6 +58,14 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
       });
     });
 
+    await page.route('**/api/desktop/update/check', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ available: false, currentVersion: '0.9.5' }),
+      });
+    });
+
     await page.route('**/api/pdf/ingest-local*', async (route) => {
       await route.fulfill({
         status: 200,

@@ -779,6 +779,7 @@ export async function runChatPipeline({
       turnsInCurrentLocation,
       visitedMacroLocations,
       isNewMacroLocation,
+      messages,
     }),
   });
 

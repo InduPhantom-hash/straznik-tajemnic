@@ -117,6 +117,14 @@ const SKILL_SYNONYM_GROUPS: string[][] = [
   ['tropienie', 'sledztwo', 'sledzenie'],
   ['majetnosc', 'kredyt', 'zamoznosc'],
   ['prowadzenie samochodu', 'prowadzenie pojazdu', 'kierowanie'],
+  // R4: Dywersyfikacja Umiejętności - Czwórmecz Społeczny i rzadkie umiejętności badawcze CoC 7e RAW
+  ['urok', 'urok osobisty', 'czar', 'wdziek', 'charm'],
+  ['gadanina', 'bajerowanie', 'nawijka', 'szybka gadka', 'fast talk'],
+  ['zastraszanie', 'grozba', 'grozby', 'grozenie', 'intymidacja', 'intimidate'],
+  ['slusarstwo', 'wytrychy', 'otwieranie zamkow', 'wlamywanie', 'locksmith'],
+  ['ksiegowosc', 'rachunkowosc', 'finanse', 'audyt', 'accounting'],
+  ['prawo', 'znajomosc prawa', 'przepisy prawne', 'law'],
+  ['medycyna', 'sztuka lekarska', 'diagnostyka', 'leczenie', 'medicine'],
 ];
 
 /** Czy dwie znormalizowane nazwy są w tej samej grupie synonimów. */

@@ -59,6 +59,12 @@ export interface OccultContext {
   cosmicTaboo?: string; // Prawo wyższego wymiaru, którego naruszenie grozi anomalną reakcją
 }
 
+/** Poziom rozgłosu / hałasu w pamięci sesji (0 = dyskrecja, 1-2 = podejrzenia, 3+ = alarm wroga) */
+export type HeatLevel = 0 | 1 | 2 | 3;
+
+/** Klasyfikacja akcji gracza pod kątem hałasu */
+export type HeatActionClassification = 'loud' | 'quiet' | 'neutral';
+
 export interface WorldEngineDirectives {
   npcDirective?: string;
   sensoryDirective?: string;
@@ -68,5 +74,6 @@ export interface WorldEngineDirectives {
   geographyDirective?: string;
   occultDirective?: string;
   anchorFramingDirective?: string;
+  heatDirective?: string;
 }
 

@@ -80,6 +80,8 @@ export interface WorldEngineAdapterParams {
   messagesCount?: number;
   visitedMacroLocations?: string[];
   isNewMacroLocation?: boolean;
+  heat?: number;
+  messages?: Array<{ role?: string; content?: string }> | null;
 }
 
 const FACILITY_GROUPS: Array<{ id: string; pattern: RegExp }> = [
@@ -267,6 +269,57 @@ export function deriveSceneSensoryMemoryFromMessages(
     turnsInCurrentLocation,
     visitedMacroLocations,
   };
+}
+
+/**
+ * Wyrażenia regularne klasyfikacji hałasu / rozgłosu działań gracza (Issue #648 Faza 1 R2).
+ */
+const HEAT_LOUD_PATTERNS: RegExp[] = [
+  /(?:^|[^\p{L}\p{N}])(strzał[a-ząćęłńóśźż]*|strzel[a-ząćęłńóśźż]*|wystrzał[a-ząćęłńóśźż]*|rewolwer[a-ząćęłńóśźż]*|pistolet[a-ząćęłńóśźż]*|strzelb[a-ząćęłńóśźż]*|karabin[a-ząćęłńóśźż]*|gunshot|shoot|firearm)(?:[^\p{L}\p{N}]|$)/iu,
+  /(?:^|[^\p{L}\p{N}])(wyważ[a-ząćęłńóśźż]*|rozbij[a-ząćęłńóśźż]*|wybij[a-ząćęłńóśźż]*|łom[a-ząćęłńóśźż]*|taranuj[a-ząćęłńóśźż]*|włam[a-ząćęłńóśźż]*|force|break|crowbar|smash)(?:[^\p{L}\p{N}]|$)/iu,
+  /(?:^|[^\p{L}\p{N}])(awantur[a-ząćęłńóśźż]*|krzycz[a-ząćęłńóśźż]*|wrzask[a-ząćęłńóśźż]*|bójk[a-ząćęłńóśźż]*|bijatyk[a-ząćęłńóśźż]*|alarm[a-ząćęłńóśźż]*|eksplozj[a-ząćęłńóśźż]*|wybuch[a-ząćęłńóśźż]*|brawl|shout|scream|explosion)(?:[^\p{L}\p{N}]|$)/iu,
+];
+
+const HEAT_QUIET_PATTERNS: RegExp[] = [
+  /(?:^|[^\p{L}\p{N}])(odpocz[a-ząćęłńóśźż]*|śpię|spać|sen|drzem[a-ząćęłńóśźż]*|hotel[a-ząćęłńóśźż]*|nocleg[a-ząćęłńóśźż]*|spędz[a-ząćęłńóśźż]*\s+noc[a-ząćęłńóśźż]*|rest|sleep|wait|camp)(?:[^\p{L}\p{N}]|$)/iu,
+  /(?:^|[^\p{L}\p{N}])(dyskretn[a-ząćęłńóśźż]*|skrad[a-ząćęłńóśźż]*|ukry[a-ząćęłńóśźż]*|cich[a-ząćęłńóśźż]*|szept[a-ząćęłńóśźż]*|szepcz[a-ząćęłńóśźż]*|w cieniu|zacieram ślady|ostrożn[a-ząćęłńóśźż]*|stealth|sneak|hide|quietly|discreet)(?:[^\p{L}\p{N}]|$)/iu,
+];
+
+/**
+ * Deterministycznie wylicza poziom rozgłosu (heat) na podstawie historii wiadomości (Issue #648 Faza 1 R2).
+ * - Zakres: 0 do 5 (clamped)
+ * - Głośne akcje (strzały, wyważenia, awantury) zwiększają heat o 1
+ * - Dyskrecja i odpoczynek (skradanie, sen, dyskrecja) redukują heat o 1 (min 0)
+ */
+export function deriveHeatFromMessages(
+  messages?: Array<{ role?: string; content?: string }> | null
+): number {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return 0;
+  }
+
+  let heat = 0;
+  for (const msg of messages) {
+    if (!msg || typeof msg.content !== 'string') continue;
+    // Sprawdzamy akcje gracza (rola 'user', 'player' lub brak jawnej roli).
+    // Odpowiedzi 'assistant' czy 'system' pomijamy.
+    const role = msg.role?.toLowerCase();
+    if (role === 'assistant' || role === 'system') continue;
+
+    const content = msg.content;
+    const isLoud = HEAT_LOUD_PATTERNS.some((pat) => pat.test(content));
+    if (isLoud) {
+      heat = Math.min(5, heat + 1);
+      continue;
+    }
+
+    const isQuiet = HEAT_QUIET_PATTERNS.some((pat) => pat.test(content));
+    if (isQuiet) {
+      heat = Math.max(0, heat - 1);
+    }
+  }
+
+  return heat;
 }
 
 /**
@@ -641,6 +694,26 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
       locale === 'en'
         ? `[INVESTIGATION_DIRECTIVE: FICTION-FIRST / NO FILLER. Zero repeated exposition. Focus 100% on examined details, tactile object interactions, NPC micro-reactions, and progressing the investigation]`
         : `[AKCJA_ŚLEDCZA: FICTION-FIRST / NO FILLER. Zero powtarzania ekspozycji. Skup się w 100% na badanych detalach, fizycznych interakcjach z obiektami, mimice/reakcjach NPC i posuwaniu śledztwa]`
+    );
+  }
+
+  // 4. Heat Counter & Adversary Reaction (Issue #648 Faza 1 R2)
+  const effectiveHeat = typeof params.heat === 'number'
+    ? params.heat
+    : deriveHeatFromMessages(params.messages);
+  const clampedHeat = Math.max(0, Math.min(5, effectiveHeat));
+
+  if (clampedHeat >= 3) {
+    finalLines.push(
+      locale === 'en'
+        ? `[REAKCJA_WROGA: HEAT ALERT ${clampedHeat}/5 (Direct adversary reaction). Investigator visibility reached critical level. Adversaries/cult make a proactive move (ambush, raid, thugs, stakeout, or cut off escape). MANDATORY: include REAKCJA_WROGA inside [MYŚLI_MG] and proactive adversary reaction in narration]`
+        : `[REAKCJA_WROGA: ALARM ROZGŁOSU ${clampedHeat}/5 (Bezpośrednia reakcja adwersarzy). Rozgłos badacza osiągnął stan krytyczny. Antagoniści/kult wykonują proaktywny ruch (zasadzka, nalot, zbiry, obserwacja kryjówki lub zablokowanie ucieczki). OBOWIĄZKOWO uwzględnij człon REAKCJA_WROGA wewnątrz znacznika [MYŚLI_MG] oraz natychmiastową proaktywną odpowiedź świata w narracji]`
+    );
+  } else if (clampedHeat >= 1) {
+    finalLines.push(
+      locale === 'en'
+        ? `[ECHO_AKCJI: HEAT LEVEL ${clampedHeat}/5 (Suspicion and vigilance). Rumors about investigator actions are circulating. Law enforcement and witnesses are suspicious, and the cult is more alert. Reflect this in ambient reactions and inside [MYŚLI_MG]]`
+        : `[ECHO_AKCJI: POZIOM ROZGŁOSU ${clampedHeat}/5 (Podejrzenia i czujność). W okolicy krążą plotki o działaniach badacza. Stróże prawa i świadkowie są podejrzliwi, a kult baczniej obserwuje otoczenie. Uwzględnij to w reakcjach otoczenia i w tagu [MYŚLI_MG]]`
     );
   }
 
