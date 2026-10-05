@@ -129,6 +129,28 @@ export const GM_TECHNIQUES: TechniqueDefinition[] = [
       en: 'Do not abruptly spawn a monster into a quiet archive before clues have been examined.',
     },
   },
+  {
+    id: 'value_charge_shift',
+    name: {
+      pl: 'Zwrot Wektora Sceny (Value Charge Shift +/-)',
+      en: 'Value Charge Shift (+/-)',
+    },
+    category: 'pacing',
+    cadence: 2,
+    sceneStates: ['dialogue', 'investigation', 'tension_spike', 'action'],
+    whenToUse: {
+      pl: 'Gdy scena grozi monotonią emocjonalną, a stan początkowy i końcowy mają ten sam ładunek (np. nadzieja w nadzieję lub strach w strach).',
+      en: 'When a scene risks emotional monotony with identical starting and ending charge (e.g. hope to hope or dread to dread).',
+    },
+    directive: {
+      pl: 'Przełam ładunek emocjonalny sceny przed jej zamknięciem (zasada Roberta McKee +/-): jeśli badacz wchodzi z nadzieją na dowód, napotyka rozczarowanie lub złowróżbny trop (-); jeśli tkwi w bezsilności lub lęku, zyskuje nieoczekiwany punkt zaczepienia lub triumf (+). Zakończenie sceny musi zmienić stan poznawczy lub emocjonalny.',
+      en: 'Shift the emotional value charge before closing the scene (Robert McKee +/- principle): if the investigator enters hopeful, confront them with setback or ominous cost (-); if cornered in dread or futility, provide an unexpected breakthrough or tactical foothold (+). The scene ending must alter their cognitive or emotional state.',
+    },
+    antiPatterns: {
+      pl: 'Zakaz płaskich scen, które zaczynają się i kończą w identycznym nastroju bez zmiany ładunku.',
+      en: 'Do not write flat scenes that open and close on the exact same emotional charge without a shift.',
+    },
+  },
 
   // ==========================================================================
   // POSTACIE NPC
@@ -221,6 +243,28 @@ export const GM_TECHNIQUES: TechniqueDefinition[] = [
       en: 'Do not ignore the strict class hierarchy and social mores of the 1920s.',
     },
   },
+  {
+    id: 'prep_situations',
+    name: {
+      pl: 'Sytuacja zamiast Fabuły (Prep Situations, Not Plots)',
+      en: 'Prep Situations, Not Plots',
+    },
+    category: 'npc',
+    cadence: 1,
+    sceneStates: ['dialogue', 'investigation', 'tension_spike'],
+    whenToUse: {
+      pl: 'W każdej sytuacji tarcia interesów NPC lub frakcji; zapobiega liniowemu pchaniu gracza ku z góry zaplanowanym scenom.',
+      en: 'In any situation of conflicting NPC or faction interests; prevents railroad pushing towards predetermined scenes.',
+    },
+    directive: {
+      pl: 'Świat reaguje stanem, a nie scenariuszem (zasada The Alexandrian): NPC i frakcje posiadają konkretne cele, zasoby, obawy i sprzeczne interesy. MG symuluje ich dynamiczne wektory i reakcję na działania badacza zamiast sztywnej sekwencji z góry zaplanowanych wydarzeń. Gracz ma pełną swobodę wyboru sojuszy i metod.',
+      en: 'The world reacts with state, not a rigid script (The Alexandrian principle): NPCs and factions have distinct motives, assets, fears, and conflicting vectors. The GM simulates their dynamic response to investigator actions rather than forcing predetermined cutscenes. Grant the player total latitude in choosing approaches and alliances.',
+    },
+    antiPatterns: {
+      pl: 'Zakaz z góry narzuconej ścieżki i pchania badacza do konkretnego pokoju/rozmowy wbrew jego deklaracji.',
+      en: 'Do not railroad or force the investigator into specific rooms or dialogue outcomes contrary to their declaration.',
+    },
+  },
 
   // ==========================================================================
   // INFORMACJA I ŚLEDZTWO
@@ -289,6 +333,28 @@ export const GM_TECHNIQUES: TechniqueDefinition[] = [
     antiPatterns: {
       pl: "Zakaz mglistych abstrakcji ('Widzisz jakieś podejrzane papiery').",
       en: "Do not use vague abstractions ('You see some suspicious papers').",
+    },
+  },
+  {
+    id: 'exposition_through_action',
+    name: {
+      pl: 'Ekspozycja przez Działanie (Exposition through Action)',
+      en: 'Exposition through Action',
+    },
+    category: 'investigation',
+    cadence: 2,
+    sceneStates: ['investigation', 'dialogue'],
+    whenToUse: {
+      pl: 'Gdy badacz analizuje archiwa, artykuły prasowe, tomy wiedzy tajemnej lub księgi parafialne.',
+      en: 'When the investigator examines archives, press clippings, mythos tomes, or parish registers.',
+    },
+    directive: {
+      pl: 'Twardy zakaz encyklopedycznych ścian tekstu! Podawaj wiedzę przez działanie postaci i mikro-wycinki (1-2 nagłówki, fragment artykułu z datą, marginalia, zamazany wpis w rejestrze) przeplatane fizyczną czynnością (przewracanie kruchych stron, zapach naftaliny i kurzu, skrzypienie drabiny bibliotecznej). Wiedza ma być narzędziem, nie wykładem.',
+      en: 'Strict prohibition of encyclopedic info-dumps! Convey information through investigator actions and micro-excerpts (1-2 headlines, dated article fragment, marginalia, smudged ledger entry) woven with tactile interaction (turning brittle pages, whiff of dust and mothballs, creak of library ladder). Lore must be a discovery tool, never a lecture.',
+    },
+    antiPatterns: {
+      pl: 'Zakaz wklejania wieloakapitowych monologów historycznych i podręcznikowych streszczeń wydarzeń.',
+      en: 'Do not paste multi-paragraph historical summaries or textbook lectures into the narrative.',
     },
   },
 

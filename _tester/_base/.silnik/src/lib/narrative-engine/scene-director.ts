@@ -239,6 +239,9 @@ export function selectSceneTechniques(
       if (tech.id === 'social_leverage' && /\b(chcę|daj|powiedz|żądam|pieniądze|informacj|want|give|tell|demand)\b/i.test(rawMsg)) {
         score += 3.0;
       }
+      if (tech.id === 'prep_situations' && /\b(ugoda|frakcj|stron|konflikt|dlaczego|kto za tym stoi|faction|side|deal|who is behind)\b/i.test(rawMsg)) {
+        score += 3.5;
+      }
       if (tech.id === 'distinct_voice') {
         score += 2.0;
       }
@@ -255,6 +258,9 @@ export function selectSceneTechniques(
       if (tech.id === 'cut_to_action') {
         score += 2.5;
       }
+      if (tech.id === 'value_charge_shift') {
+        score += 2.0;
+      }
       if (tech.id === 'referee_veto' && /\b(skaczę z dachu|zabijam jednym ciosem|nieśmierteln)\b/i.test(rawMsg)) {
         score += 5.0;
       }
@@ -262,11 +268,17 @@ export function selectSceneTechniques(
 
     // Preferencje dla śledztwa
     if (params.sceneState === 'investigation') {
+      if (tech.id === 'exposition_through_action' && /\b(artykuł|gazet|archiwum|wycinek|mikrofilm|kronik|rejestr|księg|tomy|czytam|kwerend|newspaper|archive|clipping|record|ledger|book|read)\b/i.test(rawMsg)) {
+        score += 4.5;
+      }
       if (tech.id === 'threshold_shift' && params.isLocationTransition) {
         score += 4.0;
       }
       if (tech.id === 'cognitive_anchor' && /\b(list|papier|biurko|szuflada|monogram|symbol|ślad)\b/i.test(rawMsg)) {
         score += 3.0;
+      }
+      if (tech.id === 'value_charge_shift' && /\b(utknąłem|co teraz|brak tropu|rozczarowani|sukces|przełom|stuck|dead end|now what)\b/i.test(rawMsg)) {
+        score += 3.5;
       }
       if (tech.id === 'three_clue_rule') {
         score += 2.0;
@@ -281,12 +293,18 @@ export function selectSceneTechniques(
       if (tech.id === 'vacuum_variable') {
         score += 3.5;
       }
+      if (tech.id === 'value_charge_shift') {
+        score += 2.5;
+      }
     }
 
     // Preferencje dla skoku napięcia
     if (params.sceneState === 'tension_spike') {
       if (tech.id === 'soft_move') {
         score += 2.5;
+      }
+      if (tech.id === 'value_charge_shift') {
+        score += 3.0;
       }
       if (tech.id === 'vacuum_variable') {
         score += 2.0;

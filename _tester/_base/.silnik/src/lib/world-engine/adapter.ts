@@ -105,6 +105,8 @@ export interface WorldEngineAdapterParams {
   boundarySummary?: string;
   secretsPool?: SecretInput[] | null;
   secrets?: SecretInput[] | null;
+  deadlockDetected?: boolean;
+  valueChargeHint?: '+' | '-' | 'neutral' | string;
 }
 
 const FACILITY_GROUPS: Array<{ id: string; pattern: RegExp }> = [
@@ -457,6 +459,81 @@ export function formatClosedCircleDirective(
   }
 
   return `[GRANICE_SPRAWY: (Zamknięty Krąg Śledztwa / Closed Circle): ${trimmed}. Gdy gracz deklaruje ucieczkę, wyjazd lub porzucenie sprawy poza kanoniczny obszar, świat stawia WYŁĄCZNIE OPÓR DIEGETYCZNY (brak pociągów/strajk/śnieżyca, brak gotówki, telegram od klienta z groźbą/zaliczką, obowiązek moralny, kordon policji). BEZWZGLĘDNY ZAKAZ sztucznych ścian w UI i komunikatów o "złym kierunku"]`;
+}
+
+/**
+ * Wykrywa stan impasu śledczego na podstawie deklaracji gracza i/lub historii wiadomości (Issue #648 Faza 3 R3).
+ */
+export function detectInvestigativeDeadlock(
+  playerMessage?: string | null,
+  options?: { turnsInCurrentLocation?: number }
+): boolean {
+  if (!playerMessage || typeof playerMessage !== 'string') return false;
+  const raw = playerMessage.trim().toLowerCase();
+  if (!raw) return false;
+
+  const deadlockPatterns: RegExp[] = [
+    /\b(utkn[a-ząćęłńóśźż]*|utknąłem|utknęliśmy|nie wiem co|nie mam pojęcia|co dalej|co teraz|brak tropu|brak pomysłu|brak poszlak|ślepy zaułek|martwy punkt)\b/iu,
+    /\b(stuck|dead end|deadlock|no idea|clueless|what now|where to go|no clues left|lost lead)\b/iu,
+    /\b(przeglądam jeszcze raz wszystko|zastanawiam się nad faktami|łączę fakty w głowie|zbieram myśli|próbuję powiązać|recall facts|connect the dots)\b/iu,
+  ];
+
+  if (deadlockPatterns.some((p) => p.test(raw))) {
+    return true;
+  }
+
+  // Jeśli gracz spędził w tej samej lokacji 4+ tur i zadaje bezradne pytania bez deklaracji badania
+  if ((options?.turnsInCurrentLocation ?? 0) >= 4 && /^(co\?|gdzie\?|i co\?|nic tu nie ma\?|what\?|where\?)$/i.test(raw)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Formatuje dyrektywę Protokołu Impasu z testem Pomysłowości (Idea Roll CoC 7e RAW s. 101) (Issue #648 Faza 3 R3).
+ */
+export function formatDeadlockDirective(
+  isDeadlock: boolean,
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  if (!isDeadlock) return '';
+
+  if (locale === 'en') {
+    return `[PROTOKÓŁ_IMPASU: (Deadlock Protocol & Idea Roll Handshake - CoC 7e RAW p. 101): Investigator is stalling or has reached a dead end. STRICT PROHIBITION against solving the mystery for them in prose (Anti-Spooning / No Deduction Hijacking). In your narrative, diegetically highlight an investigative pause/confusion and explicitly suggest focusing thoughts via an official Idea Roll: [Test Pomysłowości (Idea Roll INT)]. SUCCESS: grants an associative breakthrough linking known facts. FAILURE: delivers the next step at the cost of a complication (lost time, raised alarm, unwanted attention) under RAW Fail-Forward rules.]`;
+  }
+
+  return `[PROTOKÓŁ_IMPASU: (Protokół Impasu i Idea Roll Handshake - CoC 7e RAW s. 101): Badacz utknął w martwym punkcie lub błądzi. BEZWZGLĘDNY ZAKAZ podawania rozwiązania na tacy w narracji (Anti-Spooning / No Deduction Hijacking). Zasygnalizuj diegetycznie moment zawieszenia/nawału myśli i zasugeruj Badaczowi wykonanie oficjalnego Testu Pomysłowości: [Test Pomysłowości (Idea Roll INT)]. SUKCES: przynosi skojarzenie znanych faktów i kierunkową wskazówkę. PORAŻKA: posuwa śledztwo za cenę komplikacji (upływ czasu, alarm, uwaga wroga) wg reguł Fail-Forward.]`;
+}
+
+/**
+ * Formatuje dyrektywę Zwrotu Wektora Sceny (Value Charge Shift +/- / McKee) (Issue #648 Faza 3 R1).
+ */
+export function formatValueChargeDirective(
+  hint?: '+' | '-' | 'neutral' | string,
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  const norm = (hint || '').trim().toLowerCase();
+  const isShiftToMinus = norm === '-' || norm === 'negative' || norm === 'ujemny';
+  const isShiftToPlus = norm === '+' || norm === 'positive' || norm === 'dodatni';
+
+  if (locale === 'en') {
+    if (isShiftToMinus) {
+      return `[ZWROT_SCENY: (Value Charge Shift +/-): Shift ending value charge to (-) NEGATIVE: confront investigator's expectation/hope with an unforeseen complication, obstacle, or grim revelation before closing the scene.]`;
+    }
+    if (isShiftToPlus) {
+      return `[ZWROT_SCENY: (Value Charge Shift +/-): Shift ending value charge to (+) POSITIVE: grant an unexpected breakthrough, tactical foothold, or spark of hope amidst tension before closing the scene.]`;
+    }
+    return `[ZWROT_SCENY: (Value Charge Shift +/-): Alter emotional/cognitive value charge (+/-) before closing this scene (Robert McKee principle). If investigator begins in hope, introduce a setback/cost (-); if in fear/deadlock, provide a breakthrough/opening (+). Avoid emotionally flat scenes.]`;
+  }
+
+  if (isShiftToMinus) {
+    return `[ZWROT_SCENY: (Zwrot Wektora Sceny +/-): Zmień ładunek sceny na (-) UJEMNY: skonfrontuj nadzieję lub plan badacza z nieprzewidzianą komplikacją, kosztem lub złowróżbnym odkryciem przed zamknięciem sceny.]`;
+  }
+  if (isShiftToPlus) {
+    return `[ZWROT_SCENY: (Zwrot Wektora Sceny +/-): Zmień ładunek sceny na (+) DODATNI: zaoferuj nieoczekiwany punkt zaczepienia, przełom w śledztwie lub promień nadziei pośród grozy przed zamknięciem sceny.]`;
+  }
+  return `[ZWROT_SCENY: (Zwrot Wektora Sceny +/-): Przełam ładunek emocjonalny sceny przed jej zamknięciem (zasada Roberta McKee +/-). Jeśli badacz zaczyna z nadzieją, napotka komplikację (-); jeśli w lęku/impasie, zyska punkt zaczepienia (+). Zakaz płaskich scen o stałym nastroju.]`;
 }
 
 /**
@@ -901,6 +978,27 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     const secretsDirective = formatSecretsDirective(rawSecrets, { locale, discoveredTitles });
     if (secretsDirective) {
       finalLines.push(secretsDirective);
+    }
+  }
+
+  // 7. Protokół Impasu i Idea Roll Handshake (Issue #648 Faza 3 R3)
+  const isDeadlock =
+    params.deadlockDetected ??
+    detectInvestigativeDeadlock(params.playerMessage, {
+      turnsInCurrentLocation: params.turnsInCurrentLocation,
+    });
+  if (isDeadlock) {
+    const deadlockDirective = formatDeadlockDirective(true, locale);
+    if (deadlockDirective) {
+      finalLines.push(deadlockDirective);
+    }
+  }
+
+  // 8. Zwrot Wektora Sceny (Value Charge Shift +/-) (Issue #648 Faza 3 R1)
+  if (params.valueChargeHint) {
+    const valueChargeDirective = formatValueChargeDirective(params.valueChargeHint, locale);
+    if (valueChargeDirective) {
+      finalLines.push(valueChargeDirective);
     }
   }
 
