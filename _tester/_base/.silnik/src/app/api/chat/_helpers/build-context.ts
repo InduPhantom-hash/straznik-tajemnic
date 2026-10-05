@@ -70,8 +70,11 @@ export function buildPlayerSkillsSection(
   return (
     `\n## UMIEJĘTNOŚCI POSTACI (lista z karty)\n${list}\n` +
     `Gdy wzywasz test \`[TEST:]\`, użyj DOKŁADNIE nazwy umiejętności z tej listy. ` +
-    `Jeśli akcja nie pasuje do żadnej, wybierz najbliższą z listy albo test cechy ` +
-    `(np. Inteligencja, Spostrzegawczość) - NIGDY nie wymyślaj nazwy spoza karty.`
+    `DYWERSYFIKACJA UMIEJĘTNOŚCI (RAW): Przełamuj duopol Spostrzegawczości i Perswazji! ` +
+    `Aktywnie wykorzystuj specjalizacje badacza z powyższej listy (np. Prawo, Księgowość, Medycyna, Ślusarstwo, Urok, Zastraszanie, Gadanina) ` +
+    `lub oferuj testy łączone z operatorem LUB (np. Spostrzegawczość LUB Ślusarstwo). ` +
+    `Zawsze szanuj autorską kontrpropozycję gracza popartą diegetycznie. ` +
+    `NIGDY nie wymyślaj nazw umiejętności spoza karty (w ostateczności użyj testu cechy: Siła, Zręczność, Inteligencja).`
   );
 }
 

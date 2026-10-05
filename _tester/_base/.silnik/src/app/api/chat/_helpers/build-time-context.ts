@@ -41,6 +41,8 @@ export interface BuildTimeContextOpts {
    * Jeśli obecny i nie-null, `eraRules` są automatycznie pomijane w `timePromptSection`.
    */
   resolvedCachedContent?: CachedContent | null | unknown;
+  /** Język promptu (domyślnie 'pl') */
+  locale?: 'pl' | 'en';
 }
 
 export interface BuildTimeContextResult {
@@ -59,6 +61,7 @@ export function buildTimeContext(
     timeManager.getTime().hour,
     timeManager.getMoonPhase()
   );
+  const doomClockDirective = timeManager.formatDoomClockDirective(opts.locale ?? 'pl');
 
   const shouldOmitEraRules =
     typeof opts.omitEraRules === 'boolean'
@@ -73,6 +76,7 @@ ${timeContext}${eraSection}
 
 **Aktualna Pogoda & Warunki:** ${weather}
 **Atmosfera:** ${atmosphere}
+**Zegar Zagłady (Presja Czasu):** ${doomClockDirective}
 
 **INSTRUKCJA DLA MG:**
 - Opisując akcje, oceń ile czasu zajmują (np. "Badanie biblioteki zajęło ci 3 godziny")
@@ -80,6 +84,7 @@ ${timeContext}${eraSection}
 - Jeśli chcesz zaktualizować pogodę w toku narracji, wstaw na końcu odpowiedni znacznik \`[POGODA: opis pogody]\`.
 - Uwzględniaj powyższą pogodę oraz atmosferę w opisach (światło, dźwięki, nastrój)
 - Nawiązuj do realiów epoki (np. dostępność technologii)
+- Respektuj aktualną fazę Zegara Zagłady - dostosuj tempo narracji i presję dramatyczną do bieżącej dyrektywy czasu.
 `;
 
   return { timePromptSection, eraRules };

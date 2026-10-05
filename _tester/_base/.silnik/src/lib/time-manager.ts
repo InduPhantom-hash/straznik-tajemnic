@@ -9,6 +9,61 @@
 import { GameTime, MoonPhase } from './types';
 
 // ============================================================================
+// DOOM CLOCK TYPES & CONSTANTS (Issue #648 Faza 1 R1)
+// ============================================================================
+
+export type DoomClockPhase = 0 | 1 | 2 | 3;
+
+export interface DoomClockStageInfo {
+  phase: DoomClockPhase;
+  namePl: string;
+  nameEn: string;
+  descriptionPl: string;
+  descriptionEn: string;
+  directivePl: string;
+  directiveEn: string;
+}
+
+export const DOOM_CLOCK_STAGES: Record<DoomClockPhase, DoomClockStageInfo> = {
+  0: {
+    phase: 0,
+    namePl: 'Faza 0: Cisza (Eksploracja)',
+    nameEn: 'Phase 0: Silence (Exploration)',
+    descriptionPl: 'Brak bezpośredniej presji czasu. Antagoniści działają w cieniu, badacz swobodnie bada poszlaki.',
+    descriptionEn: 'No immediate time pressure. Adversaries act in shadows, investigator freely gathers clues.',
+    directivePl: 'Utrzymuj naturalne, swobodne tempo śledztwa. Nie przyspieszaj sztucznie akcji. Pozwól graczowi na metodyczną eksplorację otoczenia.',
+    directiveEn: 'Maintain a natural, unhurried pace. Do not artificially accelerate events. Allow methodical exploration.',
+  },
+  1: {
+    phase: 1,
+    namePl: 'Faza 1: Narastająca presja (Zwiastuny)',
+    nameEn: 'Phase 1: Rising Pressure (Omens)',
+    descriptionPl: 'Upływ czasu staje się zauważalny. Zamykane urzędy, gasnące światła, zmęczenie, bicie zegarów.',
+    descriptionEn: 'Time passing becomes noticeable. Closing offices, fading lights, fatigue, ticking clocks.',
+    directivePl: 'Wprowadzaj zmysłowe zwiastuny upływającego czasu (bicie zegara, chłód nocy, zamykane okiennice, zmęczenie). Przypominaj subtelnie o uciekających godzinach.',
+    directiveEn: 'Introduce sensory omens of passing time (chiming clocks, night chill, shuttered windows, fatigue). Subtly remind the player that hours are slipping away.',
+  },
+  2: {
+    phase: 2,
+    namePl: 'Faza 2: Bezpośrednie zagrożenie (Tykanie zegara)',
+    nameEn: 'Phase 2: Direct Threat (Ticking Clock)',
+    descriptionPl: 'Zegar tyka głośno. Antagoniści przyspieszają plany, noc potęguje izolację, zwłoka niesie realne straty.',
+    descriptionEn: 'Clock is ticking loudly. Adversaries accelerate plans, night isolates the investigator, delays bring real costs.',
+    directivePl: 'Aktywnie wywieraj presję czasu na decyzje badacza. Każda godzina bezczynności przybliża zagrożenie. Podkreślaj pośpiech i izolację nocy.',
+    directiveEn: 'Actively apply time pressure to decisions. Every idle hour advances danger. Emphasize urgency and night isolation.',
+  },
+  3: {
+    phase: 3,
+    namePl: 'Faza 3: Punkt kulminacyjny (Apogeum)',
+    nameEn: 'Phase 3: Climax (Apogee)',
+    descriptionPl: 'Punkt bez powrotu. Termin nadszedł lub mija, rytuał osiąga apogeum, bezpośrednia konfrontacja lub nieodwracalne konsekwencje.',
+    descriptionEn: 'Point of no return. Deadline has arrived or expired, ritual reaches apogee, immediate confrontation or irreversible consequences.',
+    directivePl: 'Kulminacja! Stawka dramatyczna osiąga szczyt. Ostateczne odliczanie: konfrontacja lub nieodwracalne skutki rytuału. Brak możliwości cofnięcia czasu.',
+    directiveEn: 'Climax! Dramatic stakes peak. Final countdown: confrontation or irreversible consequences. No turning back.',
+  },
+};
+
+// ============================================================================
 // CONSTANTS
 // ============================================================================
 
@@ -385,6 +440,8 @@ export function deriveInitialWeather(
 class TimeManager {
   private currentTime: GameTime;
   private currentWeather: string = 'Lekka mgła, rześkie powietrze';
+  private deadline: GameTime | null = null;
+  private deadlineTotalHours: number = 24;
   private listeners: Array<(time: GameTime) => void> = [];
 
   constructor() {
@@ -520,6 +577,7 @@ class TimeManager {
   reset(): GameTime {
     this.currentTime = this.createDefaultTime();
     this.currentWeather = 'Lekka mgła, rześkie powietrze';
+    this.deadline = null;
     this.saveToStorage();
     this.saveWeatherToStorage();
     return this.currentTime;
@@ -536,6 +594,7 @@ class TimeManager {
   ): GameTime {
     this.currentTime = deriveStartGameTime(adventure);
     this.currentWeather = deriveInitialWeather(adventure, this.currentTime);
+    this.deadline = null;
     this.saveToStorage();
     this.saveWeatherToStorage();
     return this.currentTime;
@@ -596,6 +655,96 @@ class TimeManager {
     const timeOfDay = this.isNight() ? 'Noc' : 'Dzień';
 
     return `[AKTUALNY CZAS: ${this.formatDateTime()}, ${dayOfWeek}, ${timeOfDay}, Faza Księżyca: ${moonPhaseName}]`;
+  }
+
+  // --- Doom Clock (Zegar Zagłady / Presja Czasu CoC 7e RAW) ---
+
+  /**
+   * Ustawia opcjonalny diegetyczny termin scenariusza (np. godzina kolejnego ataku lub licytacji).
+   * @param deadline Data i godzina graniczna lub null.
+   * @param totalHours Całkowita liczba godzin na realizację terminu (domyślnie 24).
+   */
+  setDeadline(deadline: GameTime | null, totalHours: number = 24): void {
+    this.deadline = deadline ? { ...deadline } : null;
+    this.deadlineTotalHours = totalHours > 0 ? totalHours : 24;
+  }
+
+  /**
+   * Zwraca aktualnie skonfigurowany termin scenariusza lub null.
+   */
+  getDeadline(): GameTime | null {
+    return this.deadline ? { ...this.deadline } : null;
+  }
+
+  /**
+   * Pobiera metadane dla danej fazy Zegara Zagłady (0-3).
+   */
+  getDoomClockStage(phase: DoomClockPhase): DoomClockStageInfo {
+    return DOOM_CLOCK_STAGES[phase] ?? DOOM_CLOCK_STAGES[0];
+  }
+
+  /**
+   * Wyznacza fazę Zegara Zagłady (0: Cisza, 1: Narastająca presja, 2: Bezpośrednie zagrożenie, 3: Punkt kulminacyjny).
+   * Jeśli zdefiniowano termin (deadline), oblicza postęp czasu względem terminu.
+   * Jeśli brak terminu, fallback opiera się na upływie godzin nocy (21:00 -> 00:00 -> 03:00 -> 06:00).
+   */
+  getDoomClockPhase(options?: { deadline?: GameTime | null; totalHours?: number }): DoomClockPhase {
+    const targetDeadline = options?.deadline !== undefined ? options.deadline : this.deadline;
+
+    if (targetDeadline) {
+      const currentMs = Date.UTC(
+        this.currentTime.year,
+        this.currentTime.month,
+        this.currentTime.day,
+        this.currentTime.hour,
+        this.currentTime.minute
+      );
+      const deadlineMs = Date.UTC(
+        targetDeadline.year,
+        targetDeadline.month,
+        targetDeadline.day,
+        targetDeadline.hour,
+        targetDeadline.minute
+      );
+
+      if (currentMs >= deadlineMs) {
+        return 3;
+      }
+
+      const totalHours = options?.totalHours ?? this.deadlineTotalHours ?? 24;
+      if (totalHours <= 0) {
+        return 3;
+      }
+      const totalMs = totalHours * 60 * 60 * 1000;
+      const startMs = deadlineMs - totalMs;
+      const elapsedMs = currentMs - startMs;
+      const progress = elapsedMs / totalMs;
+
+      if (progress < 0.25) return 0;
+      if (progress < 0.5) return 1;
+      if (progress < 0.75) return 2;
+      return 3;
+    }
+
+    // Natural night hours fallback:
+    // 21:00 -> 00:00 -> 03:00 -> 06:00
+    const hour = this.currentTime.hour;
+    if (hour >= 21) return 1; // 21:00 - 23:59 (Faza 1: Narastająca presja)
+    if (hour >= 0 && hour < 3) return 2; // 00:00 - 02:59 (Faza 2: Bezpośrednie zagrożenie)
+    if (hour >= 3 && hour < 6) return 3; // 03:00 - 05:59 (Faza 3: Punkt kulminacyjny)
+    return 0; // 06:00 - 20:59 (Faza 0: Cisza)
+  }
+
+  /**
+   * Formatuje dyrektywę Zegara Zagłady do wstrzyknięcia w prompt MG.
+   */
+  formatDoomClockDirective(locale: 'pl' | 'en' = 'pl'): string {
+    const phase = this.getDoomClockPhase();
+    const stage = this.getDoomClockStage(phase);
+    if (locale === 'en') {
+      return `[DOOM CLOCK: ${stage.nameEn}] ${stage.directiveEn}`;
+    }
+    return `[ZEGAR ZAGŁADY: ${stage.namePl}] ${stage.directivePl}`;
   }
 
   // --- Listeners ---
