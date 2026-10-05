@@ -77,6 +77,7 @@ import {
   dispatchWorldEngines,
   extractMacroLocation,
   isSameMacroLocation,
+  type SecretInput,
 } from '@/lib/world-engine';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 import { buildActiveTurnAntiHabituationSection } from '@/lib/prompts/narrative-style-instructions';
@@ -286,6 +287,9 @@ export async function runChatPipeline({
         keyAlibi?: string;
         immutableFacts?: string[];
       };
+      boundarySummary?: string;
+      secretsPool?: Array<string | { id?: string; text?: string; description?: string; isDiscovered?: boolean }>;
+      secrets?: Array<string | { id?: string; text?: string; description?: string; isDiscovered?: boolean }>;
     } | null;
     eraContext?: ResolvedEraContext;
     gameTime?: GameTime;
@@ -773,6 +777,7 @@ export async function runChatPipeline({
       currentLocation,
       npcs,
       character: character ?? characters?.[0] ?? null,
+      characters,
       eraContext,
       playerMessage: message,
       activeEngines: dispatcherDecision.activeEngines,
@@ -780,6 +785,8 @@ export async function runChatPipeline({
       visitedMacroLocations,
       isNewMacroLocation,
       messages,
+      boundarySummary: (body as Record<string, unknown>)?.boundarySummary as string | undefined || adventureContext?.boundarySummary,
+      secretsPool: ((body as Record<string, unknown>)?.secretsPool || (body as Record<string, unknown>)?.secrets || adventureContext?.secretsPool || adventureContext?.secrets) as SecretInput[] | undefined,
     }),
   });
 

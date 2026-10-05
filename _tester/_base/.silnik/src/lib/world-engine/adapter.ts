@@ -52,6 +52,22 @@ interface AdapterAdventureGraph {
   locations?: Array<{ name?: string }>;
 }
 
+export interface SecretItem {
+  id?: string;
+  name?: string;
+  title?: string;
+  text?: string;
+  secret?: string;
+  description?: string;
+  carrier?: string;
+  requiredSkill?: string;
+  isDiscovered?: boolean;
+  discovered?: boolean;
+  clueType?: 'core' | 'flavor';
+}
+
+export type SecretInput = string | SecretItem;
+
 export interface WorldEngineAdapterParams {
   locale?: 'pl' | 'en';
   adventureContext?: {
@@ -68,10 +84,14 @@ export interface WorldEngineAdapterParams {
       culprit?: string;
       immutableFacts?: string[];
     };
+    boundarySummary?: string;
+    secretsPool?: SecretInput[] | null;
+    secrets?: SecretInput[] | null;
   } | null;
   currentLocation?: string | null;
   npcs?: NPC[] | null;
   character?: Character | null;
+  characters?: Character[] | null;
   eraContext?: Partial<ResolvedEraContext> | { countryCode?: string; effectiveYear?: number } | null;
   playerMessage?: string | null;
   activeEngines?: Partial<Record<WorldEngineId, boolean>> | null;
@@ -82,6 +102,9 @@ export interface WorldEngineAdapterParams {
   isNewMacroLocation?: boolean;
   heat?: number;
   messages?: Array<{ role?: string; content?: string }> | null;
+  boundarySummary?: string;
+  secretsPool?: SecretInput[] | null;
+  secrets?: SecretInput[] | null;
 }
 
 const FACILITY_GROUPS: Array<{ id: string; pattern: RegExp }> = [
@@ -320,6 +343,120 @@ export function deriveHeatFromMessages(
   }
 
   return heat;
+}
+
+/**
+ * Ekstrahuje i filtruje nieodkryte sekrety z puli (Mike Shea - Secrets & Clues Pool).
+ * Pomija sekrety już oznaczone jako odkryte (isDiscovered / discovered) lub pasujące do tytułów poszlak w dossier.
+ * Zabezpieczone przed duplikatami i pustymi wpisami.
+ */
+export function extractUndiscoveredSecrets(
+  secrets?: SecretInput[] | null,
+  discoveredTitles?: string[]
+): string[] {
+  if (!Array.isArray(secrets) || secrets.length === 0) {
+    return [];
+  }
+
+  const normalizedDiscovered = new Set(
+    (discoveredTitles || [])
+      .map((t) => (typeof t === 'string' ? t : String(t ?? '')).toLowerCase().trim())
+      .filter(Boolean)
+  );
+
+  const result: string[] = [];
+  const seenTexts = new Set<string>();
+
+  for (const item of secrets) {
+    if (!item) continue;
+    let text = '';
+    let isDiscovered = false;
+    let itemId = '';
+
+    if (typeof item === 'string') {
+      text = item.trim();
+    } else if (typeof item === 'object') {
+      const rawText = item.text ?? item.description ?? item.secret ?? item.title ?? item.name ?? '';
+      text = String(rawText).trim();
+      const rawObj = item as Record<string, unknown>;
+      isDiscovered = Boolean(
+        item.isDiscovered ||
+        item.discovered ||
+        rawObj.discoveryStatus === 'discovered' ||
+        rawObj.discoveryStatus === 'verified' ||
+        rawObj.status === 'discovered'
+      );
+      itemId = item.id !== undefined && item.id !== null ? String(item.id).toLowerCase().trim() : '';
+    }
+
+    if (!text) continue;
+    const lower = text.toLowerCase();
+    if (isDiscovered) continue;
+    if (normalizedDiscovered.has(lower)) continue;
+    if (itemId && normalizedDiscovered.has(itemId)) continue;
+
+    // Dopasowanie podciągów z poszlakami z dossier:
+    // Wymaga wyraźnej frazy wielowyrazowej (min. 2 słowa i min. 10 znaków) lub min. 15 znaków,
+    // aby pojedyncze słowa pospolite (np. 'piwnica', 'szpital') nie odfiltrowywały obcych sekretów.
+    const isMatchedByDiscovered = Array.from(normalizedDiscovered).some((disc) => {
+      const isSubstantialDisc = disc.length >= 15 || (disc.length >= 10 && disc.split(/\s+/).length >= 2);
+      if (isSubstantialDisc && lower.includes(disc)) {
+        return true;
+      }
+      const isSubstantialSecret = lower.length >= 15 || (lower.length >= 10 && lower.split(/\s+/).length >= 2);
+      if (isSubstantialSecret && disc.includes(lower)) {
+        return true;
+      }
+      return false;
+    });
+    if (isMatchedByDiscovered) continue;
+
+    if (seenTexts.has(lower)) continue;
+
+    seenTexts.add(lower);
+    result.push(text);
+  }
+
+  return result;
+}
+
+/**
+ * Formatuje dyrektywę puli sekretów Mike'a Shea z 3 żelaznymi bezpiecznikami anty-pleasing (Issue #648 Faza 2 R1).
+ */
+export function formatSecretsDirective(
+  secrets: SecretInput[],
+  options?: { locale?: 'pl' | 'en'; maxSecrets?: number; discoveredTitles?: string[] }
+): string {
+  const locale = options?.locale ?? 'pl';
+  const undiscovered = extractUndiscoveredSecrets(secrets, options?.discoveredTitles);
+  if (undiscovered.length === 0) return '';
+
+  const max = options?.maxSecrets !== undefined && options.maxSecrets > 0 ? options.maxSecrets : 10;
+  const limited = undiscovered.slice(0, max);
+  const secretsList = limited.map((s, idx) => `${idx + 1}. ${s}`).join(' | ');
+
+  if (locale === 'en') {
+    return `[SEKRETY_DO_ODKRYCIA: (Secrets & Clues Pool - Mike Shea): ${secretsList}. 3 ANTI-PLEASING SAFETY FUSES: 1. Location Independence: secrets migrate to wherever investigator actions logically lead. 2. Carrier & Skill Test Requirement: secrets never drop for free in dialogue; must be revealed via a physical carrier (letter, ledger, hidden drawer) or successful skill test. 3. Anti-Pleasing & No Deduction Hijacking: do not spoon-feed conclusions or solve the mystery for the player. MANDATORY IN [MYŚLI_MG]: note planned secret and its physical carrier.]`;
+  }
+
+  return `[SEKRETY_DO_ODKRYCIA: (Pula Sekretów Mike'a Shea): ${secretsList}. 3 ŻELAZNE BEZPIECZNIKI ANTY-PLEASING: 1. Niezależność od lokacji: sekrety nie są zablokowane na sztywno w jednym pokoju, mogą pojawić się tam, gdzie logicznie pasuje działanie gracza. 2. Wymóg nośnika i testu: sekret nie może paść za darmo w czacie; musi zostać odkryty przez logiczny nośnik fizyczny (dokument, skrytka) lub udany test umiejętności. 3. Zakaz autopilota i darmowego wykładania kart: MG nie streszcza prawdy za badacza ani nie wyprzedza dedukcji gracza. OBOWIĄZKOWO W [MYŚLI_MG]: zaplanuj sekret i jego nośnik fizyczny.]`;
+}
+
+/**
+ * Formatuje dyrektywę granic śledztwa (Closed Circle Mystery - Seth Skorkowsky) (Issue #648 Faza 2 R2).
+ */
+export function formatClosedCircleDirective(
+  boundarySummary?: string | null,
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  if (!boundarySummary || typeof boundarySummary !== 'string' || !boundarySummary.trim()) return '';
+  const trimmed = boundarySummary.trim();
+
+  if (locale === 'en') {
+    return `[GRANICE_SPRAWY: (Closed Circle Mystery): ${trimmed}. If player attempts to leave canonical investigation area or flee, the world offers ONLY DIEGETIC RESISTANCE (cancelled trains, blizzard, lack of fare, urgent telegram, moral duty, police checkpoint). FORBID artificial UI invisible walls or out-of-character meta warnings ("wrong direction")]`;
+  }
+
+  return `[GRANICE_SPRAWY: (Zamknięty Krąg Śledztwa / Closed Circle): ${trimmed}. Gdy gracz deklaruje ucieczkę, wyjazd lub porzucenie sprawy poza kanoniczny obszar, świat stawia WYŁĄCZNIE OPÓR DIEGETYCZNY (brak pociągów/strajk/śnieżyca, brak gotówki, telegram od klienta z groźbą/zaliczką, obowiązek moralny, kordon policji). BEZWZGLĘDNY ZAKAZ sztucznych ścian w UI i komunikatów o "złym kierunku"]`;
 }
 
 /**
@@ -715,6 +852,56 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
         ? `[ECHO_AKCJI: HEAT LEVEL ${clampedHeat}/5 (Suspicion and vigilance). Rumors about investigator actions are circulating. Law enforcement and witnesses are suspicious, and the cult is more alert. Reflect this in ambient reactions and inside [MYŚLI_MG]]`
         : `[ECHO_AKCJI: POZIOM ROZGŁOSU ${clampedHeat}/5 (Podejrzenia i czujność). W okolicy krążą plotki o działaniach badacza. Stróże prawa i świadkowie są podejrzliwi, a kult baczniej obserwuje otoczenie. Uwzględnij to w reakcjach otoczenia i w tagu [MYŚLI_MG]]`
     );
+  }
+
+  // 5. Closed Circle Mystery / Granice Sprawy (Issue #648 Faza 2 R2)
+  const boundarySummary =
+    (typeof params.boundarySummary === 'string' && params.boundarySummary.trim())
+      ? params.boundarySummary
+      : (typeof params.adventureContext?.boundarySummary === 'string' && params.adventureContext.boundarySummary.trim())
+      ? params.adventureContext.boundarySummary
+      : undefined;
+  if (boundarySummary) {
+    const closedCircleDirective = formatClosedCircleDirective(boundarySummary, locale);
+    if (closedCircleDirective) {
+      finalLines.push(closedCircleDirective);
+    }
+  }
+
+  // 6. Secrets & Clues Pool / Pula Sekretów Mike'a Shea z 3 bezpiecznikami anty-pleasing (Issue #648 Faza 2 R1)
+  const rawSecrets =
+    (Array.isArray(params.secretsPool) && params.secretsPool.length > 0 ? params.secretsPool : null) ||
+    (Array.isArray(params.secrets) && params.secrets.length > 0 ? params.secrets : null) ||
+    (Array.isArray(params.adventureContext?.secretsPool) && params.adventureContext.secretsPool.length > 0 ? params.adventureContext.secretsPool : null) ||
+    (Array.isArray(params.adventureContext?.secrets) && params.adventureContext.secrets.length > 0 ? params.adventureContext.secrets : null);
+
+  if (Array.isArray(rawSecrets) && rawSecrets.length > 0) {
+    const isDiscoveredClue = (c: unknown): boolean => {
+      if (!c || typeof c !== 'object') return false;
+      const entry = c as unknown as Record<string, unknown>;
+      // W architekturze Concordia mgła wojny przechowuje nieodkryte poszlaki jako 'unrevealed' lub 'keeper_truth'.
+      // Tylko poszlaki faktycznie odkryte przez badacza powinny usuwać sekrety z puli MG.
+      if (entry.discoveryStatus === 'unrevealed' || entry.epistemicLayer === 'keeper_truth') {
+        return false;
+      }
+      return true;
+    };
+
+    const allClues = [
+      ...(params.character?.investigatorDossier?.clues || []),
+      ...((params.characters || []).flatMap((c) => c?.investigatorDossier?.clues || [])),
+    ].filter(isDiscoveredClue);
+
+    const discoveredTitles = allClues.flatMap((c) => {
+      if (!c || typeof c !== 'object') return [];
+      const entry = c as unknown as Record<string, unknown>;
+      return [entry.title, entry.id].filter((val): val is string => typeof val === 'string' && val.length > 0);
+    });
+
+    const secretsDirective = formatSecretsDirective(rawSecrets, { locale, discoveredTitles });
+    if (secretsDirective) {
+      finalLines.push(secretsDirective);
+    }
   }
 
   // Pozostałe silniki świata (NPC, Graph, Friction, Clue, Geography, Occult)

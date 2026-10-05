@@ -6,12 +6,13 @@
  */
 
 import type { AdventureContext } from '../adventures-data';
-import type {
-  ClueEntry,
-  InvestigatorDossier,
-  LocationDossierEntry,
-  NpcDossierEntry,
-  SceneDossierEntry,
+import {
+  type ClueEntry,
+  type InvestigatorDossier,
+  type LocationDossierEntry,
+  type NpcDossierEntry,
+  type SceneDossierEntry,
+  normalizeClueType,
 } from '../journal/dossier-types';
 import type { AdventureGraph } from '../types';
 import { normalizeAdventureGraph } from '../custom-adventures-storage';
@@ -143,6 +144,7 @@ export function dramatronToInvestigatorDossier(
     discoveryStatus: forPlayer ? 'unrevealed' : 'verified',
     epistemicLayer: forPlayer ? 'player_clue' : 'keeper_truth',
     isKeyClue: forPlayer ? false : c.isKeyClue,
+    clueType: normalizeClueType({ isKeyClue: c.isKeyClue, targetNodeId: c.leadsToNodeId, title: c.title, description: c.description }),
     miceType: c.miceType,
     miceObjective: c.miceObjective,
     sourceNpcId: c.sourceNpcId,

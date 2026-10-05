@@ -33,6 +33,7 @@ import {
   type ClueEntry,
   type ClueProvenance,
   type LocationDossierEntry,
+  normalizeClueType,
 } from '@/lib/journal/dossier-types';
 
 /**
@@ -451,6 +452,7 @@ export function processCharacterJournalAndDossier(
   }
 
   for (const npc of combinedNpcs) {
+    if (!npc || typeof npc.name !== 'string') continue;
     const normName = npc.name.trim();
     if (!normName) continue;
     const lowerName = normName.toLowerCase();
@@ -866,6 +868,7 @@ export function processCharacterJournalAndDossier(
           foundLocation,
           foundLocationId,
           isKeyClue: isKey,
+          clueType: normalizeClueType({ isKeyClue: isKey, title: cleanClueTitle, description: fact }),
           miceType: resolvedMiceType,
           miceObjective,
           inGameDate: clueInGameDate,
@@ -902,6 +905,14 @@ export function processCharacterJournalAndDossier(
           existingClue.foundLocation = foundLocation;
           existingClue.foundLocationId = foundLocationId;
           existingClue.timestamp = Date.now();
+          changed = true;
+        }
+        if (!existingClue.clueType) {
+          existingClue.clueType = normalizeClueType({
+            isKeyClue: existingClue.isKeyClue,
+            title: cleanClueTitle,
+            description: existingClue.description || fact,
+          });
           changed = true;
         }
       }

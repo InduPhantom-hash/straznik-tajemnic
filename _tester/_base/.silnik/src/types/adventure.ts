@@ -59,6 +59,8 @@ export interface AdventureStructure {
   documentType?: DocumentType;
   isCampaign?: boolean;
   campaignPatron?: string;
+  boundarySummary?: string;
+  secretsPool?: string[];
   extractedAt: string;
 }
 
