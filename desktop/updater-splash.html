@@ -66,13 +66,14 @@
     .corner-br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
 
     .eye-wrapper {
-      width: 110px;
-      height: 110px;
-      margin-top: 10px;
+      width: 140px;
+      height: 140px;
+      margin-top: 5px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
+      filter: drop-shadow(0 0 16px rgba(246, 224, 94, 0.45));
     }
 
     /* Animacja rotacji promieni */
@@ -88,11 +89,11 @@
     /* Animacja pulsującej źrenicy */
     .pulsing-pupil {
       transform-origin: 60px 60px;
-      animation: pulseGlow 2.5s ease-in-out infinite;
+      animation: pulseGlow 2.2s ease-in-out infinite;
     }
     @keyframes pulseGlow {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.12); opacity: 1; }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px #10B981); }
+      50% { transform: scale(1.15); filter: drop-shadow(0 0 12px #34D399); }
     }
 
     .content {
@@ -162,73 +163,76 @@
     <div class="corner corner-br"></div>
 
     <div class="eye-wrapper">
-      <svg width="110" height="110" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="135" height="135" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F6E05E" />
-            <stop offset="40%" stopColor="#D4AF37" />
-            <stop offset="80%" stopColor="#AA7C11" />
-            <stop offset="100%" stopColor="#E2C974" />
+            <stop offset="0%" stopColor="#FFF275" />
+            <stop offset="35%" stopColor="#F6E05E" />
+            <stop offset="70%" stopColor="#D4AF37" />
+            <stop offset="100%" stopColor="#FFE082" />
           </linearGradient>
           <radialGradient id="pupil" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.95" />
-            <stop offset="60%" stopColor="#047857" stopOpacity="0.9" />
+            <stop offset="0%" stopColor="#34D399" stopOpacity="1" />
+            <stop offset="50%" stopColor="#10B981" stopOpacity="0.95" />
+            <stop offset="85%" stopColor="#047857" stopOpacity="0.9" />
             <stop offset="100%" stopColor="#022C22" stopOpacity="1" />
           </radialGradient>
         </defs>
 
         <!-- Promienie Art Déco (rotujące) -->
         <g class="rotating-rays">
-          <circle cx="60" cy="60" r="48" stroke="url(#gold)" stroke-width="1.2" stroke-dasharray="2 6" opacity="0.65" />
-          <circle cx="60" cy="60" r="42" stroke="url(#gold)" stroke-width="0.8" opacity="0.45" />
+          <circle cx="60" cy="60" r="49" stroke="url(#gold)" stroke-width="1.8" stroke-dasharray="3 5" opacity="0.95" />
+          <circle cx="60" cy="60" r="43" stroke="url(#gold)" stroke-width="1.2" opacity="0.85" />
           
-          <!-- 8 promieni -->
+          <!-- 8 promieni głównych -->
           <g transform="rotate(0 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(45 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(90 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(135 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(180 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(225 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(270 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
           <g transform="rotate(315 60 60)">
-            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
-            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+            <line x1="60" y1="6" x2="60" y2="24" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round" />
+            <polygon points="60,2 56.5,12 63.5,12" fill="url(#gold)" />
           </g>
         </g>
 
         <!-- Stabilny kontur oka -->
         <g>
-          <path d="M 16 60 Q 60 22 104 60 Q 60 98 16 60 Z" fill="#0A0B0D" stroke="url(#gold)" stroke-width="1.8" />
-          <path d="M 24 60 Q 60 30 96 60 Q 60 90 24 60 Z" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.65" stroke-dasharray="4 2" />
-          <circle cx="60" cy="60" r="18" stroke="url(#gold)" stroke-width="1.4" fill="none" />
+          <path d="M 14 60 Q 60 18 106 60 Q 60 102 14 60 Z" fill="#0E1015" stroke="url(#gold)" stroke-width="2.4" />
+          <path d="M 22 60 Q 60 28 98 60 Q 60 92 22 60 Z" fill="none" stroke="url(#gold)" stroke-width="1.4" opacity="0.85" stroke-dasharray="4 2" />
+          <circle cx="60" cy="60" r="19" stroke="url(#gold)" stroke-width="2" fill="#0A0B0E" />
+          <circle cx="60" cy="60" r="15" stroke="url(#gold)" stroke-width="1" fill="none" opacity="0.8" />
         </g>
 
         <!-- Pulsująca źrenica -->
         <g class="pulsing-pupil">
-          <circle cx="60" cy="60" r="11" fill="url(#pupil)" />
-          <ellipse cx="60" cy="60" rx="4" ry="7.5" fill="#030708" stroke="url(#gold)" stroke-width="1" />
-          <circle cx="58" cy="57" r="1.5" fill="#FDF6B6" opacity="0.9" />
+          <circle cx="60" cy="60" r="12" fill="url(#pupil)" />
+          <ellipse cx="60" cy="60" rx="4.5" ry="8" fill="#010304" stroke="url(#gold)" stroke-width="1.4" />
+          <circle cx="58" cy="56.5" r="1.8" fill="#FFFFFF" opacity="0.95" />
+          <circle cx="62" cy="62.5" r="1" fill="#FFFFFF" opacity="0.75" />
         </g>
       </svg>
     </div>

@@ -46,30 +46,31 @@ export const ArtDecoEye: FC<ArtDecoEyeProps> = ({
         className="w-full h-full overflow-visible"
       >
         <defs>
-          {/* Gradient mosiądzu / antycznego złota */}
+          {/* Gradient polerowanego mosiądzu / jasnego złota Art Déco */}
           <linearGradient id="artDecoGold" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F6E05E" />
-            <stop offset="35%" stopColor="#D4AF37" />
-            <stop offset="70%" stopColor="#AA7C11" />
-            <stop offset="100%" stopColor="#E2C974" />
+            <stop offset="0%" stopColor="#FFF275" />
+            <stop offset="35%" stopColor="#F6E05E" />
+            <stop offset="70%" stopColor="#D4AF37" />
+            <stop offset="100%" stopColor="#FFE082" />
           </linearGradient>
 
-          {/* Głęboki szmaragd / ciemna zieleń okultystyczna dla źrenicy */}
+          {/* Intensywny szmaragd z wysokim kontrastem dla źrenicy */}
           <radialGradient id="eyePupilGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.95" />
-            <stop offset="60%" stopColor="#047857" stopOpacity="0.9" />
+            <stop offset="0%" stopColor="#34D399" stopOpacity="1" />
+            <stop offset="50%" stopColor="#10B981" stopOpacity="0.95" />
+            <stop offset="85%" stopColor="#047857" stopOpacity="0.9" />
             <stop offset="100%" stopColor="#022C22" stopOpacity="1" />
           </radialGradient>
 
           {/* Złota poświata */}
           <radialGradient id="eyeAuraGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="#F6E05E" stopOpacity="0.55" />
             <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
           </radialGradient>
 
           {/* Filtr drop-shadow */}
-          <filter id="goldGlowFilter" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" result="blur" />
+          <filter id="goldGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
@@ -94,21 +95,21 @@ export const ArtDecoEye: FC<ArtDecoEyeProps> = ({
           <circle
             cx="60"
             cy="60"
-            r="50"
+            r="49"
             stroke="url(#artDecoGold)"
-            strokeWidth="1.2"
-            strokeDasharray="2 6"
-            opacity="0.7"
+            strokeWidth="1.8"
+            strokeDasharray="3 5"
+            opacity="0.95"
           />
 
           {/* Drugi pierścień cienki */}
           <circle
             cx="60"
             cy="60"
-            r="44"
+            r="43"
             stroke="url(#artDecoGold)"
-            strokeWidth="0.8"
-            opacity="0.5"
+            strokeWidth="1.2"
+            opacity="0.85"
           />
 
           {/* 8 promieni głównych Art Déco (romboidalne/strzałkowe) */}
@@ -117,41 +118,18 @@ export const ArtDecoEye: FC<ArtDecoEyeProps> = ({
               {/* Główny promień pionowy */}
               <line
                 x1="60"
-                y1="8"
+                y1="6"
                 x2="60"
                 y2="24"
                 stroke="url(#artDecoGold)"
-                strokeWidth="1.5"
+                strokeWidth="2.2"
                 strokeLinecap="round"
               />
               {/* Ostrze strzałki na końcu */}
               <polygon
-                points="60,4 57.5,12 62.5,12"
+                points="60,2 56.5,12 63.5,12"
                 fill="url(#artDecoGold)"
-                opacity="0.85"
               />
-              {/* Mały romb pośredni */}
-              <polygon
-                points="60,18 58.5,21 60,24 61.5,21"
-                fill="url(#artDecoGold)"
-                opacity="0.7"
-              />
-            </g>
-          ))}
-
-          {/* 8 promieni wtórnych drobnych */}
-          {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle) => (
-            <g key={angle} transform={`rotate(${angle} 60 60)`}>
-              <line
-                x1="60"
-                y1="16"
-                x2="60"
-                y2="28"
-                stroke="url(#artDecoGold)"
-                strokeWidth="1"
-                opacity="0.6"
-              />
-              <circle cx="60" cy="14" r="1" fill="url(#artDecoGold)" opacity="0.8" />
             </g>
           ))}
         </g>
@@ -162,51 +140,39 @@ export const ArtDecoEye: FC<ArtDecoEyeProps> = ({
         <g>
           {/* Tło migdała oka (głęboki obsydian) */}
           <path
-            d="M 16 60 Q 60 22 104 60 Q 60 98 16 60 Z"
-            fill="#0A0B0D"
+            d="M 14 60 Q 60 18 106 60 Q 60 102 14 60 Z"
+            fill="#0E1015"
             stroke="url(#artDecoGold)"
-            strokeWidth="1.8"
+            strokeWidth="2.4"
           />
 
           {/* Wewnętrzny obrys migdała */}
           <path
-            d="M 24 60 Q 60 30 96 60 Q 60 90 24 60 Z"
+            d="M 22 60 Q 60 28 98 60 Q 60 92 22 60 Z"
             fill="none"
             stroke="url(#artDecoGold)"
-            strokeWidth="1"
-            opacity="0.65"
+            strokeWidth="1.4"
+            opacity="0.85"
             strokeDasharray="4 2"
-          />
-
-          {/* Półłuki i łezki w kącikach (charakterystyczne dla Art Déco) */}
-          <path
-            d="M 16 60 L 26 56 L 26 64 Z"
-            fill="url(#artDecoGold)"
-            opacity="0.8"
-          />
-          <path
-            d="M 104 60 L 94 56 L 94 64 Z"
-            fill="url(#artDecoGold)"
-            opacity="0.8"
           />
 
           {/* Geometryczne okręgi tęczówki */}
           <circle
             cx="60"
             cy="60"
-            r="20"
+            r="19"
             stroke="url(#artDecoGold)"
-            strokeWidth="1.6"
-            fill="none"
+            strokeWidth="2"
+            fill="#0A0B0E"
           />
           <circle
             cx="60"
             cy="60"
-            r="16"
+            r="15"
             stroke="url(#artDecoGold)"
-            strokeWidth="0.8"
+            strokeWidth="1"
             fill="none"
-            opacity="0.75"
+            opacity="0.8"
           />
         </g>
 
@@ -223,7 +189,7 @@ export const ArtDecoEye: FC<ArtDecoEyeProps> = ({
           <circle
             cx="60"
             cy="60"
-            r="11"
+            r="12"
             fill="url(#eyePupilGlow)"
             filter="url(#goldGlowFilter)"
           />
@@ -233,15 +199,15 @@ export const ArtDecoEye: FC<ArtDecoEyeProps> = ({
             cx="60"
             cy="60"
             rx="4.5"
-            ry="7.5"
-            fill="#030708"
+            ry="8"
+            fill="#010304"
             stroke="url(#artDecoGold)"
-            strokeWidth="1"
+            strokeWidth="1.4"
           />
 
           {/* Blik świetlny (refleks soczewki) */}
-          <circle cx="58" cy="57" r="1.6" fill="#FDF6B6" opacity="0.95" />
-          <circle cx="62" cy="62" r="0.8" fill="#FDF6B6" opacity="0.7" />
+          <circle cx="58" cy="56.5" r="1.8" fill="#FFFFFF" opacity="0.95" />
+          <circle cx="62" cy="62.5" r="1" fill="#FFFFFF" opacity="0.75" />
         </g>
       </svg>
     </div>
