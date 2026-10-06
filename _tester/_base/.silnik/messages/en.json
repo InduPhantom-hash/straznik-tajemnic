@@ -1221,6 +1221,7 @@
     "charges": "Charges",
     "conditionWorking": "Working",
     "conditionDepleted": "Depleted",
+    "conditionDamaged": "Damaged",
     "conditionBroken": "Broken",
     "occultItemBadge": "Relic / Occult",
     "firearms": "Firearms",
@@ -1317,7 +1318,9 @@
     "conditionNew": "New",
     "conditionDamaged": "Damaged",
     "conditionBroken": "Broken",
+    "conditionDepleted": "Depleted",
     "conditionUsed": "Used",
+    "jammed": "Jammed",
     "gmNotes": "GM notes / tips",
     "selectCharacter": "Choose this character",
     "backToList": "Back to list",
@@ -1786,6 +1789,10 @@
             "eq_margaret_notebook": {
               "name": "Notebook and pencil",
               "description": "Recorded in hundreds of interviews."
+            },
+            "eq_margaret_watch": {
+              "name": "Pocket watch",
+              "description": "Counts down the time until the newspaper's deadline."
             },
             "eq_margaret_camera": {
               "name": "Kodak Small Image Camera"
@@ -3545,6 +3552,10 @@
       "eq_margaret_notebook": {
         "name": "Notebook and pencil",
         "description": "Recorded in hundreds of interviews."
+      },
+      "eq_margaret_watch": {
+        "name": "Pocket watch",
+        "description": "Counts down the time until the newspaper's deadline."
       },
       "eq_margaret_camera": {
         "name": "Kodak Small Image Camera"
@@ -5891,6 +5902,7 @@
     "conditionBroken": "Broken",
     "conditionWorking": "Working",
     "conditionDepleted": "Depleted",
+    "jammed": "Jammed",
     "valueLabel": "Value: {value}",
     "audioLabel": "🔊 Recording / Audio Tape",
     "playAudio": "Play recording",
@@ -6213,6 +6225,8 @@
     "conditionUsed": "used",
     "conditionDamaged": "damaged",
     "conditionBroken": "broken",
+    "conditionDepleted": "depleted",
+    "jammed": "Jammed",
     "imageGenerateFailed": "Failed to generate image. Try again.",
     "titleEyebrow": "{name} · equipment",
     "title": "Equipment & Finances",

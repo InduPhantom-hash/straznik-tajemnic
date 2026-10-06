@@ -537,15 +537,26 @@ export function PredefinedCharactersSelector({
                               </div>
                               <div className="flex-1 min-w-0 relative z-10">
                                 <div className="flex justify-between items-start gap-2">
-                                  <span className="font-serif text-sm font-semibold text-foreground truncate leading-tight">
+                                  <span className="font-serif text-base font-semibold text-foreground truncate leading-tight">
                                     {item.name}
                                   </span>
-                                  <span className="font-special-elite text-[9px] uppercase tracking-wider text-brass/70 bg-brass/10 border border-brass/25 px-1 py-0.5 rounded flex-none">
-                                    {item.condition === 'new' ? t('conditionNew') : item.condition === 'damaged' ? t('conditionDamaged') : item.condition === 'broken' ? t('conditionBroken') : t('conditionUsed')}
-                                  </span>
+                                  {(item.condition === 'damaged' ||
+                                    item.condition === 'broken' ||
+                                    item.condition === 'depleted' ||
+                                    item.isJammed) && (
+                                    <span className="font-special-elite text-[10px] uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded flex-none">
+                                      {item.isJammed
+                                        ? t('jammed')
+                                        : item.condition === 'damaged'
+                                          ? t('conditionDamaged')
+                                          : item.condition === 'broken'
+                                            ? t('conditionBroken')
+                                            : t('conditionDepleted')}
+                                    </span>
+                                  )}
                                 </div>
                                 {item.description && (
-                                  <p className="font-serif text-[11px] text-muted-foreground/80 italic line-clamp-2 mt-0.5 leading-snug">
+                                  <p className="font-serif text-sm text-muted-foreground/90 italic line-clamp-2 mt-1 leading-relaxed">
                                     {item.description}
                                   </p>
                                 )}

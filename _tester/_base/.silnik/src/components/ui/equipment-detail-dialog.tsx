@@ -14,11 +14,6 @@ import { CATEGORY_LABELS } from '@/lib/equipment-data';
 import { resolveGameEraContext, formatEraCurrency, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
-import {
-  isInvalidKeyError,
-  isQuotaOrCreditsError,
-  isPrepaymentCreditsError,
-} from '@/app/api/chat/_helpers/model-fallback';
 
 interface EquipmentDetailDialogProps {
   item: EquipmentItem | null;
@@ -27,6 +22,16 @@ interface EquipmentDetailDialogProps {
   eraContext?: ResolvedEraContext | null;
   onUpdateItem?: (updatedItem: EquipmentItem) => void;
   onQuoteToInput?: (text: string) => void;
+}
+
+export function isAbnormalEquipmentCondition(
+  condition?: EquipmentItem['condition']
+): boolean {
+  return (
+    condition === 'damaged' ||
+    condition === 'broken' ||
+    condition === 'depleted'
+  );
 }
 
 /**
@@ -76,7 +81,7 @@ export function getItemMechanics(
     rows.push({ label: 'charges', value: `${item.charges} / ${maxC}` });
   }
 
-  if (item.condition) {
+  if (item.condition && isAbnormalEquipmentCondition(item.condition)) {
     rows.push({ label: 'condition', value: item.condition });
   }
 
@@ -216,31 +221,8 @@ export function EquipmentDetailDialog({
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        const code = errData?.code;
-        const rawError = String(errData?.error || errData?.message || '');
-
-        if (code === 'BYOK_CREDITS_DEPLETED' || isPrepaymentCreditsError(rawError)) {
-          throw new Error(t('errorCreditsDepleted'));
-        }
-        if (code === 'BYOK_QUOTA_EXCEEDED' || isQuotaOrCreditsError(rawError)) {
-          throw new Error(t('errorQuotaExceeded'));
-        }
-        if (code === 'BYOK_KEY_INVALID' || isInvalidKeyError(rawError)) {
-          throw new Error(t('errorKeyInvalid'));
-        }
-
-        if (rawError.trim().startsWith('{')) {
-          if (isPrepaymentCreditsError(rawError)) {
-            throw new Error(t('errorCreditsDepleted'));
-          }
-          if (isQuotaOrCreditsError(rawError)) {
-            throw new Error(t('errorQuotaExceeded'));
-          }
-          throw new Error(t('readFailed'));
-        }
-
-        throw new Error(rawError || t('readFailed'));
+        const errData = await res.json();
+        throw new Error(errData.error || t('readFailed'));
       }
 
       const data = await res.json();
@@ -254,16 +236,7 @@ export function EquipmentDetailDialog({
       }
     } catch (err: unknown) {
       console.error(err);
-      let message = err instanceof Error ? err.message : t('readError');
-      if (isPrepaymentCreditsError(message)) {
-        message = t('errorCreditsDepleted');
-      } else if (isQuotaOrCreditsError(message)) {
-        message = t('errorQuotaExceeded');
-      } else if (isInvalidKeyError(message)) {
-        message = t('errorKeyInvalid');
-      } else if (message.trim().startsWith('{')) {
-        message = t('readFailed');
-      }
+      const message = err instanceof Error ? err.message : t('readError');
       setErrorMsg(message);
     } finally {
       setIsGenerating(false);
@@ -271,8 +244,15 @@ export function EquipmentDetailDialog({
   };
 
   const mechanics = getItemMechanics(item, resolvedEraContext, locale);
-  const hasImage = !!item.imageUrl && !item.mapUrl && !item.isMap;
-  const hasMap = !!(item.mapUrl || (item.imageUrl && item.isMap));
+  const isSvgFallback = Boolean(
+    item.imageUrl &&
+      (item.imageUrl.endsWith('.svg') ||
+        item.imageUrl.includes('/equipment/predefined/'))
+  );
+  const hasImage = Boolean(
+    item.imageUrl && !isSvgFallback && !item.mapUrl && !item.isMap
+  );
+  const hasMap = !!(item.mapUrl || (item.imageUrl && !isSvgFallback && item.isMap));
   const categoryLabel = CATEGORY_LABELS[item.category] || item.category;
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
 
@@ -284,10 +264,10 @@ export function EquipmentDetailDialog({
         />
         <DialogPrimitive.Content
           className={cn(
-            'fixed z-[100] flex flex-col bg-[#120e0a] border-2 border-brass/60 overflow-hidden shadow-2xl focus:outline-none pointer-events-auto transition-all duration-200',
+            'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] flex flex-col bg-[#120e0a] border-2 border-brass/60 overflow-hidden shadow-2xl focus:outline-none pointer-events-auto transition-all duration-200',
             isExpanded
-              ? 'inset-0 w-screen h-screen max-h-none'
-              : 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] md:w-[60vw] h-[78vh] max-h-[85vh] rounded-none shadow-deco'
+              ? 'w-[96vw] md:w-[88vw] max-w-6xl h-[90vh] md:h-[85vh]'
+              : 'w-[92vw] md:w-[70vw] max-w-5xl h-[85vh] md:h-[70vh]'
           )}
         >
           <DialogPrimitive.Title className="sr-only">
@@ -388,9 +368,14 @@ export function EquipmentDetailDialog({
                 <div className="mb-4 pr-12">
                   <div className="font-special-elite text-[10px] uppercase tracking-[0.3em] text-primary mb-1.5">
                     {categoryLabel}
-                    {item.condition && (
-                      <span className="ml-2 text-muted-foreground/60">
+                    {item.condition && isAbnormalEquipmentCondition(item.condition) && (
+                      <span className="ml-2 text-amber-400">
                         · {conditionLabels[item.condition] || item.condition}
+                      </span>
+                    )}
+                    {item.isJammed && (
+                      <span className="ml-2 text-red-400">
+                        · {t('jammed')}
                       </span>
                     )}
                   </div>
@@ -483,7 +468,7 @@ export function EquipmentDetailDialog({
                 )}
 
                 {/* Opis fabularny (zawsze obecny) */}
-                <p className="font-serif italic text-base text-muted-foreground leading-relaxed mb-4">
+                <p className="font-serif italic text-lg md:text-xl text-foreground/90 leading-relaxed mb-5">
                   {effectiveLore}
                 </p>
 
@@ -516,15 +501,8 @@ export function EquipmentDetailDialog({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {errorMsg && (
-                          <div
-                            role="alert"
-                            className="p-3 bg-[#2a130f] border border-[#a83226]/60 text-xs text-[#fca5a5] font-special-elite rounded-sm mb-2 shadow-md flex flex-col gap-1 leading-relaxed animate-in fade-in-50 duration-200"
-                          >
-                            <div className="flex items-center gap-1.5 font-bold tracking-wider uppercase text-brass/90 text-[11px]">
-                              <span>⚠️</span>
-                              <span>{t('errorTitle')}</span>
-                            </div>
-                            <p className="text-foreground/90 font-serif text-xs italic">{errorMsg}</p>
+                          <div className="text-xs text-destructive font-special-elite mb-1">
+                            ⚠️ {errorMsg}
                           </div>
                         )}
                         {onUpdateItem ? (
@@ -569,7 +547,11 @@ export function EquipmentDetailDialog({
                         <span className="text-muted-foreground uppercase tracking-[0.06em] text-xs">
                           {mechanicLabels[row.label] ?? row.label}
                         </span>
-                        <span className="text-foreground">{row.value}</span>
+                        <span className="text-foreground">
+                          {row.label === 'condition'
+                            ? conditionLabels[row.value] || row.value
+                            : row.value}
+                        </span>
                       </div>
                     ))}
                   </div>

@@ -2098,13 +2098,50 @@ export function applyCatalogTemplate(
   };
 }
 
+const DEPRECATED_EMPTY_STARTING_NAMES = new Set([
+  'notes badawczy',
+  'koperty na dowody',
+  'notes i olowek',
+  'notatnik i olowek',
+  'notes z olowkiem',
+  'notebook & pencil',
+]);
+
+/**
+ * Sprawdza, czy przedmiot to wycofany pusty przedmiot startowy (Notes badawczy, Koperty na dowody),
+ * który nie zawiera żadnej treści do przeczytania (`readableContent`) i pochodzi z wyposażenia startowego.
+ */
+export function isDeprecatedEmptyStartingEquipment(
+  item: EquipmentItem | null | undefined
+): boolean {
+  if (!item || typeof item !== 'object') return false;
+  if (typeof item.readableContent === 'string' && item.readableContent.trim().length > 0) {
+    return false;
+  }
+  if (item.source && item.source !== 'starting') {
+    return false;
+  }
+  if (item.id === 'eq_notes' || item.id === 'eq_envelopes') {
+    return true;
+  }
+  if (typeof item.name === 'string') {
+    const normalizedName = normalize(item.name).replace(/ł/g, 'l');
+    if (DEPRECATED_EMPTY_STARTING_NAMES.has(normalizedName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Lekka, idempotentna migracja zapisów sprzed `templateId` i `visualSource`. */
 export function migrateEquipmentCatalog(
   items: EquipmentItem[] | undefined,
   era: EquipmentVisualEra | string = '1920s'
 ): EquipmentItem[] | undefined {
   const visualEra = safeResolveVisualEra(era);
-  return items?.map((item) => applyCatalogTemplate(item, visualEra));
+  return items
+    ?.filter((item) => !isDeprecatedEmptyStartingEquipment(item))
+    .map((item) => applyCatalogTemplate(item, visualEra));
 }
 
 export function isCatalogEquipment(item: EquipmentItem): boolean {

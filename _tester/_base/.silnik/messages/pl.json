@@ -1221,6 +1221,7 @@
     "charges": "Ładunki",
     "conditionWorking": "Sprawne",
     "conditionDepleted": "Wyczerpane",
+    "conditionDamaged": "Uszkodzone",
     "conditionBroken": "Uszkodzone",
     "occultItemBadge": "Relikt / Okultyzm",
     "firearms": "Broń palna",
@@ -1317,7 +1318,9 @@
     "conditionNew": "Nowy",
     "conditionDamaged": "Uszkodzony",
     "conditionBroken": "Zepsuty",
+    "conditionDepleted": "Wyczerpany",
     "conditionUsed": "Używany",
+    "jammed": "Zacięta",
     "gmNotes": "Notatki MG / wskazówki",
     "selectCharacter": "Wybierz tę postać",
     "backToList": "Wróć do listy",
@@ -1786,6 +1789,10 @@
             "eq_margaret_notebook": {
               "name": "Notatnik i ołówek",
               "description": "Zapisane setkami wywiadów."
+            },
+            "eq_margaret_watch": {
+              "name": "Zegarek kieszonkowy",
+              "description": "Odmierza czas do zamknięcia wydania gazety."
             },
             "eq_margaret_camera": {
               "name": "Aparat małoobrazkowy Kodak"
@@ -3545,6 +3552,10 @@
       "eq_margaret_notebook": {
         "name": "Notatnik i ołówek",
         "description": "Zapisane setkami wywiadów."
+      },
+      "eq_margaret_watch": {
+        "name": "Zegarek kieszonkowy",
+        "description": "Odmierza czas do zamknięcia wydania gazety."
       },
       "eq_margaret_camera": {
         "name": "Aparat małoobrazkowy Kodak"
@@ -5891,6 +5902,7 @@
     "conditionBroken": "Zepsuty",
     "conditionWorking": "Sprawny",
     "conditionDepleted": "Wyczerpany",
+    "jammed": "Zacięta",
     "valueLabel": "Wartość: {value}",
     "audioLabel": "🔊 Nagranie / Taśma Audio",
     "playAudio": "Odsłuchaj nagranie",
@@ -6213,6 +6225,8 @@
     "conditionUsed": "używany",
     "conditionDamaged": "uszkodzony",
     "conditionBroken": "zepsuty",
+    "conditionDepleted": "wyczerpany",
+    "jammed": "Zacięta",
     "imageGenerateFailed": "Nie udało się wygenerować obrazu. Spróbuj ponownie.",
     "titleEyebrow": "{name} · wyposażenie",
     "title": "Ekwipunek i finanse",
