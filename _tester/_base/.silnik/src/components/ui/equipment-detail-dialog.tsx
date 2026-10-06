@@ -29,6 +29,16 @@ interface EquipmentDetailDialogProps {
   onQuoteToInput?: (text: string) => void;
 }
 
+export function isAbnormalEquipmentCondition(
+  condition?: EquipmentItem['condition']
+): boolean {
+  return (
+    condition === 'damaged' ||
+    condition === 'broken' ||
+    condition === 'depleted'
+  );
+}
+
 /**
  * Mechanika/zastosowanie przedmiotu do modalu detalu. Broń: umiejętność bojowa
  * (weapon-context) + obrażenia/zasięg z modifiers. Pozostałe: powiązana umiejętność

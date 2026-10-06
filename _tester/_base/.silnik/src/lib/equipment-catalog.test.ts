@@ -325,9 +325,14 @@ describe('equipment catalog', () => {
       const template = findEquipmentTemplate(entry.id) || findEquipmentTemplate(entry.name);
       expect(template).toBeDefined();
 
-      // Asset musi być powiązany ze zdefiniowanym szablonem
+      // Asset musi być powiązany ze zdefiniowanym szablonem (jako wariant epokowy lub shared)
       const assets = Object.values(template?.assetPaths ?? {});
-      expect(assets).toContain(`/equipment/catalog/${entry.filename}`);
+      const matchesDirect = assets.includes(`/equipment/catalog/${entry.filename}`);
+      const matchesStem = assets.some((a) => {
+        const stem = entry.filename.replace(/-shared\.webp$/, '');
+        return a.startsWith(`/equipment/catalog/${stem}-`);
+      });
+      expect(matchesDirect || matchesStem).toBe(true);
     });
   });
 
@@ -399,7 +404,7 @@ describe('equipment catalog', () => {
     expect(safeResolveVisualEra('unknown-era-xyz')).toBe('1920s');
   });
 
-  it('gwarantuje deterministyczne przypisanie assetów lokalnych (WebP lub ikony kategorii SVG) dla 100% z 264 przedmiotów w 46 presetach', () => {
+  it('gwarantuje deterministyczne przypisanie assetów lokalnych (WebP lub ikony kategorii SVG) dla 100% z 244 przedmiotów w 46 presetach', () => {
     const allPresets = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
     expect(allPresets).toHaveLength(46);
 
@@ -424,7 +429,7 @@ describe('equipment catalog', () => {
       });
     });
 
-    expect(totalItems).toBe(264);
+    expect(totalItems).toBe(244);
     expect(missingAssetItems).toEqual([]);
     expect(missingDiskFiles).toEqual([]);
   });

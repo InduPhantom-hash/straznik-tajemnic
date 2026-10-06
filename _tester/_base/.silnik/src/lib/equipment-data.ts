@@ -497,13 +497,6 @@ export const PERSONAL: Partial<EquipmentItem>[] = [
     value: 3,
   },
   {
-    name: 'Notebook & Pencil',
-    category: 'personal',
-    description: 'Notes z ołówkiem do zapisków.',
-    weight: 0.3,
-    value: 0.5,
-  },
-  {
     name: 'Wallet',
     category: 'personal',
     description: 'Skórzany portfel.',
@@ -640,29 +633,25 @@ export const EQUIPMENT_RULES_REFERENCE = {
 // nawiasami) - dlatego doprecyzowania trzymamy w nawiasach, np. "Lina (15 m)".
 export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
   // Akademiccy i Profesjonaliści
-  Antiquarian: ['Lupa', 'Notatnik i ołówek', 'Książki źródłowe'],
+  Antiquarian: ['Lupa', 'Książki źródłowe'],
   Archaeologist: [
     'Zestaw narzędzi (mechaniczny)',
     'Lina (15 m)',
     'Latarka',
-    'Notatnik i ołówek',
     'Kompas',
     'Pędzel i kielnia',
   ],
   Author: [
-    'Notatnik i ołówek',
     'Zegarek kieszonkowy',
     'Maszyna do pisania (w domu)',
   ],
-  Librarian: ['Lupa', 'Notatnik i ołówek', 'Karta biblioteczna'],
+  Librarian: ['Lupa', 'Karta biblioteczna'],
   Professor: [
-    'Notatnik i ołówek',
     'Lupa',
     'Zegarek kieszonkowy',
     'Książki źródłowe',
   ],
   Scientist: [
-    'Notatnik i ołówek',
     'Lupa',
     'Sprzęt laboratoryjny (w laboratorium)',
   ],
@@ -672,11 +661,9 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
     'Torba lekarska',
     'Apteczka',
     'Zegarek kieszonkowy',
-    'Notatnik i ołówek',
   ],
   Nurse: ['Apteczka', 'Bandaże', 'Zegarek kieszonkowy'],
   Psychiatrist: [
-    'Notatnik i ołówek',
     'Zegarek kieszonkowy',
     'Morfina (5 dawek)',
   ],
@@ -687,22 +674,19 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
     'Latarka',
     'Wytrychy',
     'Aparat fotograficzny',
-    'Notatnik i ołówek',
     'Piersiówka',
   ],
   'Police Detective': [
     'Rewolwer .38',
-    'Notatnik i ołówek',
     'Latarka',
     'Kajdanki',
     'Odznaka',
   ],
-  Lawyer: ['Notatnik i ołówek', 'Zegarek kieszonkowy', 'Aktówka'],
+  Lawyer: ['Zegarek kieszonkowy', 'Aktówka'],
 
   // Prasa i Media
   Journalist: [
     'Aparat fotograficzny',
-    'Notatnik i ołówek',
     'Legitymacja prasowa',
     'Piersiówka',
   ],
@@ -714,12 +698,10 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
     'Świece (12 szt.)',
     'Kreda (kolorowa)',
     'Kadzidło i kadzielnica',
-    'Notatnik i ołówek',
     'Dziwny amulet',
   ],
   Parapsychologist: [
     'Aparat fotograficzny',
-    'Notatnik i ołówek',
     'Termometr',
     'Detektor pola elektromagnetycznego',
   ],
@@ -769,7 +751,6 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
   Hacker: [
     'Komputer przenośny',
     'Zestaw narzędzi (elektryczny)',
-    'Notatnik i ołówek',
   ],
   'Police Officer': ['Pałka policyjna', 'Kajdanki', 'Odznaka', 'Latarka'],
   Spy: [
@@ -777,12 +758,11 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
     'Wytrychy',
     'Fałszywe dokumenty',
     'Pistolet .32',
-    'Notatnik i ołówek',
   ],
   'Tribe Member': ['Nóż', 'Lina (15 m)', 'Manierka', 'Apteczka'],
 
   // Domyślne
-  default: ['Notatnik i ołówek', 'Zegarek kieszonkowy', 'Portfel'],
+  default: ['Zegarek kieszonkowy', 'Portfel'],
 };
 
 /**

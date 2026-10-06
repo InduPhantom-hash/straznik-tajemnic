@@ -281,7 +281,7 @@ export function WizardEquipmentView({
                   {/* Informacje o przedmiocie */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-1.5">
-                      <span className="font-serif text-sm font-semibold text-foreground truncate leading-tight group-hover:text-brass transition-colors">
+                      <span className="font-serif text-base font-semibold text-foreground truncate leading-tight group-hover:text-brass transition-colors">
                         {item.name}
                       </span>
                       <span className="shrink-0 font-special-elite text-[10px] text-brass/80 bg-brass/10 px-1.5 py-0.5 rounded border border-brass/20 uppercase tracking-wider">
@@ -318,7 +318,7 @@ export function WizardEquipmentView({
 
                     {/* Opis fabularny / lore */}
                     {item.description && (
-                      <p className="font-serif italic text-xs text-muted-foreground/80 line-clamp-2 leading-snug mt-1">
+                      <p className="font-serif italic text-sm text-muted-foreground/90 line-clamp-2 leading-relaxed mt-1">
                         {item.description}
                       </p>
                     )}

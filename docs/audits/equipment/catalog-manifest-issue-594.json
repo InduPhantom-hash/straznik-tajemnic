@@ -1,0 +1,131 @@
+[
+  {
+    "source": "predefined_character",
+    "characterName": "Arthur Pendleton",
+    "itemName": "Aparat fotograficzny",
+    "era": "gaslight",
+    "category": "tool",
+    "templateId": "tool.camera",
+    "currentImageUrl": "/equipment/predefined/tool.svg"
+  },
+  {
+    "source": "predefined_character",
+    "characterName": "David Miller",
+    "itemName": "Dokumenty tożsamości",
+    "era": "modern",
+    "category": "document",
+    "templateId": "document.id-card",
+    "currentImageUrl": "/equipment/predefined/document.svg"
+  },
+  {
+    "source": "predefined_character",
+    "characterName": "Anna Dąbrowska",
+    "itemName": "Aparat fotograficzny z lampą błyskową",
+    "era": "1990s",
+    "category": "tool",
+    "templateId": "tool.camera",
+    "currentImageUrl": "/equipment/predefined/tool.svg"
+  },
+  {
+    "source": "occupation_equipment",
+    "occupation": "Antiquarian",
+    "itemName": "Książki źródłowe",
+    "era": "1920s",
+    "category": "document",
+    "templateId": "document.source-books",
+    "currentImageUrl": "/equipment/predefined/document.svg"
+  },
+  {
+    "source": "occupation_equipment",
+    "occupation": "Librarian",
+    "itemName": "Karta biblioteczna",
+    "era": "1920s",
+    "category": "document",
+    "templateId": "document.library-card",
+    "currentImageUrl": "/equipment/predefined/document.svg"
+  },
+  {
+    "source": "occupation_equipment",
+    "occupation": "Clergy",
+    "itemName": "Biblia/modlitewnik",
+    "era": "1920s",
+    "category": "document",
+    "templateId": "document.bible",
+    "currentImageUrl": "/equipment/predefined/document.svg"
+  },
+  {
+    "source": "occupation_equipment",
+    "occupation": "Musician",
+    "itemName": "Nuty",
+    "era": "1920s",
+    "category": "document",
+    "templateId": "document.music-sheets",
+    "currentImageUrl": "/equipment/predefined/document.svg"
+  },
+  {
+    "source": "occupation_equipment",
+    "occupation": "Actor",
+    "itemName": "Scenariusz",
+    "era": "1920s",
+    "category": "document",
+    "templateId": "document.script",
+    "currentImageUrl": "/equipment/predefined/document.svg"
+  },
+  {
+    "source": "occupation_equipment",
+    "occupation": "Hacker",
+    "itemName": "Komputer przenośny",
+    "era": "1920s",
+    "category": "tool",
+    "templateId": null,
+    "currentImageUrl": null
+  },
+  {
+    "source": "empty_template",
+    "templateId": "document.id-card",
+    "itemName": "Dokumenty tożsamości",
+    "era": "1890s",
+    "category": "document",
+    "currentImageUrl": null
+  },
+  {
+    "source": "empty_template",
+    "templateId": "document.source-books",
+    "itemName": "Książki źródłowe",
+    "era": "1890s",
+    "category": "document",
+    "currentImageUrl": null
+  },
+  {
+    "source": "empty_template",
+    "templateId": "document.library-card",
+    "itemName": "Karta biblioteczna",
+    "era": "1890s",
+    "category": "document",
+    "currentImageUrl": null
+  },
+  {
+    "source": "empty_template",
+    "templateId": "document.bible",
+    "itemName": "Biblia / modlitewnik",
+    "era": "1890s",
+    "category": "document",
+    "currentImageUrl": null
+  },
+  {
+    "source": "empty_template",
+    "templateId": "document.music-sheets",
+    "itemName": "Nuty i partytury",
+    "era": "1890s",
+    "category": "document",
+    "currentImageUrl": null
+  },
+  {
+    "source": "empty_template",
+    "templateId": "document.script",
+    "itemName": "Scenariusz teatralny",
+    "era": "1890s",
+    "category": "document",
+    "currentImageUrl": null
+  }
+]

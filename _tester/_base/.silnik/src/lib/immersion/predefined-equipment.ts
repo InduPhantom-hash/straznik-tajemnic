@@ -73,11 +73,6 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
       description: 'Masywna latarka na baterie z metalową obudową.',
     },
     {
-      name: 'Notes badawczy',
-      category: 'document',
-      description: 'Kieszonkowy notatnik w twardej oprawie ze skórzanym grzbietem.',
-    },
-    {
       name: 'Zapałki sztormowe',
       category: 'tool',
       description: 'Wodoodporne zapałki w metalowym etui.',
@@ -94,22 +89,12 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
       category: 'personal',
       description: 'Metalowa papierośnica z zapasem papierosów.',
     },
-    {
-      name: 'Notes z ołówkiem',
-      category: 'document',
-      description: 'Dyskretny notes reportera lub detektywa.',
-    },
   ],
   prl: [
     {
       name: 'Latarka elektryczna',
       category: 'tool',
       description: 'Prosta metalowa latarka z ciężką baterią.',
-    },
-    {
-      name: 'Notes badawczy',
-      category: 'document',
-      description: 'Kratkowany notes, ołówek i zapas kartek.',
     },
     {
       name: 'Kieszonkowa apteczka',
@@ -122,11 +107,6 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
       name: 'Latarka elektryczna',
       category: 'tool',
       description: 'Prosta metalowa latarka z ciężką baterią.',
-    },
-    {
-      name: 'Notes badawczy',
-      category: 'document',
-      description: 'Kratkowany notes, ołówek i zapas kartek.',
     },
     {
       name: 'Kieszonkowa apteczka',
@@ -194,18 +174,8 @@ const ARCHETYPE_KITS: Record<PresetArchetype, EquipmentSeed[]> = {
       category: 'tool',
       description: 'Dokumentuje miejsca, osoby i ślady na potrzeby śledztwa.',
     },
-    {
-      name: 'Koperty na dowody',
-      category: 'document',
-      description: 'Opisane koperty do zabezpieczania drobnych znalezisk.',
-    },
   ],
   scholar: [
-    {
-      name: 'Notes badawczy',
-      category: 'document',
-      description: 'Indeks źródeł, cytatów i hipotez badawczych.',
-    },
     {
       name: 'Lupa terenowa',
       category: 'tool',
@@ -431,14 +401,14 @@ export function buildPredefinedEquipment(
   // Niektóre osobiste elementy celowo pokrywają się z zestawem epoki (np.
   // latarka kolejarza). Dajemy wtedy neutralny, użyteczny dodatek zamiast
   // dublować przedmiot i pozostawiać gotową postać z uboższym zestawem.
-  if (result.length < 6) {
+  if (result.length < 6 && !names.has(normalizeName('Kompas kieszonkowy'))) {
     result.push(
       withLocalImage(
         {
-          id: `eq_${slugify(preset.id)}_mapnik-terenowy`,
-          name: 'Mapnik terenowy',
-          category: 'document',
-          description: 'Składany mapnik na notatki, bilety i szkice trasy.',
+          id: `eq_${slugify(preset.id)}_kompas-kieszonkowy`,
+          name: 'Kompas kieszonkowy',
+          category: 'tool',
+          description: 'Solidny kompas polowy ułatwiający orientację w terenie.',
         },
         visualEra
       )

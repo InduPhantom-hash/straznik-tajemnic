@@ -805,10 +805,10 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     },
     equipment: [
       {
-        id: 'eq_margaret_notebook',
-        name: 'Notatnik i ołówek',
-        category: 'tool',
-        description: 'Zapisane setkami wywiadów.',
+        id: 'eq_margaret_watch',
+        name: 'Zegarek kieszonkowy',
+        category: 'personal',
+        description: 'Odmierza czas do zamknięcia wydania gazety.',
       },
       {
         id: 'eq_margaret_camera',

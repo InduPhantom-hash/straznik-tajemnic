@@ -20,25 +20,25 @@ describe('WizardEquipmentView', () => {
     const knifeImg = screen.getByAltText('Nóż');
     expect(knifeImg).toHaveAttribute(
       'src',
-      expect.stringContaining('/equipment/catalog/knife-shared.webp')
+      expect.stringMatching(/\/equipment\/catalog\/knife-(1920s|shared)\.webp/)
     );
 
     const ropeImg = screen.getByAltText('Lina (15 m)');
     expect(ropeImg).toHaveAttribute(
       'src',
-      expect.stringContaining('/equipment/catalog/rope-shared.webp')
+      expect.stringMatching(/\/equipment\/catalog\/rope-(1920s|shared)\.webp/)
     );
 
     const flaskImg = screen.getByAltText('Manierka');
     expect(flaskImg).toHaveAttribute(
       'src',
-      expect.stringContaining('/equipment/catalog/flask-shared.webp')
+      expect.stringMatching(/\/equipment\/catalog\/flask-(1920s|shared)\.webp/)
     );
 
     const aidImg = screen.getByAltText('Apteczka');
     expect(aidImg).toHaveAttribute(
       'src',
-      expect.stringContaining('/equipment/catalog/first-aid-prl-1970s.webp')
+      expect.stringMatching(/\/equipment\/catalog\/(first-aid-1920s|first-aid-prl-1970s)\.webp/)
     );
 
     // Mechanika broni: obrażenia

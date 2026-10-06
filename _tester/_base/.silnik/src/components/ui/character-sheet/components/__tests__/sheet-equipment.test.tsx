@@ -107,4 +107,54 @@ describe('SheetEquipment lore and descriptions', () => {
     // Majątek: 35 * 50 = $1,750
     expect(screen.getByText('$1,750')).toBeInTheDocument();
   });
+
+  it('ukrywa domyślny stan narzędzi (used/working), a wyświetla plakietkę tylko dla uszkodzonych/zepsutych/wyczerpanych', () => {
+    const character: Character = {
+      id: 'char-eq-cond-test',
+      name: 'Tomasz Nowicki',
+      str: 50,
+      con: 50,
+      siz: 50,
+      dex: 50,
+      app: 50,
+      int: 50,
+      pow: 50,
+      edu: 50,
+      age: 35,
+      hp: 10,
+      san: 50,
+      mp: 10,
+      luck: 50,
+      occupation: 'Dziennikarz śledczy',
+      skills: {},
+      equipment: [
+        {
+          id: 't-used',
+          name: 'Magnetofon szpulowy',
+          category: 'tool',
+          condition: 'used',
+        },
+        {
+          id: 't-broken',
+          name: 'Latarka elektryczna',
+          category: 'tool',
+          condition: 'broken',
+        },
+      ],
+      playerName: 'Gracz',
+      isActive: true,
+      lastUsed: new Date(),
+      notes: '',
+      background: '',
+      experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 100 },
+      developmentHistory: [],
+    };
+
+    render(<SheetEquipment character={character} />);
+
+    expect(screen.getByText('Magnetofon szpulowy')).toBeInTheDocument();
+    expect(screen.queryByText('Sprawne')).not.toBeInTheDocument();
+    expect(screen.queryByText('Używany')).not.toBeInTheDocument();
+    expect(screen.getByText('Uszkodzone')).toBeInTheDocument();
+  });
 });

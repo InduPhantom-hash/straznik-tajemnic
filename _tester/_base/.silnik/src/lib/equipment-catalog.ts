@@ -758,7 +758,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/knife-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/knife-1890s.webp', '1920s': '/equipment/catalog/knife-1920s.webp', '1930s': '/equipment/catalog/knife-1930s.webp', '1940s': '/equipment/catalog/knife-1940s.webp', '1980s': '/equipment/catalog/knife-1980s.webp', 'modern': '/equipment/catalog/knife-modern.webp' },
     modifiers: { damage: '1d4+2' },
     combatProfile: {
       schemaVersion: 1,
@@ -776,7 +776,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/machete-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/machete-1890s.webp', '1920s': '/equipment/catalog/machete-1920s.webp', '1930s': '/equipment/catalog/machete-1930s.webp', '1940s': '/equipment/catalog/machete-1940s.webp', '1980s': '/equipment/catalog/machete-1980s.webp', 'modern': '/equipment/catalog/machete-modern.webp' },
     modifiers: { damage: '1d8+1' },
     combatProfile: {
       schemaVersion: 1,
@@ -962,7 +962,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/crowbar-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/crowbar-1890s.webp', '1920s': '/equipment/catalog/crowbar-1920s.webp', '1930s': '/equipment/catalog/crowbar-1930s.webp', '1940s': '/equipment/catalog/crowbar-1940s.webp', '1980s': '/equipment/catalog/crowbar-1980s.webp', 'modern': '/equipment/catalog/crowbar-modern.webp' },
     modifiers: { damage: '1d6', skill: 'Walka wręcz' },
     value: 2,
   },
@@ -1317,6 +1317,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.batteries-aa',
+    assetPaths: { '1890s': '/equipment/catalog/batteries-aa-1890s.webp', '1920s': '/equipment/catalog/batteries-aa-1920s.webp', '1930s': '/equipment/catalog/batteries-aa-1930s.webp', '1940s': '/equipment/catalog/batteries-aa-1940s.webp', '1980s': '/equipment/catalog/batteries-aa-1980s.webp', 'modern': '/equipment/catalog/batteries-aa-modern.webp' },
     name: "Zapasowe baterie (R6/AA)",
     aliases: [
       "Zapasowe baterie",
@@ -1336,10 +1337,6 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: {
-      // W kolejce Herdr OpenAI (batteries-aa.webp).
-      // Brak fałszywego shared: latarki z 1920s - czysty fallback do ikony kategorii SVG.
-    },
     value: 2,
     weight: 0.2,
   },
@@ -1693,6 +1690,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.thermometer',
+    assetPaths: { '1890s': '/equipment/catalog/thermometer-1890s.webp', '1920s': '/equipment/catalog/thermometer-1920s.webp', '1930s': '/equipment/catalog/thermometer-1930s.webp', '1940s': '/equipment/catalog/thermometer-1940s.webp', '1980s': '/equipment/catalog/thermometer-1980s.webp', 'modern': '/equipment/catalog/thermometer-modern.webp' },
     name: "Termometr",
     aliases: ["Thermometer", "Termometr laboratoryjny", "Termometr lekarski", "Termometr rtęciowy"],
     category: 'tool',
@@ -1703,6 +1701,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.photo-tripod',
+    assetPaths: { '1890s': '/equipment/catalog/photo-tripod-1890s.webp', '1920s': '/equipment/catalog/photo-tripod-1920s.webp', '1930s': '/equipment/catalog/photo-tripod-1930s.webp', '1940s': '/equipment/catalog/photo-tripod-1940s.webp', '1980s': '/equipment/catalog/photo-tripod-1980s.webp', 'modern': '/equipment/catalog/photo-tripod-modern.webp' },
     name: "Statyw fotograficzny",
     aliases: ["Statyw", "Tripod", "Statyw drewniany", "Mosiężny statyw fotograficzny"],
     category: 'tool',
@@ -1712,6 +1711,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.photo-plates',
+    assetPaths: { '1890s': '/equipment/catalog/photo-plates-1890s.webp', '1920s': '/equipment/catalog/photo-plates-1920s.webp', '1930s': '/equipment/catalog/photo-plates-1930s.webp', '1940s': '/equipment/catalog/photo-plates-1940s.webp', '1980s': '/equipment/catalog/photo-plates-1980s.webp', 'modern': '/equipment/catalog/photo-plates-modern.webp' },
     name: "Klisza fotograficzna",
     aliases: ["Klisza", "Klisze", "Klisze szklane", "Błona fotograficzna", "Film roll", "Photo plates"],
     category: 'tool',
@@ -1721,6 +1721,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.trowel-brush',
+    assetPaths: { '1890s': '/equipment/catalog/trowel-brush-1890s.webp', '1920s': '/equipment/catalog/trowel-brush-1920s.webp', '1930s': '/equipment/catalog/trowel-brush-1930s.webp', '1940s': '/equipment/catalog/trowel-brush-1940s.webp', '1980s': '/equipment/catalog/trowel-brush-1980s.webp', 'modern': '/equipment/catalog/trowel-brush-modern.webp' },
     name: "Pędzel i kielnia archeologiczna",
     aliases: ["Pędzel i kielnia", "Kielnia i pędzel", "Narzędzia archeologiczne", "Archaeological Trowel & Brush"],
     category: 'tool',
@@ -1731,6 +1732,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.lab-equipment',
+    assetPaths: { '1890s': '/equipment/catalog/lab-equipment-1890s.webp', '1920s': '/equipment/catalog/lab-equipment-1920s.webp', '1930s': '/equipment/catalog/lab-equipment-1930s.webp', '1940s': '/equipment/catalog/lab-equipment-1940s.webp', '1980s': '/equipment/catalog/lab-equipment-1980s.webp', 'modern': '/equipment/catalog/lab-equipment-modern.webp' },
     name: "Sprzęt laboratoryjny",
     aliases: [
       "Sprzęt laboratoryjny (w laboratorium)",
@@ -1746,6 +1748,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.typewriter',
+    assetPaths: { '1890s': '/equipment/catalog/typewriter-1890s.webp', '1920s': '/equipment/catalog/typewriter-1920s.webp', '1930s': '/equipment/catalog/typewriter-1930s.webp', '1940s': '/equipment/catalog/typewriter-1940s.webp', '1980s': '/equipment/catalog/typewriter-1980s.webp', 'modern': '/equipment/catalog/typewriter-modern.webp' },
     name: "Maszyna do pisania",
     aliases: [
       "Maszyna do pisania (w domu)",
@@ -1807,6 +1810,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'weapon.police-baton',
+    assetPaths: { '1890s': '/equipment/catalog/police-baton-1890s.webp', '1920s': '/equipment/catalog/police-baton-1920s.webp', '1930s': '/equipment/catalog/police-baton-1930s.webp', '1940s': '/equipment/catalog/police-baton-1940s.webp', '1980s': '/equipment/catalog/police-baton-1980s.webp', 'modern': '/equipment/catalog/police-baton-modern.webp' },
     name: "Pałka policyjna",
     aliases: ["Pałka", "Pałka drewniana", "Police Baton", "Club/Baton"],
     category: 'weapon',
@@ -1824,6 +1828,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.car-keys',
+    assetPaths: { '1890s': '/equipment/catalog/car-keys-1890s.webp', '1920s': '/equipment/catalog/car-keys-1920s.webp', '1930s': '/equipment/catalog/car-keys-1930s.webp', '1940s': '/equipment/catalog/car-keys-1940s.webp', '1980s': '/equipment/catalog/car-keys-1980s.webp', 'modern': '/equipment/catalog/car-keys-modern.webp' },
     name: "Kluczyki do samochodu",
     aliases: ["Car Keys", "Kluczyki samochodowe", "Kluczyki do auta"],
     category: 'personal',
@@ -1833,6 +1838,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.art-pencils',
+    assetPaths: { '1890s': '/equipment/catalog/art-pencils-1890s.webp', '1920s': '/equipment/catalog/art-pencils-1920s.webp', '1930s': '/equipment/catalog/art-pencils-1930s.webp', '1940s': '/equipment/catalog/art-pencils-1940s.webp', '1980s': '/equipment/catalog/art-pencils-1980s.webp', 'modern': '/equipment/catalog/art-pencils-modern.webp' },
     name: "Ołówki i węgiel rysunkowy",
     aliases: ["Ołówki i węgiel", "Węgiel rysunkowy", "Zestaw ołówków", "Drawing Pencils & Charcoal"],
     category: 'personal',
@@ -1843,6 +1849,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.palette-brushes',
+    assetPaths: { '1890s': '/equipment/catalog/palette-brushes-1890s.webp', '1920s': '/equipment/catalog/palette-brushes-1920s.webp', '1930s': '/equipment/catalog/palette-brushes-1930s.webp', '1940s': '/equipment/catalog/palette-brushes-1940s.webp', '1980s': '/equipment/catalog/palette-brushes-1980s.webp', 'modern': '/equipment/catalog/palette-brushes-modern.webp' },
     name: "Paleta i pędzle malarskie",
     aliases: ["Paleta i pędzle", "Zestaw pędzli", "Paleta malarska", "Palette and Brushes"],
     category: 'personal',
@@ -1853,6 +1860,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.sports-gear',
+    assetPaths: { '1890s': '/equipment/catalog/sports-gear-1890s.webp', '1920s': '/equipment/catalog/sports-gear-1920s.webp', '1930s': '/equipment/catalog/sports-gear-1930s.webp', '1940s': '/equipment/catalog/sports-gear-1940s.webp', '1980s': '/equipment/catalog/sports-gear-1980s.webp', 'modern': '/equipment/catalog/sports-gear-modern.webp' },
     name: "Strój sportowy",
     aliases: ["Strój sportowy", "Strój gimnastyczny", "Kostium sportowy", "Athletic Wear"],
     category: 'personal',
@@ -1862,6 +1870,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.sports-bag',
+    assetPaths: { '1890s': '/equipment/catalog/sports-bag-1890s.webp', '1920s': '/equipment/catalog/sports-bag-1920s.webp', '1930s': '/equipment/catalog/sports-bag-1930s.webp', '1940s': '/equipment/catalog/sports-bag-1940s.webp', '1980s': '/equipment/catalog/sports-bag-1980s.webp', 'modern': '/equipment/catalog/sports-bag-modern.webp' },
     name: "Torba sportowa",
     aliases: ["Torba sportowa", "Duffle bag", "Gym Bag"],
     category: 'personal',
@@ -1871,6 +1880,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.towel',
+    assetPaths: { '1890s': '/equipment/catalog/towel-1890s.webp', '1920s': '/equipment/catalog/towel-1920s.webp', '1930s': '/equipment/catalog/towel-1930s.webp', '1940s': '/equipment/catalog/towel-1940s.webp', '1980s': '/equipment/catalog/towel-1980s.webp', 'modern': '/equipment/catalog/towel-modern.webp' },
     name: "Ręcznik bawełniany",
     aliases: ["Ręcznik", "Cotton Towel"],
     category: 'personal',
@@ -1880,6 +1890,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.musical-instrument',
+    assetPaths: { '1890s': '/equipment/catalog/musical-instrument-1890s.webp', '1920s': '/equipment/catalog/musical-instrument-1920s.webp', '1930s': '/equipment/catalog/musical-instrument-1930s.webp', '1940s': '/equipment/catalog/musical-instrument-1940s.webp', '1980s': '/equipment/catalog/musical-instrument-1980s.webp', 'modern': '/equipment/catalog/musical-instrument-modern.webp' },
     name: "Instrument muzyczny",
     aliases: ["Instrument", "Futerał z instrumentem", "Skrzypce", "Trąbka", "Klarnet", "Musical Instrument"],
     category: 'personal',
@@ -1890,6 +1901,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.makeup-kit',
+    assetPaths: { '1890s': '/equipment/catalog/makeup-kit-1890s.webp', '1920s': '/equipment/catalog/makeup-kit-1920s.webp', '1930s': '/equipment/catalog/makeup-kit-1930s.webp', '1940s': '/equipment/catalog/makeup-kit-1940s.webp', '1980s': '/equipment/catalog/makeup-kit-1980s.webp', 'modern': '/equipment/catalog/makeup-kit-modern.webp' },
     name: "Zestaw do charakteryzacji",
     aliases: ["Zestaw do charakteryzacji", "Kuferek charakteryzatorski", "Farby do charakteryzacji", "Disguise / Makeup Kit"],
     category: 'personal',
@@ -1900,6 +1912,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.overalls',
+    assetPaths: { '1890s': '/equipment/catalog/overalls-1890s.webp', '1920s': '/equipment/catalog/overalls-1920s.webp', '1930s': '/equipment/catalog/overalls-1930s.webp', '1940s': '/equipment/catalog/overalls-1940s.webp', '1980s': '/equipment/catalog/overalls-1980s.webp', 'modern': '/equipment/catalog/overalls-modern.webp' },
     name: "Kombinezon roboczy",
     aliases: ["Kombinezon", "Drelich roboczy", "Kombinezon mechanika", "Work Overalls"],
     category: 'personal',
@@ -1909,6 +1922,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.blanket',
+    assetPaths: { '1890s': '/equipment/catalog/blanket-1890s.webp', '1920s': '/equipment/catalog/blanket-1920s.webp', '1930s': '/equipment/catalog/blanket-1930s.webp', '1940s': '/equipment/catalog/blanket-1940s.webp', '1980s': '/equipment/catalog/blanket-1980s.webp', 'modern': '/equipment/catalog/blanket-modern.webp' },
     name: "Wełniany koc",
     aliases: ["Koc", "Koc wełniany", "Koc podróżny", "Woolen Blanket"],
     category: 'personal',
@@ -2098,13 +2112,50 @@ export function applyCatalogTemplate(
   };
 }
 
+const DEPRECATED_EMPTY_STARTING_NAMES = new Set([
+  'notes badawczy',
+  'koperty na dowody',
+  'notes i olowek',
+  'notatnik i olowek',
+  'notes z olowkiem',
+  'notebook & pencil',
+]);
+
+/**
+ * Sprawdza, czy przedmiot to wycofany pusty przedmiot startowy (Notes badawczy, Koperty na dowody),
+ * który nie zawiera żadnej treści do przeczytania (`readableContent`) i pochodzi z wyposażenia startowego.
+ */
+export function isDeprecatedEmptyStartingEquipment(
+  item: EquipmentItem | null | undefined
+): boolean {
+  if (!item || typeof item !== 'object') return false;
+  if (typeof item.readableContent === 'string' && item.readableContent.trim().length > 0) {
+    return false;
+  }
+  if (item.source && item.source !== 'starting') {
+    return false;
+  }
+  if (item.id === 'eq_notes' || item.id === 'eq_envelopes') {
+    return true;
+  }
+  if (typeof item.name === 'string') {
+    const normalizedName = normalize(item.name).replace(/ł/g, 'l');
+    if (DEPRECATED_EMPTY_STARTING_NAMES.has(normalizedName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Lekka, idempotentna migracja zapisów sprzed `templateId` i `visualSource`. */
 export function migrateEquipmentCatalog(
   items: EquipmentItem[] | undefined,
   era: EquipmentVisualEra | string = '1920s'
 ): EquipmentItem[] | undefined {
   const visualEra = safeResolveVisualEra(era);
-  return items?.map((item) => applyCatalogTemplate(item, visualEra));
+  return items
+    ?.filter((item) => !isDeprecatedEmptyStartingEquipment(item))
+    .map((item) => applyCatalogTemplate(item, visualEra));
 }
 
 export function isCatalogEquipment(item: EquipmentItem): boolean {
