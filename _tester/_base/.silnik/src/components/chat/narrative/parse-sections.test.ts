@@ -266,5 +266,50 @@ describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
     expect(sections[1].type).toBe('narrative');
     expect(sections[1].content).toBe('Narracja po liście.');
   });
+
+  it('poprawnie parsuje dedykowany tag [HANDOUT:slug] z wydzieleniem sekcji (Issue #649)', () => {
+    const text = [
+      'Wchodzicie do archiwum.',
+      '[HANDOUT:teczka-sb-klin]',
+      'W pokoju panuje chlod.',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    expect(sections.length).toBeGreaterThanOrEqual(2);
+    const handoutSec = sections.find((s) => s.type === 'handout');
+    expect(handoutSec).toBeDefined();
+    expect(handoutSec?.handoutSlug).toBe('teczka-sb-klin');
+  });
+
+  it('detectHandoutType poprawnie rozpoznaje typ map dla map i planow (Issue #649)', () => {
+    expect(detectHandoutType('mapa-walimia')).toBe('map');
+    expect(detectHandoutType('PLAN PIWNIC')).toBe('map');
+    expect(detectHandoutType('🗺️ Szkic terenu')).toBe('map');
+    expect(detectHandoutType('floorplan-hospital')).toBe('map');
+  });
+
+  it('poprawnie parsuje 3+ sasiadujace tagi [HANDOUT:slug] bez spacji jako osobne sekcje', () => {
+    const text = '[HANDOUT:slug1][HANDOUT:slug2][HANDOUT:slug3]';
+    const sections = parseIntoSections(text);
+    expect(sections).toHaveLength(3);
+    expect(sections.every((s) => s.type === 'handout')).toBe(true);
+    expect(sections.map((s) => s.handoutSlug)).toEqual(['slug1', 'slug2', 'slug3']);
+    expect(sections.some((s) => s.type === 'whisper')).toBe(false);
+  });
+
+  it('zachowuje powiazanie [NOTATKA_BADACZA] z [HANDOUT:<slug>] przy normalizacji', () => {
+    const text = [
+      '[NOTATKA_BADACZA: Kto: Dr Armitage | Dotyczy: Akta | Trop: Slad]',
+      '[HANDOUT:akta-sprawy]',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      'Tresc akt.',
+    ].join('\n');
+    const sections = parseIntoSections(text);
+    const handout = sections.find((s) => s.type === 'handout' && s.handoutSlug === 'akta-sprawy');
+    expect(handout).toBeDefined();
+    expect(handout?.stickyNote?.who).toBe('Dr Armitage');
+    expect(handout?.stickyNote?.about).toBe('Akta');
+    expect(handout?.stickyNote?.clue).toBe('Slad');
+  });
 });
 

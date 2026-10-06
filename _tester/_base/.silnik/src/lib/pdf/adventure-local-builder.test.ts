@@ -1,10 +1,15 @@
 import {
   buildLocalCustomAdventures,
   parseScenariosFromAnthologyText,
+  cleanRawHandoutText,
+  isKeeperOrTacticalHandout,
+  evaluateGmSafety,
+  extractHandoutsFromScenarioText,
 } from './adventure-local-builder';
 import { detectRulebookProfile } from './rulebook-fingerprint';
 import type { OverlayDescriptor } from './semantic-overlay-engine';
 import type { AdventureNodeType } from '@/lib/types';
+import { buildHandoutsContext } from '@/app/api/chat/_helpers/build-handouts-context';
 
 describe('adventure-local-builder', () => {
   const dummyOverlay: OverlayDescriptor = {
@@ -629,6 +634,341 @@ Wprowadzenie: Agent federalny przybywa do portowego miasteczka Innsmouth w 1927 
         const serialized = JSON.stringify(adv.graph);
         expect(serialized).not.toMatch(/[\u2014\u2013]/);
       }
+    });
+  });
+
+  describe('PDF Importer 100% RAW Extraction & GM Safety (Milestone M2)', () => {
+    describe('cleanRawHandoutText', () => {
+      it('cleans HTML comments, form feeds, normalizes dashes, and preserves paragraphs', () => {
+        const raw =
+          'Pierwszy akapit tekstu.\n<!-- Strona 42 -->\n<!-- Komentarz techniczny -->\n\fDrugi akapit z pauza \u2014 i polpauza \u2013 w srodku.\n\n\n\nTrzeci akapit.';
+        const cleaned = cleanRawHandoutText(raw);
+
+        expect(cleaned).not.toContain('<!-- Strona 42 -->');
+        expect(cleaned).not.toContain('<!-- Komentarz techniczny -->');
+        expect(cleaned).not.toContain('\f');
+        expect(cleaned).not.toMatch(/[\u2013\u2014]/);
+        expect(cleaned).toContain('Drugi akapit z pauza - i polpauza - w srodku.');
+        expect(cleaned).toContain('Pierwszy akapit tekstu.\n\nDrugi akapit');
+        expect(cleaned).toContain('\n\nTrzeci akapit.');
+      });
+    });
+
+    describe('GM Safety Filter (isKeeperOrTacticalHandout & evaluateGmSafety)', () => {
+      it('correctly classifies tactical floorplans as keeperOnly: true and isPlayerFacing: false', () => {
+        const floorplan = evaluateGmSafety('Plan kondygnacji rezydencji Corbitta');
+        expect(floorplan.keeperOnly).toBe(true);
+        expect(floorplan.isPlayerFacing).toBe(false);
+
+        const cellar = evaluateGmSafety('Rzut piwnic z oznaczeniem krypty');
+        expect(cellar.keeperOnly).toBe(true);
+        expect(cellar.isPlayerFacing).toBe(false);
+
+        const tactical = evaluateGmSafety('Tactical Floor Plan of the Asylum');
+        expect(tactical.keeperOnly).toBe(true);
+        expect(tactical.isPlayerFacing).toBe(false);
+      });
+
+      it('correctly classifies explicit Keeper sections as keeperOnly: true', () => {
+        const keeperSecret = evaluateGmSafety('DODATEK 2: Sekrety Strażnika - Prawda o rytuale');
+        expect(keeperSecret.keeperOnly).toBe(true);
+        expect(keeperSecret.isPlayerFacing).toBe(false);
+
+        const gmOnly = evaluateGmSafety('Informacje dla Strażnika Tajemnic');
+        expect(gmOnly.keeperOnly).toBe(true);
+        expect(gmOnly.isPlayerFacing).toBe(false);
+
+        const englishKeeper = evaluateGmSafety("Handout 5: Keeper's Map of Catacombs");
+        expect(englishKeeper.keeperOnly).toBe(true);
+        expect(englishKeeper.isPlayerFacing).toBe(false);
+
+        const gmNotes = evaluateGmSafety('Pomoc dla MG: Informacje poufne');
+        expect(gmNotes.keeperOnly).toBe(true);
+        expect(gmNotes.isPlayerFacing).toBe(false);
+      });
+
+      it('retains isPlayerFacing: true for legitimate player handouts', () => {
+        const map = evaluateGmSafety('POMOC DLA GRACZY #1 - Mapa rejonu Tatr');
+        expect(map.keeperOnly).toBe(false);
+        expect(map.isPlayerFacing).toBe(true);
+
+        const newspaper = evaluateGmSafety('POMOC DLA GRACZY #2 - Wycinek z Gazety Podhalańskiej');
+        expect(newspaper.keeperOnly).toBe(false);
+        expect(newspaper.isPlayerFacing).toBe(true);
+
+        const letter = evaluateGmSafety('DODATEK 3: List od profesora Smitha');
+        expect(letter.keeperOnly).toBe(false);
+        expect(letter.isPlayerFacing).toBe(true);
+      });
+
+      it('prioritizes explicit Keeper directives over player handout headers', () => {
+        const conflicted = evaluateGmSafety('POMOC DLA GRACZY #4 - Plan lochów (Tylko dla Strażnika)');
+        expect(conflicted.keeperOnly).toBe(true);
+        expect(conflicted.isPlayerFacing).toBe(false);
+      });
+
+      it('inspects RAW content snippet when title is generic', () => {
+        const contentTriggered = evaluateGmSafety(
+          'DODATEK 7',
+          'TYLKO DLA STRAŻNIKA: Ten dokument zawiera rozwiązanie zagadki i nie może być udostępniony badaczom.'
+        );
+        expect(contentTriggered.keeperOnly).toBe(true);
+        expect(contentTriggered.isPlayerFacing).toBe(false);
+      });
+
+      it('protects diegetic guards from false positive trigger (lighthouse keeper, prison guard)', () => {
+        const lighthouse = evaluateGmSafety('DODATEK 4: Zapiski strażnika latarni morskiej');
+        expect(lighthouse.keeperOnly).toBe(false);
+        expect(lighthouse.isPlayerFacing).toBe(true);
+
+        const prisonGuard = evaluateGmSafety('POMOC 5: Zeznanie strażnika więziennego');
+        expect(prisonGuard.keeperOnly).toBe(false);
+        expect(prisonGuard.isPlayerFacing).toBe(true);
+
+        const enLighthouse = evaluateGmSafety('Handout 2: Journal of the lighthouse keeper');
+        expect(enLighthouse.keeperOnly).toBe(false);
+        expect(enLighthouse.isPlayerFacing).toBe(true);
+      });
+    });
+
+    describe('extractHandoutsFromScenarioText & Multilingual Headers', () => {
+      it('extracts diverse Polish handout headers with correct types, titles, and slugs', () => {
+        const text = `
+ROZDZIAŁ 1
+POMOC DLA GRACZY 1 - Mapa portu w Gdyni
+POMOC 2: List od komisarza
+ZAŁĄCZNIK 3: Raport z sekcji zwłok
+ZAŁĄCZNIK A: Zapiski spirytysty
+DODATEK 4: Wycinek z Kuriera Warszawskiego
+REKWIZYT 5: Telegram ze Lwowa
+        `;
+
+        const handouts = extractHandoutsFromScenarioText(text, 'Tajemnica Gdyni', 'pl');
+        expect(handouts.length).toBe(6);
+
+        expect(handouts[0].handoutType).toBe('map');
+        expect(handouts[0].title).toBe('Mapa portu w Gdyni');
+        expect(handouts[0].slug).toBe('tajemnica-gdyni-pomoc-1');
+        expect(handouts[0].chapterId).toBe('rozdzial-1');
+
+        expect(handouts[1].handoutType).toBe('letter');
+        expect(handouts[1].title).toBe('List od komisarza');
+        expect(handouts[1].slug).toBe('tajemnica-gdyni-pomoc-2');
+
+        expect(handouts[2].handoutType).toBe('report');
+        expect(handouts[2].title).toBe('Raport z sekcji zwłok');
+        expect(handouts[2].slug).toBe('tajemnica-gdyni-pomoc-3');
+
+        expect(handouts[3].handoutType).toBe('diary');
+        expect(handouts[3].title).toBe('Zapiski spirytysty');
+        expect(handouts[3].slug).toBe('tajemnica-gdyni-pomoc-a');
+
+        expect(handouts[4].handoutType).toBe('newspaper');
+        expect(handouts[4].title).toBe('Wycinek z Kuriera Warszawskiego');
+        expect(handouts[4].slug).toBe('tajemnica-gdyni-pomoc-4');
+
+        expect(handouts[5].handoutType).toBe('telegram');
+        expect(handouts[5].title).toBe('Telegram ze Lwowa');
+        expect(handouts[5].slug).toBe('tajemnica-gdyni-pomoc-5');
+      });
+
+      it('extracts English handout headers with proper types and chapterIds', () => {
+        const text = `
+CHAPTER 2
+Handout 1: The Arkham Witch-Trial Papers
+Player Handout 2: Police Dossier
+Appendix A: Floor Plan of the Sanitarium
+Exhibit 1: The Telegraph Wire
+        `;
+
+        const handouts = extractHandoutsFromScenarioText(text, 'Shadows over Arkham', 'en');
+        expect(handouts.length).toBe(4);
+
+        expect(handouts[0].title).toBe('The Arkham Witch-Trial Papers');
+        expect(handouts[0].slug).toBe('shadows-over-arkham-handout-1');
+        expect(handouts[0].chapterId).toBe('chapter-2');
+
+        expect(handouts[1].handoutType).toBe('report');
+        expect(handouts[1].title).toBe('Police Dossier');
+        expect(handouts[1].slug).toBe('shadows-over-arkham-handout-2');
+
+        expect(handouts[2].handoutType).toBe('map');
+        expect(handouts[2].keeperOnly).toBe(true);
+        expect(handouts[2].isPlayerFacing).toBe(false);
+
+        expect(handouts[3].handoutType).toBe('telegram');
+      });
+
+      it('extracts chapterId from header line prefix or preceding chapter context', () => {
+        const text = `
+Rozdział 2: Pomoc 1 - Szkic sytuacyjny
+Chapter 3: Handout 2 - Intercepted Letter
+Akt 1 - Załącznik A - Manifest loży
+        `;
+
+        const handouts = extractHandoutsFromScenarioText(text, 'Test Kampanii', 'unknown');
+        expect(handouts.length).toBe(3);
+        expect(handouts[0].chapterId).toBe('rozdzial-2');
+        expect(handouts[1].chapterId).toBe('chapter-3');
+        expect(handouts[2].chapterId).toBe('akt-1');
+      });
+    });
+
+    describe('100% RAW Text Extraction', () => {
+      it('extracts intact RAW body text with paragraphs and excludes synthetic placeholder', () => {
+        const text = `
+ROZDZIAŁ 1
+LIST PROFESORA
+
+POMOC DLA GRACZY #1 - List profesora Webba
+Drogi Przyjacielu,
+
+<!-- Strona 14 -->
+Pisze do Ciebie w pospiechu, poniewaz odkrylem cos niepokojacego w archiwach Miskatonic.
+Nie ufaj nikomu w departamencie archeologii.
+
+Z powazaniem,
+Profesor Webb
+
+POMOC DLA GRACZY #2 - Notatka z prosektorium
+Denat mial na piersi naciety symbol oka.
+        `;
+
+        const handouts = extractHandoutsFromScenarioText(text, 'List Profesora', 'pl');
+        expect(handouts.length).toBe(2);
+
+        const h1 = handouts[0];
+        expect(h1.textContent).toBeDefined();
+        expect(h1.textContent).toContain('Drogi Przyjacielu,');
+        expect(h1.textContent).toContain('Pisze do Ciebie w pospiechu');
+        expect(h1.textContent).toContain('Z powazaniem,\nProfesor Webb');
+        expect(h1.textContent).not.toContain('<!-- Strona 14 -->');
+        expect(h1.textContent).not.toContain('Załącznik śledczy powiązany');
+
+        const h2 = handouts[1];
+        expect(h2.textContent).toBe('Denat mial na piersi naciety symbol oka.');
+      });
+    });
+
+    describe('Uncapped Handouts Count (> 10 items)', () => {
+      it('extracts all handouts when scenario contains 15 items without 10-item truncation', () => {
+        const items = Array.from({ length: 15 }, (_, i) => `POMOC DLA GRACZY #${i + 1} - Dokument dowodowy numer ${i + 1}`).join('\n');
+        const text = `
+ROZDZIAŁ 1
+ARCHIWUM TAJEMNIC
+${items}
+        `;
+
+        const handouts = extractHandoutsFromScenarioText(text, 'Archiwum Tajemnic', 'pl');
+        expect(handouts.length).toBe(15);
+        expect(handouts[10].title).toBe('Dokument dowodowy numer 11');
+        expect(handouts[14].title).toBe('Dokument dowodowy numer 15');
+      });
+    });
+
+    describe('Slug Collision Safety', () => {
+      it('generates unique non-colliding slugs for long scenario titles', () => {
+        const text = `
+POMOC DLA GRACZY #1 - Pierwsza czesc zeznania
+POMOC DLA GRACZY #1 - Druga czesc zeznania
+POMOC DLA GRACZY #2 - List komisarza
+        `;
+
+        const longTitle = 'Nawiedzony dwor w dolinie mgliscie zarosnietych wzgorz';
+        const handouts = extractHandoutsFromScenarioText(text, longTitle, 'pl');
+
+        expect(handouts.length).toBe(3);
+        const slugs = handouts.map((h) => h.slug);
+        const uniqueSlugs = new Set(slugs);
+        expect(uniqueSlugs.size).toBe(3);
+        for (const slug of slugs) {
+          expect(slug.length).toBeLessThanOrEqual(40);
+        }
+      });
+    });
+
+    describe('End-to-end Integration with buildLocalCustomAdventures & buildHandoutsContext', () => {
+      it('segregates player and keeper handouts in scenario build and feeds buildHandoutsContext safely', () => {
+        const text = `
+ROZDZIAŁ 1
+TAJEMNICA SANATORIUM
+
+LEGENDA OZNACZENIA SCENARIUSZY
+Stopień trudności: Średni 
+Liczba sesji: ➋
+
+POMOC DLA GRACZY #1 - Mapa okolic Zakopanego
+Dojazd do sanatorium jest mozliwy wylacznie przez Przelecz pod Koza.
+
+POMOC DLA GRACZY #2 - Wycinek z gazety
+Tajemnicze znikniecie pacjenta z Sanatorium Czerwony Dwor.
+
+DODATEK 3: Plan kondygnacji sanatorium (Tylko dla Strażnika)
+Piwnica zawiera cele i tajne laboratorium dr. Von Kissa.
+
+DODATEK 4: Rzut piwnic z rozmieszczeniem kultystów
+W zachodnim skrzydle czuwa trzech wartownikow.
+        `;
+
+        const profile = detectRulebookProfile(text, 'Test_Sanatorium.pdf');
+        const adventures = buildLocalCustomAdventures(
+          text,
+          profile,
+          dummyOverlay,
+          'Test_Sanatorium.pdf',
+          30
+        );
+
+        expect(adventures.length).toBe(1);
+        const adv = adventures[0];
+        expect(adv.handouts).toBeDefined();
+        expect(adv.handouts?.length).toBe(4);
+
+        const playerFacing = adv.handouts?.filter((h) => !h.keeperOnly && h.isPlayerFacing !== false);
+        const keeperOnly = adv.handouts?.filter((h) => h.keeperOnly === true || h.isPlayerFacing === false);
+
+        expect(playerFacing?.length).toBe(2);
+        expect(keeperOnly?.length).toBe(2);
+
+        expect(playerFacing?.[0].title).toContain('Mapa okolic Zakopanego');
+        expect(playerFacing?.[1].title).toContain('Wycinek z gazety');
+        expect(keeperOnly?.[0].title).toContain('Plan kondygnacji');
+        expect(keeperOnly?.[1].title).toContain('Rzut piwnic');
+
+        // Weryfikacja z buildHandoutsContext:
+        const promptContext = buildHandoutsContext(adv.handouts, adv.puzzles, {
+          activeChapterId: 'rozdzial-1',
+        });
+
+        // 1. Jawne handouty graczy musza miec instrukcje uzycia tagu [HANDOUT:<slug>]
+        expect(promptContext).toContain('DOSTĘPNE HANDOUTY');
+        expect(promptContext).toContain(`[HANDOUT:${playerFacing?.[0].slug}]`);
+        expect(promptContext).toContain(`[HANDOUT:${playerFacing?.[1].slug}]`);
+
+        // 2. Plany taktyczne Straznika musza trafic wylacznie do sekcji Straznika z zakazem wreczania
+        expect(promptContext).toContain('MATERIAŁY I PLANY STRAŻNIKA (KEEPER-ONLY - ZAKAZ WRĘCZANIA GRACZOM)');
+        expect(promptContext).toContain('Plan kondygnacji');
+        expect(promptContext).toContain('Rzut piwnic');
+
+        // 3. Plany taktyczne NIGDY nie moga miec instrukcji wreczania tagiem do gracza
+        expect(promptContext).not.toContain(`[HANDOUT:${keeperOnly?.[0].slug}]`);
+        expect(promptContext).not.toContain(`[HANDOUT:${keeperOnly?.[1].slug}]`);
+      });
+
+      it('guarantees zero em-dash and en-dash in all extracted handouts', () => {
+        const text = `
+ROZDZIAŁ 1 - TEST MYSLNIKOW
+POMOC DLA GRACZY #1 \u2014 Mapa terenu \u2013 poludniowy sektor
+Dokument zawiera wycinek \u2014 z kroniki \u2013 miejskiej.
+        `;
+
+        const handouts = extractHandoutsFromScenarioText(text, 'Test Myslnikow', 'pl');
+        expect(handouts.length).toBe(1);
+        const h = handouts[0];
+        expect(h.title).not.toMatch(/[\u2013\u2014]/);
+        expect(h.slug).not.toMatch(/[\u2013\u2014]/);
+        expect(h.textContent).not.toMatch(/[\u2013\u2014]/);
+      });
     });
   });
 });

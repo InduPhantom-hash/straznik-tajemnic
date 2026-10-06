@@ -34,8 +34,18 @@ export interface AdventureHandout {
   audioUrl?: string;
   /** Opcjonalny typ handoutu dla renderera tekstu w czacie */
   handoutType?: 'newspaper' | 'letter' | 'telegram' | 'report' | 'diary' | 'book' | 'map';
-  /** Opcjonalna transkrypcja lub tekst do przeczytania */
+  /** Opcjonalna transkrypcja lub nienaruszony tekst RAW z podręcznika */
   textContent?: string;
+  /** Flaga widoczności dla gracza (domyślnie true) */
+  isPlayerFacing?: boolean;
+  /** Flaga materiałów Strażnika / planów taktycznych (blokada wręczania graczom, domyślnie false) */
+  keeperOnly?: boolean;
+  /** Identyfikator powiązanego rozdziału lub aktu */
+  chapterId?: string;
+  /** Identyfikator powiązanego węzła grafu śledztwa */
+  nodeId?: string;
+  /** Identyfikator powiązanej lokacji */
+  locationId?: string;
 }
 
 /** Gotowa postać (pregen) wyekstrahowana ze scenariusza */
@@ -142,6 +152,12 @@ export interface AdventureContext {
   isStrefa11?: boolean;
   /** Predefiniowane handouty fabularne (dokumenty, mapy, taśmy audio) */
   handouts?: AdventureHandout[];
+  /** Aktywny rozdział lub akt scenariusza */
+  activeChapterId?: string | number;
+  /** Aktywna lokacja */
+  activeLocationId?: string;
+  /** Aktywny węzeł grafu śledztwa */
+  activeNodeId?: string;
   /** Diegetyczne granice sprawy (Closed Circle Mystery - Seth Skorkowsky) (Issue #648 Faza 2 R2) */
   boundarySummary?: string;
   /** Pula sekretów Mike'a Shea z 3 bezpiecznikami anty-pleasing (Issue #648 Faza 2 R1) */

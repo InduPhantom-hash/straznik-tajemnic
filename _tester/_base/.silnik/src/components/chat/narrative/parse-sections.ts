@@ -50,7 +50,11 @@ export function parseStickyNote(raw: string): { stickyNote?: StickyNote; cleaned
 
 export function parseIntoSections(content: string): Section[] {
   const sections: Section[] = [];
-  const lines = content.split('\n');
+  const normalizedContent = content.replace(
+    /\s*(\[HANDOUT:\s*[^\]]*?\])\s*/gi,
+    '\n$1\n'
+  );
+  const lines = normalizedContent.split('\n');
 
   let currentSection: Section | null = null;
   let handoutBuffer: string[] = [];
@@ -108,11 +112,20 @@ export function parseIntoSections(content: string): Section[] {
           cleanedContent = cleanedContent.replace(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*[^\]]+\]/gi, '');
         }
         const { stickyNote, cleaned } = parseStickyNote(cleanedContent);
-        cleanedContent = cleaned.trim();
+        cleanedContent = cleaned;
+        const slugMatch = cleanedContent.match(/\[HANDOUT:\s*([^\]]*?)\s*\]/i);
+        const extractedSlug = slugMatch ? slugMatch[1].trim() : undefined;
+        if (slugMatch) {
+          cleanedContent = cleanedContent.replace(/\[HANDOUT:\s*[^\]]*?\]/gi, '');
+        }
+        cleanedContent = cleanedContent.trim();
         sections.push({
           type: 'handout',
           content: cleanedContent,
-          handoutType: handoutType,
+          handoutSlug: extractedSlug,
+          handoutType: extractedSlug
+            ? (detectHandoutType(extractedSlug) !== 'note' ? detectHandoutType(extractedSlug) : handoutType)
+            : handoutType,
           stickyNote,
           audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
           imageUrl: imageMatch ? imageMatch[1].trim() : undefined,
@@ -210,6 +223,24 @@ export function parseIntoSections(content: string): Section[] {
       continue;
     }
 
+    // Wykryj tag handoutu [HANDOUT:<slug>]
+    const handoutTagMatch = trimmedLine.match(/^\[HANDOUT:\s*([^\]]*?)\s*\]$/i);
+    if (handoutTagMatch) {
+      if (currentSection && currentSection.content.trim()) {
+        sections.push(currentSection);
+      }
+      const slug = handoutTagMatch[1].trim();
+      const detectedType = detectHandoutType(slug);
+      sections.push({
+        type: 'handout',
+        handoutSlug: slug,
+        content: '',
+        handoutType: detectedType !== 'note' ? detectedType : undefined,
+      });
+      currentSection = null;
+      continue;
+    }
+
     // Wykryj szept/informację meta (w nawiasach kwadratowych)
     if (
       trimmedLine.startsWith('[') &&
@@ -269,11 +300,20 @@ export function parseIntoSections(content: string): Section[] {
       cleanedContent = cleanedContent.replace(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*[^\]]+\]/gi, '');
     }
     const { stickyNote, cleaned } = parseStickyNote(cleanedContent);
-    cleanedContent = cleaned.trim();
+    cleanedContent = cleaned;
+    const slugMatch = cleanedContent.match(/\[HANDOUT:\s*([^\]]*?)\s*\]/i);
+    const extractedSlug = slugMatch ? slugMatch[1].trim() : undefined;
+    if (slugMatch) {
+      cleanedContent = cleanedContent.replace(/\[HANDOUT:\s*[^\]]*?\]/gi, '');
+    }
+    cleanedContent = cleanedContent.trim();
     sections.push({
       type: 'handout',
       content: cleanedContent,
-      handoutType: handoutType,
+      handoutSlug: extractedSlug,
+      handoutType: extractedSlug
+        ? (detectHandoutType(extractedSlug) !== 'note' ? detectHandoutType(extractedSlug) : handoutType)
+        : handoutType,
       stickyNote,
       audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
       imageUrl: imageMatch ? imageMatch[1].trim() : undefined,
@@ -356,7 +396,7 @@ function isHandoutStart(line: string): boolean {
 }
 
 function isHandoutTerminator(line: string): boolean {
-  return /^\[(Co robi(?:sz|cie)\?|RZUT|TEST|WYNIK|Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched)/i.test(line);
+  return /^\[(Co robi(?:sz|cie)\?|RZUT|TEST|WYNIK|HANDOUT|Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched)/i.test(line);
 }
 
 function isHandoutEnd(line: string, buffer?: string[]): boolean {
@@ -375,6 +415,7 @@ export function detectHandoutType(line: string): HandoutType {
   // diary PRZED newspaper - "DZIENNIK" matchuje newspaper (PL alias gazety jak "Dziennik Polski"),
   // diary używa innych słów (emoji 📓, EN: DIARY/JOURNAL, PL: PAMIĘTNIK/NOTATNIK).
   if (line.match(/📓|DIARY|JOURNAL|PAMIĘTNIK|NOTATNIK/i)) return 'diary';
+  if (line.match(/🗺️|MAPA|PLAN|MAP|FLOORPLAN|KARTOGRAFIA/i)) return 'map';
   if (line.match(/📰|KURIER|DZIENNIK|ADVERTISER|NEWSPAPER|TIMES|GAZETTE/i))
     return 'newspaper';
   if (
@@ -391,7 +432,7 @@ export function detectHandoutType(line: string): HandoutType {
     return 'telegram';
   if (
     line.match(
-      /📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ|🎙️|📼|📻|NAGRANIE|TAŚMA|TASMA|RECORDING|AUDIO|MAGNETOFON|🗺️|MAPA|PLAN|MAP/i
+      /📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ|🎙️|📼|📻|NAGRANIE|TAŚMA|TASMA|RECORDING|AUDIO|MAGNETOFON/i
     )
   )
     return 'report';

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { AnyAdventureContext } from '@/lib/handout-resolver';
 import { formatNarrative } from './formatter';
 
 interface NarrativeFormatterProps {
@@ -9,6 +10,7 @@ interface NarrativeFormatterProps {
   playerColors?: Map<string, string>; // Hot Seat: mapa imię postaci -> kolor gracza
   onImageClick?: (imgUrl: string, allImages: string[]) => void;
   isDirectorMode?: boolean;
+  adventureContext?: AnyAdventureContext | null;
 }
 
 /**
@@ -28,11 +30,12 @@ export function NarrativeFormatter({
   playerColors,
   onImageClick,
   isDirectorMode,
+  adventureContext,
 }: NarrativeFormatterProps) {
   // IND-145 B8: useMemo eliminuje per-render re-parse 50 wiadomości × 30+ regex
   const formattedContent = useMemo(
-    () => formatNarrative(content, playerColors, onImageClick, isDirectorMode),
-    [content, playerColors, onImageClick, isDirectorMode]
+    () => formatNarrative(content, playerColors, onImageClick, isDirectorMode, adventureContext),
+    [content, playerColors, onImageClick, isDirectorMode, adventureContext]
   );
 
   return (
@@ -40,5 +43,5 @@ export function NarrativeFormatter({
   );
 }
 
-export type { Section, SectionType, HandoutType } from './types';
+export type { Section, SectionType, HandoutType, HandoutSection } from './types';
 export default NarrativeFormatter;

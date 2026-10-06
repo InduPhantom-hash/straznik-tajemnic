@@ -2,36 +2,152 @@
  * buildHandoutsContext - sekcja promptu z realnymi handoutami aktywnej przygody
  * (DriveThruRPG: mapy/dokumenty w public/handouts/).
  *
- * MG dostaje listę dostępnych handoutów + DOKŁADNY markdown obrazu do skopiowania.
- * Gdy scena tego wymaga (gracze znajdują mapę, dostają list), MG wstawia ten markdown
- * w narracji - istniejący renderer obrazów (render-narrative-with-images) pokazuje
- * realny skan zamiast obrazu generowanego przez AI. Zero zmian w komponentach czatu.
+ * Scoping per rozdział i lokacja, bezpieczeństwo materiałów Strażnika (keeperOnly),
+ * oraz deterministyczne instrukcje tagu [HANDOUT:<slug>].
  *
- * Pure function, bez side effects. Pusty string gdy przygoda nie ma handoutów.
+ * Pure function, bez side effects. Pusty string gdy przygoda nie ma handoutów ani zagadek.
  */
 import type { AdventureHandout, AdventurePuzzle } from '@/lib/adventures-data';
 
+export interface BuildHandoutsContextOptions {
+  activeChapterId?: string | number | null;
+  activeLocationId?: string | null;
+  activeNodeId?: string | null;
+  currentLocation?: string | null;
+}
+
+function normalizeString(val: string | number | null | undefined): string {
+  if (val == null) return '';
+  return String(val).trim().toLowerCase();
+}
+
+function matchesChapter(
+  handoutChapter?: string,
+  activeChapter?: string | number | null
+): boolean {
+  if (activeChapter == null || activeChapter === '') return true;
+  if (!handoutChapter) return true; // Handout globalny dla całej przygody
+
+  const hNorm = normalizeString(handoutChapter);
+  const aNorm = normalizeString(activeChapter);
+
+  if (hNorm === aNorm) return true;
+
+  // Porównanie cyfr dla formatów np. "Rozdział 1" vs "1" lub "akt-2" vs 2
+  const hDigits = hNorm.replace(/\D/g, '');
+  const aDigits = aNorm.replace(/\D/g, '');
+  if (hDigits && aDigits && hDigits === aDigits) return true;
+
+  // Dopasowanie częściowe np. "chapter-1" zawiera "1"
+  if (hNorm.includes(aNorm) || aNorm.includes(hNorm)) return true;
+
+  return false;
+}
+
+function matchesLocation(
+  handout: AdventureHandout,
+  options?: BuildHandoutsContextOptions
+): boolean {
+  // Handout bez ograniczeń lokacji/węzła jest globalny
+  if (!handout.locationId && !handout.nodeId) return true;
+
+  const currentLoc = normalizeString(options?.currentLocation);
+  const activeLocId = normalizeString(options?.activeLocationId);
+  const activeNodeId = normalizeString(options?.activeNodeId);
+
+  // Jeśli opcje nie definiują żadnej lokacji/węzła, nie filtrujemy po lokacji
+  if (!currentLoc && !activeLocId && !activeNodeId) return true;
+
+  const targetTokens = [currentLoc, activeLocId, activeNodeId].filter(Boolean);
+
+  if (handout.locationId) {
+    const hLoc = normalizeString(handout.locationId);
+    for (const token of targetTokens) {
+      if (hLoc === token || hLoc.includes(token) || token.includes(hLoc)) {
+        return true;
+      }
+    }
+  }
+
+  if (handout.nodeId) {
+    const hNode = normalizeString(handout.nodeId);
+    for (const token of targetTokens) {
+      if (hNode === token || hNode.includes(token) || token.includes(hNode)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export function buildHandoutsContext(
   handouts?: AdventureHandout[] | null,
-  puzzles?: AdventurePuzzle[] | null
+  puzzles?: AdventurePuzzle[] | null,
+  options?: BuildHandoutsContextOptions
 ): string {
   let context = '';
+  const allHandouts = handouts || [];
 
-  if (handouts && handouts.length > 0) {
-    const list = handouts
-      .map((h) => `- ${h.title} → wstaw dokładnie: \`![${h.title}](${h.image})\``)
+  // 1. Separacja materiałów graczy od tajnych materiałów Strażnika
+  const playerHandouts = allHandouts.filter(
+    (h) => !h.keeperOnly && h.isPlayerFacing !== false
+  );
+  const keeperMaterials = allHandouts.filter(
+    (h) => h.keeperOnly === true || h.isPlayerFacing === false
+  );
+
+  // 2. Scoping handoutów gracza wg aktywnego rozdziału i lokacji
+  const scopedPlayerHandouts = playerHandouts.filter((h) => {
+    return matchesChapter(h.chapterId, options?.activeChapterId) &&
+           matchesLocation(h, options);
+  });
+
+  // 3. Scoping materiałów Strażnika (wg rozdziału, jeśli podano)
+  const scopedKeeperMaterials = keeperMaterials.filter((h) => {
+    return matchesChapter(h.chapterId, options?.activeChapterId);
+  });
+
+  // 4. Sekcja DOSTĘPNE HANDOUTY (materiały do wręczenia graczom)
+  if (scopedPlayerHandouts.length > 0) {
+    const list = scopedPlayerHandouts
+      .map((h) => `- ${h.title} → wstaw dokładnie: [HANDOUT:${h.slug}]`)
       .join('\n');
 
     context += (
       `\n## DOSTĘPNE HANDOUTY (realne dokumenty tej przygody)\n` +
       `Masz prawdziwe materiały do POKAZANIA graczom (mapy, dokumenty, listy). Reguły:\n` +
       `- Wstaw handout TYLKO gdy postacie fizycznie go widzą/otrzymują w fikcji (znajdują mapę, dostają kopertę).\n` +
-      `- Użyj DOKŁADNIE podanego markdownu (skopiuj 1:1) w osobnej linii, po opisie sceny.\n` +
+      `- Gdy gracze fizycznie odnajdują lub otrzymują dokument, wstaw dokładnie tag: [HANDOUT:<slug>] w osobnej linii po opisie sceny. Nie parafrazuj ani nie zmyślaj treści dokumentu w narracji.\n` +
+      `- Silnik gry automatycznie wyświetli graczom oryginalny, autentyczny dokument (100% RAW) na podstawie sluga.\n` +
       `- NIE wymyślaj własnych ścieżek ani handoutów spoza tej listy. Każdy pokaż maksymalnie raz, w naturalnym momencie.\n\n` +
       list + '\n'
     );
   }
 
+  // 5. Sekcja KEEPER-ONLY (tajemnice i plany taktyczne MG - zakaz wręczenia)
+  if (scopedKeeperMaterials.length > 0) {
+    const keeperList = scopedKeeperMaterials
+      .map((h) => {
+        let entry = `- ${h.title} (slug: ${h.slug})`;
+        if (h.textContent) {
+          entry += `\n  Informacje dla MG: ${h.textContent}`;
+        }
+        return entry;
+      })
+      .join('\n');
+
+    context += (
+      `\n## MATERIAŁY I PLANY STRAŻNIKA (KEEPER-ONLY - ZAKAZ WRĘCZANIA GRACZOM)\n` +
+      `Materiały taktyczne i plany przeznaczone WYŁĄCZNIE dla Ciebie jako Strażnika Tajemnic (tajemnice MG, plany kondygnacji):\n` +
+      `- BEZWZGLĘDNY ZAKAZ: Nigdy nie emituj tagu [HANDOUT:...] dla tych materiałów!\n` +
+      `- ZAKAZ bezpośredniego wręczania, pokazywania lub cytowania 1:1 tych materiałów graczom.\n` +
+      `- Możesz opisywać słownie w narracji jedynie to, co postacie bezpośrednio widzą i badają.\n\n` +
+      keeperList + '\n'
+    );
+  }
+
+  // 6. Sekcja ZAGADKI LOGICZNE (bez zmian)
   if (puzzles && puzzles.length > 0) {
     const puzzleList = puzzles
       .map((p) => {
