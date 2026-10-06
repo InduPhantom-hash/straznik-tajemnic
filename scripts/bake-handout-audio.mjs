@@ -67,7 +67,7 @@ export const PREDEFINED_HANDOUTS = [
     mediaType: 'reel_tape',
     voiceType: 'sb_officer',
     elevenVoiceId: 'pNInz6obpgDQGcFmaJgB', // Adam / głęboki, chłodny głos oficera SB
-    text: 'Meldunek z podsłuchu celi ojca Czesława Klimuszki w Elblągu, 12 października 1973. Godzina dwudziesta trzecia zero zero. W celi słychać jednostajną modlitwę, a potem... gwałtowny pisk aparatury pomiarowej. Rejestrujemy nagły skok pola elektromagnetycznego. Szyby w oknach zaczynają drżeć. On rozmawia z kimś, kogo tam nie ma...',
+    text: 'Meldunek operacyjny z podsłuchu obiektu KLIN w Elblągu... Dwanaście października, tysiąc dziewięćset siedemdziesiąty trzeci rok. Godzina dwudziesta trzecia zero zero. W celi klasztornej przez dwie godziny słychać było wyłącznie jednostajny szept modlitewny... A potem... nagły, gwałtowny pisk aparatury pomiarowej. Rejestrujemy natychmiastowy skok natężenia pola elektromagnetycznego. Wskaźniki w wozie transmisyjnym dosłownie powariowały... Szyby w oknach zaczynają drżeć. To nie jest rezonans akustyczny. On... on rozmawia z kimś, kogo tam fizycznie nie ma. Słyszę drugi głos, ale mikrofon dynamiczny nie rejestruje fali dźwiękowej... Sprawdzić to natychmiast.',
     outputFilename: 'cien-nad-prabutami/tasma-sb-elblag.mp3',
   },
   {
@@ -76,8 +76,8 @@ export const PREDEFINED_HANDOUTS = [
     scenario: 'tajemnica-pendnika-lagiewki',
     mediaType: 'cassette_log',
     voiceType: 'excited_engineer',
-    elevenVoiceId: 'VR6AewLTigWG4xSOukaG', // Arnold / nerwowy inżynier
-    text: 'Uwaga, próba zderzeniowa numer cztery. Kowary, Zakład Doświadczalny, 18 maja 1996. Fiat 126p rozpędzony do pięćdziesięciu kilometrów na godzinę uderza czołowo w betonowy blok z zamontowanym zderzakiem Łągiewki. Trzy, dwa, jeden... Jezus Maria! Widzicie to?! Żadnego odrzutu! Samochód stoi jak wryty! Wirnik pochłonął sto procent energii kinetycznej... ale te wskaźniki... skąd wzięła się ta anomalia grawitacyjna?!',
+    elevenVoiceId: 'IKne3meq5aSn9XLyUdCD', // Charlie / energiczny, zszokowany inżynier
+    text: 'Uwaga wszyscy, rejestrujemy! Próba zderzeniowa numer cztery... Kowary, Zakład Doświadczalny, osiemnasty maja tysiąc dziewięćset dziewięćdziesiątego szóstego roku. Fiat 126p na rampie najazdowej, prędkość wyliczona: pięćdziesiąt kilometrów na godzinę. Cel: czołowe uderzenie w lity blok betonowy. Na przedzie zamontowany prototypowy wirnik Łągiewki. Za trzy... dwa... jeden... poszedł! Jezus Maria! Widzieliście to?! Żadnego odrzutu! Samochód stanął w miejscu jak wryty! Ani centymetra odbicia! Wirnik pochłonął sto procent wektora pędu... Czekajcie... spójrzcie na mierniki grawimetryczne! Wskazówka leci poza skalę! Skąd w punkcie uderzenia ujemna masa bezwładna?! Wyłączcie zasilanie! Wyłączcie to natychmiast!',
     outputFilename: 'tajemnica-pendnika-lagiewki/proba-zderzeniowa-kowary.mp3',
   },
   {
@@ -86,8 +86,8 @@ export const PREDEFINED_HANDOUTS = [
     scenario: 'tajemnica-dzieci-z-traszyna',
     mediaType: 'audio_interview',
     voiceType: 'terrified_child',
-    elevenVoiceId: 'TxGEqnHWrfWFTfGW9XjX', // Josh / młody, drżący głos
-    text: 'Proszę pana... myśmy tylko włożyli ten stary klucz w książeczkę do nabożeństwa... Tak jak babcia mówiła. Trzymaliśmy go we dwójkę na palcach. I wtedy ten klucz zaczął się sam obracać. Zrobiło się strasznie zimno, a z desek stodoły zaczęła kapać ta czarna maź... I wtedy ten cień spod dachu zawołał nas po imieniu...',
+    elevenVoiceId: '1tDEBGOo8EqEPApM49eJ', // Leo / dziecięcy głos ze strachem
+    text: 'Proszę pana... przysięgam, myśmy nie chcieli nic złego... Myśmy tylko włożyli ten stary, mosiężny klucz w książeczkę do nabożeństwa... tak jak babcia kiedyś opowiadała. Trzymaliśmy go we dwójkę na końcach palców. I wtedy... ten klucz zaczął się sam obracać. Z każdą sekundą szybciej i szybciej... Zrobiło się tak strasznie zimno, że z ust leciała nam para. A potem z belek pod powałą stodoły zaczęła skapywać ta czarna, gęsta maź... I wtedy ten cień... ten cień spod dachu... zawołał nas po imieniu. Nie głosem człowieka. To brzmiało, jakby mówiła sama ziemia pod podłogą...',
     outputFilename: 'tajemnica-dzieci-z-traszyna/wywiad-dziecko-1983.mp3',
   },
   {
@@ -96,8 +96,8 @@ export const PREDEFINED_HANDOUTS = [
     scenario: 'przybysz-z-matriksa-glogow',
     mediaType: 'vhs_signal',
     voiceType: 'synthetic_prophet',
-    elevenVoiceId: 'ErXwobaYiN019PkySvjV', // Antoni / chłodny, zniekształcony głos
-    text: 'Do wszystkich węzłów podsieci Dolnego Śląska. Jeśli odbieracie tę transmisję na kanale trzydziestym siódmym, oznacza to, że anomalia w Twierdzy Głogów została naruszona. Rok 2001 nie jest początkiem nowego wieku. To pętla. Odłączcie kable zasilające zanim serwery w kazamatach zaczną retransmitować sygnał zza horyzontu...',
+    elevenVoiceId: 'N2lVS1w4EtoT3dr4eOWO', // Callum / chłodny, hipnotyzujący głos
+    text: 'Komunikat priorytetowy do wszystkich węzłów podsieci Dolnego Śląska... Jeżeli odbieracie tę transmisję na kanale trzydziestym siódmym, oznacza to, że pieczęć w kazamatach Twierdzy Głogów została naruszona. Rok dwa tysiące pierwszy nie jest początkiem nowego stulecia. To jest zamknięta pętla czasowa. Każdy odebrany impuls skraca interwał powrotu bytu z podziemi Odry. Odłączcie zasilanie magistrali... Odłączcie kable koncentryczne zanim przekaźniki w zalanym sektorze X-11 zaczną retransmitować sygnał zza horyzontu zdarzeń. Czas nie płynie w przód. Czas zapada się do środka...',
     outputFilename: 'przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3',
   }
 ];
