@@ -119,9 +119,8 @@ cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-# launcher z podmienionymi placeholderami (sed z separatorem | - sciezki bez spacji)
-sed -e "s|__APP_DIR__|$PACKAGE_RUNTIME|g" \
-    -e "s|__NODE_BIN_DIR__|$NODE_BIN_DIR|g" \
+# launcher z dynamicznym wykrywaniem lokalizacji i zaszytym katalogiem node
+sed -e "s|__NODE_BIN_DIR__|$NODE_BIN_DIR|g" \
     "$DESKTOP_DIR/launcher.sh" >"$APP_BUNDLE/Contents/MacOS/launcher"
 chmod +x "$APP_BUNDLE/Contents/MacOS/launcher"
 

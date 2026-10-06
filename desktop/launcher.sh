@@ -19,14 +19,13 @@ PORT=4050
 URL="http://localhost:${PORT}"
 
 # --- Ustal APP_DIR ---
-# build-app.sh zaszywa realny APP_DIR. Detekcja fallbacku przez ISTNIENIE package.json,
-# NIE przez porownanie z literalem "__APP_DIR__": sed -g w build-app.sh podmienia kazde
-# wystapienie placeholdera, wiec porownanie w warunku tez by sie podmienilo i fallback
-# odpalalby sie zawsze (ladujac w bundlu .app zamiast w repo). Detekcja po pliku jest odporna.
-# Repozytorium może być wrapperem: właściwy runtime ma wtedy package.json
-# w _tester/_base/.silnik. Nie przechodź do wnętrza .app w takim przypadku.
-if [ ! -f "$APP_DIR/package.json" ] && [ ! -f "$APP_DIR/_tester/_base/.silnik/package.json" ]; then
-  APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Jeśli skrypt jest wewnątrz pakietu macOS (.app/Contents/MacOS/launcher),
+# runtime leży zawsze w ../Resources/runtime względem launchera.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -d "$SCRIPT_DIR/../Resources/runtime" ]; then
+  APP_DIR="$(cd "$SCRIPT_DIR/../Resources/runtime" && pwd)"
+elif [ ! -f "$APP_DIR/package.json" ] && [ ! -f "$APP_DIR/_tester/_base/.silnik/package.json" ]; then
+  APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
 
 # Bundle moze zostac zlozony z katalogu glownego albo bezposrednio z silnika.
@@ -141,10 +140,6 @@ fi
 
 STARTED_SERVER=0
 if ! curl -sf "$URL" >/dev/null 2>&1; then
-  if [ ! -f ".next/BUILD_ID" ]; then
-    echo "$(date) brak buildu - buduje (to potrwa)..." >>"$LOG"
-    PORT=$PORT npm run build >>"$LOG" 2>&1
-  fi
   echo "$(date) startuje serwer (next start)..." >>"$LOG"
   STRAZNIK_DESKTOP_COLD_START=1 STRAZNIK_DESKTOP_UPDATE=$STRAZNIK_DESKTOP_UPDATE ZEW_DESKTOP_SELF_UPDATE=$ZEW_DESKTOP_SELF_UPDATE ZEW_UPDATE_MANIFEST_URL="$ZEW_UPDATE_MANIFEST_URL" ZEW_APP_BUNDLE="$ZEW_APP_BUNDLE" ZEW_DATA_DIR="$ZEW_DATA_DIR" RAG_DATA_DIR="$RAG_DATA_DIR" ZEW_APP_PORT=$PORT PORT=$PORT nohup npm start >>"$LOG" 2>&1 &
   echo $! >"$PID_FILE"

@@ -31,6 +31,7 @@ const port = parseInt(args.port || '4050', 10);
 const platform = args.platform || process.platform;
 const minimumMacOS = args['minimum-macos'] || '';
 const testMode = args['test-mode'] === 'true' || process.env.TEST_MODE === '1';
+const desktopPid = parseInt(args['desktop-pid'] || process.env.DESKTOP_PID || '0', 10);
 
 if (!target || !url || !expectedSha256 || !version || !dataDir) {
   console.error('Błąd: brakujące wymagane argumenty dla update-worker.');
@@ -133,6 +134,16 @@ function rollback(reason) {
 
 function onSignal(signal) {
   console.log(`Odebrano sygnał ${signal}`);
+  if (signal === 'SIGTERM' && desktopPid > 0) {
+    // Sprawdzamy czy stary proces desktopu właśnie znika (teardown noise)
+    try {
+      process.kill(desktopPid, 0);
+    } catch (_) {
+      // Stary proces zniknął - ignorujemy pierwszy SIGTERM wyemitowany podczas zamknięcia
+      console.log(`Zignorowano sygnał SIGTERM wywołany zamknięciem procesu nadrzędnego (PID ${desktopPid}).`);
+      return;
+    }
+  }
   if (swapped) {
     rollback('update interrupted; previous version restored');
   } else {
@@ -145,6 +156,21 @@ function onSignal(signal) {
 process.on('SIGINT', () => onSignal('SIGINT'));
 process.on('SIGTERM', () => onSignal('SIGTERM'));
 process.on('SIGHUP', () => onSignal('SIGHUP'));
+
+// Oczekiwanie na pełne wygaszenie poprzedniego procesu aplikacji (wzorzec Hermes Agent wait-out)
+async function waitOutDesktopProcess(pid) {
+  if (!pid || pid <= 0) return true;
+  for (let i = 0; i < 100; i++) {
+    try {
+      process.kill(pid, 0);
+      await new Promise((r) => setTimeout(r, 300));
+    } catch (_) {
+      // Proces zakończył działanie
+      return true;
+    }
+  }
+  return false;
+}
 
 // 1. Sprawdzenie i zajęcie blokady (Lock)
 try {
@@ -381,6 +407,17 @@ async function run() {
   writeStatus('installing', 'installing update');
   stopRunningServer();
 
+  // Oczekiwanie na pełne wygaśnięcie procesu desktopu (wzorzec Hermes wait-out loop)
+  if (desktopPid > 0) {
+    console.log(`Oczekiwanie na wygaszenie procesu nadrzędnego PID: ${desktopPid}...`);
+    const exited = await waitOutDesktopProcess(desktopPid);
+    if (!exited) {
+      writeStatus('failed', 'desktop process did not exit in time');
+      cleanup();
+      process.exit(1);
+    }
+  }
+
   // 7. Dwufazowa atomowa podmiana (Swap)
   if (platform === 'darwin') {
     liveLocation = target;
@@ -403,6 +440,21 @@ async function run() {
       fs.renameSync(stagedNewApp, liveLocation);
     } catch (err) {
       rollback('cannot install new bundle');
+    }
+
+    // Synchronizacja lustrzana (Desktop <-> Applications) jeśli istnieją obie kopie
+    try {
+      const desktopApp = path.join(process.env.HOME || '', 'Desktop', 'Straznik Tajemnic AI.app');
+      const appsApp = path.join(process.env.HOME || '', 'Applications', 'Straznik Tajemnic AI.app');
+      if (target === desktopApp && fs.existsSync(appsApp)) {
+        console.log('Synchronizowanie zaktualizowanego pakietu do ~/Applications...');
+        execFileSync('ditto', [liveLocation, appsApp]);
+      } else if (target === appsApp && fs.existsSync(desktopApp)) {
+        console.log('Synchronizowanie zaktualizowanego pakietu na Biurko...');
+        execFileSync('ditto', [liveLocation, desktopApp]);
+      }
+    } catch (syncErr) {
+      console.warn(`Ostrzeżenie przy synchronizacji kopii aplikacji: ${syncErr.message}`);
     }
   } else {
     // Windows: podmiana katalogu runtime
@@ -514,6 +566,10 @@ function launchApplication(appPath) {
   }
   try {
     if (platform === 'darwin') {
+      // Usunięcie kwarantanny macOS przed startem aplikacji pobranej z sieci
+      try {
+        execFileSync('/usr/bin/xattr', ['-dr', 'com.apple.quarantine', appPath], { stdio: 'ignore' });
+      } catch (_) {}
       spawn('open', [appPath], { detached: true, stdio: 'ignore' }).unref();
     } else {
       const targetNode = path.join(appPath, 'bin', 'node.exe');
@@ -536,7 +592,8 @@ async function pollHealthCheck() {
   }
 
   const endpoint = `http://localhost:${port}/api/desktop/cold-start`;
-  for (let attempt = 0; attempt < 100; attempt++) {
+  // Sprawdzamy do 150 prób (150 * 300ms = 45s) na uruchomienie i pełną gotowość serwera
+  for (let attempt = 0; attempt < 150; attempt++) {
     try {
       const res = await fetch(endpoint, { signal: AbortSignal.timeout(1000) });
       if (res.ok) {
