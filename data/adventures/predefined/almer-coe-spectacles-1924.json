@@ -1,0 +1,525 @@
+{
+  "id": "almer-coe-spectacles-1924",
+  "title": "The Almer Coe Spectacles: The Franks Affair",
+  "documentType": "scenario",
+  "isCampaign": false,
+  "era": "classic",
+  "yearRange": "1924",
+  "activeSceneYear": 1924,
+  "startDate": "1924-05-23T20:00",
+  "initialWeather": "Warm spring mist rolling off Lake Michigan and the Calumet marshes",
+  "setting": "Chicago, Illinois, May 1924 (Hyde Park - Wolf Lake - Kenwood)",
+  "startingLocation": "Wolf Lake Drainage Culvert & Pennsylvania Railroad Embankment, Hegewisch",
+  "summary": "Forty-eight hours after the body of 14-year-old Bobby Franks is discovered stuffed into a concrete drainage culvert near Wolf Lake, investigators examine a pair of horn-rimmed eyeglasses dropped in the marsh grass. Equipped with a rare patented hinge sold by Almer Coe & Co. to only three people in Chicago, the spectacles lead into the privileged halls of the University of Chicago and the mansions of Kenwood, where two brilliant students—Nathan Leopold and Richard Loeb—have turned a forgotten Hermetic treatise on 'Superior Will' into a cold-blooded ritual of intellectual transcendence.",
+  "boundarySummary": "The investigation spans South Side Chicago (Kenwood, Hyde Park, Downtown Almer Coe Optical, and the Calumet/Wolf Lake marshes). Delaying past dawn on May 25 allows the culprits to destroy the portable Underwood typewriter in Jackson Park Lagoon and execute the second sacrifice in the Calumet boathouse.",
+  "truthAnchor": {
+    "culprit": "Nathan Leopold Jr. and Richard Loeb (operating a private Hermetic lodge at the University of Chicago)",
+    "motive": "Obsessed with a radical occult distortion of Nietzsche's Übermensch found in a 17th-century Hermetic manuscript, the pair believe that committing an emotionless, mathematically 'perfect' murder while observing the victim through specially ground quartz lenses severs human conscience and grants absolute dominion over fate.",
+    "murderWeapon": "A heavy steel cold chisel wrapped in adhesive tape, followed by hydrochloric acid poured to erase facial identity.",
+    "keyAlibi": "Leopold and Loeb claim they spent the afternoon of May 21 bird-watching in Lincoln Park and drinking in Leopold's family automobile, unaware that chauffeur Sven Englund can prove the family car never left the Kenwood garage.",
+    "immutableFacts": [
+      "There are no supernatural monsters in the marshes; the horror is entirely driven by aristocratic occultism, cold intellect, and forensic precision.",
+      "Almer Coe & Co. sold only three pairs of horn-rimmed spectacles with the patented 'X-Bridge' hinge in Chicago, and only one matches Nathan Leopold's astigmatism prescription.",
+      "The ransom letter signed 'George Johnson' was typed on a portable Underwood typewriter whose lowercase 't' and 'm' strike 0.4 millimeters off-center, matching Leopold's study group notes.",
+      "Chauffeur Sven Englund repaired the brakes on the red Willys-Knight in the Leopold garage all afternoon on May 21, shattering the suspects' alibi."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 1924,
+      "month": 5,
+      "day": 24,
+      "hour": 23,
+      "minute": 59
+    },
+    "totalHours": 28,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Phase 0: The Glasses in the Marsh",
+        "description": "Police and reporters swarm the Wolf Lake culvert. The killers mingle boldly with journalists in Hyde Park, offering theories on the crime."
+      },
+      {
+        "phase": 1,
+        "title": "Phase 1: Erasing the Paper Trail",
+        "description": "Typewriter keys are twisted with pliers and dropped into the Jackson Park Lagoon. A hydrochloric acid bottle is shattered in the marsh."
+      },
+      {
+        "phase": 2,
+        "title": "Phase 2: The Alibi Conspiracy",
+        "description": "Family lawyers led by high-society fixers begin pressuring witnesses in Kenwood, while a second victim is selected to complete the Hermetic dyad."
+      },
+      {
+        "phase": 3,
+        "title": "Phase 3: The Second Experiment at Calumet",
+        "description": "Under cover of marsh fog, the rental automobile returns to the abandoned Calumet boathouse to complete the final rite of the 'crime without emotion'."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-franks-1",
+      "text": "The lenses in the dropped spectacles from Almer Coe & Co. contain a faint smoky-quartz tint ground to a non-standard refractive index used in 19th-century psychic photography.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-franks-2",
+      "text": "Richard Loeb has been actively shadowing police reporters at the Detective Bureau, feeding them false leads about a professional kidnapping syndicate.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-franks-3",
+      "text": "Inside the University of Chicago rare-book seminar room, a Latin folio titled 'De Voluntate Absoluta' has had three pages on ritual infanticide sliced out with a razor.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-franks-4",
+      "text": "Chauffeur Sven Englund noticed dark stains of hydrochloric acid and blood on the rubber floor mat of a rented Willys-Knight parked briefly behind the Kenwood carriage house.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-franks-5",
+      "text": "Leopold's celebrated ornithological notebook on the Kirtland's Warbler uses bird-banding coordinates around Wolf Lake to map sightlines for body disposal.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-franks-6",
+      "text": "The ransom demand to Jacob Franks was never meant to collect money; the $10,000 figure and the train-window drop instructions correspond to a numeric cipher in the stolen seminar treatise."
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue-horn-rimmed-glasses",
+      "name": "Horn-Rimmed Spectacles with Patented Hinge",
+      "description": "Found on the cinder embankment beside the Wolf Lake culvert. The tortoise-shell frame features a rare, newly patented temple hinge stamped by Almer Coe & Co. on Wabash Avenue.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-wolf-lake-culvert",
+      "targetNodeId": "node-almer-coe-opticians",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-ornithology-boot-tracks",
+      "name": "Field-Boot Impressions & Bird-Banding Ring",
+      "description": "Distinctive rubber-soled wading tracks beside the culvert along with a stamped aluminum bird-banding ring issued to the University of Chicago Ornithological Club.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-wolf-lake-culvert",
+      "targetNodeId": "node-uchicago-archive",
+      "requiredSkill": "Track"
+    },
+    {
+      "id": "clue-willys-knight-tire-cast",
+      "name": "Plaster Cast of Balloon Tires & Acid Burn",
+      "description": "Tire tracks from a heavy touring sedan along the marsh road, stained with spilled hydrochloric acid and fine red garage gravel used in Kenwood driveways.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-wolf-lake-culvert",
+      "targetNodeId": "node-leopold-mansion-garage",
+      "requiredSkill": "Science (Forensics)"
+    },
+    {
+      "id": "clue-almer-coe-prescription-card",
+      "name": "Almer Coe & Co. Prescription Ledger #419-C",
+      "description": "Optical sales records proving only three customers in Chicago bought the patented hinge frame, and only Nathan Leopold Jr. of 4754 Greenwood Ave. left his pair uncollected at home—meaning the pair at the murder scene is his.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-almer-coe-opticians",
+      "targetNodeId": "node-leopold-mansion-garage",
+      "requiredSkill": "Library Use"
+    },
+    {
+      "id": "clue-quartz-lens-analysis",
+      "name": "Refractive Analysis of the Spectacle Lenses",
+      "description": "The chief optician notes that the customer paid extra to have the lenses ground from smoky Bohemian quartz according to an archaic optical diagram from the University of Chicago.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-almer-coe-opticians",
+      "targetNodeId": "node-uchicago-archive",
+      "requiredSkill": "Persuade"
+    },
+    {
+      "id": "clue-coroner-chisel-autopsy",
+      "name": "Cook County Coroner's Report on the Chisel Blows",
+      "description": "Autopsy notes annexed at the optical inquest showing the blows were struck with cold, geometric symmetry and the body was bathed in laboratory-grade acid.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-almer-coe-opticians",
+      "targetNodeId": "node-wolf-lake-culvert",
+      "requiredSkill": "Medicine"
+    },
+    {
+      "id": "clue-underwood-typeface-match",
+      "name": "Seminar Thesis Typed on the Ransom Underwood",
+      "description": "Law-school study notes in the University archive show the exact same battered 't' and 'm' typeface as the 'George Johnson' ransom letter, along with a receipt from Drive-It-Yourself Rent-A-Car.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-uchicago-archive",
+      "targetNodeId": "node-leopold-mansion-garage",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-uchicago-hermetic-notes",
+      "name": "Ornithological Notebook with Hermetic Margin Cipher",
+      "description": "Leopold's field journal combining Kirtland's Warbler sightings with quotes from 'De Voluntate Absoluta', pinpointing an abandoned boathouse on the Calumet marsh for the second 'Act of Will'.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-uchicago-archive",
+      "targetNodeId": "node-calumet-boathouse-climax",
+      "requiredSkill": "Occult"
+    },
+    {
+      "id": "clue-alchemy-acid-requisition",
+      "name": "Chemistry Department Requisition for Hydrochloric Acid",
+      "description": "A signed laboratory slip for two liters of concentrated HCl matching the chemical burns found at the Wolf Lake culvert.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-uchicago-archive",
+      "targetNodeId": "node-wolf-lake-culvert",
+      "requiredSkill": "Science (Chemistry)"
+    },
+    {
+      "id": "clue-englund-chauffeur-testimony",
+      "name": "Chauffeur Sven Englund's Garage Log & Testimony",
+      "description": "The family chauffeur swears Nathan's red touring car was on blocks in the Kenwood garage all day May 21, and that he saw the pair loading a chisel and rope into a rented sedan headed for the Calumet boathouse.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-leopold-mansion-garage",
+      "targetNodeId": "node-calumet-boathouse-climax",
+      "requiredSkill": "Psychology"
+    },
+    {
+      "id": "clue-jackson-park-typewriter-keys",
+      "name": "Twisted Typewriter Keys Dredged from Jackson Park Lagoon",
+      "description": "Broken key-bars from an Underwood portable typewriter recovered near the mansion, confirming the forensic link to the University seminar notes.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-leopold-mansion-garage",
+      "targetNodeId": "node-uchicago-archive",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-calumet-duck-blind-map",
+      "name": "Hand-Drawn Map of Calumet Duck Blinds & Boathouse",
+      "description": "Hidden in the glove compartment of the Leopold car, this map marks the Wolf Lake culvert as 'Site Alpha' and the old Calumet Boathouse as 'Site Omega - Tonight'.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-leopold-mansion-garage",
+      "targetNodeId": "node-calumet-boathouse-climax",
+      "requiredSkill": "Navigate"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-wolf-lake-culvert",
+      "name": "Wolf Lake Drainage Culvert & Railroad Embankment",
+      "title": "Wolf Lake Drainage Culvert & Railroad Embankment",
+      "type": "intro",
+      "description": "A desolate expanse of cattails, stagnant marsh water, and cinder-covered tracks of the Pennsylvania Railroad twenty miles south of Chicago. A concrete drainage pipe juts from the mud where Bobby Franks's body was discovered at dawn.",
+      "atmosphere": "Croaking marsh frogs, the distant whistle of freight trains, damp peat, and the sharp chemical tang of spilled acid.",
+      "npcs": ["Tony Minke (Pump Station Worker)", "Det. Sgt. Michael Gaughan"],
+      "npcIds": ["npc-tony-minke", "npc-det-gaughan"],
+      "locationId": "loc-wolf-lake-culvert",
+      "leadInClueIds": [
+        "clue-coroner-chisel-autopsy",
+        "clue-alchemy-acid-requisition"
+      ],
+      "leadOutClueIds": [
+        "clue-horn-rimmed-glasses",
+        "clue-ornithology-boot-tracks",
+        "clue-willys-knight-tire-cast"
+      ],
+      "availableClues": [
+        "clue-horn-rimmed-glasses",
+        "clue-ornithology-boot-tracks",
+        "clue-willys-knight-tire-cast"
+      ]
+    },
+    {
+      "id": "node-almer-coe-opticians",
+      "name": "Almer Coe & Co. Optical Establishment (Wabash Ave)",
+      "title": "Almer Coe & Co. Optical Establishment (Wabash Ave)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "A refined Loop optician's showroom with mahogany display cases, brass phoropters, and meticulous card-index cabinets containing the eyewear prescriptions of Chicago's wealthiest families.",
+      "atmosphere": "The quiet ticking of precision grinders, polished glass, and the tense hush of an urgent state's attorney inquiry.",
+      "secret": "The index cards prove only three pairs of those exact horn-rimmed glasses exist in Chicago, and the smoky-quartz lenses were custom-ordered by Nathan Leopold.",
+      "npcs": ["Master Optician Edward Bohm", "State's Attorney Robert E. Crowe"],
+      "npcIds": ["npc-edward-bohm", "npc-robert-crowe"],
+      "locationId": "loc-almer-coe-opticians",
+      "leadInClueIds": ["clue-horn-rimmed-glasses"],
+      "leadOutClueIds": [
+        "clue-almer-coe-prescription-card",
+        "clue-quartz-lens-analysis",
+        "clue-coroner-chisel-autopsy"
+      ],
+      "availableClues": [
+        "clue-almer-coe-prescription-card",
+        "clue-quartz-lens-analysis",
+        "clue-coroner-chisel-autopsy"
+      ]
+    },
+    {
+      "id": "node-uchicago-archive",
+      "name": "University of Chicago Seminar Room & Rare Book Vault",
+      "title": "University of Chicago Seminar Room & Rare Book Vault",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Gothic limestone halls in Hyde Park. Oak tables hold ornithological taxidermy alongside locked glass cases of Continental philosophy and 17th-century Hermetic treatises.",
+      "atmosphere": "Dust motes in stained-glass light, smell of leather bindings, and the chilling arrogance of privileged prodigies.",
+      "secret": "Leopold and Loeb used a private seminar alcove to type the ransom note on Leopold's portable Underwood and design a two-part ritual of 'intellectual sovereignty'.",
+      "npcs": ["Richard Loeb"],
+      "npcIds": ["npc-richard-loeb"],
+      "locationId": "loc-uchicago-archive",
+      "leadInClueIds": [
+        "clue-ornithology-boot-tracks",
+        "clue-quartz-lens-analysis",
+        "clue-jackson-park-typewriter-keys"
+      ],
+      "leadOutClueIds": [
+        "clue-underwood-typeface-match",
+        "clue-uchicago-hermetic-notes",
+        "clue-alchemy-acid-requisition"
+      ],
+      "availableClues": [
+        "clue-underwood-typeface-match",
+        "clue-uchicago-hermetic-notes",
+        "clue-alchemy-acid-requisition"
+      ]
+    },
+    {
+      "id": "node-leopold-mansion-garage",
+      "name": "The Leopold Mansion & Carriage Garage (4754 Greenwood Ave)",
+      "title": "The Leopold Mansion & Carriage Garage (4754 Greenwood Ave)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "An imposing Kenwood millionaire's estate near Jackson Park. In the brick carriage house behind the mansion, a red Willys-Knight sits beside workbenches, birding gear, and freshly scrubbed floor mats.",
+      "atmosphere": "The smell of motor oil, wet lagoon weeds, and wealthy impunity cracking under forensic scrutiny.",
+      "secret": "Chauffeur Sven Englund knows the boys lied about using the family car on May 21, and has seen the map to the Calumet boathouse.",
+      "npcs": ["Sven Englund (Chauffeur)", "Defense Counsel Clarence Darrow"],
+      "npcIds": ["npc-sven-englund", "npc-clarence-darrow"],
+      "locationId": "loc-leopold-mansion-garage",
+      "leadInClueIds": [
+        "clue-willys-knight-tire-cast",
+        "clue-almer-coe-prescription-card",
+        "clue-underwood-typeface-match"
+      ],
+      "leadOutClueIds": [
+        "clue-englund-chauffeur-testimony",
+        "clue-jackson-park-typewriter-keys",
+        "clue-calumet-duck-blind-map"
+      ],
+      "availableClues": [
+        "clue-englund-chauffeur-testimony",
+        "clue-jackson-park-typewriter-keys",
+        "clue-calumet-duck-blind-map"
+      ]
+    },
+    {
+      "id": "node-calumet-boathouse-climax",
+      "name": "The Abandoned Calumet Marsh Boathouse (Climax)",
+      "title": "The Abandoned Calumet Marsh Boathouse (Climax)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "A rotting timber boathouse on stilts over the black waters of the Calumet marshes. Inside, kerosene lanterns illuminate a chalk-drawn geometric diagram from 'De Voluntate Absoluta', optical tripods, and the two students preparing their final 'experiment beyond good and evil'.",
+      "atmosphere": "Lapping black water against pilings, smell of marsh gas and gun oil, and the chilling, detached calm of two minds devoid of remorse.",
+      "secret": "Confronting Leopold and Loeb with the Almer Coe spectacles and Sven Englund's testimony shatters their delusion of intellectual infallibility, forcing a desperate armed standoff before they can execute their second victim.",
+      "npcs": ["Nathan Leopold Jr.", "Richard Loeb"],
+      "npcIds": ["npc-nathan-leopold", "npc-richard-loeb"],
+      "locationId": "loc-calumet-boathouse",
+      "leadInClueIds": [
+        "clue-uchicago-hermetic-notes",
+        "clue-englund-chauffeur-testimony",
+        "clue-calumet-duck-blind-map"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-wolf-lake-culvert",
+      "toId": "node-almer-coe-opticians",
+      "clueId": "clue-horn-rimmed-glasses",
+      "description": "The patented hinge on the dropped horn-rimmed spectacles traces directly to Almer Coe & Co. on Wabash Avenue."
+    },
+    {
+      "fromId": "node-wolf-lake-culvert",
+      "toId": "node-uchicago-archive",
+      "clueId": "clue-ornithology-boot-tracks",
+      "description": "An aluminum bird-banding ring in the mud leads to the University of Chicago ornithology seminar."
+    },
+    {
+      "fromId": "node-wolf-lake-culvert",
+      "toId": "node-leopold-mansion-garage",
+      "clueId": "clue-willys-knight-tire-cast",
+      "description": "Balloon tire tracks and red Kenwood driveway gravel point to the Leopold estate garage."
+    },
+    {
+      "fromId": "node-almer-coe-opticians",
+      "toId": "node-leopold-mansion-garage",
+      "clueId": "clue-almer-coe-prescription-card",
+      "description": "Prescription card #419-C identifies Nathan Leopold Jr. of 4754 Greenwood Avenue as the owner of the glasses."
+    },
+    {
+      "fromId": "node-almer-coe-opticians",
+      "toId": "node-uchicago-archive",
+      "clueId": "clue-quartz-lens-analysis",
+      "description": "The custom smoky-quartz lens grinding specification originated from a treatise at the University of Chicago."
+    },
+    {
+      "fromId": "node-almer-coe-opticians",
+      "toId": "node-wolf-lake-culvert",
+      "clueId": "clue-coroner-chisel-autopsy",
+      "description": "Coroner's chemical findings send investigators back to inspect the culvert water and embankment."
+    },
+    {
+      "fromId": "node-uchicago-archive",
+      "toId": "node-leopold-mansion-garage",
+      "clueId": "clue-underwood-typeface-match",
+      "description": "Matching Underwood typewriter defects and a rental car slip lead to Leopold's Kenwood residence."
+    },
+    {
+      "fromId": "node-uchicago-archive",
+      "toId": "node-calumet-boathouse-climax",
+      "clueId": "clue-uchicago-hermetic-notes",
+      "description": "Leopold's annotated ornithological journal pinpoints the Calumet marsh boathouse for the final rite."
+    },
+    {
+      "fromId": "node-uchicago-archive",
+      "toId": "node-wolf-lake-culvert",
+      "clueId": "clue-alchemy-acid-requisition",
+      "description": "Stolen hydrochloric acid records connect the university lab to the culvert disposal site."
+    },
+    {
+      "fromId": "node-leopold-mansion-garage",
+      "toId": "node-calumet-boathouse-climax",
+      "clueId": "clue-englund-chauffeur-testimony",
+      "description": "Chauffeur Sven Englund destroys the alibi and reveals the pair's departure toward the Calumet boathouse."
+    },
+    {
+      "fromId": "node-leopold-mansion-garage",
+      "toId": "node-uchicago-archive",
+      "clueId": "clue-jackson-park-typewriter-keys",
+      "description": "Twisted Underwood keys from the nearby lagoon match the seminar thesis in Hyde Park."
+    },
+    {
+      "fromId": "node-leopold-mansion-garage",
+      "toId": "node-calumet-boathouse-climax",
+      "clueId": "clue-calumet-duck-blind-map",
+      "description": "The hand-drawn marsh map marks the Calumet Boathouse as 'Site Omega - Tonight'."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-tony-minke",
+      "name": "Tony Minke (Pump Station Worker)",
+      "description": "Polish-born night watchman and pump tender who discovered Bobby Franks's foot protruding from the Wolf Lake culvert.",
+      "secret": "Picked up the horn-rimmed glasses thinking they were his own before handing them to police."
+    },
+    {
+      "id": "npc-edward-bohm",
+      "name": "Edward Bohm (Master Optician, Almer Coe & Co.)",
+      "description": "Meticulous optical craftsman who personally fitted the patented X-Bridge hinges.",
+      "secret": "Remembers Nathan Leopold insisting that the lenses be ground at a precise 19-degree prism angle."
+    },
+    {
+      "id": "npc-sven-englund",
+      "name": "Sven Englund (Leopold Family Chauffeur)",
+      "description": "Honest, observant Swedish mechanic employed by the Leopold household in Kenwood.",
+      "secret": "Saw Nathan and Richard scrubbing hydrochloric acid stains out of a rented car while the family Willys-Knight sat immobile on blocks."
+    },
+    {
+      "id": "npc-nathan-leopold",
+      "name": "Nathan Leopold Jr.",
+      "description": "Nineteen-year-old ornithologist, polyglot, and law student convinced that superior intellect places him above mortal law and occult taboo.",
+      "secret": "Terrified of realizing that a mundane mistake—dropping his spectacles from his jacket pocket—ruined his 'perfect geometric act'."
+    },
+    {
+      "id": "npc-richard-loeb",
+      "name": "Richard Loeb",
+      "description": "Eighteen-year-old charmer and the youngest graduate of the University of Michigan, driven by a cold compulsion for dominance and secrecy.",
+      "secret": "Carries a loaded .32 revolver and plans to silence anyone—including Leopold—if the Calumet boathouse is compromised."
+    },
+    {
+      "id": "npc-robert-crowe",
+      "name": "State's Attorney Robert E. Crowe",
+      "description": "Relentless Cook County prosecutor determined to break the suspects before their wealthy families can spirit them out of the country.",
+      "secret": "Holding secret night sessions at the LaSalle Hotel to keep defense lawyers off balance."
+    },
+    {
+      "id": "npc-clarence-darrow",
+      "name": "Clarence Darrow",
+      "description": "Legendary defense attorney summoned by the families, deeply disturbed by the cold philosophical void he sees in the two boys.",
+      "secret": "Wants the investigators to stop a second murder at Calumet so he can save the boys from the gallows without further bloodshed."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-wolf-lake-culvert",
+      "name": "Wolf Lake Culvert & Pennsylvania Railroad Tracks",
+      "description": "Marshy industrial wasteland in Hegewisch on the Illinois-Indiana border.",
+      "atmosphere": "Reeds, stagnant water, cinder embankments, and freight trains."
+    },
+    {
+      "id": "loc-almer-coe-opticians",
+      "name": "Almer Coe & Co. Opticians (105 N. Wabash Ave)",
+      "description": "Premier Chicago optical company holding the city's custom eyewear records.",
+      "atmosphere": "Polished brass, optical charts, and quiet bureaucratic precision."
+    },
+    {
+      "id": "loc-uchicago-archive",
+      "name": "University of Chicago Seminar & Archive (Hyde Park)",
+      "description": "Gothic university halls where Leopold and Loeb studied law, ornithology, and forbidden philosophy.",
+      "atmosphere": "Neo-Gothic stone, hushed corridors, and elitist secrecy."
+    },
+    {
+      "id": "loc-leopold-mansion-garage",
+      "name": "Leopold Estate & Garage (4754 Greenwood Ave, Kenwood)",
+      "description": "Wealthy South Side mansion and brick carriage house near Jackson Park Lagoon.",
+      "atmosphere": "Manicured lawns, smell of gasoline and lagoon mud, and nervous servants."
+    },
+    {
+      "id": "loc-calumet-boathouse",
+      "name": "Abandoned Calumet Marsh Boathouse",
+      "description": "Isolated timber boathouse deep in the Calumet reed beds used as a private birding and ritual station.",
+      "atmosphere": "Thick night fog, creaking pilings, and kerosene lantern glare."
+    }
+  ],
+  "handouts": [
+    {
+      "slug": "almer-coe-prescription-card",
+      "title": "Almer Coe & Co. Optical Prescription Card #419-C",
+      "image": "/handouts/almer-coe-spectacles-1924/almer-coe-prescription-card.webp",
+      "handoutType": "report",
+      "nodeId": "node-almer-coe-opticians",
+      "textContent": "ALMER COE & CO. OPTICIANS, 105 N. Wabash Ave., Chicago. Frame: Horn-Rimmed Tortoise, Patented X-Bridge Hinge (Lot 3 of 3). Client: Nathan F. Leopold Jr., 4754 Greenwood Ave. Special Note: Lenses ground from smoky Bohemian quartz, 19-deg prism."
+    },
+    {
+      "slug": "underwood-ransom-letter",
+      "title": "The 'George Johnson' Ransom Letter (Underwood Typeface)",
+      "image": "/handouts/almer-coe-spectacles-1924/underwood-ransom-letter.webp",
+      "handoutType": "letter",
+      "nodeId": "node-uchicago-archive",
+      "textContent": "Dear Sir: As you no doubt know by this time, your son has been kidnapped. Allow us to assure you that he is at present well and safe... [Forensic Note: Lowercase 't' tilts 4 degrees left; lowercase 'm' shows chipped upper serif matching UChicago Seminar Portable #4]."
+    },
+    {
+      "slug": "uchicago-hermetic-notes",
+      "title": "Leopold's Ornithological & Hermetic Field Journal",
+      "image": "/handouts/almer-coe-spectacles-1924/uchicago-hermetic-notes.webp",
+      "handoutType": "diary",
+      "nodeId": "node-uchicago-archive",
+      "textContent": "May 19, 1924 - Wolf Lake Culvert (41°40'N). Sighted Dendroica kirtlandii in the reeds. Margin Note in Latin: 'De Voluntate Absoluta - He who strikes without hatred or pity steps outside the circle of mortal consequence. Site Alpha: Culvert. Site Omega: Calumet Boathouse.'"
+    },
+    {
+      "slug": "audio-crowe-interrogation-disc",
+      "title": "Dictaphone Record: Chauffeur Englund & Leopold Inquest (May 1924)",
+      "image": "/handouts/almer-coe-spectacles-1924/almer-coe-prescription-card.webp",
+      "audioUrl": "/audio/handouts/almer-coe-spectacles-1924/crowe-interrogation-1924.mp3",
+      "handoutType": "report",
+      "nodeId": "node-leopold-mansion-garage",
+      "textContent": "State's Attorney Dictaphone Cylinder (LaSalle Hotel, May 1924): Chauffeur Sven Englund confirms the family car never left the Kenwood garage, followed by Nathan Leopold's icy voice explaining that an experiment in pure will requires no remorse."
+    }
+  ]
+}

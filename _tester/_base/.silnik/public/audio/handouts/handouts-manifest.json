@@ -42,7 +42,7 @@
     "mediaType": "reel_tape",
     "voiceType": "sb_officer",
     "elevenVoiceId": "pNInz6obpgDQGcFmaJgB",
-    "text": "Meldunek z podsłuchu celi ojca Czesława Klimuszki w Elblągu, 12 października 1973. Godzina dwudziesta trzecia zero zero. W celi słychać jednostajną modlitwę, a potem... gwałtowny pisk aparatury pomiarowej. Rejestrujemy nagły skok pola elektromagnetycznego. Szyby w oknach zaczynają drżeć. On rozmawia z kimś, kogo tam nie ma...",
+    "text": "Meldunek operacyjny z podsłuchu obiektu KLIN w Elblągu... Dwanaście października, tysiąc dziewięćset siedemdziesiąty trzeci rok. Godzina dwudziesta trzecia zero zero. W celi klasztornej przez dwie godziny słychać było wyłącznie jednostajny szept modlitewny... A potem... nagły, gwałtowny pisk aparatury pomiarowej. Rejestrujemy natychmiastowy skok natężenia pola elektromagnetycznego. Wskaźniki w wozie transmisyjnym dosłownie powariowały... Szyby w oknach zaczynają drżeć. To nie jest rezonans akustyczny. On... on rozmawia z kimś, kogo tam fizycznie nie ma. Słyszę drugi głos, ale mikrofon dynamiczny nie rejestruje fali dźwiękowej... Sprawdzić to natychmiast.",
     "outputFilename": "cien-nad-prabutami/tasma-sb-elblag.mp3"
   },
   {
@@ -51,8 +51,8 @@
     "scenario": "tajemnica-pendnika-lagiewki",
     "mediaType": "cassette_log",
     "voiceType": "excited_engineer",
-    "elevenVoiceId": "VR6AewLTigWG4xSOukaG",
-    "text": "Uwaga, próba zderzeniowa numer cztery. Kowary, Zakład Doświadczalny, 18 maja 1996. Fiat 126p rozpędzony do pięćdziesięciu kilometrów na godzinę uderza czołowo w betonowy blok z zamontowanym zderzakiem Łągiewki. Trzy, dwa, jeden... Jezus Maria! Widzicie to?! Żadnego odrzutu! Samochód stoi jak wryty! Wirnik pochłonął sto procent energii kinetycznej... ale te wskaźniki... skąd wzięła się ta anomalia grawitacyjna?!",
+    "elevenVoiceId": "IKne3meq5aSn9XLyUdCD",
+    "text": "Uwaga wszyscy, rejestrujemy! Próba zderzeniowa numer cztery... Kowary, Zakład Doświadczalny, osiemnasty maja tysiąc dziewięćset dziewięćdziesiątego szóstego roku. Fiat 126p na rampie najazdowej, prędkość wyliczona: pięćdziesiąt kilometrów na godzinę. Cel: czołowe uderzenie w lity blok betonowy. Na przedzie zamontowany prototypowy wirnik Łągiewki. Za trzy... dwa... jeden... poszedł! Jezus Maria! Widzieliście to?! Żadnego odrzutu! Samochód stanął w miejscu jak wryty! Ani centymetra odbicia! Wirnik pochłonął sto procent wektora pędu... Czekajcie... spójrzcie na mierniki grawimetryczne! Wskazówka leci poza skalę! Skąd w punkcie uderzenia ujemna masa bezwładna?! Wyłączcie zasilanie! Wyłączcie to natychmiast!",
     "outputFilename": "tajemnica-pendnika-lagiewki/proba-zderzeniowa-kowary.mp3"
   },
   {
@@ -61,8 +61,8 @@
     "scenario": "tajemnica-dzieci-z-traszyna",
     "mediaType": "audio_interview",
     "voiceType": "terrified_child",
-    "elevenVoiceId": "TxGEqnHWrfWFTfGW9XjX",
-    "text": "Proszę pana... myśmy tylko włożyli ten stary klucz w książeczkę do nabożeństwa... Tak jak babcia mówiła. Trzymaliśmy go we dwójkę na palcach. I wtedy ten klucz zaczął się sam obracać. Zrobiło się strasznie zimno, a z desek stodoły zaczęła kapać ta czarna maź... I wtedy ten cień spod dachu zawołał nas po imieniu...",
+    "elevenVoiceId": "1tDEBGOo8EqEPApM49eJ",
+    "text": "Proszę pana... przysięgam, myśmy nie chcieli nic złego... Myśmy tylko włożyli ten stary, mosiężny klucz w książeczkę do nabożeństwa... tak jak babcia kiedyś opowiadała. Trzymaliśmy go we dwójkę na końcach palców. I wtedy... ten klucz zaczął się sam obracać. Z każdą sekundą szybciej i szybciej... Zrobiło się tak strasznie zimno, że z ust leciała nam para. A potem z belek pod powałą stodoły zaczęła skapywać ta czarna, gęsta maź... I wtedy ten cień... ten cień spod dachu... zawołał nas po imieniu. Nie głosem człowieka. To brzmiało, jakby mówiła sama ziemia pod podłogą...",
     "outputFilename": "tajemnica-dzieci-z-traszyna/wywiad-dziecko-1983.mp3"
   },
   {
@@ -71,8 +71,56 @@
     "scenario": "przybysz-z-matriksa-glogow",
     "mediaType": "vhs_signal",
     "voiceType": "synthetic_prophet",
-    "elevenVoiceId": "ErXwobaYiN019PkySvjV",
-    "text": "Do wszystkich węzłów podsieci Dolnego Śląska. Jeśli odbieracie tę transmisję na kanale trzydziestym siódmym, oznacza to, że anomalia w Twierdzy Głogów została naruszona. Rok 2001 nie jest początkiem nowego wieku. To pętla. Odłączcie kable zasilające zanim serwery w kazamatach zaczną retransmitować sygnał zza horyzontu...",
+    "elevenVoiceId": "N2lVS1w4EtoT3dr4eOWO",
+    "text": "Komunikat priorytetowy do wszystkich węzłów podsieci Dolnego Śląska... Jeżeli odbieracie tę transmisję na kanale trzydziestym siódmym, oznacza to, że pieczęć w kazamatach Twierdzy Głogów została naruszona. Rok dwa tysiące pierwszy nie jest początkiem nowego stulecia. To jest zamknięta pętla czasowa. Każdy odebrany impuls skraca interwał powrotu bytu z podziemi Odry. Odłączcie zasilanie magistrali... Odłączcie kable koncentryczne zanim przekaźniki w zalanym sektorze X-11 zaczną retransmitować sygnał zza horyzontu zdarzeń. Czas nie płynie w przód. Czas zapada się do środka...",
     "outputFilename": "przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3"
+  },
+  {
+    "id": "coldcase_holmes_cylinder_1893",
+    "title": "Edison Wax Cylinder: 'Experiment IX - Room 14' (1893)",
+    "scenario": "englewood-murder-castle-1893",
+    "lang": "en",
+    "macVoice": "Daniel",
+    "mediaType": "phonograph_cylinder",
+    "voiceType": "cold_architect",
+    "elevenVoiceId": "pNInz6obpgDQGcFmaJgB",
+    "text": "Edison cylinder record, sixty-third and Wallace Street, Chicago. November fourteenth, eighteen ninety-four. Room fourteen vault is sealed. I have opened the town-gas manifold to one-third pressure. Listen closely to the iron chute... The angles of the brickwork are no longer ninety degrees. As the subject loses consciousness, the furnace in the cellar begins to draw air downward without fire. Do you hear that resonance inside the shaft? The threshold beneath Chicago is opening.",
+    "outputFilename": "englewood-murder-castle-1893/edison-wax-cylinder-1893.mp3"
+  },
+  {
+    "id": "coldcase_franks_inquest_1924",
+    "title": "Dictaphone Record: Chauffeur Englund & Leopold Inquest (1924)",
+    "scenario": "almer-coe-spectacles-1924",
+    "lang": "en",
+    "macVoice": "Daniel",
+    "mediaType": "phonograph_cylinder",
+    "voiceType": "detached_scholar",
+    "elevenVoiceId": "ErXwobaYiN019PkySvjV",
+    "text": "State Attorney inquest record, LaSalle Hotel, Chicago, May twenty-third, nineteen twenty-four. Witness Sven Englund confirms the red Willys-Knight automobile never left the Greenwood Avenue garage on Wednesday afternoon. Switching cylinder to subject Nathan Leopold Junior... Why did we do it? A superior intellect stands outside ordinary morality. Through the smoky quartz lenses ground by Almer Coe, we observed the exact instant the mortal tether snapped. The culvert at Wolf Lake was only the first point of the triangle.",
+    "outputFilename": "almer-coe-spectacles-1924/crowe-interrogation-1924.mp3"
+  },
+  {
+    "id": "coldcase_circleville_wiretap_1977",
+    "title": "Micro-Cassette Recording: Ron Gillespie's Last Phone Call (1977)",
+    "scenario": "circleville-letters-1983",
+    "lang": "en",
+    "macVoice": "Fred",
+    "mediaType": "cassette_log",
+    "voiceType": "modulated_caller",
+    "elevenVoiceId": "VR6AewLTigWG4xSOukaG",
+    "text": "Pickaway County party-line trunk seven... August nineteenth, nineteen seventy-seven, eleven-ten P.M. Listen to the carrier tone, Ronald. We see you standing by the kitchen window with the revolver in your hand. We know every word spoken on the Westfall school bus route. Drive out to Route fifty-six and Florence Chapel Pike. Look up at utility pole eighty-eight. When the eighteen-point-nine hertz tone sounds, the whole town of Circleville will write with our hand.",
+    "outputFilename": "circleville-letters-1983/gillespie-wiretap-1977.mp3"
+  },
+  {
+    "id": "coldcase_ovidhall_voicemail_2005",
+    "title": "Voicemail Audio Extraction: 'I'm in a Field' (June 12, 2005)",
+    "scenario": "ovidhall-lake-anomaly-2005",
+    "lang": "en",
+    "macVoice": "Daniel",
+    "mediaType": "audio_interview",
+    "voiceType": "disoriented_victim",
+    "elevenVoiceId": "TxGEqnHWrfWFTfGW9XjX",
+    "text": "Cingular Wireless voicemail extraction, June twelfth, two thousand five, twelve fifty-one A.M. ... Hello? Can you hear me? I left the bonfire by the apple orchard, but the trees are gone... I am in a field. Wait... why is there limestone above my head? The water is above me... There are metal needles growing out of the mud, and something in the dark pond is telling me to stand straight up...",
+    "outputFilename": "ovidhall-lake-anomaly-2005/voicemail-in-a-field-2005.mp3"
   }
 ]

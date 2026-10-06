@@ -23,6 +23,10 @@ export interface PredefinedCharacter extends Character {
   /** Preset przypisany wyłącznie do wskazanych scenariuszy. */
   scenarioIds?: string[];
   tacticalNotes?: string;
+  /** Opcjonalny asymetryczny węzeł startowy dla tego Badacza w danym scenariuszu */
+  startingNodeId?: string;
+  /** Opcjonalny asymetryczny punkt wejścia (hak otwarcia) dla tego Badacza */
+  openingHook?: string;
 }
 
 // Baza 30 predefiniowanych postaci zbalansowanych pod mechanike CoC 7e (3 ery x 5 archetypow x 2 plcie = 30 postaci)

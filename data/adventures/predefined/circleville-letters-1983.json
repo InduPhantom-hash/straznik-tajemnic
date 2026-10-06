@@ -1,0 +1,515 @@
+{
+  "id": "circleville-letters-1983",
+  "title": "Postmarked Columbus: The Circleville Letters",
+  "documentType": "scenario",
+  "isCampaign": false,
+  "era": "noir",
+  "yearRange": "1976-1983",
+  "activeSceneYear": 1983,
+  "startDate": "1983-02-18T19:00",
+  "initialWeather": "Freezing Ohio rain and low static hum along the rural telephone lines",
+  "setting": "Circleville, Pickaway County, Ohio, February 1983",
+  "startingLocation": "Pickaway County Sheriff's Office & Westfall Bus Route, Circleville, Ohio",
+  "summary": "For seven years, the small town of Circleville, Ohio, has been terrorized by hundreds of anonymous letters written in rigid, geometric block capitals and postmarked from Columbus. After school bus driver Mary Gillespie discovers a roadside sign rigged to a box containing a loaded .25-caliber pistol, Sheriff Dwight Radcliff arrests her brother-in-law Paul Freshour and locks him in solitary confinement without pen or paper. Yet the geometric letters keep arriving across town - and inside Freshour's locked cell. Worse, the fatal 1977 crash of Mary's husband Ron Gillespie after a single gunshot points to a classified psychotronic carrier wave broadcasting from the town's central water tower and telephone exchange.",
+  "boundarySummary": "The operational zone encompasses Pickaway County (Circleville, the Westfall school bus route, Route 56 & Florence Chapel Pike, and the central water tower relay). Leaving the county before neutralizing the acoustic carrier wave allows the somnambulist contagion to trigger a town-wide night of paranoid violence.",
+  "truthAnchor": {
+    "culprit": "Dr. Harlan Vance (retired Battelle/MKUltra acoustic researcher operating out of the Westfall district archive) and his self-propagating cognitive-hypnotic protocol ('Project TOWN CRIER')",
+    "motive": "Using sub-audible frequency modulation injected into Pickaway County's party-line telephone switches and hypnotic angular typography in the Columbus-postmarked letters, the experiment induces fugue states in townspeople - forcing ordinary residents (including Paul Freshour) to spy on neighbors, write new letters, and plant booby traps in their sleep without conscious memory.",
+    "murderWeapon": "Somnambulist fugue induction via 18.9 Hz telephone carrier tone and angular visual glyphs, causing Ron Gillespie's 1977 fatal crash on Route 56 and rigging the .25-caliber box trap on the bus route.",
+    "keyAlibi": "Paul Freshour is locked under 24-hour guard in solitary confinement while letters in the exact same geometric hand continue to pass through the Columbus sorting facility.",
+    "immutableFacts": [
+      "There are no extraterrestrial monsters in Circleville; the terror is a Cold War psychotronic and sociological contagion where the victims unknowingly become the 'Circleville Writer' during nocturnal fugues.",
+      "Ron Gillespie fired exactly one round from his pistol on the night of August 19, 1977, into the telephone junction box at Route 56 and Florence Chapel Pike before his truck hit the tree.",
+      "The .25-caliber pistol in the bus-route booby trap belonged to Paul Freshour, who assembled the device in a hypnotic trance induced by a late-night telephone tone.",
+      "Shutting down the low-frequency resonator inside the Circleville Water Tower & AT&T microwave relay breaks the hypnotic compulsion across Pickaway County."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 1983,
+      "month": 2,
+      "day": 19,
+      "hour": 23,
+      "minute": 59
+    },
+    "totalHours": 29,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Phase 0: Solitary Confinement Paradox",
+        "description": "Paul Freshour sits in a stripped cell, yet a freshly postmarked Columbus letter arrives under the Sheriff's door. Residents watch each other through venetian blinds."
+      },
+      {
+        "phase": 1,
+        "title": "Phase 1: The Party-Line Hum",
+        "description": "Every rotary telephone in Circleville emits a faint rhythmic clicking at 11:00 PM. Sleepwalking residents are spotted near mailboxes."
+      },
+      {
+        "phase": 2,
+        "title": "Phase 2: Booby Traps on the Route",
+        "description": "New hand-painted signs appear along Route 56. Paranoia peaks as armed homeowners patrol their property lines in the fog."
+      },
+      {
+        "phase": 3,
+        "title": "Phase 3: Broadcast Saturation",
+        "description": "The water-tower relay reaches full amplitude. Half of Circleville enters a simultaneous somnambulist fugue to purge 'the guilty'."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-circleville-1",
+      "text": "Microscopic ink analysis of the 1983 letters shows they were written by at least six different hands using identical geometric drafting stencils.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-circleville-2",
+      "text": "The bullet Ron Gillespie fired on August 19, 1977, is still lodged inside an illegal acoustic repeater box strapped to the utility pole at Route 56 and Florence Chapel Pike.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-circleville-3",
+      "text": "Paul Freshour has black ink stains under his fingernails from the night before his arrest that he genuinely cannot remember acquiring.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-circleville-4",
+      "text": "School Superintendent Gordon Massie authorized an acoustic 'hearing-aid study' in the Westfall district in 1976 funded by a Columbus defense contractor.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-circleville-5",
+      "text": "Playing the 1977 cassette recording of Ron Gillespie's last phone call through an oscilloscope reveals a dual-tone sub-harmonic pattern that triggers ocular migraines.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-circleville-6",
+      "text": "The central pumpkin-painted water tower in Circleville houses an unauthorized Bell Labs microwave dish aimed directly at the Westfall bus garage."
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue-booby-trap-diagram-pickaway",
+      "name": "Forensic Diagram of the .25 Pistol Box Trap",
+      "description": "Crime-scene sketch from Mary Gillespie's bus route showing a twine tripwire inside a wooden box holding a .25 automatic with a partially filed serial number traced to Paul Freshour.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-bus-route-trap",
+      "targetNodeId": "node-pickaway-sheriff",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-stencil-plastic-shaving",
+      "name": "Drafting-Stencil Shavings & School District Envelope",
+      "description": "Found in the weeds behind the bus-route fence: green celluloid shavings from an architectural lettering guide issued to the Westfall School Board.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-bus-route-trap",
+      "targetNodeId": "node-westfall-school-board",
+      "requiredSkill": "Track"
+    },
+    {
+      "id": "clue-bus-route-pole-wire",
+      "name": "Spliced Telephone Drop-Wire Along the Bus Route",
+      "description": "A black military-grade field wire running from the fence post up into the rural telephone trunk line heading toward the Route 56 intersection.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-bus-route-trap",
+      "targetNodeId": "node-route56-crash-site",
+      "requiredSkill": "Electrical Repair"
+    },
+    {
+      "id": "clue-circleville-block-letter-1983",
+      "name": "The Solitary Confinement Letter (Postmarked Columbus)",
+      "description": "A letter delivered to Paul Freshour inside his isolation cell while under 24-hour watch. The rigid geometric capitals match the 1977 letters sent to Ron Gillespie before his crash.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-pickaway-sheriff",
+      "targetNodeId": "node-route56-crash-site",
+      "requiredSkill": "Library Use"
+    },
+    {
+      "id": "clue-freshour-hypnotic-testimony",
+      "name": "Paul Freshour's Polygraph & Fugue Transcript",
+      "description": "During questioning at the jail, Freshour recalls hearing a high-pitched chime on his kitchen telephone right before losing four hours of memory on the night the bus trap was set.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-pickaway-sheriff",
+      "targetNodeId": "node-westfall-school-board",
+      "requiredSkill": "Psychology"
+    },
+    {
+      "id": "clue-sheriff-ballistics-log",
+      "name": "Evidence Locker Comparison of the .25 Pistol",
+      "description": "Ballistics notes showing the string-pull angle on the bus-route box trap was calibrated using engineering graph paper from the Westfall district office.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-pickaway-sheriff",
+      "targetNodeId": "node-bus-route-trap",
+      "requiredSkill": "Law"
+    },
+    {
+      "id": "clue-coroner-report-ron-gillespie",
+      "name": "1977 Crash Report & Spent .38 Casing at Route 56",
+      "description": "Coroner and deputy notes from August 19, 1977: Ron Gillespie's blood alcohol was falsified in the summary, and his single gunshot struck a metal repeater box on the utility pole.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-route56-crash-site",
+      "targetNodeId": "node-circleville-water-tower-climax",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-audio-gillespie-1977-wiretap",
+      "name": "Cassette Tape of Ron Gillespie's Last Phone Call (1977)",
+      "description": "Hidden in the Gillespie attic: a micro-cassette recording of the anonymous caller whose voice rides a hypnotic 18.9 Hz carrier wave traced to the Westfall administrative switchboard.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-route56-crash-site",
+      "targetNodeId": "node-westfall-school-board",
+      "requiredSkill": "Listen"
+    },
+    {
+      "id": "clue-pole-repeater-circuit",
+      "name": "Bullet-Damaged Acoustic Repeater on Route 56",
+      "description": "Prying open the rusted utility box above Ron's crash site reveals a custom frequency modulator stamped with the coordinates of the central Circleville Water Tower.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-route56-crash-site",
+      "targetNodeId": "node-circleville-water-tower-climax",
+      "requiredSkill": "Electrical Repair"
+    },
+    {
+      "id": "clue-town-crier-project-file",
+      "name": "Classified 'Project TOWN CRIER' Psychotronic Ledger",
+      "description": "Locked in the basement archive of the Westfall school board: Dr. Harlan Vance's sociological matrix tracking every letter recipient and routing master broadcasts through the Circleville Water Tower.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-westfall-school-board",
+      "targetNodeId": "node-circleville-water-tower-climax",
+      "requiredSkill": "Library Use"
+    },
+    {
+      "id": "clue-massie-blackmail-tapes",
+      "name": "Superintendent Gordon Massie's Dictaphone Tapes",
+      "description": "Confession recording admitting that the 1976 'hearing study' wired the school bus garage and Mary Gillespie's route into the acoustic monitoring grid.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-westfall-school-board",
+      "targetNodeId": "node-bus-route-trap",
+      "requiredSkill": "Persuade"
+    },
+    {
+      "id": "clue-columbus-postmark-meter",
+      "name": "Pitney Bowes Postage Meter Die #OH-43215",
+      "description": "Found in the Westfall supply closet: a Columbus-registered postage stamping die used to postmark batches of letters mailed by sleepwalking residents.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-westfall-school-board",
+      "targetNodeId": "node-pickaway-sheriff",
+      "requiredSkill": "Spot Hidden"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-bus-route-trap",
+      "name": "Westfall School Bus Route & The Fence-Post Trap",
+      "title": "Westfall School Bus Route & The Fence-Post Trap",
+      "type": "intro",
+      "description": "A lonely stretch of country road in Pickaway County flanked by winter cornfields and wooden fence posts. Yellow sheriff's tape marks the spot where Mary Gillespie stopped her school bus to tear down an obscene sign—and found a loaded .25 pistol aimed at her chest.",
+      "atmosphere": "Cold wind rattling dry cornstalks, humming overhead telephone wires, and the eerie feeling of invisible binoculars watching from the tree line.",
+      "npcs": ["Mary Gillespie"],
+      "npcIds": ["npc-mary-gillespie"],
+      "locationId": "loc-bus-route-trap",
+      "leadInClueIds": [
+        "clue-sheriff-ballistics-log",
+        "clue-massie-blackmail-tapes"
+      ],
+      "leadOutClueIds": [
+        "clue-booby-trap-diagram-pickaway",
+        "clue-stencil-plastic-shaving",
+        "clue-bus-route-pole-wire"
+      ],
+      "availableClues": [
+        "clue-booby-trap-diagram-pickaway",
+        "clue-stencil-plastic-shaving",
+        "clue-bus-route-pole-wire"
+      ]
+    },
+    {
+      "id": "node-pickaway-sheriff",
+      "name": "Pickaway County Sheriff's Office & Isolation Cell",
+      "title": "Pickaway County Sheriff's Office & Isolation Cell",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Wood-paneled 1980s county law enforcement headquarters in downtown Circleville. Cardboard boxes overflow with hundreds of block-lettered anonymous envelopes, while Paul Freshour sits in a stripped solitary cell down the hall.",
+      "atmosphere": " Buzzing fluorescent tubes, ringing rotary phones, smell of stale coffee, and institutional paranoia.",
+      "secret": "Even with Paul Freshour under constant observation in solitary confinement, a freshly written block-letter envelope was slipped into the outgoing mail basket by a sleepwalking night deputy.",
+      "npcs": ["Sheriff Dwight Radcliff", "Paul Freshour"],
+      "npcIds": ["npc-sheriff-radcliff", "npc-paul-freshour"],
+      "locationId": "loc-pickaway-sheriff",
+      "leadInClueIds": [
+        "clue-booby-trap-diagram-pickaway",
+        "clue-columbus-postmark-meter"
+      ],
+      "leadOutClueIds": [
+        "clue-circleville-block-letter-1983",
+        "clue-freshour-hypnotic-testimony",
+        "clue-sheriff-ballistics-log"
+      ],
+      "availableClues": [
+        "clue-circleville-block-letter-1983",
+        "clue-freshour-hypnotic-testimony",
+        "clue-sheriff-ballistics-log"
+      ]
+    },
+    {
+      "id": "node-route56-crash-site",
+      "name": "Route 56 & Florence Chapel Pike (1977 Crash Site & Gillespie Home)",
+      "title": "Route 56 & Florence Chapel Pike (1977 Crash Site & Gillespie Home)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "A scarred oak tree at the rural crossroads where Ron Gillespie's pickup truck crashed on August 19, 1977, minutes after he received a phone call from 'The Writer'. Above the scarred bark, a rusted telephone junction box hangs from the utility pole.",
+      "atmosphere": "Headlights cutting through freezing mist, the crackle of high-tension lines, and unresolved grief.",
+      "secret": "Ron Gillespie was not drunk; he fired his pistol at the humming acoustic repeater box on the pole right before the sub-harmonic blast caused him to black out at the wheel.",
+      "npcs": ["Karen Sue Gillespie (Daughter)"],
+      "npcIds": ["npc-karen-gillespie"],
+      "locationId": "loc-route56-crash-site",
+      "leadInClueIds": [
+        "clue-bus-route-pole-wire",
+        "clue-circleville-block-letter-1983"
+      ],
+      "leadOutClueIds": [
+        "clue-coroner-report-ron-gillespie",
+        "clue-audio-gillespie-1977-wiretap",
+        "clue-pole-repeater-circuit"
+      ],
+      "availableClues": [
+        "clue-coroner-report-ron-gillespie",
+        "clue-audio-gillespie-1977-wiretap",
+        "clue-pole-repeater-circuit"
+      ]
+    },
+    {
+      "id": "node-westfall-school-board",
+      "name": "Westfall School District Archive & Superintendent's Office",
+      "title": "Westfall School District Archive & Superintendent's Office",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Brick administrative annex housing personnel records, mimeograph machines, drafting stencils, and the basement files of the 1976 acoustic research grant.",
+      "atmosphere": "Smell of purple mimeograph fluid, metal filing cabinets, and the click of a hidden tape recorder.",
+      "secret": "Dr. Harlan Vance used the school district's phone tree and lettering stencils to seed 'Project TOWN CRIER', turning dozens of citizens into unconscious letter-writers.",
+      "npcs": ["Gordon Massie", "Dr. Harlan Vance"],
+      "npcIds": ["npc-gordon-massie", "npc-harlan-vance"],
+      "locationId": "loc-westfall-school-board",
+      "leadInClueIds": [
+        "clue-stencil-plastic-shaving",
+        "clue-freshour-hypnotic-testimony",
+        "clue-audio-gillespie-1977-wiretap"
+      ],
+      "leadOutClueIds": [
+        "clue-town-crier-project-file",
+        "clue-massie-blackmail-tapes",
+        "clue-columbus-postmark-meter"
+      ],
+      "availableClues": [
+        "clue-town-crier-project-file",
+        "clue-massie-blackmail-tapes",
+        "clue-columbus-postmark-meter"
+      ]
+    },
+    {
+      "id": "node-circleville-water-tower-climax",
+      "name": "Circleville Water Tower & Underground AT&T Relay Bunker (Climax)",
+      "title": "Circleville Water Tower & Underground AT&T Relay Bunker (Climax)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "Beneath the towering orange-painted water tank looms a concrete Cold War telecommunications vault. Banks of reel-to-reel tape loops, frequency modulators, and drafting tables broadcast the 18.9 Hz somnambulist signal across every telephone line in Pickaway County.",
+      "atmosphere": "Deafening sub-bass resonance, spinning magnetic reels, and sleepwalking townspeople gathering outside the chain-link fence with weapons in hand.",
+      "secret": "Destroying the master tape loop and severing the water-tower coaxial trunk terminates the hypnotic signal and exposes Dr. Vance's archive before the sleepwalkers open fire.",
+      "npcs": ["Dr. Harlan Vance"],
+      "npcIds": ["npc-harlan-vance"],
+      "locationId": "loc-circleville-water-tower",
+      "leadInClueIds": [
+        "clue-coroner-report-ron-gillespie",
+        "clue-pole-repeater-circuit",
+        "clue-town-crier-project-file"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-bus-route-trap",
+      "toId": "node-pickaway-sheriff",
+      "clueId": "clue-booby-trap-diagram-pickaway",
+      "description": "The .25 pistol recovered from the roadside box trap traces directly to the Sheriff's evidence locker and Paul Freshour's cell."
+    },
+    {
+      "fromId": "node-bus-route-trap",
+      "toId": "node-westfall-school-board",
+      "clueId": "clue-stencil-plastic-shaving",
+      "description": "Green lettering-stencil shavings behind the fence post match supplies at the Westfall School Board."
+    },
+    {
+      "fromId": "node-bus-route-trap",
+      "toId": "node-route56-crash-site",
+      "clueId": "clue-bus-route-pole-wire",
+      "description": "The spliced field wire follows the utility poles directly to the Route 56 crash intersection."
+    },
+    {
+      "fromId": "node-pickaway-sheriff",
+      "toId": "node-route56-crash-site",
+      "clueId": "clue-circleville-block-letter-1983",
+      "description": "The letter sent to Freshour in solitary references the truth behind Ron Gillespie's 1977 crash on Route 56."
+    },
+    {
+      "fromId": "node-pickaway-sheriff",
+      "toId": "node-westfall-school-board",
+      "clueId": "clue-freshour-hypnotic-testimony",
+      "description": "Freshour's memory gap and phone-chime testimony point to the Westfall acoustic study."
+    },
+    {
+      "fromId": "node-pickaway-sheriff",
+      "toId": "node-bus-route-trap",
+      "clueId": "clue-sheriff-ballistics-log",
+      "description": "Ballistics notes send investigators back to examine the exact tripwire geometry at the bus route."
+    },
+    {
+      "fromId": "node-route56-crash-site",
+      "toId": "node-circleville-water-tower-climax",
+      "clueId": "clue-coroner-report-ron-gillespie",
+      "description": "The trajectory of Ron Gillespie's gunshot points to the relay network connected to the Water Tower."
+    },
+    {
+      "fromId": "node-route56-crash-site",
+      "toId": "node-westfall-school-board",
+      "clueId": "clue-audio-gillespie-1977-wiretap",
+      "description": "The 1977 phone recording traces the caller's carrier wave to the Westfall switchboard."
+    },
+    {
+      "fromId": "node-route56-crash-site",
+      "toId": "node-circleville-water-tower-climax",
+      "clueId": "clue-pole-repeater-circuit",
+      "description": "The bullet-damaged repeater box on the utility pole is hardwired to the Circleville Water Tower bunker."
+    },
+    {
+      "fromId": "node-westfall-school-board",
+      "toId": "node-circleville-water-tower-climax",
+      "clueId": "clue-town-crier-project-file",
+      "description": "Project TOWN CRIER schematics identify the underground AT&T bunker beneath the Water Tower as the master transmitter."
+    },
+    {
+      "fromId": "node-westfall-school-board",
+      "toId": "node-bus-route-trap",
+      "clueId": "clue-massie-blackmail-tapes",
+      "description": "Massie's dictaphone tapes reveal how Mary Gillespie's bus route was wired into the experiment."
+    },
+    {
+      "fromId": "node-westfall-school-board",
+      "toId": "node-pickaway-sheriff",
+      "clueId": "clue-columbus-postmark-meter",
+      "description": "The fake Columbus postage meter die explains how letters reached the Sheriff's office overnight."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-mary-gillespie",
+      "name": "Mary Gillespie",
+      "description": "Exhausted but defiant Westfall school bus driver who has endured seven years of anonymous stalking and the death of her husband.",
+      "secret": "Keeps a shoebox of unreported letters and Ron's 1977 cassette tape hidden in her attic."
+    },
+    {
+      "id": "npc-paul-freshour",
+      "name": "Paul Freshour",
+      "description": "Mary's brother-in-law, currently locked in solitary confinement after his .25 pistol was found in the roadside trap.",
+      "secret": "Terrified because he cannot remember anything between 11:00 PM and 3:00 AM on the night the trap was planted."
+    },
+    {
+      "id": "npc-sheriff-radcliff",
+      "name": "Sheriff Dwight Radcliff",
+      "description": "Long-serving Pickaway County Sheriff determined to close the case, yet shaken by the letters still arriving while Freshour is in chains.",
+      "secret": "Received a block-lettered note on his own desk this morning describing a conversation he had alone in his kitchen."
+    },
+    {
+      "id": "npc-gordon-massie",
+      "name": "Gordon Massie (School Superintendent)",
+      "description": "Nervous Westfall administrator whose alleged affair with Mary Gillespie was the original subject of the 1976 letters.",
+      "secret": "Signed off on Dr. Vance's acoustic telephone line installation in 1976 in exchange for hush money."
+    },
+    {
+      "id": "npc-harlan-vance",
+      "name": "Dr. Harlan Vance",
+      "description": "Mild-mannered acoustic contractor and former Cold War behavioral researcher running Project TOWN CRIER.",
+      "secret": "Uses the Circleville Water Tower relay to turn the entire town into a self-policing panopticon of sleepwalking informants."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-bus-route-trap",
+      "name": "Westfall Bus Route Fence Post",
+      "description": "Rural Ohio roadside where the .25 pistol booby trap was rigged to an obscene sign.",
+      "atmosphere": "Bleak winter fields, fluttering police tape, and humming telephone wires."
+    },
+    {
+      "id": "loc-pickaway-sheriff",
+      "name": "Pickaway County Sheriff's Office & Jail",
+      "description": "County headquarters in Circleville holding the evidence boxes and Paul Freshour's isolation cell.",
+      "atmosphere": "Fluorescent glare, clanging cell bars, and stacks of Columbus-postmarked mail."
+    },
+    {
+      "id": "loc-route56-crash-site",
+      "name": "Route 56 & Florence Chapel Pike",
+      "description": "Rural intersection where Ron Gillespie died in 1977 after firing a single shot from his pistol.",
+      "atmosphere": "Scarred oak tree, rusted utility box, and cold highway fog."
+    },
+    {
+      "id": "loc-westfall-school-board",
+      "name": "Westfall School District Administration",
+      "description": "Administrative offices and basement archives of the local school district.",
+      "atmosphere": "Mimeograph ink, locked steel cabinets, and acoustic test charts."
+    },
+    {
+      "id": "loc-circleville-water-tower",
+      "name": "Circleville Water Tower & AT&T Relay Bunker",
+      "description": "Landmark water tower concealing an underground Cold War telecommunications relay.",
+      "atmosphere": "Sub-audible 18.9 Hz vibration, spinning tape loops, and high-voltage transformers."
+    }
+  ],
+  "handouts": [
+    {
+      "slug": "circleville-block-letter-1983",
+      "title": "The Solitary Confinement Letter (Postmarked Columbus, 1983)",
+      "image": "/handouts/circleville-letters-1983/circleville-block-letter-1983.webp",
+      "handoutType": "letter",
+      "nodeId": "node-pickaway-sheriff",
+      "textContent": "POSTMARK: COLUMBUS, OH - FEB 1983. 'FRESHOUR DO YOU REALLY BELIEVE WALLS CAN STOP THE EYES THAT WATCH PICKAWAY COUNTY? YOU BUILT THE BOX ON THE BUS ROUTE WHEN THE BELL RANG. SOON EVERYONE IN CIRCLEVILLE WILL ANSWER THE TONE.'"
+    },
+    {
+      "slug": "booby-trap-diagram-pickaway",
+      "title": "Sheriff's Exhibit A: Bus-Route .25 Pistol Booby Trap Diagram",
+      "image": "/handouts/circleville-letters-1983/booby-trap-diagram-pickaway.webp",
+      "handoutType": "report",
+      "nodeId": "node-bus-route-trap",
+      "textContent": "PICKAWAY COUNTY SHERIFF EVIDENCE SKETCH (Feb 1983): Roadside wooden sign wired via twine to concealed pine box. Weapon: .25 ACP semi-automatic pistol, serial partially filed, barrel aligned at chest height (54 inches). Secondary wire spliced into Bell telephone pole #114."
+    },
+    {
+      "slug": "coroner-report-ron-gillespie",
+      "title": "1977 Inquest Addendum: Death of Ronald Gillespie (Route 56)",
+      "image": "/handouts/circleville-letters-1983/coroner-report-ron-gillespie.webp",
+      "handoutType": "report",
+      "nodeId": "node-route56-crash-site",
+      "textContent": "SUPPLEMENTAL REPORT (Aug 19, 1977 - Route 56 & Florence Chapel Pike): Decedent left residence at 23:14 after phone call. Pickup struck oak tree at 55 mph. Weapon (.38 revolver) recovered on floorboard with ONE (1) spent casing. Bullet hole located 18 feet up utility pole in acoustic junction box."
+    },
+    {
+      "slug": "audio-gillespie-1977-wiretap",
+      "title": "Micro-Cassette Recording: Ron Gillespie's Last Phone Call (Aug 19, 1977)",
+      "image": "/handouts/circleville-letters-1983/coroner-report-ron-gillespie.webp",
+      "audioUrl": "/audio/handouts/circleville-letters-1983/gillespie-wiretap-1977.mp3",
+      "handoutType": "report",
+      "nodeId": "node-route56-crash-site",
+      "textContent": "Home tape recording from August 19, 1977: rotary dial clicks, a deep 18.9 Hz electronic hum on the party line, and a clipped, rhythmic voice reciting the exact movements inside the Gillespie kitchen before telling Ron to meet at Route 56."
+    }
+  ]
+}

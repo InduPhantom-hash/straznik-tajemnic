@@ -38,7 +38,7 @@ import { normalizeStoredCharacters } from '@/lib/character-storage-normalizer';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
 import { toast } from '@/components/ui/use-toast';
-import { BUILT_IN_ADVENTURES, STREFA_11_ADVENTURES, getAdventureById } from '@/lib/adventures-data';
+import { BUILT_IN_ADVENTURES, STREFA_11_ADVENTURES, AMERICAN_COLD_CASES_ADVENTURES, getAdventureById } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
 import { buildPredefinedEquipment } from '@/lib/immersion/predefined-equipment';
@@ -522,22 +522,27 @@ export default function Home() {
 
   const handleQuickStartOnboarding = useCallback(
     async (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat', player2CharacterId?: string) => {
-      // 1. Ustaw przygodę
-      let adv = STREFA_11_ADVENTURES.find((a) => a.id === adventureId);
-      if (!adv) adv = getAdventureById(adventureId);
-      
+      // 1. Ustaw przygodę i postać z presetów
+      let adv = getAdventureById(adventureId);
+      const allCharacters = adv?.isStrefa11 || adv?.isAmericanColdCase
+        ? getStrefa11CharactersForAdventure(adv.id)
+        : PREDEFINED_CHARACTERS;
+      const preset = allCharacters.find((c) => c.id === characterId);
+
+      if (adv && preset?.startingNodeId) {
+        adv = {
+          ...adv,
+          activeNodeId: preset.startingNodeId,
+          ...(preset.openingHook ? { hook: preset.openingHook } : {}),
+        };
+      }
+
       if (adv) {
         setAdventureContext(adv);
         if (typeof window !== 'undefined') {
           localStorage.setItem('adventure_context', JSON.stringify(adv));
         }
       }
-
-      // 2. Ustaw postać z presetów
-      const allCharacters = adv?.isStrefa11
-        ? getStrefa11CharactersForAdventure(adv.id)
-        : PREDEFINED_CHARACTERS;
-      const preset = allCharacters.find((c) => c.id === characterId);
       if (preset) {
         const targetEra = adv
           ? resolveEraVisualProfile(resolveGameEraContext({ adventure: adv }))
@@ -1118,12 +1123,18 @@ export default function Home() {
           onClose={() => setShowPredefinedSelector(false)}
           onSelectCharacter={handleSelectPredefinedCharacter}
           characters={
-            adventureContext?.id && STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)
+            adventureContext?.id &&
+            (STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id) ||
+              AMERICAN_COLD_CASES_ADVENTURES.some((adventure) => adventure.id === adventureContext.id))
               ? getStrefa11CharactersForAdventure(adventureContext.id)
               : PREDEFINED_CHARACTERS
           }
           currentEra={adventureContext?.era || 'classic'}
-          filterByEra={!adventureContext?.id || !STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)}
+          filterByEra={
+            !adventureContext?.id ||
+            (!STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id) &&
+              !AMERICAN_COLD_CASES_ADVENTURES.some((adventure) => adventure.id === adventureContext.id))
+          }
         />
       )}
     </ChatLayout>

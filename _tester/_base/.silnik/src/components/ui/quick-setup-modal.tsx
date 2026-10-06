@@ -12,7 +12,7 @@ import {
 import { Button } from './button';
 import { SafeImage } from './safe-image';
 import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X, Loader2 } from 'lucide-react';
-import { STREFA_11_ADVENTURES } from '@/lib/adventures-data';
+import { getQuickSetupAdventures } from '@/lib/adventures-data';
 import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
 import {
   localizeStrefa11Adventure,
@@ -40,8 +40,12 @@ export function QuickSetupModal({
 }: QuickSetupModalProps) {
   const t = useTranslations('QuickSetupModal');
   const locale = useLocale() as 'pl' | 'en';
+  const rawAdventures = useMemo(
+    () => getQuickSetupAdventures(locale),
+    [locale]
+  );
   const [selectedAdventureId, setSelectedAdventureId] = useState<string>(
-    STREFA_11_ADVENTURES[0]?.id || 'cien-nad-prabutami'
+    () => getQuickSetupAdventures(locale)[0]?.id || 'cien-nad-prabutami'
   );
   
   const [playMode, setPlayMode] = useState<'solo' | 'hot-seat'>('solo');
@@ -50,9 +54,15 @@ export function QuickSetupModal({
   const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
 
   const adventures = useMemo(
-    () => STREFA_11_ADVENTURES.map((adventure) => localizeStrefa11Adventure(adventure, locale)),
-    [locale]
+    () => rawAdventures.map((adventure) => localizeStrefa11Adventure(adventure, locale)),
+    [rawAdventures, locale]
   );
+
+  useEffect(() => {
+    if (!rawAdventures.some((adv) => adv.id === selectedAdventureId)) {
+      setSelectedAdventureId(rawAdventures[0]?.id || 'cien-nad-prabutami');
+    }
+  }, [rawAdventures, selectedAdventureId]);
 
   const availableCharacters = useMemo(() => {
     return getStrefa11CharactersForAdventure(selectedAdventureId)
@@ -89,7 +99,7 @@ export function QuickSetupModal({
             {t('kicker')}
           </div>
           <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-3xl font-black uppercase tracking-[0.12em] text-foreground flex items-center gap-2">
-            Strefa 11
+            {locale === 'en' ? 'American Mythos Cold Cases' : 'Strefa 11'}
           </DialogTitle>
           <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
             {t('description')}

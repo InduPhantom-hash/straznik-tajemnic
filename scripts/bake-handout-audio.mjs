@@ -99,6 +99,55 @@ export const PREDEFINED_HANDOUTS = [
     elevenVoiceId: 'N2lVS1w4EtoT3dr4eOWO', // Callum / chłodny, hipnotyzujący głos
     text: 'Komunikat priorytetowy do wszystkich węzłów podsieci Dolnego Śląska... Jeżeli odbieracie tę transmisję na kanale trzydziestym siódmym, oznacza to, że pieczęć w kazamatach Twierdzy Głogów została naruszona. Rok dwa tysiące pierwszy nie jest początkiem nowego stulecia. To jest zamknięta pętla czasowa. Każdy odebrany impuls skraca interwał powrotu bytu z podziemi Odry. Odłączcie zasilanie magistrali... Odłączcie kable koncentryczne zanim przekaźniki w zalanym sektorze X-11 zaczną retransmitować sygnał zza horyzontu zdarzeń. Czas nie płynie w przód. Czas zapada się do środka...',
     outputFilename: 'przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3',
+  },
+  // === AMERICAN MYTHOS COLD CASES (EN Quick Setup) ===
+  {
+    id: 'coldcase_holmes_cylinder_1893',
+    title: "Edison Wax Cylinder: 'Experiment IX - Room 14' (1893)",
+    scenario: 'englewood-murder-castle-1893',
+    lang: 'en',
+    macVoice: 'Daniel',
+    mediaType: 'phonograph_cylinder',
+    voiceType: 'cold_architect',
+    elevenVoiceId: 'pNInz6obpgDQGcFmaJgB',
+    text: 'Edison cylinder record, sixty-third and Wallace Street, Chicago. November fourteenth, eighteen ninety-four. Room fourteen vault is sealed. I have opened the town-gas manifold to one-third pressure. Listen closely to the iron chute... The angles of the brickwork are no longer ninety degrees. As the subject loses consciousness, the furnace in the cellar begins to draw air downward without fire. Do you hear that resonance inside the shaft? The threshold beneath Chicago is opening.',
+    outputFilename: 'englewood-murder-castle-1893/edison-wax-cylinder-1893.mp3',
+  },
+  {
+    id: 'coldcase_franks_inquest_1924',
+    title: 'Dictaphone Record: Chauffeur Englund & Leopold Inquest (1924)',
+    scenario: 'almer-coe-spectacles-1924',
+    lang: 'en',
+    macVoice: 'Daniel',
+    mediaType: 'phonograph_cylinder',
+    voiceType: 'detached_scholar',
+    elevenVoiceId: 'ErXwobaYiN019PkySvjV',
+    text: 'State Attorney inquest record, LaSalle Hotel, Chicago, May twenty-third, nineteen twenty-four. Witness Sven Englund confirms the red Willys-Knight automobile never left the Greenwood Avenue garage on Wednesday afternoon. Switching cylinder to subject Nathan Leopold Junior... Why did we do it? A superior intellect stands outside ordinary morality. Through the smoky quartz lenses ground by Almer Coe, we observed the exact instant the mortal tether snapped. The culvert at Wolf Lake was only the first point of the triangle.',
+    outputFilename: 'almer-coe-spectacles-1924/crowe-interrogation-1924.mp3',
+  },
+  {
+    id: 'coldcase_circleville_wiretap_1977',
+    title: "Micro-Cassette Recording: Ron Gillespie's Last Phone Call (1977)",
+    scenario: 'circleville-letters-1983',
+    lang: 'en',
+    macVoice: 'Fred',
+    mediaType: 'cassette_log',
+    voiceType: 'modulated_caller',
+    elevenVoiceId: 'VR6AewLTigWG4xSOukaG',
+    text: 'Pickaway County party-line trunk seven... August nineteenth, nineteen seventy-seven, eleven-ten P.M. Listen to the carrier tone, Ronald. We see you standing by the kitchen window with the revolver in your hand. We know every word spoken on the Westfall school bus route. Drive out to Route fifty-six and Florence Chapel Pike. Look up at utility pole eighty-eight. When the eighteen-point-nine hertz tone sounds, the whole town of Circleville will write with our hand.',
+    outputFilename: 'circleville-letters-1983/gillespie-wiretap-1977.mp3',
+  },
+  {
+    id: 'coldcase_ovidhall_voicemail_2005',
+    title: "Voicemail Audio Extraction: 'I'm in a Field' (June 12, 2005)",
+    scenario: 'ovidhall-lake-anomaly-2005',
+    lang: 'en',
+    macVoice: 'Daniel',
+    mediaType: 'audio_interview',
+    voiceType: 'disoriented_victim',
+    elevenVoiceId: 'TxGEqnHWrfWFTfGW9XjX',
+    text: 'Cingular Wireless voicemail extraction, June twelfth, two thousand five, twelve fifty-one A.M. ... Hello? Can you hear me? I left the bonfire by the apple orchard, but the trees are gone... I am in a field. Wait... why is there limestone above my head? The water is above me... There are metal needles growing out of the mud, and something in the dark pond is telling me to stand straight up...',
+    outputFilename: 'ovidhall-lake-anomaly-2005/voicemail-in-a-field-2005.mp3',
   }
 ];
 
@@ -187,9 +236,10 @@ async function main() {
       try {
         const { execSync } = await import('child_process');
         const tempAiff = path.join(OUTPUT_DIR, `temp_${Date.now()}_${handout.id}.aiff`);
-        
-        // Synteza przez macOS say z polskim głosem Zosia
-        execSync(`say -v Zosia -o "${tempAiff}" "${handout.text.replace(/"/g, '\\"')}"`);
+        const macVoice = handout.macVoice || (handout.lang === 'en' ? 'Daniel' : 'Zosia');
+
+        // Synteza przez macOS say z dobranym głosem (PL: Zosia, EN: Daniel/Fred)
+        execSync(`say -v "${macVoice}" -o "${tempAiff}" "${handout.text.replace(/"/g, '\\"')}"`);
         
         // Przepuszczenie przez ffmpeg z filtrem pasmowym (charakterystyka taśmy magnetofonowej / radia)
         execSync(`ffmpeg -y -i "${tempAiff}" -af "highpass=f=200,lowpass=f=3200,volume=1.3" -codec:a libmp3lame -b:a 128k "${targetFile}" 2>/dev/null`);
