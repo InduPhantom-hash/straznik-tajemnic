@@ -28,6 +28,7 @@ import { GeminiSettings } from '../settings/gemini-settings';
 import { QualityPresets } from '../settings/quality-presets';
 import { TTSSettings } from '../settings/tts-settings';
 import { UpdateSettings } from '../settings/update-settings';
+import { HueSettingsSection } from '../settings/hue-settings-section';
 
 interface SettingsModalProps {
   open?: boolean;
@@ -87,6 +88,7 @@ export function SettingsModal({
           {/* IND-273 T6: widoczny panel zdrowia klucza/modeli */}
           <HealthStatusPanel selectedModel={m.settings.geminiSettings.model} />
           <UpdateSettings />
+          <HueSettingsSection />
 
           {/* IND-265 A: progressive disclosure - zaawansowane ustawienia w
               zwiniętej harmonijce, by nie przytłaczać gracza, którego to nie obchodzi.

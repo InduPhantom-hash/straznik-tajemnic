@@ -5,3 +5,6 @@
 
 export * from './types';
 export * from './smart-dice-bridge';
+export * as Hue from './hue/types';
+export { HueClient } from './hue/hue-client';
+export { LightDirector } from './hue/light-director';

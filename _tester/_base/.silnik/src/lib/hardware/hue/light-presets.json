@@ -1,0 +1,52 @@
+{
+  "presets": {
+    "kerosene_lamp": {
+      "id": "kerosene_lamp",
+      "name": "Lampa naftowa / Kominek",
+      "description": "Ciepłe, przyćmione światło wnętrz lat 20., bezpieczna przystań",
+      "mirek": 454,
+      "brightness": 35,
+      "transitionMs": 3000
+    },
+    "new_england_fog": {
+      "id": "new_england_fog",
+      "name": "Poranna mgła Nowej Anglii",
+      "description": "Chłodnawe, rozproszone światło dzienne na zewnątrz",
+      "mirek": 250,
+      "brightness": 55,
+      "transitionMs": 4000
+    },
+    "subterranean_dark": {
+      "id": "subterranean_dark",
+      "name": "Mrok podziemi / Piwnica",
+      "description": "Głęboki, zimny granat i znikoma widoczność",
+      "xy": [0.18, 0.15],
+      "brightness": 8,
+      "transitionMs": 3000
+    },
+    "cosmic_horror": {
+      "id": "cosmic_horror",
+      "name": "Obca przestrzeń / Rytuał",
+      "description": "Nienaturalny fiolet lub zielonkawa poświata z kosmosu",
+      "xy": [0.28, 0.45],
+      "brightness": 12,
+      "transitionMs": 2500
+    },
+    "candlelight": {
+      "id": "candlelight",
+      "name": "Pojedyncza świeca",
+      "description": "Niezwykle intymny, głęboki bursztyn w całkowitej ciemności",
+      "mirek": 500,
+      "brightness": 15,
+      "transitionMs": 2000
+    },
+    "institutional_cold": {
+      "id": "institutional_cold",
+      "name": "Klinika / Prosektorium",
+      "description": "Zimna, sterylna biel prosektorium lub posterunku policji",
+      "mirek": 180,
+      "brightness": 70,
+      "transitionMs": 2500
+    }
+  }
+}
