@@ -32,6 +32,40 @@ const platform = args.platform || process.platform;
 const minimumMacOS = args['minimum-macos'] || '';
 const testMode = args['test-mode'] === 'true' || process.env.TEST_MODE === '1';
 const desktopPid = parseInt(args['desktop-pid'] || process.env.DESKTOP_PID || '0', 10);
+let splashProcess = null;
+
+function showUpdateSplash(statusMessage) {
+  if (testMode || process.env.TEST_MODE === '1' || splashProcess) return;
+  const splashPath = path.join(path.dirname(new URL(import.meta.url).pathname), 'updater-splash.html');
+  if (!fs.existsSync(splashPath)) return;
+
+  try {
+    const encodedStatus = encodeURIComponent(statusMessage || 'Przebudowa mechanizmów Strażnika Tajemnic…');
+    const splashUrl = `file://${splashPath}?status=${encodedStatus}`;
+
+    if (platform === 'darwin') {
+      // Uruchomienie minimalistycznego okna w trybie app lub przez Safari/Chrome
+      splashProcess = spawn('open', ['-n', '-a', 'Safari', splashUrl], { detached: true, stdio: 'ignore' });
+      splashProcess.unref();
+    } else if (platform === 'win32') {
+      splashProcess = spawn('mshta', [`${splashPath}#${encodedStatus}`], { detached: true, stdio: 'ignore' });
+      splashProcess.unref();
+    }
+  } catch (_) {}
+}
+
+function closeUpdateSplash() {
+  if (splashProcess && splashProcess.pid) {
+    try {
+      if (platform === 'win32') {
+        spawnSync('taskkill', ['/F', '/PID', String(splashProcess.pid)], { stdio: 'ignore' });
+      } else {
+        process.kill(splashProcess.pid, 'SIGTERM');
+      }
+    } catch (_) {}
+    splashProcess = null;
+  }
+}
 
 if (!target || !url || !expectedSha256 || !version || !dataDir) {
   console.error('Błąd: brakujące wymagane argumenty dla update-worker.');
@@ -405,6 +439,7 @@ async function run() {
 
   // 6. Zatrzymanie działających procesów serwera i zwalnianie blokad plików
   writeStatus('installing', 'installing update');
+  showUpdateSplash('Przebudowa mechanizmów Strażnika Tajemnic i podmiana plików…');
   stopRunningServer();
 
   // Oczekiwanie na pełne wygaśnięcie procesu desktopu (wzorzec Hermes wait-out loop)
@@ -499,9 +534,11 @@ async function run() {
   if (healthy) {
     swapped = false;
     writeStatus('succeeded', 'update installed');
+    closeUpdateSplash();
     cleanup();
     process.exit(0);
   } else {
+    closeUpdateSplash();
     rollback('health check failed');
   }
 }
