@@ -1105,6 +1105,24 @@ export interface AdventureContext {
     keyAlibi?: string;
     immutableFacts?: string[];
   };
+
+  /** Diegetyczne granice sprawy (Closed Circle Mystery) */
+  boundarySummary?: string;
+
+  /** Pula sekretów Mike'a Shea */
+  secretsPool?: Array<string | { id?: string; text?: string; description?: string; isDiscovered?: boolean }>;
+  secrets?: Array<string | { id?: string; text?: string; description?: string; isDiscovered?: boolean }>;
+
+  /** Konfiguracja Zegara Zagłady (Doom Clock) dla scenariusza */
+  doomClock?: {
+    deadline?: Partial<GameTime>;
+    totalHours?: number;
+    stages?: Array<{
+      phase: 0 | 1 | 2 | 3;
+      title: string;
+      description: string;
+    }>;
+  };
 }
 
 export interface ConflictFaction {

@@ -6,52 +6,495 @@
   "era": "2000s",
   "yearRange": "2001",
   "activeSceneYear": 2001,
-  "setting": "Polska, Przełom Tysiącleci / Jesień 2001 r. (Głogów - Legnica - Wrocław)",
+  "startDate": "2001-11-14T20:00",
+  "initialWeather": "Zimny, listopadowy deszcz ze śniegiem i gęsty smog nad Odrą",
+  "setting": "Polska, Przełom Tysiącleci / Listopad 2001 r. (Głogów - Osiedle Kopernika - Twierdza Głogów)",
   "startingLocation": "Redakcja Telewizji Lokalnej w Głogowie / Osiedle Kopernika",
   "summary": "Badacze trafiają do Głogowa po serii niewytłumaczalnych zjawisk rejestrowanych na kasetach VHS przez lokalnego radioamatora i pasjonata elektroniki. Świadkowie zgłaszają nocne błyski światła, chwilowe zaniki pamięci oraz odbiór audycji telewizyjnych z przyszłości. Sprawa komplikuje się, gdy agenci tajnych służb próbują przejąć taśmy VHS z nagraniami, a śledztwo prowadzi do opuszczonych podziemi powojskowych i starożytnego bytu manipulującego liniami czasowymi (Noth-Yiddith / Chrono-Entity). Scenariusz bezpośrednio nawiązuje do słynnego odcinka magazynu 'Nie do wiary / Strefa 11'.",
+  "boundarySummary": "Głogów jest objęty blokadą kwarantannową i komunikacyjną po rzekomej awarii sieci energetycznej oraz skażeniu w pobliżu huty miedzi. Mosty na Odrze i drogi wyjazdowe są obstawione przez patrole Policji i Żandarmerii Wojskowej, a w całym mieście występują lokalne pętle czasowe cofające uciekające pojazdy z powrotem na rogatki Osiedla Kopernika.",
+  "truthAnchor": {
+    "culprit": "Chrono-Anomalia z Sektoru X-11 (Pradawny Byt Czasoprzestrzenny / Tindalos-Noth-Yiddith) sprzężona z wojskowym przekaźnikiem troposferycznym pod Twierdzą Głogów",
+    "motive": "Byt uwięziony w zalanym kazamacie pod dnem Odry wykorzystuje sieć telewizji kablowej i anteny zbiorcze na Osiedlu Kopernika jako matrycę synchronizacyjną do zapadnięcia lokalnej pętli czasu.",
+    "murderWeapon": "Desynchronizacja chronologiczna układu nerwowego (nagłe postarzenie tkanek lub zatrzymanie impulsów mózgowych w zamrożonej sekundzie czasu) podczas emisji sygnału z kanału 37.",
+    "keyAlibi": "Służby specjalne i technicy kablówki zrzucają winę na przebicia prądu z huty i pirackie nadajniki radioamatorów, ukrywając podziemny kabel koncentryczny biegnący do Twierdzy Głogów.",
+    "immutableFacts": [
+      "Audycje na kasetach VHS nie są mistyfikacją - to rzeczywiste odbicia sygnału z przyszłych iteracji pętli czasowej, w których Głogów uległ wygaszeniu.",
+      "Kanał 37 jest retransmitowany przez niemiecki kabel podmorski z 1944 roku prowadzący z węzła na Osiedlu Kopernika wprost do Sektoru X-11 pod Twierdzą Głogów.",
+      "Zegarki elektroniczne w zasięgu anomalii odliczają czas wstecz do godziny 03:33 w nocy 15 listopada 2001 roku.",
+      "Fizyczne przecięcie magistrali koncentrycznej i zalanie rezonatora w Sektorze X-11 wodami Odry przerywa pętlę czasową i przywraca normalny bieg czasu."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 2001,
+      "month": 10,
+      "day": 15,
+      "hour": 3,
+      "minute": 33
+    },
+    "totalHours": 7.5,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Faza 0: Cisza w eterze (Analiza taśm VHS)",
+        "description": "W studiu telewizji lokalnej badacze przeglądają zrzuty klatek CRT. Na zewnątrz mrugają latarnie uliczne, a w głośnikach słychać cichy przydźwięk."
+      },
+      {
+        "phase": 1,
+        "title": "Faza 1: Narastająca presja (Zaniki pamięci i Deja Vu)",
+        "description": "Mieszkańcy Osiedla Kopernika powtarzają te same zdania co 11 minut. Zegarki elektroniczne zaczynają tykać wstecz, a w blokach wariują magnetowidy."
+      },
+      {
+        "phase": 2,
+        "title": "Faza 2: Bezpośrednie zagrożenie (Suchy piorun i patrole)",
+        "description": "Nad Twierdzą Głogów biją bezgłośne, fioletowe błyskawice. Nieoznakowane furgonetki służb konfiskują kasety VHS, a telewizory same włączają się na kanał 37."
+      },
+      {
+        "phase": 3,
+        "title": "Faza 3: Punkt kulminacyjny (Zapadnięcie Pętli w Sektorze X-11)",
+        "description": "Zbliża się 03:33. Przekaźnik w podziemiach pod Odrą osiąga pełną synchronizację, a sylwetka Przybysza z Matriksa zaczyna wychodzić z ekranów i ścian."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-glogow-1",
+      "text": "Klatka wideo z godziny 03:33 na taśmie VHS przedstawia twarz jednego z badaczy stojącego w zalanym korytarzu Sektoru X-11.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-glogow-2",
+      "text": "Wszystkie zegarki Casio w promieniu kilometra od Osiedla Kopernika zatrzymują się lub odliczają wstecz dokładnie o 11 minut co pełną godzinę.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-glogow-3",
+      "text": "Pod skrzynką rozdzielczą telewizji kablowej w bloku przy ul. Gwiaździstej podpięty jest pancerny kabel wojskowy z oznaczeniami Festung Glogau 1944.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-glogow-4",
+      "text": "Świadkowie, którzy oglądali audycję na kanale 37 dłużej niż trzy minuty, pamiętają wydarzenia z jutra, ale zapominają własne nazwiska.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-glogow-5",
+      "text": "Woda w zalanym tunelu Sektoru X-11 pod dnem Odry nie zamarza mimo temperatury -15 stopni Celsjusza, a krople unoszą się w powietrzu.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-glogow-6",
+      "text": "Zwarcie głowicy nadawczej w Sektorze X-11 za pomocą impulsu rozmagnesowującego (degaussera) z redakcji TV niszczy matrycę sygnału.",
+      "isDiscovered": false
+    }
+  ],
   "clues": [
     {
       "id": "clue-vhs-tape-glogow",
-      "name": "Taśma VHS z Nagraniem Sygnału 14.11",
-      "description": "Kaseta VHS z nagranym zakłóceniem sygnału telewizyjnego z nocy 14 listopada. W tle szumu widoczna jest twarz postaci z 2012 roku oraz zarys cyklopowej wieży."
-    },
-    {
-      "id": "clue-clock-anomaly",
-      "name": "Zegarek Elektroniczny ze Wstecznym Odliczaniem",
-      "description": "Zegarek Casio znaleziony w miejscu incydentu. Odmierza czas wstecz, a co 11 minut wydaje dźwięk o częstotliwości wywołującej nudności i zawroty głowy."
-    },
-    {
-      "id": "clue-military-bunker-map",
-      "name": "Plan Podziemi pod Twierdzą Głogów",
-      "description": "Niemiecka mapa sztabowa z nadrukiem Wojska Polskiego z lat 60. Oznaczono na niej zalany sektor 'X-11', w którym odnotowano silne anomalie magnetyczne."
+      "name": "Taśma VHS z Nagraniem Sygnału 14.11 (Kanał 37)",
+      "description": "Kaseta SVHS z nagranym zakłóceniem z nocy 14 listopada. Analiza kodu czasowego wskazuje źródło nagrania w mieszkaniu radioamatora na Osiedlu Kopernika.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-tv-studio",
+      "targetNodeId": "node-kopernik-apartment",
+      "requiredSkill": "Elektryka"
     },
     {
       "id": "clue-newspaper-clipping-2001",
-      "name": "Wycinek z Gazety 'Głos Głogowski'",
-      "description": "Artykuł o masowym gaśnięciu latarni ulicznych i awarii sieci energetycznej w całej dzielnicy podczas uderzenia 'suchy piorun'."
+      "name": "Wycinek z 'Głosu Głogowskiego' o suchym piorunie",
+      "description": "Artykuł i relacja fotoreportera o fioletowym wyładowaniu, które uderzyło bezpośrednio w maszt przekaźnikowy na dachu Węzła Kablowego przy Twierdzy.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-tv-studio",
+      "targetNodeId": "node-glogow-cable-hub",
+      "requiredSkill": "Biblioteka"
+    },
+    {
+      "id": "clue-studio-spectrum-trace",
+      "name": "Wykres widma falowego z analizatora w studiu TV",
+      "description": "Pomiar inżyniera Piotra Kamińskiego pokazujący, że nośna dźwięku z kasety VHS pulsuje z częstotliwością geodezyjną podziemi Twierdzy Głogów.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-tv-studio",
+      "targetNodeId": "node-glogow-fortress-bunker",
+      "requiredSkill": "Nauka (Fizyka / Elektronika)"
+    },
+    {
+      "id": "clue-clock-anomaly",
+      "name": "Zegarek Casio ze Wstecznym Odliczaniem",
+      "description": "Zegarek znaleziony w mieszkaniu świadka na Osiedlu Kopernika. Jego układ kwarcowy wskazuje kierunek najsilniejszego pola magnetycznego w Węźle Kablowym.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-kopernik-apartment",
+      "targetNodeId": "node-glogow-cable-hub",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-apartment-coax-splicing",
+      "name": "Nielegalne wpięcie w pion instalacyjny w bloku",
+      "description": "Gruby, czarny przewód koncentryczny ukryty w szybie windowym na Osiedlu Kopernika, prowadzący pod ziemią w stronę kazamatów Twierdzy Głogów.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-kopernik-apartment",
+      "targetNodeId": "node-glogow-fortress-bunker",
+      "requiredSkill": "Mechanika"
+    },
+    {
+      "id": "clue-witness-future-prophecy",
+      "name": "Zapis majaczeń świadka o zalanym Sektorze X-11",
+      "description": "Pogrążony w transie mieszkaniec Osiedla Kopernika recytuje z pamięci współrzędne zalanego tunelu pod dnem Odry, które widział na ekranie telewizora.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-kopernik-apartment",
+      "targetNodeId": "node-glogow-sector-x11-climax",
+      "requiredSkill": "Psychologia"
+    },
+    {
+      "id": "clue-cable-hub-logbook",
+      "name": "Dziennik awarii Węzła Kablowego Osiedla Kopernika",
+      "description": "Rejestr techniczny wykazujący, że zwrotne przepięcia o godzinie 03:33 zaczęły się w mieszkaniu nr 44 na Osiedlu Kopernika.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-cable-hub",
+      "targetNodeId": "node-kopernik-apartment",
+      "requiredSkill": "Korzystanie z komputerów"
+    },
+    {
+      "id": "clue-cable-hub-german-conduit",
+      "name": "Poniemiecka mufa kablowa 'Festung Glogau 1944'",
+      "description": "Odkryta w piwnicy węzła telekomunikacyjnego pancerna mufa łącząca współczesną sieć światłowodową z wejściem do Bunkra pod Twierdzą Głogów.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-cable-hub",
+      "targetNodeId": "node-glogow-fortress-bunker",
+      "requiredSkill": "Historia"
+    },
+    {
+      "id": "clue-audio-vhs-broadcast-decode",
+      "name": "Zdekodowany sygnał modemowy z pasma VHS",
+      "description": "Ciąg współrzędnych binarnych wyodrębniony w Węźle Kablowym z nagrania audio, wskazujący dokładnie komorę rezonansową w zalanym Sektorze X-11.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-cable-hub",
+      "targetNodeId": "node-glogow-sector-x11-climax",
+      "requiredSkill": "Korzystanie z komputerów"
+    },
+    {
+      "id": "clue-military-bunker-map",
+      "name": "Plan Podziemi Twierdzy Głogów (Sektor X-11)",
+      "description": "Wojskowa mapa sztabowa z bunkra pod twierdzą z naniesionym czerwonym ołówkiem zalanym tunelem prowadzącym pod dno Odry do Sektoru X-11.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-fortress-bunker",
+      "targetNodeId": "node-glogow-sector-x11-climax",
+      "requiredSkill": "Nawigacja"
+    },
+    {
+      "id": "clue-bunker-vhs-cache",
+      "name": "Skrzynia ze skonfiskowanymi kasetami VHS z Kopernika",
+      "description": "Znalezione w przedsionku bunkra pudełko z kasetami opisanymi adresami mieszkań na Osiedlu Kopernika, gdzie rejestrowano najczystszy obraz.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-fortress-bunker",
+      "targetNodeId": "node-kopernik-apartment",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-bunker-field-generator-wire",
+      "name": "Zasilacz impulsowy podpięty pod Węzeł Kablowy",
+      "description": "Wojskowa przetwornica w bunkrze wysyłająca pakiety synchronizacyjne bezpośrednio do rozdzielni Węzła Kablowego.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-glogow-fortress-bunker",
+      "targetNodeId": "node-glogow-cable-hub",
+      "requiredSkill": "Elektryka"
     }
   ],
   "nodes": [
     {
       "id": "node-glogow-tv-studio",
-      "title": "Redakcja Telewizji Lokalnej i Studio VHS",
-      "description": "Ciasne studio pełne magnetowidów Panasonic, taśm SVHS, monitorów CRT i zapachu nagrzanego plastiku. Miejsce, gdzie zanalizowano pierwsze nagranie sygnału.",
-      "npcs": ["Joanna Majewska (Dziennikarka)", "Piotr Kamiński (Inżynier)"],
-      "availableClues": ["clue-vhs-tape-glogow", "clue-newspaper-clipping-2001"]
+      "name": "Redakcja Telewizji Lokalnej i Studio Montażowe VHS",
+      "title": "Redakcja Telewizji Lokalnej i Studio Montażowe VHS",
+      "type": "intro",
+      "description": "Ciasne studio pełne magnetowidów Panasonic SVHS, monitorów kineskopowych Sony Trinitron i zapachu nagrzanego plastiku. Miejsce analizy pierwszego nagrania.",
+      "atmosphere": "Pisk transformatorów odchylania poziomego, migotanie śniegu na ekranach CRT i nerwowe przewijanie taśmy klatka po klatce.",
+      "npcs": [
+        "Joanna Majewska (Dziennikarka)",
+        "Piotr Kamiński (Inżynier)"
+      ],
+      "npcIds": [
+        "npc-joanna-majewska",
+        "npc-piotr-kaminski"
+      ],
+      "locationId": "loc-glogow-tv-studio",
+      "leadInClueIds": [],
+      "leadOutClueIds": [
+        "clue-vhs-tape-glogow",
+        "clue-newspaper-clipping-2001",
+        "clue-studio-spectrum-trace"
+      ],
+      "availableClues": [
+        "clue-vhs-tape-glogow",
+        "clue-newspaper-clipping-2001",
+        "clue-studio-spectrum-trace"
+      ]
     },
     {
       "id": "node-kopernik-apartment",
-      "title": "Mieszkanie Świadka na Osiedlu Kopernika",
-      "description": "Typowe mieszkanie w wielkiej płycie z lat 80./90. W salonie wciąż czuć zapach ozonu, a sprzęty AGD włączają się bez podłączenia do prądu.",
-      "npcs": ["Kamil Pawlak (Detektyw)"],
-      "availableClues": ["clue-clock-anomaly"]
+      "name": "Mieszkanie Radioamatora na Osiedlu Kopernika",
+      "title": "Mieszkanie Radioamatora na Osiedlu Kopernika",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Mieszkanie na dziesiątym piętrze bloku z wielkiej płyty. W salonie czuć ostry zapach ozonu, a telewizor i magnetowid włączają się mimo wyjęcia wtyczek z gniazdka.",
+      "atmosphere": "Zimny poblask kineskopu, tykające wstecz zegarki elektroniczne i cichy szept dobiegający z głośników.",
+      "secret": "Przez pion wentylacyjny mieszkania przechodzi nielegalny odcinek wojskowego kabla koncentrycznego działającego jak antena czasowa.",
+      "npcs": [
+        "Kamil Pawlak (Detektyw)"
+      ],
+      "npcIds": [
+        "npc-kamil-pawlak"
+      ],
+      "locationId": "loc-kopernik-apartment",
+      "leadInClueIds": [
+        "clue-vhs-tape-glogow",
+        "clue-cable-hub-logbook",
+        "clue-bunker-vhs-cache"
+      ],
+      "leadOutClueIds": [
+        "clue-clock-anomaly",
+        "clue-apartment-coax-splicing",
+        "clue-witness-future-prophecy"
+      ],
+      "availableClues": [
+        "clue-clock-anomaly",
+        "clue-apartment-coax-splicing",
+        "clue-witness-future-prophecy"
+      ]
+    },
+    {
+      "id": "node-glogow-cable-hub",
+      "name": "Rozdzielnia i Węzeł Telewizji Kablowej Głogów",
+      "title": "Rozdzielnia i Węzeł Telewizji Kablowej Głogów",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Podziemna stacja wzmacniaków i serwerownia operatora kablowego na styku Osiedla Kopernika i starego miasta.",
+      "atmosphere": "Szum wentylatorów, pisk modemów dial-up, zielone diody przełączników i elektryzujące powietrze stawiające włosy dęba.",
+      "secret": "W najniższej studzience telekomunikacyjnej współczesna magistrala łączy się z poniemieckim kablem prowadzącym do Twierdzy Głogów.",
+      "npcs": [
+        "Dominika Szymańska (Programistka)"
+      ],
+      "npcIds": [
+        "npc-dominika-szymanska"
+      ],
+      "locationId": "loc-glogow-cable-hub",
+      "leadInClueIds": [
+        "clue-newspaper-clipping-2001",
+        "clue-clock-anomaly",
+        "clue-bunker-field-generator-wire"
+      ],
+      "leadOutClueIds": [
+        "clue-cable-hub-logbook",
+        "clue-cable-hub-german-conduit",
+        "clue-audio-vhs-broadcast-decode"
+      ],
+      "availableClues": [
+        "clue-cable-hub-logbook",
+        "clue-cable-hub-german-conduit",
+        "clue-audio-vhs-broadcast-decode"
+      ]
     },
     {
       "id": "node-glogow-fortress-bunker",
-      "title": "Opuszczony Bunkier pod Twierdzą Głogów",
-      "description": "Ciemne, wilgotne korytarze podziemne pod starą twierdzą. Ściany pokrywa dziwny szron w stopniu wyższym niż temperatura otoczenia, a powietrze drży od poddźwięków.",
-      "npcs": ["Dominika Szymańska (Programistka)"],
-      "availableClues": ["clue-military-bunker-map"]
+      "name": "Opuszczony Bunkier Łączności pod Twierdzą Głogów",
+      "title": "Opuszczony Bunkier Łączności pod Twierdzą Głogów",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Ciemne, wilgotne kazamaty pod XIX-wieczną twierdzą nad Odrą. Ściany pokrywa gruby szron w temperaturze dodatniej, a powietrze drży od poddźwięków.",
+      "atmosphere": "Kapiąca woda, chłód zamarzającego oddechu, echo kroków które słychać sekundę przed postawieniem stopy.",
+      "secret": "Za pancerną grodzią znajduje się zejście do zalanego Sektoru X-11 bezpośrednio pod korytem Odry.",
+      "npcs": [
+        "Kamil Pawlak (Detektyw)",
+        "Piotr Kamiński (Inżynier)"
+      ],
+      "npcIds": [
+        "npc-kamil-pawlak",
+        "npc-piotr-kaminski"
+      ],
+      "locationId": "loc-glogow-fortress-bunker",
+      "leadInClueIds": [
+        "clue-studio-spectrum-trace",
+        "clue-apartment-coax-splicing",
+        "clue-cable-hub-german-conduit"
+      ],
+      "leadOutClueIds": [
+        "clue-military-bunker-map",
+        "clue-bunker-vhs-cache",
+        "clue-bunker-field-generator-wire"
+      ],
+      "availableClues": [
+        "clue-military-bunker-map",
+        "clue-bunker-vhs-cache",
+        "clue-bunker-field-generator-wire"
+      ]
+    },
+    {
+      "id": "node-glogow-sector-x11-climax",
+      "name": "Zalany Sektor X-11 pod Dnem Odry - Rdzeń Matriksa (Finał)",
+      "title": "Zalany Sektor X-11 pod Dnem Odry - Rdzeń Matriksa (Finał)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "Zalana po kolana komora pod korytem Odry. Z pękniętej kopuły ze szkła kwarcowego i niemieckich lamp elektronowych bije oślepiający śnieg telewizyjny, w którym formuje się postać Przybysza.",
+      "atmosphere": "Krople wody zawieszone nieruchomo w powietrzu, ogłuszający pisk modemu, nakładające się głosy z przeszłości i przyszłości.",
+      "secret": "Przecięcie głównej magistrali koncentrycznej i uderzenie impulsem degaussera w kopułę przed godziną 03:33 niszczy pętlę czasową.",
+      "npcs": [
+        "Dominika Szymańska (Programistka)",
+        "Joanna Majewska (Dziennikarka)"
+      ],
+      "npcIds": [
+        "npc-dominika-szymanska",
+        "npc-joanna-majewska"
+      ],
+      "locationId": "loc-glogow-sector-x11",
+      "leadInClueIds": [
+        "clue-witness-future-prophecy",
+        "clue-audio-vhs-broadcast-decode",
+        "clue-military-bunker-map"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-glogow-tv-studio",
+      "toId": "node-kopernik-apartment",
+      "clueId": "clue-vhs-tape-glogow",
+      "description": "Kod czasowy na kasecie VHS prowadzi do mieszkania radioamatora na Osiedlu Kopernika."
+    },
+    {
+      "fromId": "node-glogow-tv-studio",
+      "toId": "node-glogow-cable-hub",
+      "clueId": "clue-newspaper-clipping-2001",
+      "description": "Relacja o suchym piorunie kieruje do masztu na dachu Węzła Kablowego."
+    },
+    {
+      "fromId": "node-glogow-tv-studio",
+      "toId": "node-glogow-fortress-bunker",
+      "clueId": "clue-studio-spectrum-trace",
+      "description": "Widmo falowe sygnału wskazuje na podziemia Twierdzy Głogów."
+    },
+    {
+      "fromId": "node-kopernik-apartment",
+      "toId": "node-glogow-cable-hub",
+      "clueId": "clue-clock-anomaly",
+      "description": "Anomalia magnetyczna zegarka Casio prowadzi do rozdzielni Węzła Kablowego."
+    },
+    {
+      "fromId": "node-kopernik-apartment",
+      "toId": "node-glogow-fortress-bunker",
+      "clueId": "clue-apartment-coax-splicing",
+      "description": "Wojskowy kabel koncentryczny w szybie bloku biegnie do bunkra pod Twierdzą Głogów."
+    },
+    {
+      "fromId": "node-kopernik-apartment",
+      "toId": "node-glogow-sector-x11-climax",
+      "clueId": "clue-witness-future-prophecy",
+      "description": "Współrzędne wyrecytowane przez świadka wskazują zalany Sektor X-11 pod Odrą."
+    },
+    {
+      "fromId": "node-glogow-cable-hub",
+      "toId": "node-kopernik-apartment",
+      "clueId": "clue-cable-hub-logbook",
+      "description": "Dziennik przepięć w węźle kablowym wskazuje mieszkanie na Osiedlu Kopernika."
+    },
+    {
+      "fromId": "node-glogow-cable-hub",
+      "toId": "node-glogow-fortress-bunker",
+      "clueId": "clue-cable-hub-german-conduit",
+      "description": "Poniemiecka mufa kablowa z 1944 r. prowadzi do kazamatów Twierdzy Głogów."
+    },
+    {
+      "fromId": "node-glogow-cable-hub",
+      "toId": "node-glogow-sector-x11-climax",
+      "clueId": "clue-audio-vhs-broadcast-decode",
+      "description": "Zdekodowany sygnał modemowy z pasma VHS wskazuje komorę w Sektorze X-11."
+    },
+    {
+      "fromId": "node-glogow-fortress-bunker",
+      "toId": "node-glogow-sector-x11-climax",
+      "clueId": "clue-military-bunker-map",
+      "description": "Wojskowa mapa podziemi prowadzi zalanym tunelem wprost do Sektoru X-11."
+    },
+    {
+      "fromId": "node-glogow-fortress-bunker",
+      "toId": "node-kopernik-apartment",
+      "clueId": "clue-bunker-vhs-cache",
+      "description": "Skonfiskowane kasety VHS w bunkrze wskazują mieszkanie na Osiedlu Kopernika."
+    },
+    {
+      "fromId": "node-glogow-fortress-bunker",
+      "toId": "node-glogow-cable-hub",
+      "clueId": "clue-bunker-field-generator-wire",
+      "description": "Przewód zasilacza impulsowego prowadzi z bunkra do Węzła Kablowego."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-joanna-majewska",
+      "name": "Joanna Majewska (Dziennikarka)",
+      "description": "Reporterka głogowskiej telewizji kablowej badająca nagrania z nocy 14 listopada.",
+      "secret": "Rozpoznała na zatrzymanej klatce VHS z przyszłości panoramę Głogowa spowitą czarnym szronem."
+    },
+    {
+      "id": "npc-piotr-kaminski",
+      "name": "Piotr Kamiński (Inżynier)",
+      "description": "Montażysta i elektronik analizujący ścieżkę dźwiękową i synchronizację kaset VHS.",
+      "secret": "Zbudował przenośny degausser zdolny do wygenerowania silnego impulsu elektromagnetycznego."
+    },
+    {
+      "id": "npc-kamil-pawlak",
+      "name": "Kamil Pawlak (Detektyw)",
+      "description": "Prywatny detektyw wynajęty do odnalezienia zaginionego radioamatora z Osiedla Kopernika.",
+      "secret": "Przeżył już tę samą noc dwa razy i ma w kieszeni dwa identyczne zegarki z różnym czasem."
+    },
+    {
+      "id": "npc-dominika-szymanska",
+      "name": "Dominika Szymańska (Programistka)",
+      "description": "Specjalistka od sieci teleinformatycznych i zabezpieczeń Y2K pracująca w węźle kablowym.",
+      "secret": "Zdekodowała w pisku modemu z kanału 37 ostrzeżenie wysłane przez samą siebie z 2012 roku."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-glogow-tv-studio",
+      "name": "Studio Telewizji Lokalnej w Głogowie",
+      "description": "Montażownia wideo pełna magnetowidów SVHS i monitorów kineskopowych.",
+      "atmosphere": "Błękitna poświata ekranów CRT, szum głowic wideo i napięcie odkrycia."
+    },
+    {
+      "id": "loc-kopernik-apartment",
+      "name": "Mieszkanie na Osiedlu Kopernika",
+      "description": "Lokal w bloku z wielkiej płyty, w którym zarejestrowano audycję z przyszłości.",
+      "atmosphere": "Zapach ozonu, tykające wstecz zegary i martwa cisza na klatce schodowej."
+    },
+    {
+      "id": "loc-glogow-cable-hub",
+      "name": "Węzeł Telewizji Kablowej Głogów",
+      "description": "Podziemna rozdzielnia sygnału telewizyjnego i internetowego.",
+      "atmosphere": "Pisk modemów, plątanina kabli koncentrycznych i wyładowania elektrostatyczne."
+    },
+    {
+      "id": "loc-glogow-fortress-bunker",
+      "name": "Bunkier pod Twierdzą Głogów",
+      "description": "Poniemieckie kazamaty łączności nad Odrą pokryte nienaturalnym szronem.",
+      "atmosphere": "Przejmujący mróz, echo kroków z przyszłości i wojskowe mapy na ścianach."
+    },
+    {
+      "id": "loc-glogow-sector-x11",
+      "name": "Zalany Sektor X-11 pod Dnem Odry",
+      "description": "Najgłębsza komora pod korytem rzeki z kwarcowym rezonatorem czasu.",
+      "atmosphere": "Zawieszone w powietrzu krople wody, biały szum telewizyjny i zakrzywienie czasu."
     }
   ],
   "handouts": [
@@ -60,6 +503,7 @@
       "title": "Zrzut klatki CRT: Sygnał z nocy 14 listopada",
       "image": "/handouts/przybysz-z-matriksa-glogow/clue-vhs-tape-glogow.webp",
       "handoutType": "report",
+      "nodeId": "node-glogow-tv-studio",
       "textContent": "Paski zakłóceń kineskopu i zamglona postać z przyszłości mówiąca o wygaszeniu sygnału w Twierdzy Głogów."
     },
     {
@@ -67,6 +511,7 @@
       "title": "Plan podziemi Twierdzy Głogów (Sektor X-11)",
       "image": "/handouts/przybysz-z-matriksa-glogow/clue-military-bunker-map.webp",
       "handoutType": "report",
+      "nodeId": "node-glogow-fortress-bunker",
       "textContent": "Wojskowa mapa kazamatów z naniesionym czerwonym ołówkiem zalanym tunelem prowadzącym pod dno Odry."
     },
     {
@@ -75,6 +520,7 @@
       "image": "/handouts/przybysz-z-matriksa-glogow/clue-vhs-tape-glogow.webp",
       "audioUrl": "/audio/handouts/przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3",
       "handoutType": "report",
+      "nodeId": "node-glogow-cable-hub",
       "textContent": "Trzask włączanego pasma telewizyjnego, pisk modemu i syntetyczny, obcy głos nadający ciągi współrzędnych czasowych."
     }
   ]
