@@ -6,59 +6,492 @@
   "era": "1990s",
   "yearRange": "1995-1999",
   "activeSceneYear": 1996,
-  "setting": "Polska, Przełom Lat 90. (Kowary - Karkonosze - Warszawa)",
+  "startDate": "1996-05-12T14:15",
+  "initialWeather": "Ciepłe majowe popołudnie, rześki wiatr z Karkonoszy",
+  "setting": "Polska, Przełom Lat 90. (Kowary - Karkonosze - Wrocław)",
   "startingLocation": "Warsztat i Pracownia Lucjana Łągiewki, Kowary, Dolny Śląsk",
   "summary": "Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki - konstruktora-samouka z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas zderzeń. Kiedy wynalazca tworzy 'Pędnik' - silnik łamiący znane prawa fizyki i działający bez przyczepności w próżni i wodzie - w jego kowarskim warsztacie pojawiają się tajni agenci Agencji Ochrony Rządu. Odkrycie Łągiewki to nie prosty patent, lecz próba oswojenia kinetycznej technologii Mi-Go z Gór Szaleństwa.",
+  "boundarySummary": "Obszar śledztwa obejmuje kotlinę kowarską, sztolnie pod Przełęczą Okraj oraz instytut badawczy we Wrocławiu. Próba wywiezienia prototypu Pędnika lub dokumentacji poza Sudety skutkuje blokadą dróg przez nieoznakowane radiowozy Urzędu Ochrony Państwa / AOR pod pretekstem skażenia promieniotwórczego z dawnych kopalni uranu oraz natychmiastowym zatrzymaniem pod zarzutem kradzieży technologii obronnej.",
+  "truthAnchor": {
+    "culprit": "Komórka operacyjna AOR (pułkownik Cezary Karski) oraz rój Mi-Go (Grzyby z Yuggoth) gnieżdżący się w zalanych sztolniach uranowych w Kowarach",
+    "motive": "Mi-Go chcą odzyskać swój pozaziemski rezonator wektorowy wykopany w sztolni nr 19, a agenci AOR chcą przejąć Pędnik do budowy napędu grawimetrycznego bez względu na ryzyko implozji czasoprzestrzeni.",
+    "murderWeapon": "Odwrócenie wektora bezwładności (ujemna masa bezwładna) zgniatające narządy wewnętrzne bez zewnętrznych śladów uderzenia lub porażenie bio-elektryczną mgłą Mi-Go.",
+    "keyAlibi": "Oficjalnie pokaz na stadionie w Kowarach został odwołany z powodu awarii hamulców w testowym Fiacie 126p, podczas gdy nocą sprzęt wywieziono do Sztolni nr 19.",
+    "immutableFacts": [
+      "Wirnik Łągiewki nie rozprasza energii w ciepło - odgina wektor pędu do czwartego wymiaru geometrycznego za pomocą stopu berylu ze sztolni uranowych.",
+      "Główny cylinder wzorcowy został odnaleziony przez Łągiewkę w zasypanym chodniku poniemieckiej kopalni uranu pod Kowarami.",
+      "Agenci AOR zawarli tajny układ z prof. Adamskim we Wrocławiu, by przetestować pełną moc Pędnika w podziemnej komorze Sztolni nr 19.",
+      "Przekroczenie krytycznych obrotów wirnika o północy 13 maja otworzy tunel rezonansowy dla roju Mi-Go z Karkonoszy."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 1996,
+      "month": 4,
+      "day": 13,
+      "hour": 23,
+      "minute": 59
+    },
+    "totalHours": 33,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Faza 0: Cisza (Warsztat i próby zderzeniowe)",
+        "description": "Badacze swobodnie oglądają modele zderzaków w warsztacie w Kowarach. W eterze CB-radia słychać jedynie krótkie zakłócenia impulsowe."
+      },
+      {
+        "phase": 1,
+        "title": "Faza 1: Narastająca presja (Czarne limuzyny AOR)",
+        "description": "Pod warsztatem i stadionem pojawiają się ciemne Polonezy Caro i agenci w garniturach. Świadkowie milkną, a telefony stacjonarne zostają odcięte."
+      },
+      {
+        "phase": 2,
+        "title": "Faza 2: Bezpośrednie zagrożenie (Anomalie grawimetryczne)",
+        "description": "Zbliża się noc testu w sztolniach. Nad Przełęczą Okraj widać fioletowe wyładowania, a drobne przedmioty w Kowarach tracą bezwładność i unoszą się nad stołami."
+      },
+      {
+        "phase": 3,
+        "title": "Faza 3: Punkt kulminacyjny (Rozruch Pędnika w Sztolni nr 19)",
+        "description": "Prototyp osiąga obroty nadkrytyczne w podziemiach kopalni uranu. Ściany sztolni drżą, a z głębi korytarzy nadciąga bzyczący chór Mi-Go."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-kowary-1",
+      "text": "Zegarki kwarcowe i liczniki kilometrów we Fiacie 126p po zderzeniu z betonową barierą cofnęły się dokładnie o 17 minut.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-kowary-2",
+      "text": "Rdzeń prototypowego wirnika odlano z nieludzkiego stopu berylu i telluru wydobytego z zasypanego niemieckiego szybu R-1 w Kowarach.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-kowary-3",
+      "text": "Profesor Henryk Adamski z Wrocławia ukrywa w sejfie fotografię skamieniałego, skorupiakowatego odnóża znalezionego obok cylindra w sztolni.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-kowary-4",
+      "text": "Kierowca testowy Marek Nowak od dnia próby zderzeniowej nie rzuca cienia w świetle lamp halogenowych i słyszy we śnie geometryczne równania.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-kowary-5",
+      "text": "Agenci AOR nie działają z rozkazu rządu RP - ich przełożony płk Karski otrzymuje instrukcje z prywatnego konsorcjum badającego artefakty z Antarktydy.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-kowary-6",
+      "text": "Odwrócenie biegunowości hamulca elektromagnetycznego na wirniku powoduje natychmiastowe wygaszenie pola ujemnej bezwładności.",
+      "isDiscovered": false
+    }
+  ],
   "clues": [
     {
       "id": "clue-kinetic-absorber-model",
-      "name": "Model Wirnika Kinetycznego",
-      "description": "Miniaturowy pochłaniacz wirnikowy. Uderzający w niego ciężar nie rozbija postawionego obok szklanego kieliszka - cała energia zostaje odgięta w inny wymiar kinetyczny."
-    },
-    {
-      "id": "clue-broken-brakes-log",
-      "name": "Zapis Prób Stadionowych z 1989 r.",
-      "description": "Nagranie z uderzenia Fiata 126p bez płynu hamulcowego w betonowy mur. Kierowca bez pasów wychodzi z auta bez zadrapania, ale zegary samochodowe po kolizji chodzą wstecz."
-    },
-    {
-      "id": "clue-aor-classified-file",
-      "name": "Poufny Raport AOR (Agencji Ochrony Rządu)",
-      "description": "Notatka ze spotkania tajnych służb z wynalazcą. Urzędnicy nakazują natychmiastowe wstrzymanie prac nad Pędnikiem i zakazują publikacji pod rygorem utajnienia."
+      "name": "Model Wirnika Kinetycznego i dziennik prób",
+      "description": "Miniaturowy pochłaniacz wirnikowy z notatką Łągiewki wskazującą Miejski Stadion w Kowarach jako miejsce ukrycia wraku Malucha z głównej próby.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-kowary-workshop",
+      "targetNodeId": "node-stadium-kowary",
+      "requiredSkill": "Mechanika"
     },
     {
       "id": "clue-mi-go-cylinder-notes",
-      "name": "Szkice Przekładni Kosmicznej",
-      "description": "Ręczne rysunki Łągiewki przedstawiające układ stożkowych zębatek i wirników, dziwnie przypominające cylindry i urządzenia opisywane w relacjach z Gór Szaleństwa."
+      "name": "Szkice Przekładni Kosmicznej i list do Wrocławia",
+      "description": "Ręczne rysunki stożkowych zębatek z adnotacją o przesłaniu wyników pomiarów grawimetrycznych do gabinetu prof. Henryka Adamskiego we Wrocławiu.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-kowary-workshop",
+      "targetNodeId": "node-wroclaw-physicist",
+      "requiredSkill": "Nauka (Fizyka)"
+    },
+    {
+      "id": "clue-workshop-aor-subpoena",
+      "name": "Wezwanie i wizytówka operacyjna AOR",
+      "description": "Pozostawiony na stole warsztatowym nakaz konfiskaty patentu z adresem tajnej placówki Agencji Ochrony Rządu oraz śladem popiołu z cygar płk. Karskiego.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-kowary-workshop",
+      "targetNodeId": "node-warszawa-aor-office",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-broken-brakes-log",
+      "name": "Taśma z próby zderzeniowej i zeznanie kierowcy",
+      "description": "Nagranie z uderzenia Fiata 126p oraz relacja Marka Nowaka, który widział, jak prof. Adamski zabiera wymontowany czujnik bezwładnościowy do instytutu we Wrocławiu.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-stadium-kowary",
+      "targetNodeId": "node-wroclaw-physicist",
+      "requiredSkill": "Perswazja"
+    },
+    {
+      "id": "clue-stadium-black-polonez-plate",
+      "name": "Zapis numerów rejestracyjnych i odznaka AOR ze stadionu",
+      "description": "Zgubiona przy betonowej barierze stadionu przepustka operacyjna AOR oraz relacja dozorcy o czarnych Polonezach odjeżdżających do placówki służb.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-stadium-kowary",
+      "targetNodeId": "node-warszawa-aor-office",
+      "requiredSkill": "Tropienie"
+    },
+    {
+      "id": "clue-stadium-radiation-trail",
+      "name": "Ślad luminescencyjnego smaru berylowego z rampy",
+      "description": "Anomalny, świecący w ultrafiolecie wyciek z rozbitego Malucha na stadionie, którego skład izotopowy wskazuje bezpośrednio na Sztolnię Uranową nr 19 w Kowarach.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-stadium-kowary",
+      "targetNodeId": "node-kowary-uranium-mine-climax",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-wroclaw-crash-telemetry",
+      "name": "Wydruk telemetrii zderzenia ze stadionu w Kowarach",
+      "description": "Wykresy oscyloskopowe w gabinecie prof. Adamskiego pokazujące skok ujemnej masy dokładnie w punkcie uderzenia na płycie Miejskiego Stadionu w Kowarach.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-wroclaw-physicist",
+      "targetNodeId": "node-stadium-kowary",
+      "requiredSkill": "Elektryka"
+    },
+    {
+      "id": "clue-adamski-aor-funding",
+      "name": "Tajna umowa finansowania badań przez AOR",
+      "description": "Ukryty w biurku profesora kontrakt z Agencją Ochrony Rządu, zdradzający lokalizację ich tajnej placówki operacyjnej i harmonogram przejęcia Pędnika.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-wroclaw-physicist",
+      "targetNodeId": "node-warszawa-aor-office",
+      "requiredSkill": "Psychologia"
+    },
+    {
+      "id": "clue-adamski-mine-spectroscopy",
+      "name": "Mapa spektrometryczna Sztolni nr 19 w Kowarach",
+      "description": "Analiza geologiczna prof. Adamskiego dowodząca, że źródło anomalii kinetycznej i gniazdo Mi-Go znajdują się w zalanej komorze Sztolni Uranowej nr 19.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-wroclaw-physicist",
+      "targetNodeId": "node-kowary-uranium-mine-climax",
+      "requiredSkill": "Nauka (Geologia / Fizyka)"
+    },
+    {
+      "id": "clue-aor-classified-file",
+      "name": "Poufny Raport AOR: Operacja 'Wektor Zero'",
+      "description": "Tajna dyrektywa AOR nakazująca wywiezienie głównego prototypu Pędnika do podziemnej hali w Sztolni Uranowej nr 19 w Kowarach celem nocnego rozruchu.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-warszawa-aor-office",
+      "targetNodeId": "node-kowary-uranium-mine-climax",
+      "requiredSkill": "Biblioteka"
+    },
+    {
+      "id": "clue-aor-surveillance-photos-stadium",
+      "name": "Fotografie operacyjne AOR z prób na stadionie",
+      "description": "Zestaw zdjęć z ukrytej kamery AOR dokumentujących przebieg kolizji na Miejskim Stadionie w Kowarach oraz ukrytą pod rampą aparaturę pomiarową.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-warszawa-aor-office",
+      "targetNodeId": "node-stadium-kowary",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-aor-wiretap-adamski",
+      "name": "Nagranie rozmowy płk. Karskiego z prof. Adamskim",
+      "description": "Kaseta z podsłuchu w placówce AOR, na której prof. Adamski z Wrocławia ostrzega przed przebudzeniem istot w sztolni przy pełnych obrotach wirnika.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-warszawa-aor-office",
+      "targetNodeId": "node-wroclaw-physicist",
+      "requiredSkill": "Nasłuchiwanie"
     }
   ],
   "nodes": [
     {
       "id": "node-kowary-workshop",
+      "name": "Pracownia Wynalazcy w Kowarach",
       "title": "Pracownia Wynalazcy w Kowarach",
+      "type": "intro",
       "description": "Cichy dom z przylegającym warsztatem u stóp Karkonoszy. Pełno tu modeli, tokarek, kieliszków testowych oraz zapachu oleju maszynowego i ozonu.",
-      "npcs": ["Lucjan Łągiewka"],
-      "availableClues": ["clue-kinetic-absorber-model", "clue-mi-go-cylinder-notes"]
+      "atmosphere": "Metaliczny szczęk przekładni, brzęczenie tokarki, zapach smaru i nienaturalny chłód bijący od wirujących dysków.",
+      "npcs": [
+        "Lucjan Łągiewka"
+      ],
+      "npcIds": [
+        "npc-lucjan-lagiewka"
+      ],
+      "locationId": "loc-kowary-workshop",
+      "leadInClueIds": [],
+      "leadOutClueIds": [
+        "clue-kinetic-absorber-model",
+        "clue-mi-go-cylinder-notes",
+        "clue-workshop-aor-subpoena"
+      ],
+      "availableClues": [
+        "clue-kinetic-absorber-model",
+        "clue-mi-go-cylinder-notes",
+        "clue-workshop-aor-subpoena"
+      ]
     },
     {
       "id": "node-stadium-kowary",
-      "title": "Miejski Stadion w Kowarach",
-      "description": "Opustoszała płyta stadionu z betonowym murem noszącym ślady wielu uderzeń testowych pojazdów bez pasów i hamulców.",
-      "npcs": ["Marek Nowak (Kierowca Testowy)"],
-      "availableClues": ["clue-broken-brakes-log"]
+      "name": "Miejski Stadion w Kowarach (Rampa Zderzeniowa)",
+      "title": "Miejski Stadion w Kowarach (Rampa Zderzeniowa)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Opustoszała płyta stadionu z betonowym murem noszącym ślady uderzeń testowych pojazdów bez pasów i hamulców. Pod plandeką stoi nietknięty Fiat 126p.",
+      "atmosphere": "Szum wiatru w zardzewiałych trybunach, zapach spalonej gumy i dziwne zakrzywienie światła wokół betonowego bloku.",
+      "secret": "W miejscu uderzenia na stadionie grawitacja jest lokalnie osłabiona, a w betonowym murze tkwią mikroskopijne odłamki berylu Mi-Go.",
+      "npcs": [
+        "Marek Nowak (Kierowca Testowy)"
+      ],
+      "npcIds": [
+        "npc-marek-nowak"
+      ],
+      "locationId": "loc-stadium-kowary",
+      "leadInClueIds": [
+        "clue-kinetic-absorber-model",
+        "clue-wroclaw-crash-telemetry",
+        "clue-aor-surveillance-photos-stadium"
+      ],
+      "leadOutClueIds": [
+        "clue-broken-brakes-log",
+        "clue-stadium-black-polonez-plate",
+        "clue-stadium-radiation-trail"
+      ],
+      "availableClues": [
+        "clue-broken-brakes-log",
+        "clue-stadium-black-polonez-plate",
+        "clue-stadium-radiation-trail"
+      ]
     },
     {
       "id": "node-wroclaw-physicist",
-      "title": "Gabinet Inżyniera w Instytucie (Wrocław)",
-      "description": "Zagracony książkami gabinet prof. Henryka Adamskiego, który jako jedyny naukowiec potrafi matematycznie opisać anomalię przenoszenia pędu Łągiewki.",
-      "npcs": ["prof. Henryk Adamski"],
-      "availableClues": ["clue-mi-go-cylinder-notes"]
+      "name": "Gabinet prof. Adamskiego w Instytucie (Wrocław)",
+      "title": "Gabinet prof. Adamskiego w Instytucie (Wrocław)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Zagracony książkami i aparaturą pomiarową gabinet prof. Henryka Adamskiego, który jako jedyny naukowiec potrafi matematycznie opisać anomalię przenoszenia pędu.",
+      "atmosphere": "Zielony blask ekranów oscyloskopów, stosy zapisanego papieru milimetrowego i nerwowe stukanie palcami o blat.",
+      "secret": "Profesor odkrył, że wzory przekładni Łągiewki odpowiadają nieeuklidesowej geometrii cylindrów Mi-Go.",
+      "npcs": [
+        "prof. Henryk Adamski"
+      ],
+      "npcIds": [
+        "npc-henryk-adamski"
+      ],
+      "locationId": "loc-wroclaw-physicist",
+      "leadInClueIds": [
+        "clue-mi-go-cylinder-notes",
+        "clue-broken-brakes-log",
+        "clue-aor-wiretap-adamski"
+      ],
+      "leadOutClueIds": [
+        "clue-wroclaw-crash-telemetry",
+        "clue-adamski-aor-funding",
+        "clue-adamski-mine-spectroscopy"
+      ],
+      "availableClues": [
+        "clue-wroclaw-crash-telemetry",
+        "clue-adamski-aor-funding",
+        "clue-adamski-mine-spectroscopy"
+      ]
     },
     {
       "id": "node-warszawa-aor-office",
-      "title": "Tajna Placówka AOR (Warszawa)",
-      "description": "Nieoznakowany biurowiec przy ul. Rakowieckiej, gdzie agenci służb specjalnych analizują rysunki Pędnika pod kątem zastosowań w napędach orbitalnych i bezwładnościowych.",
-      "npcs": ["Agenci Agencji Ochrony Rządu"],
-      "availableClues": ["clue-aor-classified-file"]
+      "name": "Tajna Placówka Operacyjna AOR",
+      "title": "Tajna Placówka Operacyjna AOR",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Zabezpieczony obiekt Agencji Ochrony Rządu, gdzie specjaliści wojskowi analizują rysunki Pędnika pod kątem zastosowań w napędach bezwładnościowych.",
+      "atmosphere": "Szum serwerów z połowy lat 90., pancerne drzwi, zapach mocnej kawy i zimny profesjonalizm agentów służb specjalnych.",
+      "secret": "Pułkownik Karski wydał już rozkaz nocnego przetransportowania pełnoskalowego Pędnika do Sztolni nr 19 w Kowarach.",
+      "npcs": [
+        "Agenci Agencji Ochrony Rządu",
+        "płk Cezary Karski"
+      ],
+      "npcIds": [
+        "npc-cezary-karski"
+      ],
+      "locationId": "loc-warszawa-aor-office",
+      "leadInClueIds": [
+        "clue-workshop-aor-subpoena",
+        "clue-stadium-black-polonez-plate",
+        "clue-adamski-aor-funding"
+      ],
+      "leadOutClueIds": [
+        "clue-aor-classified-file",
+        "clue-aor-surveillance-photos-stadium",
+        "clue-aor-wiretap-adamski"
+      ],
+      "availableClues": [
+        "clue-aor-classified-file",
+        "clue-aor-surveillance-photos-stadium",
+        "clue-aor-wiretap-adamski"
+      ]
+    },
+    {
+      "id": "node-kowary-uranium-mine-climax",
+      "name": "Sztolnia Uranowa nr 19 pod Przełęczą Okraj (Finał)",
+      "title": "Sztolnia Uranowa nr 19 pod Przełęczą Okraj (Finał)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "Zalana, poniemiecka komora wydobywcza w głębi góry. Na stalowym rusztowaniu wiruje pełnoskalowy Pędnik podłączony do agregatów AOR, a wokół niego powietrze gęstnieje w próżnię.",
+      "atmosphere": "Niskie, wibrujące buczenie łamiące prawa bezwładności, trzask liczników Geigera, fioletowa luminescencja na ścianach i metaliczny szept Mi-Go w ciemności.",
+      "secret": "Zablokowanie przekładni hamulcem zwrotnym lub przebicie cewki berylowej przed osiągnięciem rezonansu zamyka okno wymiarowe i niszczy przekaźnik Mi-Go.",
+      "npcs": [
+        "płk Cezary Karski",
+        "Lucjan Łągiewka"
+      ],
+      "npcIds": [
+        "npc-cezary-karski",
+        "npc-lucjan-lagiewka"
+      ],
+      "locationId": "loc-kowary-uranium-mine",
+      "leadInClueIds": [
+        "clue-stadium-radiation-trail",
+        "clue-adamski-mine-spectroscopy",
+        "clue-aor-classified-file"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-kowary-workshop",
+      "toId": "node-stadium-kowary",
+      "clueId": "clue-kinetic-absorber-model",
+      "description": "Notatki przy modelu wirnika kierują na płytę Miejskiego Stadionu w Kowarach."
+    },
+    {
+      "fromId": "node-kowary-workshop",
+      "toId": "node-wroclaw-physicist",
+      "clueId": "clue-mi-go-cylinder-notes",
+      "description": "Szkice przekładni i korespondencja naukowa prowadzą do gabinetu prof. Adamskiego we Wrocławiu."
+    },
+    {
+      "fromId": "node-kowary-workshop",
+      "toId": "node-warszawa-aor-office",
+      "clueId": "clue-workshop-aor-subpoena",
+      "description": "Nakaz konfiskaty patentu wskazuje na tajną placówkę operacyjną AOR."
+    },
+    {
+      "fromId": "node-stadium-kowary",
+      "toId": "node-wroclaw-physicist",
+      "clueId": "clue-broken-brakes-log",
+      "description": "Zeznanie kierowcy testowego i zapis zderzenia kierują do prof. Adamskiego badającego czujnik."
+    },
+    {
+      "fromId": "node-stadium-kowary",
+      "toId": "node-warszawa-aor-office",
+      "clueId": "clue-stadium-black-polonez-plate",
+      "description": "Zgubiona przepustka i numery czarnych Polonezów prowadzą do placówki AOR."
+    },
+    {
+      "fromId": "node-stadium-kowary",
+      "toId": "node-kowary-uranium-mine-climax",
+      "clueId": "clue-stadium-radiation-trail",
+      "description": "Ślad luminescencyjnego smaru berylowego prowadzi prosto do Sztolni Uranowej nr 19."
+    },
+    {
+      "fromId": "node-wroclaw-physicist",
+      "toId": "node-stadium-kowary",
+      "clueId": "clue-wroclaw-crash-telemetry",
+      "description": "Wydruk telemetrii ujemnej masy wskazuje dokładny punkt uderzenia na stadionie w Kowarach."
+    },
+    {
+      "fromId": "node-wroclaw-physicist",
+      "toId": "node-warszawa-aor-office",
+      "clueId": "clue-adamski-aor-funding",
+      "description": "Kontrakt w sejfie profesora ujawnia współpracę i adres placówki AOR."
+    },
+    {
+      "fromId": "node-wroclaw-physicist",
+      "toId": "node-kowary-uranium-mine-climax",
+      "clueId": "clue-adamski-mine-spectroscopy",
+      "description": "Mapa spektrometryczna prof. Adamskiego wskazuje Sztolnię nr 19 jako źródło berylu i gniazdo Mi-Go."
+    },
+    {
+      "fromId": "node-warszawa-aor-office",
+      "toId": "node-kowary-uranium-mine-climax",
+      "clueId": "clue-aor-classified-file",
+      "description": "Raport 'Wektor Zero' ujawnia rozkaz nocnego rozruchu Pędnika w Sztolni Uranowej nr 19."
+    },
+    {
+      "fromId": "node-warszawa-aor-office",
+      "toId": "node-stadium-kowary",
+      "clueId": "clue-aor-surveillance-photos-stadium",
+      "description": "Zdjęcia operacyjne AOR pokazują ukrytą aparaturę pod rampą na stadionie w Kowarach."
+    },
+    {
+      "fromId": "node-warszawa-aor-office",
+      "toId": "node-wroclaw-physicist",
+      "clueId": "clue-aor-wiretap-adamski",
+      "description": "Taśma z podsłuchu rozmowy płk. Karskiego kieruje do gabinetu prof. Adamskiego we Wrocławiu."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-lucjan-lagiewka",
+      "name": "Lucjan Łągiewka",
+      "description": "Genialny konstruktor-samouk z Kowar, twórca zderzaka kinetycznego i prototypu Pędnika.",
+      "secret": "Wzorował geometrię wirnika na obcym cylindrze znalezionym w zawalonej sztolni uranowej."
+    },
+    {
+      "id": "npc-marek-nowak",
+      "name": "Marek Nowak (Kierowca Testowy)",
+      "description": "Śmiałek testujący Fiata 126p podczas czołowych zderzeń z betonową barierą bez pasów bezpieczeństwa.",
+      "secret": "Od czasu zderzenia przy pełnej mocy wirnika cierpi na zaburzenia percepcji czasu i słyszy bzyczenie z gór."
+    },
+    {
+      "id": "npc-henryk-adamski",
+      "name": "prof. Henryk Adamski",
+      "description": "Fizyk teoretyczny z Wrocławia badający anomalie bezwładnościowe i nieliniowy transfer pędu.",
+      "secret": "Przyjął tajny grant od AOR w zamian za dostęp do próbek pozaziemskiego metalu ze Sztolni nr 19."
+    },
+    {
+      "id": "npc-cezary-karski",
+      "name": "płk Cezary Karski (AOR)",
+      "description": "Dowódca specgrupy Agencji Ochrony Rządu nadzorujący operację przejęcia technologii Łągiewki.",
+      "secret": "Dąży do uruchomienia Pędnika na pełnej mocy w sztolni bez względu na ostrzeżenia o katastrofie wymiarowej."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-kowary-workshop",
+      "name": "Pracownia Wynalazcy w Kowarach",
+      "description": "Przydomowy warsztat mechaniczny u podnóża Karkonoszy pełen tokarek i prototypów.",
+      "atmosphere": "Zapach smaru, metaliczny szum wirników i podejrzane spojrzenia zza firanek."
+    },
+    {
+      "id": "loc-stadium-kowary",
+      "name": "Miejski Stadion w Kowarach",
+      "description": "Płyta stadionu z rampą najazdową i betonowym blokiem do prób zderzeniowych.",
+      "atmosphere": "Puste trybuny, górski wiatr i ślady opon prowadzące wprost w lity beton."
+    },
+    {
+      "id": "loc-wroclaw-physicist",
+      "name": "Gabinet prof. Adamskiego (Wrocław)",
+      "description": "Pracownia fizyki teoretycznej i laboratorium pomiarowe we Wrocławiu.",
+      "atmosphere": "Szum aparatury, stosy wyliczeń tensorowych i nerwowa atmosfera tajemnicy państwowej."
+    },
+    {
+      "id": "loc-warszawa-aor-office",
+      "name": "Tajna Placówka Operacyjna AOR",
+      "description": "Zakonspirowany ośrodek Agencji Ochrony Rządu analizujący technologie podwójnego zastosowania.",
+      "atmosphere": "Stalowe szafy, magnetofony szpulowe i bezwzględny nadzór służb specjalnych lat 90."
+    },
+    {
+      "id": "loc-kowary-uranium-mine",
+      "name": "Sztolnia Uranowa nr 19 w Kowarach",
+      "description": "Opuszczona poniemiecka kopalnia uranu pod Przełęczą Okraj, miejsce finałowego testu Pędnika.",
+      "atmosphere": "Kapiąca woda, promieniowanie tła, fioletowe wyładowania i obecność istot spoza Ziemi."
     }
   ],
   "handouts": [
@@ -67,6 +500,7 @@
       "title": "Kalka techniczna: Nieliniowe przekładnie wirnika",
       "image": "/handouts/tajemnica-pendnika-lagiewki/clue-mi-go-cylinder-notes.webp",
       "handoutType": "report",
+      "nodeId": "node-kowary-workshop",
       "textContent": "Rysunek techniczny mechanizmu pędnika ze schematem rotacji mas, w którym linie zbiegają się w punkcie poza trójwymiarową przestrzenią."
     },
     {
@@ -74,6 +508,7 @@
       "title": "Raport AOR: Poufna notatka wstrzymania pokazów",
       "image": "/handouts/tajemnica-pendnika-lagiewki/clue-aor-classified-file.webp",
       "handoutType": "report",
+      "nodeId": "node-warszawa-aor-office",
       "textContent": "Poufne pismo Urzędu Ochrony Państwa / AOR nakazujące natychmiastowe zamrożenie publicznych testów zderzeniowych Fiata 126p w Kowarach."
     },
     {
@@ -82,6 +517,7 @@
       "image": "/handouts/tajemnica-pendnika-lagiewki/clue-aor-classified-file.webp",
       "audioUrl": "/audio/handouts/tajemnica-pendnika-lagiewki/proba-zderzeniowa-kowary.mp3",
       "handoutType": "report",
+      "nodeId": "node-stadium-kowary",
       "textContent": "Dźwięk silnika Malucha rozpędzanego na rampie, potężne uderzenie w barierę i nienaturalny, głuchy rezonans wirnika pochłaniającego wektor pędu."
     }
   ]

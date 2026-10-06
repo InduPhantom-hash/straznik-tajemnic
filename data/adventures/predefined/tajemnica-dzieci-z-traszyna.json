@@ -6,52 +6,507 @@
   "era": "1990s",
   "yearRange": "1983-1999",
   "activeSceneYear": 1999,
-  "setting": "Polska, Jesień 1999 r. (Wieś Traszyn k. Lublina / Południowa Lubelszczyzna)",
+  "startDate": "1999-08-28T21:00",
+  "initialWeather": "Duszna, parna noc zwiastująca gwałtowną burzę",
+  "setting": "Polska, Sierpień 1999 r. (Wieś Traszyn k. Lublina / Południowa Lubelszczyzna)",
   "startingLocation": "Gospodarstwo Rodziny Dąbrowskich, Wieś Traszyn",
   "summary": "Badacze zostają wezwani przez lokalnego parapsychologa i bioenergoterapeutę Tomasza Nowickiego do odciętej od świata wsi Traszyn. W 1983 roku troje dzieci przeprowadziło w starej stodole seans z książką i kluczem. Po 16 latach nieznany byt powraca, wywołując nocne paraliże, manifestacje zjaw i zjawisko suchego odwróconego krzyża na deskach stodoły po uderzeniu pioruna. Badacze muszą ustalić, czy przywołano ducha dyktatora, czy wybudzono uśpiony byt krain podziemi (Noth-Yiddith / Ethereal Poltergeist).",
+  "boundarySummary": "Wieś Traszyn zostaje odcięta od świata przez gwałtowną nawałnicę z piorunami kulistymi, która zrywa linię telefoniczną i podmywa jedyny drewniany most nad wezbraną rzeką Wieprz. Próba przedarcia się samochodem przez zalane groble przed świtem grozi utonięciem w torfowisku lub uderzeniem pioruna przyciąganego przez anomalię magnetyczną wokół gospodarstwa Dąbrowskich.",
+  "truthAnchor": {
+    "culprit": "Pradawny byt podziemny z krainy K'n-yan / Noth-Yiddith (Cień spod Powały), wybudzony dziecięcym seansem w 1983 r. i podtrzymywany obsesyjnymi rytuałami Tomasza Nowickiego",
+    "motive": "Byt żywi się terrorem nocnych paraliży dorosłego już rodzeństwa Dąbrowskich, dążąc do pełnej materializacji poprzez powtórzony o północy seans z kluczem i modlitewnikiem.",
+    "murderWeapon": "Zatrzymanie akcji serca przez paraliż senny i lodowatą asfiksję cieniową (duszenie czarną mazią skapującą z belek stodoły).",
+    "keyAlibi": "Bioenergoterapeuta Tomasz Nowicki twierdzi, że chce oczyścić dom egzorcyzmem o północy, lecz w rzeczywistości jego seans odwoławczy otworzy bytowi ostatnią bramę.",
+    "immutableFacts": [
+      "Seans trójki dzieci z 1983 roku nie przywołał ducha historycznego dyktatora - mosiężny klucz zadziałał jak antena rezonansowa dla bytu śpiącego w kurhanie pod stodołą.",
+      "Odwrócony krzyż wypalony piorunem na ścianie stodoły to pęknięcie starej pieczęci ochronnej wzniesionej przez XIX-wiecznego szeptuna.",
+      "Najmłodszy uczestnik seansu z 1983 r. (7-letni Szymek) stracił głos po tym, jak byt spojrzał na niego spod powały.",
+      "Aby odesłać byt, należy przed północą odwrócić obrót klucza w modlitewniku nad fundamentem stodoły i zamknąć krąg solą oraz żelazem, zamiast powtarzać inkantację Nowickiego."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 1999,
+      "month": 7,
+      "day": 29,
+      "hour": 0,
+      "minute": 0
+    },
+    "totalHours": 3,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Faza 0: Cisza przed burzą (Przyjazd do Traszyna)",
+        "description": "Duszny wieczór. W domu Dąbrowskich słychać pojedyncze głuche stuki w ściany, a zwierzęta gospodarskie wyrywają się z obory."
+      },
+      {
+        "phase": 1,
+        "title": "Faza 1: Narastająca presja (Nawałnica i paraliże)",
+        "description": "Nad wsią pęka niebo. Pioruny biją w pola, gaśnie prąd, a u Adama Dąbrowskiego zaczyna się atak paraliżu sennego i spadek temperatury."
+      },
+      {
+        "phase": 2,
+        "title": "Faza 2: Bezpośrednie zagrożenie (Krwawy pot na deskach)",
+        "description": "Odwrócony krzyż na ścianie stodoły staje się parząco gorący mimo ulewy. Meble w domu przesuwają się same, a z powały kapie czarna maź."
+      },
+      {
+        "phase": 3,
+        "title": "Faza 3: Punkt kulminacyjny (Seans Północy w Stodole)",
+        "description": "Wybija północ. Mosiężny klucz w modlitewniku zaczyna wirować z piskiem, a pod dachem stodoły formuje się wieloręki cień z podziemi."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-traszyn-1",
+      "text": "Mosiężny klucz użyty przez dzieci w 1983 roku został wykopany ze starego kurhanu pod fundamentem stodoły i nosi wyryte od wewnątrz znaki pisma klinowego.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-traszyn-2",
+      "text": "Drewno w obrysie odwróconego krzyża na stodole wykazuje ujemną wilgotność i odpycha krople deszczu nawet podczas oberwania chmury.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-traszyn-3",
+      "text": "Na kasecie Stilon C-60 z 1983 roku, tuż po szlochu siedmioletniego dziecka, słychać niski głos wymawiający po łacinie imiona wszystkich trzech uczestników seansu.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-traszyn-4",
+      "text": "Tomasz Nowicki podczas wcześniejszego próbnego seansu doprowadził do eksplozji wszystkich żarówek i poparzenia dłoni Krzysztofa Dąbrowskiego.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-traszyn-5",
+      "text": "W archiwum parafialnym w Traszynie widnieje wpis z 1894 roku o obłożeniu klątwą pola pod stodołą po odkryciu tam bezgłowego posągu z czarnego bazaltu.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-traszyn-6",
+      "text": "Przebicie modlitewnika żelaznym gwoździem kowalskim podczas wirowania klucza natychmiast przerywa więź bytu ze światem materialnym.",
+      "isDiscovered": false
+    }
+  ],
   "clues": [
     {
       "id": "clue-key-book-apparatus",
-      "name": "Książka spięta z mosiężnym kluczem",
-      "description": "Modlitewnik i ciężki mosiężny klucz z oprawą z gumek. Ślady otarć na brzegach stron wskazują, że urządzenie kręciło się samodzielnie z dużą prędkością."
-    },
-    {
-      "id": "clue-dry-cross-barn",
-      "name": "Wypalony Ślad na Ścianie Stodoły",
-      "description": "Fotografia ściany stodoły po uderzeniu pioruna z 1983 r. Mimo ulewnego deszczu drewno w kształcie olbrzymiego odwróconego krzyża pozostało całkowicie suche i gorące w dotyku."
+      "name": "Modlitewnik spięty mosiężnym kluczem",
+      "description": "Stara książeczka do nabożeństwa przewiązana sznurkiem z ciężkim kluczem. Ślady wypaleń na stronach prowadzą bezpośrednio do miejsca seansu w Starej Stodole.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-house",
+      "targetNodeId": "node-traszyn-barn",
+      "requiredSkill": "Okultyzm"
     },
     {
       "id": "clue-paralysis-log",
-      "name": "Notatki z Nocnych Paraliży (Adam Dąbrowski)",
-      "description": "Zapiski najstarszego z rodzeństwa opisujące powtarzające się o 1:00 w nocy wizje lodowatego oddechu przy uszku, uczucie nieważkości i zjawę przybierającą rysy twarzy dziecka."
+      "name": "Notatki z Nocnych Paraliży Adama Dąbrowskiego",
+      "description": "Zapiski najstarszego brata opisujące wizje o 1:00 w nocy oraz adres pracowni bioenergoterapeuty Tomasza Nowickiego, któremu przekazano kasetę z 1983 roku.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-house",
+      "targetNodeId": "node-exorcist-shrine",
+      "requiredSkill": "Psychologia"
+    },
+    {
+      "id": "clue-mother-testimony-parish",
+      "name": "Wyznanie matki Teresy Dąbrowskiej o klątwie gruntu",
+      "description": "Przerażona matka wyznaje, że po tragedii z 1983 r. stary proboszcz sprawdzał XIX-wieczne księgi na plebanii w Traszynie i kazał nigdy nie kopać pod klepiskiem stodoły.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-house",
+      "targetNodeId": "node-traszyn-parish-archive",
+      "requiredSkill": "Perswazja"
+    },
+    {
+      "id": "clue-dry-cross-barn",
+      "name": "Wypalony Odwrócony Krzyż na Ścianie Stodoły",
+      "description": "Anomalny, gorący w dotyku ślad po uderzeniu pioruna na deskach stodoły. Linie zwęglenia zbiegają się dokładnie nad zapadniętym klepiskiem i wejściem do podziemnej jamy.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-barn",
+      "targetNodeId": "node-traszyn-cellar-climax",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-barn-chalk-pendulum",
+      "name": "Porzucone wahadełko radiestezyjne i szkic Nowickiego",
+      "description": "Znalezione w sianie pęknięte wahadełko z mosiądzu oraz kartka z adresem pracowni egzorcysty Tomasza Nowickiego i wyliczeniem godziny zero.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-barn",
+      "targetNodeId": "node-exorcist-shrine",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-krzysztof-testimony-priest",
+      "name": "Relacja brata Krzysztofa o żelaznym gwoździu z plebanii",
+      "description": "Krzysztof Dąbrowski zeznaje, że w 1983 roku widział pod podwaliną stodoły starą kościelną pieczęć z archiwum parafialnego w Traszynie.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-barn",
+      "targetNodeId": "node-traszyn-parish-archive",
+      "requiredSkill": "Urok Osobisty"
     },
     {
       "id": "clue-exorcist-notes",
       "name": "Dziennik Egzorcysty Tomasza Nowickiego",
-      "description": "Opis dwóch węzłów ujemnej energii w gospodarstwie oraz ostrzeżenie przed próbnym seansem odwoławczym o północy, który spowodował eksplozję żarówek."
+      "description": "Notatnik opisujący dwa węzły ujemnej energii przecinające się bezpośrednio w zasypanym kurhanie pod klepiskiem stodoły w Traszynie.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-exorcist-shrine",
+      "targetNodeId": "node-traszyn-cellar-climax",
+      "requiredSkill": "Okultyzm"
+    },
+    {
+      "id": "clue-stilon-c60-child-tape",
+      "name": "Kaseta Stilon C-60 z wywiadem z dzieckiem (1983)",
+      "description": "Przechowywane w pracowni Nowickiego nagranie 7-letniego chłopca opisującego czarną maź kapiącą z belek w Starej Stodole w Traszynie.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-exorcist-shrine",
+      "targetNodeId": "node-traszyn-barn",
+      "requiredSkill": "Nasłuchiwanie"
+    },
+    {
+      "id": "clue-nowicki-stolen-chronicle",
+      "name": "Wypis z kroniki parafialnej z 1894 roku",
+      "description": "Kserokopia z biurka Nowickiego odsyłająca do pełnych ksiąg metrykalnych i relikwiarza z żelaznymi gwoździami na starej plebanii w Traszynie.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-exorcist-shrine",
+      "targetNodeId": "node-traszyn-parish-archive",
+      "requiredSkill": "Biblioteka"
+    },
+    {
+      "id": "clue-parish-1894-seal-map",
+      "name": "Mapa kurhanu i rytuału zamknięcia z 1894 r.",
+      "description": "Rękopis z archiwum parafialnego pokazujący podziemną komorę pod klepiskiem stodoły Dąbrowskich oraz sposób przebicia księgi żelazem.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-parish-archive",
+      "targetNodeId": "node-traszyn-cellar-climax",
+      "requiredSkill": "Historia"
+    },
+    {
+      "id": "clue-parish-confession-1983",
+      "name": "Zapiski proboszcza po nocnym seansie dzieci w 1983 r.",
+      "description": "Relacja duchownego opisująca stan dzieci znalezionych o świcie pod ścianą Starej Stodoły z wypalonym znakiem krzyża.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-parish-archive",
+      "targetNodeId": "node-traszyn-barn",
+      "requiredSkill": "Biblioteka"
+    },
+    {
+      "id": "clue-parish-baptism-anomaly",
+      "name": "Skreślony akt chrztu i ostrzeżenie przed Nowickim",
+      "description": "List biskupi na plebanii ostrzegający przed praktykami radiestezyjnymi w pracowni Tomasza Nowickiego, które budzą byty ziemi.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-traszyn-parish-archive",
+      "targetNodeId": "node-exorcist-shrine",
+      "requiredSkill": "Prawo"
     }
   ],
   "nodes": [
     {
       "id": "node-traszyn-house",
-      "title": "Dom Rodziny Dąbrowskich",
-      "description": "Stary, murowany dom w Traszynie. Od nocnych wydarzeń panuje tu obezwładniająca psychoza strachu, słychać samoistne stukanie w ściany, a meble i kołdry przesuwają się bez niczyjego udziału.",
-      "npcs": ["Adam Dąbrowski", "Teresa Dąbrowska (Matka)", "Katarzyna Dąbrowska (Siostra)"],
-      "availableClues": ["clue-paralysis-log", "clue-key-book-apparatus"]
+      "name": "Dom Rodziny Dąbrowskich w Traszynie",
+      "title": "Dom Rodziny Dąbrowskich w Traszynie",
+      "type": "intro",
+      "description": "Stary, murowany dom na skraju wsi. Od kilku nocy panuje tu obezwładniająca psychoza strachu, słychać samoistne stukanie w ściany, a meble i kołdry przesuwają się bez niczyjego udziału.",
+      "atmosphere": "Migoczące światło świec, zapach waleriany i mokrego psa, głuche uderzenia w sufit i przerażone szepty domowników.",
+      "npcs": [
+        "Adam Dąbrowski",
+        "Teresa Dąbrowska (Matka)",
+        "Katarzyna Dąbrowska (Siostra)"
+      ],
+      "npcIds": [
+        "npc-adam-dabrowski",
+        "npc-teresa-dabrowska",
+        "npc-katarzyna-dabrowska"
+      ],
+      "locationId": "loc-traszyn-house",
+      "leadInClueIds": [],
+      "leadOutClueIds": [
+        "clue-key-book-apparatus",
+        "clue-paralysis-log",
+        "clue-mother-testimony-parish"
+      ],
+      "availableClues": [
+        "clue-key-book-apparatus",
+        "clue-paralysis-log",
+        "clue-mother-testimony-parish"
+      ]
     },
     {
       "id": "node-traszyn-barn",
-      "title": "Stara Stodoła w Traszynie",
-      "description": "Drewniana stodoła na skraju gospodarstwa, 50 metrów od domu. Miejsce seansu z 1983 r. Ściana stodoły nosi ślady uderzenia pioruna, a wewnątrz wyczuwa się zapach siarki i spadki temperatury.",
-      "npcs": ["Krzysztof Dąbrowski (Brat)"],
-      "availableClues": ["clue-dry-cross-barn"]
+      "name": "Stara Stodoła z Odwróconym Krzyżem",
+      "title": "Stara Stodoła z Odwróconym Krzyżem",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Drewniana stodoła 50 metrów od domu, miejsce dziecięcego seansu z 1983 r. Zewnętrzna ściana nosi ślad uderzenia pioruna w kształcie suchego, gorącego odwróconego krzyża.",
+      "atmosphere": "Świst burzowego wiatru w szparach desek, duszący odór siarki i ozonu, nagłe spadki temperatury poniżej zera.",
+      "secret": "Pod ubitą gliną klepiska znajduje się zapadnięty strop komory kurhanowej, z której sączy się czarny szlam.",
+      "npcs": [
+        "Krzysztof Dąbrowski (Brat)"
+      ],
+      "npcIds": [
+        "npc-krzysztof-dabrowski"
+      ],
+      "locationId": "loc-traszyn-barn",
+      "leadInClueIds": [
+        "clue-key-book-apparatus",
+        "clue-stilon-c60-child-tape",
+        "clue-parish-confession-1983"
+      ],
+      "leadOutClueIds": [
+        "clue-dry-cross-barn",
+        "clue-barn-chalk-pendulum",
+        "clue-krzysztof-testimony-priest"
+      ],
+      "availableClues": [
+        "clue-dry-cross-barn",
+        "clue-barn-chalk-pendulum",
+        "clue-krzysztof-testimony-priest"
+      ]
     },
     {
       "id": "node-exorcist-shrine",
-      "title": "Kancelaria i Pracownia Tomasza Nowickiego (Lublin)",
-      "description": "Gabinet lubelskiego egzorcysty-ezoteryka wypełniony wahadełkami, radiestezyjnymi wykresami i relikwiarzami. Nowicki wierzy, że jedynym ratunkiem jest seans powtórzony w tym samym miejscu o 00:00.",
-      "npcs": ["Tomasz Nowicki (Egzorcysta)"],
-      "availableClues": ["clue-exorcist-notes"]
+      "name": "Pracownia Radiestezyjna Tomasza Nowickiego",
+      "title": "Pracownia Radiestezyjna Tomasza Nowickiego",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Polowa pracownia i gabinet egzorcysty-ezoteryka wypełniony wahadełkami, wykresami biopola, magnetofonem kasetowym i relikwiarzami.",
+      "atmosphere": "Dym z kadzideł szałwiowych, szum przewijanej taśmy Stilon C-60 i gorączkowy fanatyzm badacza nieznanego.",
+      "secret": "Nowicki nie rozumie, że jego rytuał powtórzenia seansu o północy zadziała jak zaproszenie dla bytu z Noth-Yiddith.",
+      "npcs": [
+        "Tomasz Nowicki (Egzorcysta)"
+      ],
+      "npcIds": [
+        "npc-tomasz-nowicki"
+      ],
+      "locationId": "loc-exorcist-shrine",
+      "leadInClueIds": [
+        "clue-paralysis-log",
+        "clue-barn-chalk-pendulum",
+        "clue-parish-baptism-anomaly"
+      ],
+      "leadOutClueIds": [
+        "clue-exorcist-notes",
+        "clue-stilon-c60-child-tape",
+        "clue-nowicki-stolen-chronicle"
+      ],
+      "availableClues": [
+        "clue-exorcist-notes",
+        "clue-stilon-c60-child-tape",
+        "clue-nowicki-stolen-chronicle"
+      ]
+    },
+    {
+      "id": "node-traszyn-parish-archive",
+      "name": "Stara Plebania i Archiwum Parafialne w Traszynie",
+      "title": "Stara Plebania i Archiwum Parafialne w Traszynie",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Wilgotna kancelaria parafialna przy wiejskim kościele, przechowująca księgi z XIX wieku oraz żelazne wota ochronne używane przez dawnych szeptunów.",
+      "atmosphere": "Zapach butwiejącego papieru i wosku pszczelego, dudnienie grzmotów za witrażem i skrzypienie starych szaf.",
+      "secret": "W dębowej skrzyni spoczywa wykuty z meteorytowego żelaza gwóźdź, którym w 1894 roku przyszpilono pierwszy rytuał na tym polu.",
+      "npcs": [
+        "Zofia Sadowska (Kronikarka / Bibliotekarka)"
+      ],
+      "npcIds": [
+        "npc-zofia-sadowska"
+      ],
+      "locationId": "loc-traszyn-parish",
+      "leadInClueIds": [
+        "clue-mother-testimony-parish",
+        "clue-krzysztof-testimony-priest",
+        "clue-nowicki-stolen-chronicle"
+      ],
+      "leadOutClueIds": [
+        "clue-parish-1894-seal-map",
+        "clue-parish-confession-1983",
+        "clue-parish-baptism-anomaly"
+      ],
+      "availableClues": [
+        "clue-parish-1894-seal-map",
+        "clue-parish-confession-1983",
+        "clue-parish-baptism-anomaly"
+      ]
+    },
+    {
+      "id": "node-traszyn-cellar-climax",
+      "name": "Rozpadlina pod Klepiskiem Stodoły - Ołtarz Cienia (Finał)",
+      "title": "Rozpadlina pod Klepiskiem Stodoły - Ołtarz Cienia (Finał)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "Podziemna jama pod stodołą odsłonięta po uderzeniu pioruna. Pośrodku tkwi bazaltowy monolit ociekający czarną mazią, a pod powałą zbiera się wieloręki kształt z żywego mroku.",
+      "atmosphere": "Lodowate powietrze odbierające dech, samoczynnie wirujący klucz, chóralny szept spod ziemi i błyski piorunów wpadające przez szczeliny.",
+      "secret": "Przebicie modlitewnika żelaznym gwoździem i odwrócenie klucza w lewo przed końcem bicia zegara o północy zapada jamę i więzi byt pod ziemią.",
+      "npcs": [
+        "Tomasz Nowicki (Egzorcysta)",
+        "Adam Dąbrowski"
+      ],
+      "npcIds": [
+        "npc-tomasz-nowicki",
+        "npc-adam-dabrowski"
+      ],
+      "locationId": "loc-traszyn-cellar",
+      "leadInClueIds": [
+        "clue-dry-cross-barn",
+        "clue-exorcist-notes",
+        "clue-parish-1894-seal-map"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-traszyn-house",
+      "toId": "node-traszyn-barn",
+      "clueId": "clue-key-book-apparatus",
+      "description": "Modlitewnik spięty kluczem prowadzi badaczy bezpośrednio do miejsca seansu w Starej Stodole."
+    },
+    {
+      "fromId": "node-traszyn-house",
+      "toId": "node-exorcist-shrine",
+      "clueId": "clue-paralysis-log",
+      "description": "Notatki Adama Dąbrowskiego odsyłają do pracowni bioenergoterapeuty Tomasza Nowickiego."
+    },
+    {
+      "fromId": "node-traszyn-house",
+      "toId": "node-traszyn-parish-archive",
+      "clueId": "clue-mother-testimony-parish",
+      "description": "Wyznanie matki o klątwie gruntu kieruje do XIX-wiecznych ksiąg w archiwum parafialnym."
+    },
+    {
+      "fromId": "node-traszyn-barn",
+      "toId": "node-traszyn-cellar-climax",
+      "clueId": "clue-dry-cross-barn",
+      "description": "Linie wypalonego odwróconego krzyża wskazują podziemną jamę pod klepiskiem stodoły."
+    },
+    {
+      "fromId": "node-traszyn-barn",
+      "toId": "node-exorcist-shrine",
+      "clueId": "clue-barn-chalk-pendulum",
+      "description": "Porzucone w sianie wahadełko i szkic prowadzą do pracowni Tomasza Nowickiego."
+    },
+    {
+      "fromId": "node-traszyn-barn",
+      "toId": "node-traszyn-parish-archive",
+      "clueId": "clue-krzysztof-testimony-priest",
+      "description": "Relacja Krzysztofa o starej pieczęci pod podwaliną kieruje na plebanię w Traszynie."
+    },
+    {
+      "fromId": "node-exorcist-shrine",
+      "toId": "node-traszyn-cellar-climax",
+      "clueId": "clue-exorcist-notes",
+      "description": "Wykresy radiestezyjne w dzienniku Nowickiego wskazują kurhan pod klepiskiem stodoły."
+    },
+    {
+      "fromId": "node-exorcist-shrine",
+      "toId": "node-traszyn-barn",
+      "clueId": "clue-stilon-c60-child-tape",
+      "description": "Nagranie przerażonego dziecka na kasecie Stilon C-60 kieruje pod powałę Starej Stodoły."
+    },
+    {
+      "fromId": "node-exorcist-shrine",
+      "toId": "node-traszyn-parish-archive",
+      "clueId": "clue-nowicki-stolen-chronicle",
+      "description": "Wypis z kroniki z 1894 r. prowadzi do archiwum parafialnego w Traszynie."
+    },
+    {
+      "fromId": "node-traszyn-parish-archive",
+      "toId": "node-traszyn-cellar-climax",
+      "clueId": "clue-parish-1894-seal-map",
+      "description": "Mapa z 1894 roku ujawnia komorę pod stodołą i sposób zamknięcia bytu żelazem."
+    },
+    {
+      "fromId": "node-traszyn-parish-archive",
+      "toId": "node-traszyn-barn",
+      "clueId": "clue-parish-confession-1983",
+      "description": "Zapiski proboszcza z 1983 r. opisują znalezienie dzieci pod ścianą stodoły."
+    },
+    {
+      "fromId": "node-traszyn-parish-archive",
+      "toId": "node-exorcist-shrine",
+      "clueId": "clue-parish-baptism-anomaly",
+      "description": "Ostrzeżenie przed radiestezją kieruje badaczy do pracowni Tomasza Nowickiego."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-adam-dabrowski",
+      "name": "Adam Dąbrowski",
+      "description": "Najstarszy z rodzeństwa biorącego udział w seansie w 1983 r., nękany przez nocne paraliże i lodowaty oddech.",
+      "secret": "W 1983 roku to on zadał kluczowi pytanie o imię ducha spoczywającego pod ziemią."
+    },
+    {
+      "id": "npc-teresa-dabrowska",
+      "name": "Teresa Dąbrowska (Matka)",
+      "description": "Gospodyni z Traszyna wyczerpana nocnymi manifestacjami w domu.",
+      "secret": "Ukryła modlitewnik z kluczem w bieliźniarce, bojąc się gniewu księdza."
+    },
+    {
+      "id": "npc-katarzyna-dabrowska",
+      "name": "Katarzyna Dąbrowska (Siostra)",
+      "description": "Siostra Adama, która podczas seansu w 1983 r. podtrzymywała drugi koniec mosiężnego klucza.",
+      "secret": "Na jej nadgarstku po każdym uderzeniu pioruna pojawia się sine znamię w kształcie klucza."
+    },
+    {
+      "id": "npc-krzysztof-dabrowski",
+      "name": "Krzysztof Dąbrowski (Brat)",
+      "description": "Młodszy brat pilnujący obejścia i stodoły przed obcymi.",
+      "secret": "Pomagał Nowickiemu w nieudanym seansie próbnym, podczas którego poparzył dłonie."
+    },
+    {
+      "id": "npc-tomasz-nowicki",
+      "name": "Tomasz Nowicki (Egzorcysta)",
+      "description": "Lubelski bioenergoterapeuta i radiesteta zafascynowany anomalią w Traszynie.",
+      "secret": "Chce za wszelką cenę nagrać manifestację bytu o północy, nieświadomie otwierając mu przejście."
+    },
+    {
+      "id": "npc-zofia-sadowska",
+      "name": "Zofia Sadowska (Kronikarka / Bibliotekarka)",
+      "description": "Opiekunka lokalnego archiwum i znawczyni ludowych obrzędów ochronnych Lubelszczyzny.",
+      "secret": "Zna starą formułę szeptunów wymagającą przebicia księgi kutym żelazem."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-traszyn-house",
+      "name": "Dom Rodziny Dąbrowskich",
+      "description": "Murowany dom gospodarski w Traszynie objęty zjawiskami poltergeista.",
+      "atmosphere": "Drżące szyby, głuche stuki w ścianach i paraliżujący chłód o północy."
+    },
+    {
+      "id": "loc-traszyn-barn",
+      "name": "Stara Stodoła w Traszynie",
+      "description": "Drewniana stodoła z wypalonym piorunem odwróconym krzyżem na deskach.",
+      "atmosphere": "Zapach ozonu i siarki, skrzypienie belek i czarna maź skapująca ze stropu."
+    },
+    {
+      "id": "loc-exorcist-shrine",
+      "name": "Pracownia Tomasza Nowickiego",
+      "description": "Gabinet radiestety pełen wahadełek, map energetycznych i taśm magnetofonowych.",
+      "atmosphere": "Dym z ziół, szum kasety Stilon C-60 i napięcie przed północnym rytuałem."
+    },
+    {
+      "id": "loc-traszyn-parish",
+      "name": "Archiwum Parafialne w Traszynie",
+      "description": "Stara kancelaria przy kościele skrywająca kroniki z XIX wieku.",
+      "atmosphere": "Półmrok, zapach starych ksiąg i dudniąca za oknem burza."
+    },
+    {
+      "id": "loc-traszyn-cellar",
+      "name": "Rozpadlina pod Klepiskiem Stodoły",
+      "description": "Podziemna jama kurhanowa pod stodołą z bazaltowym monolitem.",
+      "atmosphere": "Gęsty mrok, ujemna temperatura i obecność pradawnego bytu z podziemi."
     }
   ],
   "handouts": [
@@ -60,6 +515,7 @@
       "title": "Polaroid: Odwrócony krzyż na ścianie stodoły (1983)",
       "image": "/handouts/tajemnica-dzieci-z-traszyna/clue-dry-cross-barn.webp",
       "handoutType": "newspaper",
+      "nodeId": "node-traszyn-barn",
       "textContent": "Wyblakła fotografia polaroidowa z nadpalonym od pioruna zarysem odwróconego krzyża na deskach traszyńskiej stodoły."
     },
     {
@@ -67,6 +523,7 @@
       "title": "Szkic aparatu: Modlitewnik spięty kluczem",
       "image": "/handouts/tajemnica-dzieci-z-traszyna/clue-key-book-apparatus.webp",
       "handoutType": "diary",
+      "nodeId": "node-traszyn-house",
       "textContent": "Rysunek dziecięcego seansu: stary klucz włożony między karty Ewangelii, podtrzymywany palcami dwóch osób."
     },
     {
@@ -75,6 +532,7 @@
       "image": "/handouts/tajemnica-dzieci-z-traszyna/clue-key-book-apparatus.webp",
       "audioUrl": "/audio/handouts/tajemnica-dzieci-z-traszyna/wywiad-dziecko-1983.mp3",
       "handoutType": "diary",
+      "nodeId": "node-exorcist-shrine",
       "textContent": "Zaszumione nagranie z polskiej kasety Stilon C-60: drżący dziecięcy głos opisujący cień unoszący się pod powałą stodoły."
     }
   ]

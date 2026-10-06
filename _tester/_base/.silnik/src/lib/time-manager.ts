@@ -177,6 +177,15 @@ export interface AdventureTimeInput {
   description?: string;
   tone?: 'purist' | 'pulp' | 'noir' | string;
   themes?: string[];
+  doomClock?: {
+    deadline?: Partial<GameTime>;
+    totalHours?: number;
+    stages?: Array<{
+      phase: 0 | 1 | 2 | 3;
+      title: string;
+      description: string;
+    }>;
+  };
 }
 
 /**
@@ -594,7 +603,21 @@ class TimeManager {
   ): GameTime {
     this.currentTime = deriveStartGameTime(adventure);
     this.currentWeather = deriveInitialWeather(adventure, this.currentTime);
-    this.deadline = null;
+    if (adventure?.doomClock?.deadline) {
+      const dl = adventure.doomClock.deadline;
+      this.setDeadline(
+        {
+          year: dl.year ?? this.currentTime.year,
+          month: dl.month ?? this.currentTime.month,
+          day: dl.day ?? this.currentTime.day,
+          hour: dl.hour ?? 23,
+          minute: dl.minute ?? 59,
+        },
+        adventure.doomClock.totalHours ?? 24
+      );
+    } else {
+      this.deadline = null;
+    }
     this.saveToStorage();
     this.saveWeatherToStorage();
     return this.currentTime;
