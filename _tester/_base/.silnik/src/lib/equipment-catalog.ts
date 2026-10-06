@@ -536,7 +536,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ['Luger', 'Parabellum', 'Luger P08', 'P08', 'Pistolet Parabellum', 'Pistolet P08'],
     category: 'weapon',
     visualTreatment: 'mundane',
-    availableIn: HISTORICAL_ERAS,
+    availableIn: ['1920s', '1930s', '1940s', '1950s', 'prl-1970s', '1980s'],
     assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
     modifiers: {
       damage: '1d10',
@@ -736,7 +736,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ['Chauchat', 'rkm Chauchat', 'Chauchat wz. 1915', 'Karabin Chauchat'],
     category: 'weapon',
     visualTreatment: 'mundane',
-    availableIn: HISTORICAL_ERAS,
+    availableIn: ['1920s', '1930s', '1940s', '1950s', 'prl-1970s', '1980s'],
     assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
     modifiers: {
       damage: '2d6+4',
