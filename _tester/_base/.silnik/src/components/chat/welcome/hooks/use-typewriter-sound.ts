@@ -12,12 +12,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-export function useTypewriterSound(greeting: string): {
+export function useTypewriterSound(
+  greeting: string,
+  enabled: boolean = true
+): {
   displayedText: string;
   isTyping: boolean;
 } {
   const [displayedText, setDisplayedText] = useState('');
-  const [isTyping, setIsTyping] = useState(true);
+  const [isTyping, setIsTyping] = useState(enabled);
 
   // Dźwięk maszyny do pisania - useRef dla synchronicznego dostępu
   const typewriterSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -60,6 +63,13 @@ export function useTypewriterSound(greeting: string): {
 
   // Efekt "maszyny do pisania" z dźwiękiem - synchronizacja
   useEffect(() => {
+    // Jeśli widok nie jest aktywny, nie startuj animacji ani dźwięku
+    if (!enabled) {
+      setDisplayedText('');
+      setIsTyping(false);
+      return;
+    }
+
     // Czekaj aż dźwięk będzie gotowy (lub timeout)
     if (!soundReady) {
       return;
@@ -164,7 +174,7 @@ export function useTypewriterSound(greeting: string): {
         activeAudio = null;
       }
     };
-  }, [greeting, soundReady]);
+  }, [greeting, soundReady, enabled]);
 
   return { displayedText, isTyping };
 }

@@ -114,6 +114,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onCloseCheatChase,
   activeChaseState,
   onChaseStateChange,
+  quoteActive,
 
   eraContext,
 }) => {
@@ -423,6 +424,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             isStarting={isStarting}
             startProgress={startProgress}
             startStatus={startStatus}
+            quoteActive={quoteActive}
           />
         </div>
       ) : (

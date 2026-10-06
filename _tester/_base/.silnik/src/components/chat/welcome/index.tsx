@@ -130,6 +130,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   isStarting = false,
   startProgress = 0,
   startStatus = '',
+  quoteActive = true,
 }) => {
   const t = useTranslations('WelcomeStart');
   const locale = useLocale();
@@ -139,13 +140,14 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
       return quotes[Math.floor(Math.random() * quotes.length)];
     }
   );
-  const { displayedText, isTyping } = useTypewriterSound(quote.greeting);
-
   // Quick-winy (read-only, po mount - unika hydration mismatch):
   const [gameYear, setGameYear] = useState<number | null>(null);
   const [recentSave, setRecentSave] = useState<RecentSave | null>(null);
   const [hasKey, setHasKey] = useState<boolean>(true);
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
+
+  const isQuoteVisible = quoteActive && !isManualMode;
+  const { displayedText, isTyping } = useTypewriterSound(quote.greeting, isQuoteVisible);
 
   const handleSetManualMode = useCallback((manual: boolean) => {
     setIsManualMode(manual);
