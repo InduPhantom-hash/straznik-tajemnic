@@ -47,6 +47,102 @@
       "mirek": 180,
       "brightness": 70,
       "transitionMs": 2500
+    },
+    "deep_forest": {
+      "id": "deep_forest",
+      "name": "Gęsty las / Sad nocą",
+      "description": "Chłodny mech i leśna sosna pod osłoną nocy",
+      "xy": [0.21, 0.42],
+      "brightness": 12,
+      "transitionMs": 4000
+    },
+    "murky_swamp": {
+      "id": "murky_swamp",
+      "name": "Bagna i torfowiska",
+      "description": "Zgniła, ciężka oliwkowa poświata i opary gazu błotnego",
+      "xy": [0.38, 0.48],
+      "brightness": 15,
+      "transitionMs": 3500
+    },
+    "mine_shaft": {
+      "id": "mine_shaft",
+      "name": "Sztolnia / Kopalnia / Bunkier",
+      "description": "Brunatny mrok z rdzawym blaskiem lampy karbidowej",
+      "xy": [0.49, 0.38],
+      "brightness": 6,
+      "transitionMs": 2500
+    },
+    "foggy_coast": {
+      "id": "foggy_coast",
+      "name": "Wybrzeże morskie / Port",
+      "description": "Blady, zamglony morski cyjan i stalowy błękit fal",
+      "xy": [0.22, 0.28],
+      "brightness": 25,
+      "transitionMs": 5000
+    },
+    "rainy_noir_street": {
+      "id": "rainy_noir_street",
+      "name": "Deszczowa ulica miejska",
+      "description": "Mokry asfalt, odblask latarni gazowych w deszczu",
+      "xy": [0.29, 0.31],
+      "brightness": 20,
+      "transitionMs": 3000
+    },
+    "monastery_crypt": {
+      "id": "monastery_crypt",
+      "name": "Krypta klasztorna / Grobowiec",
+      "description": "Zimny, kamienny szary z popielato-fioletową poświatą",
+      "xy": [0.26, 0.24],
+      "brightness": 10,
+      "transitionMs": 3000
+    },
+    "radio_shack_electronic": {
+      "id": "radio_shack_electronic",
+      "name": "Elektronika kineskopowa / PRL",
+      "description": "Monochromatyczny bursztyn kineskopu lub zielony fosfor",
+      "xy": [0.42, 0.51],
+      "brightness": 18,
+      "transitionMs": 2000
+    },
+    "parish_archive": {
+      "id": "parish_archive",
+      "name": "Zakurzone archiwum / Biblioteka",
+      "description": "Ciepłe, przytłumione światło starego pergaminu i dębowych szaf",
+      "mirek": 430,
+      "brightness": 40,
+      "transitionMs": 3000
+    },
+    "police_interrogation": {
+      "id": "police_interrogation",
+      "name": "Pokój przesłuchań / Cela",
+      "description": "Ostre, bezlitosne światło wiszącej żarówki nad stołem",
+      "mirek": 220,
+      "brightness": 75,
+      "transitionMs": 1500
+    },
+    "abyssal_deep": {
+      "id": "abyssal_deep",
+      "name": "Zatopione głębiny oceanu",
+      "description": "Głęboki, bezdenny granat toni morskiej",
+      "xy": [0.15, 0.12],
+      "brightness": 5,
+      "transitionMs": 4000
+    },
+    "raging_fire": {
+      "id": "raging_fire",
+      "name": "Pożar / Płonąca rezydencja",
+      "description": "Pulsujący cynober i żar ognia trawiącego budynek",
+      "xy": [0.65, 0.34],
+      "brightness": 65,
+      "transitionMs": 1500
+    },
+    "asylum_solitary": {
+      "id": "asylum_solitary",
+      "name": "Izolatka sanatorium",
+      "description": "Niepokojąca, blada seledynowo-zielona poświata szpitalna",
+      "xy": [0.28, 0.38],
+      "brightness": 20,
+      "transitionMs": 2500
     }
   }
 }

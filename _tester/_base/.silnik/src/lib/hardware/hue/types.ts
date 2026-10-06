@@ -64,4 +64,16 @@ export type SceneLightingMood =
   | 'subterranean_dark'
   | 'cosmic_horror'
   | 'candlelight'
-  | 'institutional_cold';
+  | 'institutional_cold'
+  | 'deep_forest'
+  | 'murky_swamp'
+  | 'mine_shaft'
+  | 'foggy_coast'
+  | 'rainy_noir_street'
+  | 'monastery_crypt'
+  | 'radio_shack_electronic'
+  | 'parish_archive'
+  | 'police_interrogation'
+  | 'abyssal_deep'
+  | 'raging_fire'
+  | 'asylum_solitary';
