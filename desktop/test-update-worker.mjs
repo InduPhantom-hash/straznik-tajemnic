@@ -505,7 +505,32 @@ function runWorker(env, argsList) {
   console.log('✓ PASS: Generator manifestu (create-update-manifest.mjs) zapisuje commitSha, shortCommit i publishedAt');
 }
 
+// -------------------------------------------------------------
+// Test 15: Oczekiwanie wait-out na zniknięcie procesu desktop-pid
+// -------------------------------------------------------------
+{
+  const c = prepareMacCase('wait-out-pid');
+  const res = runWorker({}, [
+    '--target', c.appDir,
+    '--url', 'https://example.com/update.zip',
+    '--sha256', c.sha256,
+    '--version', c.version,
+    '--size', String(c.size),
+    '--data-dir', c.dataDir,
+    '--platform', 'darwin',
+    '--test-archive', c.zipPath,
+    '--desktop-pid', String(process.pid + 999999), // nieistniejący PID -> waitOutDesktopProcess natychmiast zwraca true
+  ]);
+
+  assert.strictEqual(res.status, 0, `update-worker powinien zakończyć z kodem 0: ${res.stderr}`);
+  const status = JSON.parse(fs.readFileSync(path.join(c.dataDir, 'updates', 'status.json'), 'utf8'));
+  assert.strictEqual(status.state, 'succeeded');
+  assert.strictEqual(fs.readFileSync(path.join(c.appDir, 'marker.txt'), 'utf8').trim(), 'new');
+  console.log('✓ PASS: Oczekiwanie wait-out i bezpieczny start z parametrem desktop-pid');
+}
+
 console.log('\n============================================================');
-console.log(' Wszystkie testy update-worker zakończone sukcesem (14/14)!');
+console.log(' Wszystkie testy update-worker zakończone sukcesem (15/15)!');
 console.log('============================================================\n');
+
 

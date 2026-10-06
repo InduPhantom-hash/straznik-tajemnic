@@ -539,6 +539,7 @@ export async function startDetachedUpdate(manifest: DesktopUpdateManifest): Prom
     '--data-dir', getWritableDataDir(),
     '--port', process.env.ZEW_APP_PORT || '4050',
     '--platform', platform,
+    '--desktop-pid', String(process.pid),
   ];
 
   if (manifest.minimumMacOSVersion) {
