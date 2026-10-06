@@ -330,5 +330,4 @@ describe('EquipmentDetailDialog', () => {
     expect(dialog.className).toContain('md:w-[88vw]');
     expect(dialog.className).toContain('md:h-[85vh]');
   });
-  });
 });

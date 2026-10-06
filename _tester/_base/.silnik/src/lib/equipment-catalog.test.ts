@@ -325,9 +325,14 @@ describe('equipment catalog', () => {
       const template = findEquipmentTemplate(entry.id) || findEquipmentTemplate(entry.name);
       expect(template).toBeDefined();
 
-      // Asset musi być powiązany ze zdefiniowanym szablonem
+      // Asset musi być powiązany ze zdefiniowanym szablonem (jako wariant epokowy lub shared)
       const assets = Object.values(template?.assetPaths ?? {});
-      expect(assets).toContain(`/equipment/catalog/${entry.filename}`);
+      const matchesDirect = assets.includes(`/equipment/catalog/${entry.filename}`);
+      const matchesStem = assets.some((a) => {
+        const stem = entry.filename.replace(/-shared\.webp$/, '');
+        return a.startsWith(`/equipment/catalog/${stem}-`);
+      });
+      expect(matchesDirect || matchesStem).toBe(true);
     });
   });
 
