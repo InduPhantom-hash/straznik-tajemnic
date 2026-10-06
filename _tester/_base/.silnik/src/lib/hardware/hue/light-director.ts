@@ -143,7 +143,33 @@ export class LightDirector {
   }
 
   /**
-   * Deterministyczna analiza stanu gry: dobór nastroju na podstawie pory dnia i opisu lokacji
+   * Silnik Atmosferyczny: modyfikuje jasność i temperaturę presetu na podstawie aury (Q2 -> B)
+   */
+  public applyWeatherModifier(
+    basePreset: LightPreset,
+    weather?: string
+  ): { brightness: number; duration: number } {
+    let brightness = basePreset.brightness;
+    let duration = basePreset.transitionMs;
+
+    if (!weather) return { brightness, duration };
+    const w = weather.toLowerCase();
+
+    if (w.includes('burz') || w.includes('nawałnic') || w.includes('storm')) {
+      brightness = Math.max(4, Math.floor(brightness * 0.7)); // przyciemnienie burzowe
+      duration = 2000;
+    } else if (w.includes('mgł') || w.includes('fog')) {
+      brightness = Math.max(6, Math.floor(brightness * 0.85));
+      duration = 4500;
+    } else if (w.includes('deszcz') || w.includes('rain')) {
+      brightness = Math.max(5, Math.floor(brightness * 0.8));
+    }
+
+    return { brightness, duration };
+  }
+
+  /**
+   * Deterministyczna analiza stanu gry: dobór nastroju na podstawie pory dnia, lokacji i słów kluczowych (Q1 -> C)
    */
   public evaluateEnvironmentMood(params: {
     hour?: number;
@@ -151,7 +177,55 @@ export class LightDirector {
     isUnderground?: boolean;
     isSanatoriumOrClinic?: boolean;
     isOccultScene?: boolean;
+    explicitMood?: SceneLightingMood;
+    locationText?: string;
   }): SceneLightingMood {
+    // 1. Jawny wybór z węzła przygody (Q1 -> C priorytet)
+    if (params.explicitMood && this.presets[params.explicitMood]) {
+      return params.explicitMood;
+    }
+
+    // 2. Klasyfikacja semantyczna z nazwy/opisu lokacji
+    if (params.locationText) {
+      const txt = params.locationText.toLowerCase();
+      if (txt.includes('las') || txt.includes('bor') || txt.includes('sad') || txt.includes('drzew')) {
+        return 'deep_forest';
+      }
+      if (txt.includes('bagn') || txt.includes('moczar') || txt.includes('torf')) {
+        return 'murky_swamp';
+      }
+      if (txt.includes('kopaln') || txt.includes('sztolni') || txt.includes('bunk') || txt.includes('szyb')) {
+        return 'mine_shaft';
+      }
+      if (txt.includes('morz') || txt.includes('port') || txt.includes('wybrzez') || txt.includes('plaż') || txt.includes('klif')) {
+        return 'foggy_coast';
+      }
+      if (txt.includes('ulic') || txt.includes('zauł') || txt.includes('alei') || txt.includes('miast')) {
+        return 'rainy_noir_street';
+      }
+      if (txt.includes('krypt') || txt.includes('grobow') || txt.includes('cment') || txt.includes('klasztor')) {
+        return 'monastery_crypt';
+      }
+      if (txt.includes('radio') || txt.includes('kabl') || txt.includes('antyst') || txt.includes('elektron')) {
+        return 'radio_shack_electronic';
+      }
+      if (txt.includes('archiw') || txt.includes('bibliotek') || txt.includes('regał') || txt.includes('czytel')) {
+        return 'parish_archive';
+      }
+      if (txt.includes('areszt') || txt.includes('przesłuch') || txt.includes('komisariat') || txt.includes('cel')) {
+        return 'police_interrogation';
+      }
+      if (txt.includes('głębin') || txt.includes('dno') || txt.includes('zatopion') || txt.includes('ton')) {
+        return 'abyssal_deep';
+      }
+      if (txt.includes('pożar') || txt.includes('płon') || txt.includes('ogień') || txt.includes('płomien')) {
+        return 'raging_fire';
+      }
+      if (txt.includes('izolatk') || txt.includes('sanator') || txt.includes('psychiatr') || txt.includes('szpital')) {
+        return 'asylum_solitary';
+      }
+    }
+
     if (params.isOccultScene) return 'cosmic_horror';
     if (params.isUnderground) return 'subterranean_dark';
     if (params.isSanatoriumOrClinic) return 'institutional_cold';

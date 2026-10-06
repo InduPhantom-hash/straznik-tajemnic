@@ -97,4 +97,39 @@ describe('LightDirector (Reżyser Światła CoC 7e)', () => {
 
     expect(applySpy).toHaveBeenCalledTimes(2);
   });
+
+  it('poprawnie klasyfikuje 12 nowych biomów na podstawie tekstu lokacji (Q1 -> C)', () => {
+    expect(director.evaluateEnvironmentMood({ locationText: 'Gęsty las sosnowy koło Prabut' })).toBe('deep_forest');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Czarne mokradła i torfowisko' })).toBe('murky_swamp');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Opuszczona sztolnia kopalni Kowary' })).toBe('mine_shaft');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Skaliste wybrzeże i port rybacki' })).toBe('foggy_coast');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Zaułek w deszczu, ulica Marszałkowska' })).toBe('rainy_noir_street');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Krypta pod kościołem i stary grobowiec' })).toBe('monastery_crypt');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Rozdzielnia telewizji kablowej i radio' })).toBe('radio_shack_electronic');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Stare archiwum parafialne i biblioteka' })).toBe('parish_archive');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Cela aresztu śledczego i pokój przesłuchań' })).toBe('police_interrogation');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Zatopione ruiny w morskiej głębinie' })).toBe('abyssal_deep');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Płonący dwór i szalejący pożar' })).toBe('raging_fire');
+    expect(director.evaluateEnvironmentMood({ locationText: 'Zamknięta izolatka szpitala psychiatrycznego' })).toBe('asylum_solitary');
+  });
+
+  it('daje pierwszeństwo jawnemu wyborowi explicitMood przed tekstem lokacji', () => {
+    expect(
+      director.evaluateEnvironmentMood({
+        explicitMood: 'cosmic_horror',
+        locationText: 'Spokojny las sosnowy',
+      })
+    ).toBe('cosmic_horror');
+  });
+
+  it('stosuje modyfikatory Silnika Atmosferycznego na presety (Q2 -> B)', () => {
+    const forestPreset = director.getPresets().deep_forest;
+    const stormy = director.applyWeatherModifier(forestPreset, 'Gwałtowna nawałnica i burza');
+    expect(stormy.brightness).toBeLessThan(forestPreset.brightness);
+    expect(stormy.duration).toBe(2000);
+
+    const foggy = director.applyWeatherModifier(forestPreset, 'Gęsta poranna mgła');
+    expect(foggy.brightness).toBeLessThan(forestPreset.brightness);
+    expect(foggy.duration).toBe(4500);
+  });
 });
