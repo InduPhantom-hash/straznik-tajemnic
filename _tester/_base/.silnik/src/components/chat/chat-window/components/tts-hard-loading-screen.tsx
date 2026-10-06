@@ -126,8 +126,8 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >
-      {/* Tło Dark Art Déco: głęboki radialny mosiężny glow i winieta gabinetowa */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,74,0.12)_0%,rgba(14,16,12,0.92)_55%,rgba(5,6,4,0.99)_100%)] pointer-events-none" />
+      {/* Tło Dark Art Déco: głęboki radialny mosiężno-szmaragdowy glow i winieta gabinetowa */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(13,148,136,0.14)_0%,rgba(201,169,74,0.08)_35%,rgba(14,16,12,0.94)_60%,rgba(5,6,4,0.99)_100%)] pointer-events-none" />
       <div className="absolute inset-0 shadow-[inset_0_0_180px_rgba(0,0,0,0.98)] pointer-events-none" />
 
       {/* Zewnętrzne geometryczne narożniki Art Déco */}
@@ -233,7 +233,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                   <BookOpen className="w-3.5 h-3.5 text-gold" />
                   {t('settingTriviaHeader')}
                 </span>
-                <span className="w-2 h-2 rounded-full bg-gold/70 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(13,148,136,0.8)]" />
               </div>
 
               {settingTrivia.subtitle && (
@@ -291,7 +291,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               className={`h-full transition-all duration-500 ease-out relative ${
                 startError
                   ? 'bg-gradient-to-r from-red-900 via-red-600 to-amber-700 shadow-[0_0_20px_rgba(220,38,38,0.7)]'
-                  : 'bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] shadow-[0_0_20px_rgba(201,169,74,0.6)]'
+                  : 'bg-gradient-to-r from-[#997a38] via-primary to-emerald-400 shadow-[0_0_20px_rgba(13,148,136,0.6)]'
               }`}
               style={{ width: startError ? '100%' : `${displayProgress}%` }}
             >
@@ -383,13 +383,13 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 type="button"
                 onClick={handleConfirm}
                 data-testid="loading-screen-enter-cta"
-                className="group relative px-10 py-4 bg-gradient-to-r from-[#997a38] via-[#f0cc66] to-[#997a38] hover:from-[#b38f42] hover:via-[#ffde7a] hover:to-[#b38f42] text-background font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] border-2 border-gold shadow-[0_0_35px_rgba(201,169,74,0.55)] hover:shadow-[0_0_55px_rgba(201,169,74,0.9)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
+                className="group relative px-10 py-4 bg-gradient-to-r from-[#0d9488]/90 via-[#10b981] to-[#0d9488]/90 hover:from-[#0f766e] hover:via-[#34d399] hover:to-[#0f766e] text-primary-foreground font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] border-2 border-gold shadow-[0_0_40px_rgba(13,148,136,0.6)] hover:shadow-[0_0_60px_rgba(13,148,136,0.95),0_0_25px_rgba(201,169,74,0.7)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
               >
-                <Play className="w-5 h-5 fill-background text-background transition-transform group-hover:scale-125" />
+                <Play className="w-5 h-5 fill-primary-foreground text-primary-foreground transition-transform group-hover:scale-125" />
                 <span>{t('enterAdventure')}</span>
-                <Sparkles className="w-5 h-5 text-background animate-pulse" />
+                <Sparkles className="w-5 h-5 text-gold animate-pulse" />
               </button>
-              <p className="text-xs font-special-elite text-gold/90 tracking-widest uppercase animate-pulse">
+              <p className="text-xs font-special-elite text-emerald-400/90 tracking-widest uppercase animate-pulse">
                 {t('awaitingAccept')}
               </p>
             </div>
