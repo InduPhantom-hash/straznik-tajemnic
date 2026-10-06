@@ -248,6 +248,373 @@ export function detectToneAndOccupations(text: string): {
 }
 
 /**
+ * Oczyszcza wyekstrahowany blok tekstu RAW rekwizytu ze znaczników technicznych PDF,
+ * zachowując autentyczne akapity \n\n i normalizując znaki pauzy/półpauzy do '-'.
+ */
+export function cleanRawHandoutText(rawText: string): string {
+  if (!rawText) return '';
+  let cleaned = rawText
+    // 1. Usunięcie znaczników stron PDF <!-- Strona X --> / <!-- Page X -->
+    .replace(/<!--\s*(?:Strona|Page)\s*\d+\s*-->/gi, '')
+    // 2. Usunięcie wszelkich innych komentarzy HTML
+    .replace(/<!--[\s\S]*?-->/g, '')
+    // 3. Usunięcie form feed (\f)
+    .replace(/\f/g, '')
+    // 4. Normalizacja pauz i półpauz do standardowego '-'
+    .replace(/[\u2013\u2014]/g, '-')
+    // 5. Normalizacja CRLF -> LF
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
+
+  // 6. Zachowanie podziału na akapity \n\n przy usunięciu nadmiarowych pustych linii (> 2 -> 2)
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+
+  return cleaned;
+}
+
+// ============================================================================
+// GM SAFETY FILTER (Issue #649 / Milestone M2-3)
+// ============================================================================
+
+const KEEPER_HEADER_KEYWORD_REGEX =
+  /^(?:PLAN\s+(?:DLA\s+)?(?:STRAŻNIKA|STRAZNIKA|MG)|MAPA\s+(?:DLA\s+)?(?:STRAŻNIKA|STRAZNIKA|MG)|TYLKO\s+DLA\s+(?:STRAŻNIKA|STRAZNIKA|MG)|KEEPER(?:[\s\-\u2013\u2014]+)?ONLY|KEEPER(?:\'|’|S|\'S|’S)?\s+(?:MAP|HANDOUT|PLAN|SECTION|SECRET(?:S)?|NOTES?|INFO(?:RMATION)?)|FOR\s+(?:THE\s+)?KEEPER(?:\'|’|S|\'S|’S)?(?:\s+EYES)?(?:\s+ONLY)?|GM\s+ONLY|GAME\s*MASTER\s+ONLY)$/i;
+
+const EXPLICIT_KEEPER_REGEX =
+  /(?:(?:tylko|wyłącznie|wylacznie)\s+dla\s+|dla\s+)(?:strażnika|straznika|mg|mistrza\s+gry)(?:\s+tajemnic)?(?!\s+(?:latarni|więzienn|wiezienn|nocn|miejsk|muzealn|bankow|bramy|bramn|kolejow|graniczn|leśn|lesn|grobow|cmentarn|cmentar|portow|skarbc|świątynn|swiatynn))|(?:sekret(?:y)?|tajemnic(?:e|a)|informacj(?:e|a)|wskazówk(?:i|a)|wskazowk(?:i|a)|uwag(?:i|a)|notatk(?:i|a)|zapiski|pomoc(?:e)?|materiały|materialy)\s+(?:dla\s+)?(?:strażnika|straznika|mg)(?:\s+tajemnic)?(?!\s+(?:latarni|więzienn|wiezienn|nocn|miejsk|muzealn|bankow|bramy|bramn|kolejow|graniczn|leśn|lesn|grobow|cmentarn|cmentar|portow|skarbc|świątynn|swiatynn))|\b(?:pomoc|materiały|materialy)\s+dla\s+mg\b|\bkeeper(?:'s)?\s*(?:only|eyes\s+only|secret|secrets|map|tactical|notes?|info|information|guide)\b|\bfor\s+(?:the\s+)?keeper(?:'s)?(?:\s+eyes)?(?:\s+only)?\b|\b(?:gm|referee|game\s*master)\s*(?:only|eyes\s+only|secrets?|notes?)\b|\bfor\s+(?:the\s+)?(?:gm|referee|game\s*master)\s+only\b|\b(?:nie\s+(?:pokazuj|udostępniaj|udostepniaj)\s+graczom|(?:do\s+wglądu|do\s+wgladu|do\s+użytku|do\s+uzytku)\s+strażnika)\b|\bdo\s+not\s+(?:show|reveal)\s+(?:to\s+)?players\b/i;
+
+const TACTICAL_ANNOTATIONS_REGEX =
+  /(?:rozmieszczenie|pozycje)\s+(?:strażników|straznikow|wrogów|wrogow|przeciwników|przeciwnikow|wartowników|wartownikow|pułapek|pulapek)|\b(?:guard|enemy|trap)\s+(?:placement|positions|locations)\b/i;
+
+const EXPLICIT_PLAYER_HANDOUT_REGEX =
+  /\b(?:pomoc(?:e|y)?\s+dla\s+gracz[yów]|player\s+handout|handout\s+dla\s+graczy)\b/i;
+
+const TACTICAL_FLOORPLAN_REGEX =
+  /\b(?:plan|rzut)\s+(?:kondygnacji|budynk\w*|piętr\w*|pietr\w*|parter\w*|piwnic\w*|podziemi\w*|loch\w*|świątyni\w*|swiatyni\w*|posiadłości\w*|posiadlosci\w*|rezydencji\w*|kompleks\w*|bunkr\w*|sztolni\w*|krypt\w*|izb\w*|sanatori\w*|szpital\w*|posesj\w*|kopaln\w*|fabryk\w*|prosektori\w*|muze\w*|teatr\w*|will\w*|zamk\w*|dwor\w*|dwór\w*|posterunk\w*|kostnic\w*|laboratori\w*|statk\w*|latarn\w*|schron\w*|obiekt\w*|grobowc\w*|katakumb\w*|kaplic\w*|magazyn\w*|hangar\w*|hotel\w*|pensjonat\w*|klinik\w*|areszt\w*|więzien\w*|wiezien\w*)\b|\bplan\s+of\s+(?:the\s+)?(?:asylum|hospital|manor|estate|house|mansion|compound|facility|temple|sanitarium|building|dungeon|grounds?|crypt|cellar|basement|first\s+floor|second\s+floor|ground\s+floor|priory|monastery|tomb)\b|\b(?:plan|mapa)\s+taktyczn(?:a|y|e|ego)\b|\btactical\s+(?:map|floor\s*plan|layout)\b|\b(?:floor|ground)\s*plan\b|\bcombat\s+map\b|\bdungeon\s+map\b|\bblueprint(?:s)?\b|\bsite\s+plan\b|\bbattle\s*map\b|\b(?:asylum|hospital|manor|estate|house|mansion|compound|facility|temple|sanitarium|building|dungeon|hotel|museum|theater|theatre|clinic|ward|cabin|residence|grounds?|site|floor|tactical)\s+layout\b|\blayout\s+of\s+(?:the\s+)?[\w-]+\b/i;
+
+/**
+ * Sprawdza, czy dany materiał to poufny dokument Strażnika lub plan taktyczny.
+ */
+export function isKeeperOrTacticalHandout(title: string, textContent?: string): boolean {
+  const contentSnippet = textContent || '';
+
+  // 1. Jawny znacznik Strażnika lub adnotacje taktyczne (w tytule lub treści)
+  if (
+    EXPLICIT_KEEPER_REGEX.test(title) ||
+    EXPLICIT_KEEPER_REGEX.test(contentSnippet) ||
+    TACTICAL_ANNOTATIONS_REGEX.test(title) ||
+    TACTICAL_ANNOTATIONS_REGEX.test(contentSnippet)
+  ) {
+    return true;
+  }
+
+  // 2. Plany taktyczne i rzuty kondygnacji (pierwszeństwo przed etykietami gracza)
+  if (
+    TACTICAL_FLOORPLAN_REGEX.test(title) ||
+    TACTICAL_FLOORPLAN_REGEX.test(contentSnippet)
+  ) {
+    return true;
+  }
+
+  // 3. Jawne oznaczenie materiału dla graczy (jeśli brak znaczników Strażnika i planów taktycznych)
+  if (EXPLICIT_PLAYER_HANDOUT_REGEX.test(title)) {
+    return false;
+  }
+
+  // 4. Domyślnie materiał jest bezpieczny dla gracza
+  return false;
+}
+
+/**
+ * Ewaluuje flagi GM Safety (keeperOnly, isPlayerFacing).
+ */
+export function evaluateGmSafety(
+  title: string,
+  textContent?: string
+): { keeperOnly: boolean; isPlayerFacing: boolean } {
+  const isKeeper = isKeeperOrTacticalHandout(title, textContent);
+  return {
+    keeperOnly: isKeeper,
+    isPlayerFacing: !isKeeper,
+  };
+}
+
+/**
+ * Ekstrahuje 100% autentyczne rekwizyty (AdventureHandout) z tekstu scenariusza,
+ * obsługując wielojęzyczne nagłówki, hierarchię rozdziałów, filtr GM Safety
+ * oraz unikalne slugi bez limitu 10 pozycji.
+ */
+export function extractHandoutsFromScenarioText(
+  textSlice: string,
+  title: string,
+  detectedLanguage: 'pl' | 'en' | 'unknown'
+): AdventureHandout[] {
+  const isEnDoc = detectedLanguage === 'en';
+  const handouts: AdventureHandout[] = [];
+  const seenSlugs = new Set<string>();
+
+  const HANDOUT_HEADER_REGEX = new RegExp(
+    '(?:^|\\n)[ \\t]*' +
+    // 1. Opcjonalny prefiks rozdziałowy (np. "Rozdział 2: ", "Chapter 3 - ", "Akt I: ")
+    '(?:(ROZDZIAŁ|ROZDZIAL|CHAPTER|AKT|ACT|SCENARIUSZ|SCENARIO)\\s+([0-9]+(?:\\.[0-9]+)?|[IVXLCDM]+)\\s*[:\\-\\u2013\\u2014]\\s*)?' +
+    // 2. Słowo kluczowe
+    '(' +
+      // A: Złożone zwroty graczy
+      'POMOC(?:E|Y)?\\s+DLA\\s+GRACZ(?:Y|ÓW|A)|' +
+      'PLAYER\\s+HANDOUT(?:S)?|' +
+      'HANDOUT\\s+DLA\\s+GRACZY|' +
+      // B: Zwroty Strażnika / MG
+      'PLAN\\s+(?:DLA\\s+)?(?:STRAŻNIKA|STRAZNIKA|MG)|' +
+      'MAPA\\s+(?:DLA\\s+)?(?:STRAŻNIKA|STRAZNIKA|MG)|' +
+      'TYLKO\\s+DLA\\s+(?:STRAŻNIKA|STRAZNIKA|MG)|' +
+      'KEEPER(?:[\\s\\-\\u2013\\u2014]+)?ONLY|' +
+      'KEEPER(?:\'|’|S|\'S|’S)?\\s+(?:MAP|HANDOUT|PLAN|SECTION|SECRET(?:S)?|NOTES?|INFO(?:RMATION)?)|' +
+      'FOR\\s+(?:THE\\s+)?KEEPER(?:\'|’|S|\'S|’S)?(?:\\s+EYES)?(?:\\s+ONLY)?|' +
+      'GM\\s+ONLY|' +
+      'GAME\\s*MASTER\\s+ONLY|' +
+      // C: Pojedyncze słowa kluczowe
+      'POMOC(?:E|Y)?|' +
+      'ZAŁĄCZNIK(?:I)?|ZALACZNIK(?:I)?|' +
+      'DODATEK|DODATKI|' +
+      'REKWIZYT(?:Y)?|' +
+      'HANDOUT(?:S)?|' +
+      'APPENDIX|APPENDICES|' +
+      'EXHIBIT(?:S)?' +
+    ')' +
+    // 3. Identyfikator (numer/litera) i 4. Tytuł po separatorze
+    '(?:' +
+      '(?:[ \\t]*(?:#|NR\\s*|nr\\s*|NO\\s*|no\\s*|NR\\.\\s*|NO\\.\\s*)?([0-9]+(?:\\.[0-9]+)?|[A-HJ-VX-Z])\\b)?' +
+      '(?:\\s*[:\\-\\u2013\\u2014]\\s*([^\\n\\r]+))?' +
+    ')',
+    'gi'
+  );
+
+  const SECTION_BOUNDARY_REGEX =
+    /(?:^|\n)\s*(?:(?:ROZDZIAŁ|ROZDZIAL|CHAPTER|SCENARIUSZ|SCENARIO|AKT|ACT)\s*(?:\d+|[IVXLCDM]+)|LEGENDA\s+OZNACZENIA\s+SCENARIUSZY|TWORZENIE\s+BADACZY|CZAS\s+I\s+MIEJSCE\s+AKCJI|DRAMATIS\s+PERSONAE|ZAGADKA\s+Z\s+MAPĄ|ZAGADKA\s+LOGICZNA|EPILOG|PODSUMOWANIE|ZAKOŃCZENIE|SPIS\s+TREŚCI|TABLE\s+OF\s+CONTENTS|INDEKS|INDEX|STATYSTYKI|BESTIARIUSZ|MONSTRA)\b|(?:^|\n)\s*[-=_*]{3,}\s*(?:\n|$)/i;
+
+  interface RawHeaderMatch {
+    fullMatch: string;
+    index: number;
+    chapterType?: string;
+    chapterNum?: string;
+    keyword: string;
+    id?: string;
+    label?: string;
+    endOfHeaderLineIndex: number;
+  }
+
+  const rawMatches: RawHeaderMatch[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = HANDOUT_HEADER_REGEX.exec(textSlice)) !== null) {
+    const chapterType = match[1]?.trim();
+    const chapterNum = match[2]?.trim();
+    const keyword = match[3]?.trim() || '';
+    const id = match[4]?.trim();
+    const label = match[5]?.trim();
+
+    // Odrzucenie zdań potocznych dla pojedynczych słów kluczowych bez ID i bez separatora
+    const isSingleWord =
+      /^(?:POMOC(?:E|Y)?|ZAŁĄCZNIK(?:I)?|ZALACZNIK(?:I)?|DODATEK|DODATKI|REKWIZYT(?:Y)?|HANDOUT(?:S)?|APPENDIX|APPENDICES|EXHIBIT(?:S)?)$/i.test(
+        keyword
+      );
+    if (isSingleWord && !id && !label) {
+      continue;
+    }
+
+    // Odrzucenie technicznych dodatków podręcznika (słowniczki, skorowidze, tabele broni)
+    if (label && /słowniczek|slowniczek|skorowidz|indeks|glossary|index|tabele\s+broni/i.test(label)) {
+      continue;
+    }
+
+    const matchStartIndex = match.index;
+    const newlineAfter = textSlice.indexOf('\n', matchStartIndex + match[0].length);
+    const endOfHeaderLineIndex =
+      newlineAfter !== -1 ? newlineAfter + 1 : matchStartIndex + match[0].length;
+
+    rawMatches.push({
+      fullMatch: match[0],
+      index: matchStartIndex,
+      chapterType,
+      chapterNum,
+      keyword,
+      id,
+      label,
+      endOfHeaderLineIndex,
+    });
+  }
+
+  for (let i = 0; i < rawMatches.length; i++) {
+    const cur = rawMatches[i];
+    const isEn =
+      isEnDoc ||
+      /^(?:chapter|act|handout|appendix|exhibit|player\s+handout|keeper|gm\s+only|game\s*master)/i.test(
+        `${cur.keyword} ${cur.chapterType || ''}`
+      );
+    const num = cur.id || String(i + 1);
+
+    let defaultLabel = `Pomoc #${num}`;
+    if (KEEPER_HEADER_KEYWORD_REGEX.test(cur.keyword)) {
+      if (isEn) {
+        if (/\bmap\b/i.test(cur.keyword)) defaultLabel = `Keeper's Map #${num}`;
+        else if (/\bplan\b/i.test(cur.keyword)) defaultLabel = `Keeper's Plan #${num}`;
+        else defaultLabel = `Keeper Material #${num}`;
+      } else {
+        if (/mapa/i.test(cur.keyword)) defaultLabel = `Mapa dla Strażnika #${num}`;
+        else if (/plan/i.test(cur.keyword)) defaultLabel = `Plan dla Strażnika #${num}`;
+        else defaultLabel = `Materiał Strażnika #${num}`;
+      }
+    } else if (/dodatek/i.test(cur.keyword)) {
+      defaultLabel = `Dodatek #${num}`;
+    } else if (/załącznik|zalacznik/i.test(cur.keyword)) {
+      defaultLabel = `Załącznik #${num}`;
+    } else if (/appendix/i.test(cur.keyword)) {
+      defaultLabel = `Appendix #${num}`;
+    } else if (/exhibit/i.test(cur.keyword)) {
+      defaultLabel = `Exhibit #${num}`;
+    } else if (/player\s+handout/i.test(cur.keyword)) {
+      defaultLabel = `Player Handout #${num}`;
+    } else if (/handout/i.test(cur.keyword)) {
+      defaultLabel = `Handout #${num}`;
+    } else if (/pomoc\s+dla\s+gracz/i.test(cur.keyword)) {
+      defaultLabel = `Pomoc dla graczy #${num}`;
+    }
+
+    const rawLabel = cur.label || defaultLabel;
+    const cleanLabel = rawLabel
+      .replace(/[\u2013\u2014]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Identyfikacja rozdziału (z nagłówka lub z tekstu poprzedzającego)
+    let chapterNum = cur.chapterNum;
+    let isAct = cur.chapterType ? /^(?:AKT|ACT)$/i.test(cur.chapterType) : false;
+    let isChapterEn = cur.chapterType
+      ? /^(?:CHAPTER|ACT|SCENARIO)$/i.test(cur.chapterType)
+      : false;
+
+    if (!chapterNum) {
+      const textBefore = textSlice.slice(0, cur.index);
+      const chRegex =
+        /(?:^|\n)\s*(ROZDZIAŁ|ROZDZIAL|CHAPTER|AKT|ACT|SCENARIUSZ|SCENARIO)\s*([0-9]+(?:\.[0-9]+)?|[IVXLCDM]+)\b/gi;
+      let m: RegExpExecArray | null;
+      let lastType: string | undefined;
+      let lastCh: string | undefined;
+      while ((m = chRegex.exec(textBefore)) !== null) {
+        lastType = m[1];
+        lastCh = m[2];
+      }
+      chapterNum = lastCh;
+      if (lastType && /^(?:AKT|ACT)$/i.test(lastType)) {
+        isAct = true;
+      }
+      if (lastType && /^(?:CHAPTER|ACT|SCENARIO)$/i.test(lastType)) {
+        isChapterEn = true;
+      }
+    }
+
+    let chapterId: string | undefined = undefined;
+    if (chapterNum) {
+      const normCh = slugifyText(chapterNum);
+      if (isAct) {
+        chapterId = isEn || isChapterEn ? `act-${normCh}` : `akt-${normCh}`;
+      } else {
+        chapterId = isEn || isChapterEn ? `chapter-${normCh}` : `rozdzial-${normCh}`;
+      }
+    }
+
+    // Granice tekstu RAW
+    const contentStart = cur.endOfHeaderLineIndex;
+    let contentEnd = textSlice.length;
+
+    if (i + 1 < rawMatches.length) {
+      contentEnd = rawMatches[i + 1].index;
+    }
+
+    // Sprawdzenie granic rozdziałów lub sekcji pośrednich
+    const sliceBetween = textSlice.slice(contentStart, contentEnd);
+    const boundaryMatch = SECTION_BOUNDARY_REGEX.exec(sliceBetween);
+    if (boundaryMatch) {
+      contentEnd = contentStart + boundaryMatch.index;
+    }
+
+    const rawBlock = textSlice.slice(contentStart, contentEnd);
+    const cleanedText = cleanRawHandoutText(rawBlock);
+    const textContent = cleanedText.length > 0 ? cleanedText : undefined;
+
+    // GM Safety Heurystyka
+    const fullHeaderForSafety = `${cur.fullMatch.trim()} - ${cleanLabel}`;
+    const safety = evaluateGmSafety(fullHeaderForSafety, textContent);
+
+    if (KEEPER_HEADER_KEYWORD_REGEX.test(cur.keyword)) {
+      safety.keeperOnly = true;
+      safety.isPlayerFacing = false;
+    }
+
+    // Klasyfikacja typu rekwizytu
+    const checkText = `${cleanLabel} ${cur.fullMatch} ${cur.keyword} ${textContent ? textContent.slice(0, 300) : ''}`.toLowerCase();
+    const isMap =
+      safety.keeperOnly ||
+      /\b(?:mapa|mapy|plan\b|plany|rzut\b|rzuty|szkic|topograf|map|maps|floor\s*plan|layout|blueprint|site\s*plan)\b/i.test(
+        checkText
+      );
+    const isTelegram =
+      /\b(?:telegram|telegramy|depesza|depesze|telegraf|cable|wire|telegraph)\b/i.test(checkText);
+    const isDiary =
+      /\b(?:dziennik|dzienniki|pami[eę]tnik|pami[eę]tniki|zapiski|notatnik|wspomnienia|diary|journal|notebook|memoir)\b/i.test(
+        checkText
+      );
+    const isBook =
+      /\b(?:ksi[aą][zż]k|starodruk|tom\b|manuskrypt|wolumin|traktat|grimuar|grymuar|kodeks|book|tome|manuscript|volume|grimoire)\b/i.test(
+        checkText
+      );
+    const isReport =
+      /\b(?:raport|raporty|analiza|analizy|ekspertyza|ekspertyzy|protok[oó][lł]|akta|zeznani|orzeczeni|rejestr|świadectwo|swiadectwo|milicj|policj|sekcj|autopsj|report|analysis|autopsy|police|dossier|statement|ledger|log)\b/i.test(
+        checkText
+      );
+    const isLetter =
+      /\b(?:list\b|listy|korespondencj|koperta|pismo\b|pisma|wiadomo[sś][cć]|poczt[oó]wk|letter|correspondence|envelope|missive|note|postcard)\b/i.test(
+        checkText
+      );
+
+    let handoutType: AdventureHandout['handoutType'] = 'newspaper';
+    if (isMap) handoutType = 'map';
+    else if (isReport) handoutType = 'report';
+    else if (isLetter) handoutType = 'letter';
+    else if (isTelegram) handoutType = 'telegram';
+    else if (isDiary) handoutType = 'diary';
+    else if (isBook) handoutType = 'book';
+
+    // Bezpieczne generowanie sluga z obcięciem prefiksu tytułu do 24 znaków i seenSlugs
+    const scenPrefix = slugifyText(title).slice(0, 24).replace(/-+$/, '') || 'adventure';
+    const typePart = isEn ? 'handout' : 'pomoc';
+    const baseSlug = slugifyText(`${scenPrefix}-${typePart}-${slugifyText(num)}`);
+
+    let slug = baseSlug;
+    let sIdx = 2;
+    while (seenSlugs.has(slug)) {
+      slug = `${baseSlug}-${sIdx}`;
+      sIdx++;
+    }
+    seenSlugs.add(slug);
+
+    const titleText = cleanLabel.length > 80 ? cleanLabel.slice(0, 77) + '...' : cleanLabel;
+
+    handouts.push({
+      slug,
+      title: titleText,
+      image: `/handouts/placeholder-${handoutType}.webp`,
+      handoutType,
+      textContent,
+      isPlayerFacing: safety.isPlayerFacing,
+      keeperOnly: safety.keeperOnly,
+      chapterId,
+    });
+  }
+
+  return handouts;
+}
+
+/**
  * Głęboki ekstraktor metadanych scenariusza z tekstu (Clean Room BYOB):
  * - Oficjalna LEGENDA OZNACZENIA SCENARIUSZY: gwiazdki trudności 1-5 i cyfry sesji w kółkach 1-10
  * - Precyzyjna chronologia i epoka
@@ -428,31 +795,8 @@ export function extractScenarioDetailedMetadata(
     });
   }
 
-  // 6. Pomoce dla graczy (Handouty)
-  const handouts: AdventureHandout[] = [];
-  const handoutMatches = Array.from(
-    textSlice.matchAll(
-      /(?:^|\n)\s*(?:(?:POMOC(?:E|Y)?\s+DLA\s+GRACZ[YÓW]|Pomoc(?:e|y)?\s+dla\s+gracz[yów])\s*(?:#|NR\s*|nr\s*)?(\d+)|(?:DODATEK|Dodatek)\s+(\d+|[A-HJ-VX-Z])\b)(?:\s*[:\-\u2013\u2014]\s*([^\n]+))?/g
-    )
-  );
-
-  handoutMatches.slice(0, 10).forEach((hm, hIdx) => {
-    const num = hm[1] || hm[2] || String(hIdx + 1);
-    const label = hm[3]?.trim() || `Pomoc dla graczy #${num}`;
-    const slug = slugifyText(`${slugifyText(title)}-pomoc-${num}`);
-    const isMap = /mapa|plan/i.test(label) || /mapa/i.test(hm[0]);
-    const isReport = /raport|analiza|ekspertyza|milicj/i.test(label);
-    const isLetter = /list|pami|zapiski|telegram/i.test(label);
-    const handoutType = isMap ? 'map' : isReport ? 'report' : isLetter ? 'letter' : 'newspaper';
-
-    handouts.push({
-      slug,
-      title: label.length > 50 ? `Pomoc #${num}` : label,
-      image: `/handouts/placeholder-${handoutType}.webp`,
-      handoutType,
-      textContent: `Załącznik śledczy powiązany ze scenariuszem "${title}".`,
-    });
-  });
+  // 6. Pomoce dla graczy (Handouty) i materiały Strażnika (GM Safety Filter)
+  const handouts = extractHandoutsFromScenarioText(textSlice, title, detectedLanguage);
 
   // 7. Rozróżnienie scenariusz vs setting
   const isSetting =

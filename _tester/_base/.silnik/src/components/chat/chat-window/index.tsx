@@ -447,6 +447,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   <MessageCard
                     key={message.id}
                     message={message}
+                    adventureContext={adventureContext}
                     activeCharacter={activeCharacter}
                     playerPortraitUrl={playerPortraitUrl}
                     era={eraContext?.effectiveYear ? String(eraContext.effectiveYear) : (activeCharacter?.era || '1920s')}

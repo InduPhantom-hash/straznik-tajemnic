@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from 'react';
+import type { AnyAdventureContext } from '@/lib/handout-resolver';
 import { cleanupContent, NESTED_TAG_BODY } from './cleanup';
 import { parseIntoSections } from './parse-sections';
 import { renderSection } from './render-sections';
@@ -14,7 +15,8 @@ export function formatNarrative(
   content: string,
   playerColors?: Map<string, string>,
   onImageClick?: (imgUrl: string, allImages: string[]) => void,
-  isDirectorMode?: boolean
+  isDirectorMode?: boolean,
+  adventureContext?: AnyAdventureContext | null
 ): ReactNode[] {
   let directorThoughts: string | null = null;
   if (isDirectorMode) {
@@ -36,6 +38,6 @@ export function formatNarrative(
   }
 
   return sections.map((section, index) =>
-    renderSection(section, index, playerColors, onImageClick)
+    renderSection(section, index, playerColors, onImageClick, adventureContext)
   );
 }

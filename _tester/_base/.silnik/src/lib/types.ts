@@ -16,6 +16,11 @@ import type {
   AdventurePuzzle,
   AdventureHandout,
 } from '@/lib/adventures-data';
+export type {
+  InvestigatorRequirements,
+  AdventurePuzzle,
+  AdventureHandout,
+};
 
 export interface DiceRollEventData {
   id: string;
@@ -1074,6 +1079,9 @@ export interface AdventureContext {
   investigatorRequirements?: InvestigatorRequirements;
   puzzles?: AdventurePuzzle[];
   handouts?: AdventureHandout[];
+  activeChapterId?: string | number;
+  activeLocationId?: string;
+  activeNodeId?: string;
 
   // Files
   geminiFileUri?: string;

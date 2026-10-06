@@ -15,6 +15,8 @@ import type { Section, HandoutType } from './types';
 import { Volume2, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioReelPlayer } from '@/components/ui/audio-reel-player';
 import { DocumentViewer } from '@/components/ui/document-viewer';
+import type { AnyAdventureContext } from '@/lib/handout-resolver';
+import { resolveHandoutBySlug } from '@/lib/handout-resolver';
 
 export function HandoutAudioPlayer({ audioUrl }: { audioUrl: string }) {
   const t = useTranslations('NarrativeFormatter');
@@ -82,10 +84,33 @@ export function HandoutAudioPlayer({ audioUrl }: { audioUrl: string }) {
   );
 }
 
-function HandoutCard({ section }: { section: Section }) {
+function HandoutCard({
+  section,
+  adventureContext,
+}: {
+  section: Section;
+  adventureContext?: AnyAdventureContext | null;
+}) {
   const t = useTranslations('NarrativeFormatter');
-  const styles = getHandoutStyles(section.handoutType);
-  const [isExpanded, setIsExpanded] = useState(!section.stickyNote);
+
+  const resolved = section.handoutSlug
+    ? resolveHandoutBySlug(section.handoutSlug, adventureContext)
+    : null;
+
+  const effectiveTitle = resolved?.title || (section.handoutSlug ? section.handoutSlug : undefined);
+  const effectiveContent = resolved?.textContent || section.content || '';
+  const effectiveType: HandoutType = resolved?.handoutType || section.handoutType || 'note';
+  const effectiveImageUrl = resolved?.image || section.imageUrl;
+  const effectiveAudioUrl = resolved?.audioUrl || section.audioUrl;
+  const styles = getHandoutStyles(effectiveType);
+
+  const hasStickyNote = Boolean(section.stickyNote);
+  const isLongDocument =
+    effectiveContent.length >= 250 || effectiveContent.split('\n').length >= 4;
+  const canToggle = hasStickyNote || isLongDocument;
+
+  // Dokument z notatka startuje zwiniety (!hasStickyNote). Dlugie dokumenty bez notatki startuja rozwiniete, ale gracz moze je zwinac.
+  const [isExpanded, setIsExpanded] = useState(!hasStickyNote);
 
   return (
     <div className={`my-4 font-mono text-sm ${styles.container}`}>
@@ -134,28 +159,73 @@ function HandoutCard({ section }: { section: Section }) {
         </div>
       )}
 
+      {/* Naglowek karty rekwizytu (gdy brak notatki badacza) */}
+      {!hasStickyNote && (styles.header || effectiveTitle) && (
+        <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-brass/30">
+          <div className={styles.headerClass || 'text-gold text-xs font-bold font-display tracking-wider'}>
+            {styles.header}
+            {effectiveTitle && styles.header && !styles.header.toLowerCase().includes(effectiveTitle.toLowerCase())
+              ? ` - ${effectiveTitle}`
+              : (!styles.header && effectiveTitle ? effectiveTitle : '')}
+          </div>
+          {canToggle && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="inline-flex items-center gap-1 text-[11px] font-special-elite text-brass hover:text-gold transition-colors py-0.5 px-2 rounded bg-brass/10 hover:bg-brass/20 border border-brass/30 cursor-pointer select-none active:scale-95"
+            >
+              <span>{isExpanded ? t('collapseDocument') : t('expandDocument')}</span>
+              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Podglad skrocony w stanie zwinietym */}
+      {!isExpanded && (
+        <div className="text-xs">
+          {effectiveContent ? (
+            <pre className={`whitespace-pre-wrap line-clamp-3 opacity-80 ${styles.content}`}>
+              {effectiveContent}
+            </pre>
+          ) : effectiveImageUrl ? (
+            <div className="text-brass/70 italic text-xs font-serif">
+              [{t('expandDocument')}]
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* Pelna tresc i multimedia w stanie rozwinietym */}
       {isExpanded && (
         <>
-          {styles.header && (
-            <div className={styles.headerClass}>{styles.header}</div>
+          {hasStickyNote && (styles.header || effectiveTitle) && (
+            <div className={styles.headerClass || 'text-gold text-xs font-bold mb-2 font-display tracking-wider'}>
+              {styles.header}
+              {effectiveTitle && styles.header && !styles.header.toLowerCase().includes(effectiveTitle.toLowerCase())
+                ? ` - ${effectiveTitle}`
+                : (!styles.header && effectiveTitle ? effectiveTitle : '')}
+            </div>
           )}
-          <pre className={`whitespace-pre-wrap ${styles.content}`}>
-            {section.content}
-          </pre>
-          {section.imageUrl && (
+          {effectiveContent ? (
+            <pre className={`whitespace-pre-wrap ${styles.content}`}>
+              {effectiveContent}
+            </pre>
+          ) : null}
+          {effectiveImageUrl && (
             <div className="mt-3">
               <DocumentViewer
-                imageUrl={section.imageUrl}
-                title={styles.header || 'Rekwizyt'}
-                docTypeLabel={section.handoutType}
+                imageUrl={effectiveImageUrl}
+                title={effectiveTitle || styles.header || 'Rekwizyt'}
+                docTypeLabel={effectiveType}
               />
             </div>
           )}
-          {section.audioUrl && (
+          {effectiveAudioUrl && (
             <div className="mt-3">
               <AudioReelPlayer
-                audioUrl={section.audioUrl}
-                transcript={section.content}
+                audioUrl={effectiveAudioUrl}
+                transcript={effectiveContent}
               />
             </div>
           )}
@@ -165,8 +235,12 @@ function HandoutCard({ section }: { section: Section }) {
   );
 }
 
-export function renderHandout(section: Section, key: number): ReactNode {
-  return <HandoutCard key={key} section={section} />;
+export function renderHandout(
+  section: Section,
+  key: number,
+  adventureContext?: AnyAdventureContext | null
+): ReactNode {
+  return <HandoutCard key={key} section={section} adventureContext={adventureContext} />;
 }
 
 export function getHandoutStyles(type?: HandoutType): {
@@ -229,6 +303,16 @@ export function getHandoutStyles(type?: HandoutType): {
         content: 'text-foreground italic font-serif',
         header: '📜 FRAGMENT KSIĘGI',
         headerClass: 'text-primary text-xs font-bold mb-2 font-display',
+      };
+
+    case 'map':
+      return {
+        container:
+          'bg-card/95 border-2 border-brass/60 rounded p-4 shadow-xl',
+        content: 'text-foreground font-mono text-xs',
+        header: '🗺️ MAPA / PLAN',
+        headerClass:
+          'text-gold text-xs font-bold mb-2 tracking-widest font-display uppercase',
       };
 
     default:

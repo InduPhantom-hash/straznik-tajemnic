@@ -21,6 +21,7 @@ export type HandoutType =
   | 'report'
   | 'diary'
   | 'book'
+  | 'map'
   | 'note';
 
 export interface StickyNote {
@@ -34,10 +35,16 @@ export interface Section {
   content: string;
   speaker?: string;
   handoutType?: HandoutType;
+  handoutSlug?: string;
   stickyNote?: StickyNote;
   audioUrl?: string; // Opcjonalny URL nagrania audio / pliku dźwiękowego
   imageUrl?: string; // Opcjonalny URL skanu / ryciny / fotografii
   characterName?: string; // dla type='perspective' - imię postaci kierowanej
   characterColor?: string; // opcjonalny kolor ramki
+}
+
+export interface HandoutSection extends Section {
+  type: 'handout';
+  handoutSlug?: string;
 }
 

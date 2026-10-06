@@ -36,6 +36,7 @@ import { FirearmsCard } from './firearms-card';
 import { GameOverCard } from './game-over-card';
 import { RefereeVetoCard } from './referee-veto-card';
 import type { Character, Message } from '@/lib/types';
+import type { AnyAdventureContext } from '@/lib/handout-resolver';
 import type { ChaseManeuverType, ChaseState } from '@/lib/chase/chase-engine';
 import type { PendingMeleeAttack, DefenseChoice, ManeuverType } from '@/lib/combat/combat-resolver';
 import type { CombatDefenseWeaponOption } from '@/lib/combat/weapon-context';
@@ -49,6 +50,7 @@ import {
 
 interface MessageCardProps {
   message: Message;
+  adventureContext?: AnyAdventureContext | null;
   activeCharacter: Character | null;
   /** Portret gracza dociągnięty przez useResolvedPortrait (fallback z IndexedDB
    *  gdy activeCharacter.portraitUrl pusty). Liczony raz w ChatWindow. */
@@ -136,6 +138,7 @@ export function MessageCard({
   isDirectorMode = false,
   sessionSaveStatus = 'idle',
   onRetrySessionSave,
+  adventureContext,
 }: MessageCardProps) {
   const t = useTranslations('MessageCard');
   const locale = useLocale();
@@ -282,6 +285,7 @@ export function MessageCard({
                   playerColors={playerColors}
                   onImageClick={onImageClick}
                   isDirectorMode={isDirectorMode}
+                  adventureContext={adventureContext}
                 />
                 {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
                   <>

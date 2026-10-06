@@ -12,6 +12,7 @@ import { SafeImage } from '@/components/ui/safe-image';
 
 import type { ReactNode } from 'react';
 import type { Section } from './types';
+import type { AnyAdventureContext } from '@/lib/handout-resolver';
 import { renderHandout } from './render-handout';
 import { renderPerspective } from './render-perspective';
 import { renderNarrativeWithImages } from './render-narrative-with-images';
@@ -30,7 +31,8 @@ export function renderSection(
   section: Section,
   key: number,
   playerColors?: Map<string, string>,
-  onImageClick?: (imgUrl: string, allImages: string[]) => void
+  onImageClick?: (imgUrl: string, allImages: string[]) => void,
+  adventureContext?: AnyAdventureContext | null
 ): ReactNode {
   switch (section.type) {
     case 'dialogue': {
@@ -71,7 +73,7 @@ export function renderSection(
     }
 
     case 'handout':
-      return renderHandout(section, key);
+      return renderHandout(section, key, adventureContext);
 
     case 'roll':
       return (

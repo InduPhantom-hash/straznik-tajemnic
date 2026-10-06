@@ -598,12 +598,14 @@ export function processCharacterJournalAndDossier(
       changed = true;
     }
 
-    // Jeśli przedmiot jest dokumentem, listem, wycinkiem, gazetą, zdjęciem, taśmą lub księgą (Handout)
+    // Jeśli przedmiot jest dokumentem, listem, wycinkiem, gazetą, zdjęciem, taśmą, mapą, planem lub księgą (Handout)
     // automatycznie generujemy potrójny byt: fizyczny rekwizyt w ekwipunku + czytnik + fakt w dossier!
     const isHandout =
       item.category === 'document' ||
       item.category === 'dokument' ||
-      /dokument|list|wycinek|gazet|artykuł|pismo|fotografi|zdjęci|taśm|nagrani|książk|księg|pamiętnik|dziennik|notatk|raport|telegram|akt|akta|świadectwo|certyfikat|bilet|przepustk|document|letter|clipping|newspaper|article|photo|tape|recording|book|tome|diary|journal|notes|report|telegram|file|certificate|pass/i.test(
+      item.category === 'map' ||
+      item.category === 'mapa' ||
+      /dokument|list|wycinek|gazet|artykuł|pismo|fotografi|zdjęci|taśm|nagrani|książk|księg|pamiętnik|dziennik|notatk|raport|telegram|akt|akta|świadectwo|certyfikat|bilet|przepustk|map|mapa|mapy|plan|plany|szkic|blueprint|schemat|document|letter|clipping|newspaper|article|photo|tape|recording|book|tome|diary|journal|notes|report|telegram|file|certificate|pass/i.test(
         `${normName} ${item.description} ${item.category || ''}`
       );
 
@@ -1263,8 +1265,17 @@ export function appendJournalToParty(
   });
 
   itemTags.forEach((item) => {
+    if (!item.who?.trim()) {
+      // Rekwizyty i dokumenty odkryte wspólnie (bez jawnego @Kto) synchronizujemy dla całej drużyny
+      characters.forEach((char) => {
+        const list = itemTagsByChar.get(char.id) ?? [];
+        list.push(item);
+        itemTagsByChar.set(char.id, list);
+      });
+      return;
+    }
     const target = resolveRevealedRecipient(characters, item.who, activeCharacter);
-    if(!target)return;
+    if (!target) return;
     const list = itemTagsByChar.get(target.id) ?? [];
     list.push(item);
     itemTagsByChar.set(target.id, list);

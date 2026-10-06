@@ -102,6 +102,12 @@ Wkraczasz do gabinetu.`;
     const output = cleanupContent(input);
     expect(output).toBe('Wszedłeś do pokoju i zamknąłeś drzwi.\n\nJanusz: „Musimy uważać na zbiega!”\n\nCisza zaległa w całym korytarzu.');
   });
+
+  it('zachowuje tag [HANDOUT:<slug>] w czystej narracji (Issue #649)', () => {
+    const input = 'Na biurku proboszcza lezy dokument:\n[HANDOUT:teczka-sb-klin]\nCo robicie dalej?';
+    const output = cleanupContent(input);
+    expect(output).toContain('[HANDOUT:teczka-sb-klin]');
+  });
 });
 
 

@@ -139,7 +139,7 @@ export function cleanupContent(content: string): string {
     // to domyka asymetrię display vs lektor. NESTED_TAG_BODY: też gdy halucynowany
     // tag ma w środku zagnieżdżony [...].
     .replace(
-      new RegExp(`\\[(?!(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)\\b)[A-ZŁŚŻŹĆŃ_]{3,}\\s*:${NESTED_TAG_BODY}\\]`, 'g'),
+      new RegExp(`\\[(?!(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE|HANDOUT)\\b)[A-ZŁŚŻŹĆŃ_]{3,}\\s*:${NESTED_TAG_BODY}\\]`, 'g'),
       ''
     )
     .trim();

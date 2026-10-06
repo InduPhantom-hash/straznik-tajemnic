@@ -253,6 +253,9 @@ export async function runChatPipeline({
     guardrailState: requestedGuardrailState,
     turnsInCurrentLocation: requestedTurnsInCurrentLocation,
     visitedMacroLocations: requestedVisitedMacroLocations,
+    activeChapterId: requestedActiveChapterId,
+    activeLocationId: requestedActiveLocationId,
+    activeNodeId: requestedActiveNodeId,
   } = body as {
     message: string;
     adventureId?: string;
@@ -263,6 +266,9 @@ export async function runChatPipeline({
     pdfMemory?: PdfMemoryAttachments | null;
     npcs?: NPC[];
     currentLocation?: string;
+    activeChapterId?: string | number | null;
+    activeLocationId?: string | null;
+    activeNodeId?: string | null;
     turnsInCurrentLocation?: number;
     visitedMacroLocations?: string[];
     gameContextPrompt?: string;
@@ -278,6 +284,9 @@ export async function runChatPipeline({
       isCampaign?: boolean;
       handouts?: AdventureHandout[];
       puzzles?: AdventurePuzzle[];
+      activeChapterId?: string | number | null;
+      activeLocationId?: string | null;
+      activeNodeId?: string | null;
       themes?: string[];
       tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
       truthAnchor?: {
@@ -696,8 +705,29 @@ export async function runChatPipeline({
     sessionId,
     ragSection: `${ragSection}${campaignMemorySection}`,
     summarySection,
-    // Realne handouty przygody (DriveThruRPG) i zagadki śledcze (RAW) - MG dostaje markdown obrazów oraz instrukcje Idea Roll.
-    handoutsSection: buildHandoutsContext(adventureContext?.handouts, adventureContext?.puzzles),
+    // Realne handouty przygody (DriveThruRPG) i zagadki śledcze (RAW) - MG dostaje tagi [HANDOUT:<slug>] oraz instrukcje Idea Roll.
+    handoutsSection: buildHandoutsContext(
+      adventureContext?.handouts,
+      adventureContext?.puzzles,
+      {
+        activeChapterId:
+          requestedActiveChapterId ??
+          adventureContext?.activeChapterId ??
+          null,
+        activeLocationId:
+          requestedActiveLocationId ??
+          adventureContext?.activeLocationId ??
+          null,
+        activeNodeId:
+          requestedActiveNodeId ??
+          adventureContext?.activeNodeId ??
+          null,
+        currentLocation:
+          currentLocation ??
+          character?.activeScene?.location ??
+          null,
+      }
+    ),
     sessionRecapSection,
     skipContext,
     gameContextPrompt,
