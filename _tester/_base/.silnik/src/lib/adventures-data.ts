@@ -4,12 +4,15 @@
  */
 
 import { ADVENTURE_CATALOG } from './adventures-catalog.generated';
+import { AMERICAN_COLD_CASES_ADVENTURES } from './american-cold-cases-data';
 import type { AdventureGraph } from './types';
 import type {
   DocumentType,
   LorebookData,
   SourcebookReference,
 } from '@/types/adventure';
+
+export { AMERICAN_COLD_CASES_ADVENTURES };
 
 // ============================================================================
 // TYPY
@@ -150,6 +153,8 @@ export interface AdventureContext {
   externalLinks?: Array<{ label: string; url: string }>;
   /** Czy scenariusz jest częścią autorskiej serii Strefa 11 */
   isStrefa11?: boolean;
+  /** Czy scenariusz należy do serii American Mythos Cold Cases (Quick Setup EN) */
+  isAmericanColdCase?: boolean;
   /** Predefiniowane handouty fabularne (dokumenty, mapy, taśmy audio) */
   handouts?: AdventureHandout[];
   /** Aktywny rozdział lub akt scenariusza */
@@ -2456,10 +2461,16 @@ export const CUSTOM_ADVENTURE_TEMPLATE: AdventureContext = {
 // HELPERY
 // ============================================================================
 
+export function getQuickSetupAdventures(locale?: string): AdventureContext[] {
+  return locale === 'en' ? AMERICAN_COLD_CASES_ADVENTURES : STREFA_11_ADVENTURES;
+}
+
 export function getAdventureById(id: string): AdventureContext | undefined {
   if (id === 'custom') return CUSTOM_ADVENTURE_TEMPLATE;
   const strefa11 = STREFA_11_ADVENTURES.find((a) => a.id === id);
   if (strefa11) return strefa11;
+  const coldCase = AMERICAN_COLD_CASES_ADVENTURES.find((a) => a.id === id);
+  if (coldCase) return coldCase;
   return BUILT_IN_ADVENTURES.find((a) => a.id === id);
 }
 

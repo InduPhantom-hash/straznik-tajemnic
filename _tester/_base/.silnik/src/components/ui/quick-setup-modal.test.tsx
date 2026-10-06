@@ -192,4 +192,44 @@ describe('QuickSetupModal (Issue #121)', () => {
     const startBtn = screen.getByRole('button', { name: /Rozpocznij przygodę/i });
     expect(startBtn).toHaveClass('bg-primary');
   });
+
+  it('w języku angielskim (EN) ładuje dedykowany zestaw 4 przygód American Mythos Cold Cases zamiast Strefy 11 (Issue #659)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'en';
+    const onOpenChange = jest.fn();
+    const onQuickStart = jest.fn();
+
+    render(
+      <QuickSetupModal
+        open={true}
+        onOpenChange={onOpenChange}
+        onQuickStart={onQuickStart}
+      />
+    );
+
+    expect(screen.getByText('American Mythos Cold Cases')).toBeInTheDocument();
+    expect(screen.getByText("The Englewood Labyrinth: Holmes's Castle")).toBeInTheDocument();
+    expect(screen.getByText('The Almer Coe Spectacles: The Franks Affair')).toBeInTheDocument();
+    expect(screen.getByText('Postmarked Columbus: The Circleville Letters')).toBeInTheDocument();
+    expect(screen.getByText(/The Ovidhall Lake Anomaly/i)).toBeInTheDocument();
+
+    // Polskie przygody ze Strefy 11 nie powinny być wyświetlane w EN Quick Setup
+    expect(screen.queryByText(/Prabuty/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Kowary/i)).not.toBeInTheDocument();
+
+    // Wybór dedykowanego badacza z pierwszego scenariusza (Frank Geyer)
+    const geyerCards = screen.getAllByRole('button', { name: /Frank Geyer/i });
+    expect(geyerCards.length).toBeGreaterThan(0);
+    fireEvent.click(geyerCards[0]);
+
+    const startBtn = screen.getByRole('button', { name: /Start adventure/i });
+    expect(startBtn).not.toBeDisabled();
+    fireEvent.click(startBtn);
+
+    expect(onQuickStart).toHaveBeenCalledWith(
+      'englewood-murder-castle-1893',
+      'coldcase_frank_geyer',
+      'solo',
+      undefined
+    );
+  });
 });

@@ -13,6 +13,7 @@ import type { AdventureContext as DataAdventureContext } from '@/lib/adventures-
 import {
   getAdventureById,
   STREFA_11_ADVENTURES,
+  AMERICAN_COLD_CASES_ADVENTURES,
   BUILT_IN_ADVENTURES,
 } from '@/lib/adventures-data';
 
@@ -136,8 +137,8 @@ export function resolveHandoutBySlug(
     }
   }
 
-  // 3. Przeszukaj wszystkie przygody STREFA_11_ADVENTURES
-  for (const adv of STREFA_11_ADVENTURES) {
+  // 3. Przeszukaj wszystkie przygody STREFA_11_ADVENTURES i AMERICAN_COLD_CASES_ADVENTURES
+  for (const adv of [...STREFA_11_ADVENTURES, ...AMERICAN_COLD_CASES_ADVENTURES]) {
     if (adv.handouts && adv.handouts.length > 0) {
       const match = findInList(adv.handouts, cleanSlug);
       if (match) return match;

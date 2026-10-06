@@ -1,5 +1,8 @@
 import type { PredefinedCharacter } from './predefined-characters';
 import { applyCatalogTemplate, CATEGORY_FALLBACK_ASSETS } from '@/lib/equipment-catalog';
+import { AMERICAN_COLD_CASES_CHARACTERS } from './american-cold-cases-characters';
+
+export { AMERICAN_COLD_CASES_CHARACTERS };
 
 const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
@@ -761,7 +764,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] =
   }));
 
 export function getStrefa11CharactersForAdventure(adventureId: string): PredefinedCharacter[] {
-  return STREFA_11_CHARACTERS.filter((character) =>
+  return [...STREFA_11_CHARACTERS, ...AMERICAN_COLD_CASES_CHARACTERS].filter((character) =>
     character.scenarioIds?.includes(adventureId)
   );
 }

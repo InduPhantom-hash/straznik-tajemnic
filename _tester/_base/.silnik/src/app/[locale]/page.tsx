@@ -44,6 +44,7 @@ import { toast } from '@/components/ui/use-toast';
 import {
   BUILT_IN_ADVENTURES,
   STREFA_11_ADVENTURES,
+  AMERICAN_COLD_CASES_ADVENTURES,
   getAdventureById,
 } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
@@ -666,10 +667,25 @@ export default function Home() {
         return;
       }
       
-      let adv = STREFA_11_ADVENTURES.find((a) => a.id === adventureId);
-      if (!adv) adv = getAdventureById(adventureId);
+      let adv = getAdventureById(adventureId);
       if (adv?.isStrefa11) {
         adv = localizeStrefa11Adventure(adv, locale);
+      }
+
+      const allCharacters = adv?.isStrefa11 || adv?.isAmericanColdCase
+        ? getStrefa11CharactersForAdventure(adv.id)
+        : PREDEFINED_CHARACTERS;
+      const foundPreset = allCharacters.find((c) => c.id === characterId);
+      const preset = foundPreset
+        ? localizeStrefa11Character(foundPreset, locale)
+        : undefined;
+
+      if (adv && foundPreset?.startingNodeId) {
+        adv = {
+          ...adv,
+          activeNodeId: foundPreset.startingNodeId,
+          ...(foundPreset.openingHook ? { hook: foundPreset.openingHook } : {}),
+        };
       }
 
       if (adv) {
@@ -678,15 +694,6 @@ export default function Home() {
           localStorage.setItem('adventure_context', JSON.stringify(adv));
         }
       }
-
-      
-      const allCharacters = adv?.isStrefa11
-        ? getStrefa11CharactersForAdventure(adv.id)
-        : PREDEFINED_CHARACTERS;
-      const foundPreset = allCharacters.find((c) => c.id === characterId);
-      const preset = foundPreset
-        ? localizeStrefa11Character(foundPreset, locale)
-        : undefined;
       if (preset) {
         const targetEra = adv
           ? resolveEraVisualProfile(resolveGameEraContext({ adventure: adv }))
@@ -1429,12 +1436,18 @@ export default function Home() {
           onClose={() => setShowPredefinedSelector(false)}
           onSelectCharacter={handleSelectPredefinedCharacter}
           characters={
-            adventureContext?.id && STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)
+            adventureContext?.id &&
+            (STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id) ||
+              AMERICAN_COLD_CASES_ADVENTURES.some((adventure) => adventure.id === adventureContext.id))
               ? getStrefa11CharactersForAdventure(adventureContext.id)
               : PREDEFINED_CHARACTERS
           }
           currentEra={adventureContext?.era || 'classic'}
-          filterByEra={!adventureContext?.id || !STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)}
+          filterByEra={
+            !adventureContext?.id ||
+            (!STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id) &&
+              !AMERICAN_COLD_CASES_ADVENTURES.some((adventure) => adventure.id === adventureContext.id))
+          }
           eraContext={resolvedEraContext}
         />
       )}

@@ -1,0 +1,520 @@
+{
+  "id": "englewood-murder-castle-1893",
+  "title": "The Englewood Labyrinth: Holmes's Castle",
+  "documentType": "scenario",
+  "isCampaign": false,
+  "era": "gaslight",
+  "yearRange": "1893-1894",
+  "activeSceneYear": 1894,
+  "startDate": "1894-11-19T18:30",
+  "initialWeather": "Freezing Lake Michigan sleet and thick coal-smoke fog over Englewood",
+  "setting": "Chicago, Illinois, November 1894 (63rd & Wallace Street, Englewood)",
+  "startingLocation": "Englewood Police Precinct & Fidelity Mutual Dossier Room, Chicago",
+  "summary": "Following the arrest of Herman Webster Mudgett (Dr. H.H. Holmes) in Boston, Detective Frank Geyer and a team of specialists enter the abandoned three-story 'Castle' at 63rd and Wallace Street in Chicago. Built for the 1893 World's Columbian Exposition, the structure hides soundproof gas chambers, doors opening onto brick walls, and greased chutes descending to a basement kiln. What began as an insurance fraud and missing-children investigation unravels a terrifying non-Euclidean architectural machine designed to feed an interdimensional rift beneath Chicago.",
+  "boundarySummary": "The operational zone covers the Englewood district of Chicago centered on 63rd and Wallace Street. Leaving the district before securing the basement kiln and the Pitezel evidence allows Holmes's remaining accomplices to torch the building, destroying all forensic proof and unsealing the rift.",
+  "truthAnchor": {
+    "culprit": "Dr. Herman Webster Mudgett (H.H. Holmes) acting as high architect for an aspect of Yog-Sothoth (The Lurker at the Threshold)",
+    "motive": "Holmes fired construction crews every two weeks so no mortal mind could perceive the building's true hyper-geometric blueprint - a three-dimensional projection of a four-dimensional digestive labyrinth that harvests human terror and calcified bone ash to hold open a dimensional aperture beneath Chicago.",
+    "murderWeapon": "Asphyxiation via town-gas valves controlled from Holmes's third-floor bedroom, followed by acid dissolution and high-temperature calcination in the basement kiln.",
+    "keyAlibi": "Holmes is already locked in Moyamensing Prison in Philadelphia, claiming Benjamin Pitezel's children are alive in London while his caretaker Pat Quinlan prepares to burn the Englewood Castle.",
+    "immutableFacts": [
+      "The second floor of 63rd and Wallace Street contains 35 windowless rooms arranged in non-Euclidean angles that cause severe spatial disorientation and auditory hallucinations.",
+      "Alice Pitezel's unmailed letters hidden in a tin box at the bottom of the basement flue prove Holmes moved the children along a geometric ley line from Chicago to Indianapolis and Toronto.",
+      "The iron door of the second-floor bank vault bears the chemically etched bare footprint of Emeline Cigrand, which cannot be scrubbed or filed away.",
+      "Caretaker Pat Quinlan holds the master gas-valve key and has soaked the third-floor framing in kerosene to ignite the building at midnight."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 1894,
+      "month": 11,
+      "day": 20,
+      "hour": 2,
+      "minute": 0
+    },
+    "totalHours": 8,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Phase 0: The Warrant at 63rd Street",
+        "description": "Investigators enter the cordoned Castle grounds. Gas lamps flicker with a greenish halo, and caretakers watch from across Wallace Street."
+      },
+      {
+        "phase": 1,
+        "title": "Phase 1: Shifting Corridors",
+        "description": "Inside the second-floor maze, compass needles spin wildly. Hissing sounds echo through the walls as residual gas vents into sealed rooms."
+      },
+      {
+        "phase": 2,
+        "title": "Phase 2: Kerosene and Whispers",
+        "description": "Caretaker Pat Quinlan triggers the auxiliary gas valves and locks the fire escapes. The walls of the labyrinth begin to warp perceptibly."
+      },
+      {
+        "phase": 3,
+        "title": "Phase 3: The Kiln Awakens",
+        "description": "The basement furnace ignites without fuel. The non-Euclidean angles of the Castle align, opening a predatory spatial rift in the dissecting cellar."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-holmes-1",
+      "text": "Overlaying the fragments of the second-floor blueprints reveals an impossible Penrose-like floorplan where three windowless rooms occupy more interior volume than the exterior brick facade allows.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-holmes-2",
+      "text": "Caretaker Pat Quinlan suffers from chronic insomnia because the greased metal chutes continue to echo with the sound of sliding bodies every night at 3:15 AM.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-holmes-3",
+      "text": "Dr. Holmes sold articulated human skeletons to Chicago medical colleges, but kept every victim's temporal bone ground into a grey powder lining the basement kiln.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-holmes-4",
+      "text": "Emeline Cigrand's etched footprint on the inside of the soundproof vault door emits a faint galvanic current when touched with brass instruments.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-holmes-5",
+      "text": "The pharmacy ledger on the ground floor lists regular deliveries of quicklime and oil of vitriol far exceeding any commercial apothecary in Illinois.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-holmes-6",
+      "text": "An Edison wax cylinder hidden inside Holmes's bedroom wall safe captures the voice of an entity speaking back through the gas pipes during an asphyxiation.",
+      "isDiscovered": false
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue-pitezel-insurance-dossier",
+      "name": "Fidelity Mutual Insurance Dossier on Benjamin Pitezel",
+      "description": "Case file compiled by Detective Frank Geyer showing a $10,000 life insurance policy and ciphered telegrams sent between Pitezel and Holmes's ground-floor pharmacy at 63rd Street.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-chicago-precinct",
+      "targetNodeId": "node-castle-pharmacy",
+      "requiredSkill": "Library Use"
+    },
+    {
+      "id": "clue-dismissed-masons-affidavit",
+      "name": "Sworn Statements of Dismissed Bricklayers",
+      "description": "Police depositions from three diferentes construction crews hired and fired in 1892, all pointing to caretaker Pat Quinlan's quarters as the repository of the original architectural drawings.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-chicago-precinct",
+      "targetNodeId": "node-quinlan-quarters",
+      "requiredSkill": "Law"
+    },
+    {
+      "id": "clue-missing-stenographers-list",
+      "name": "Registry of Missing World's Fair Stenographers",
+      "description": "List of young women—including Emeline Cigrand and Minnie Williams—last seen entering the second-floor apartments above Holmes's drugstore.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-chicago-precinct",
+      "targetNodeId": "node-castle-second-floor",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-apothecary-acid-ledger",
+      "name": "Apothecary Ledger of Sulfuric Acid & Lime",
+      "description": "Hidden behind false tonic bottles in the pharmacy, this ledger records carboys of acid lowered directly into the basement via a freight dumbwaiter.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-castle-pharmacy",
+      "targetNodeId": "node-castle-basement-climax",
+      "requiredSkill": "Accounting"
+    },
+    {
+      "id": "clue-hidden-stairwell-latch",
+      "name": "Concealed Spring-Latch Behind the Pharmacy Counter",
+      "description": "A brass lever under the prescription desk that unlocks a narrow, windowless servants' stair leading straight into the second-floor labyrinth.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-castle-pharmacy",
+      "targetNodeId": "node-castle-second-floor",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-quinlan-key-receipt",
+      "name": "Duplicate Gas-Main Work Order Signed by Pat Quinlan",
+      "description": "Plumbing invoice for custom cross-valves routed from the second floor to the caretaker's rooms at the rear of the courtyard.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-castle-pharmacy",
+      "targetNodeId": "node-quinlan-quarters",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-vault-footprint-etching",
+      "name": "Acid-Etched Footprint on the Soundproof Vault Door",
+      "description": "Inside the iron-lined room on the second floor, a bare human footprint is burned into the metal plate right beside a hinged trapdoor opening into a vertical shaft to the cellar.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-castle-second-floor",
+      "targetNodeId": "node-castle-basement-climax",
+      "requiredSkill": "Science (Chemistry)"
+    },
+    {
+      "id": "clue-edison-wax-cylinder",
+      "name": "Edison Phonograph Cylinder from Holmes's Bedroom",
+      "description": "A brown wax cylinder labeled 'Experiment IX - Room 14' found beside a manifold of brass gas levers and electric alarm buzzers wired to the caretaker's lodge.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-castle-second-floor",
+      "targetNodeId": "node-quinlan-quarters",
+      "requiredSkill": "Listen"
+    },
+    {
+      "id": "clue-hollow-wall-plumbline",
+      "name": "Surveyor's Plumb-Line Anomaly in the Blind Corridor",
+      "description": "Measurements between the hinged brick wall and the pharmacy ceiling below prove a four-foot spatial discrepancy that drains toward the ground-floor apothecary.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-castle-second-floor",
+      "targetNodeId": "node-castle-pharmacy",
+      "requiredSkill": "Navigate"
+    },
+    {
+      "id": "clue-blueprint-castle-2nd-floor",
+      "name": "Composite Blueprint of the Second-Floor Labyrinth",
+      "description": "Pieced together in Quinlan's quarters, the annotated architectural plan reveals the secret greased chute connecting the asphyxiation chambers to the basement kiln.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-quinlan-quarters",
+      "targetNodeId": "node-castle-basement-climax",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-quinlan-confession-note",
+      "name": "Pat Quinlan's Unfinished Confession ('I Cannot Sleep')",
+      "description": "Trembling testimony from the caretaker admitting that Holmes locked victims in the second-floor rooms using electric bell indicators above his bed.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-quinlan-quarters",
+      "targetNodeId": "node-castle-second-floor",
+      "requiredSkill": "Psychology"
+    },
+    {
+      "id": "clue-toronto-stovepipe-telegram",
+      "name": "Western Union Telegram Regarding the Irvington Stove",
+      "description": "A telegram tucked in Quinlan's coat linking the Englewood basement furnace to Holmes's trail investigated at the precinct.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-quinlan-quarters",
+      "targetNodeId": "node-chicago-precinct",
+      "requiredSkill": "Persuade"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-chicago-precinct",
+      "name": "Englewood Police Precinct & Detective Bureau",
+      "title": "Englewood Police Precinct & Detective Bureau",
+      "type": "intro",
+      "description": "A soot-stained Victorian brick station house smelling of wet wool, pipe tobacco, and damp newsprint. Maps of the 1893 World's Fairgrounds hang beside telegrams from Philadelphia Detective Frank Geyer and insurance adjusters.",
+      "atmosphere": "Clattering telegraph keys, horse-drawn patrol wagons outside, and growing dread as the victim count mounts.",
+      "npcs": ["Inspector John Shea", "Fidelity Adjuster Horace Gary"],
+      "npcIds": ["npc-inspector-shea", "npc-horace-gary"],
+      "locationId": "loc-chicago-precinct",
+      "leadInClueIds": ["clue-toronto-stovepipe-telegram"],
+      "leadOutClueIds": [
+        "clue-pitezel-insurance-dossier",
+        "clue-dismissed-masons-affidavit",
+        "clue-missing-stenographers-list"
+      ],
+      "availableClues": [
+        "clue-pitezel-insurance-dossier",
+        "clue-dismissed-masons-affidavit",
+        "clue-missing-stenographers-list"
+      ]
+    },
+    {
+      "id": "node-castle-pharmacy",
+      "name": "Ground-Floor Pharmacy & Jewellery Counter (63rd & Wallace)",
+      "title": "Ground-Floor Pharmacy & Jewellery Counter (63rd & Wallace)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "The opulent street-level drugstore of Holmes's Castle. Rows of cobalt-blue apothecary jars glint in the gaslight, masking the faint, sweet stench of chloroform and quicklime rising through the floorboards.",
+      "atmosphere": "Ticking regulator clock, chemical fumes, and a subtle vibration in the floorboards that sets glass stoppers chattering.",
+      "secret": "A concealed spring-latch behind the prescription desk opens both the secret stair to the second-floor maze and the dumbwaiter shaft to the basement.",
+      "npcs": ["Clerk Charles Chappell"],
+      "npcIds": ["npc-charles-chappell"],
+      "locationId": "loc-castle-pharmacy",
+      "leadInClueIds": [
+        "clue-pitezel-insurance-dossier",
+        "clue-hollow-wall-plumbline"
+      ],
+      "leadOutClueIds": [
+        "clue-apothecary-acid-ledger",
+        "clue-hidden-stairwell-latch",
+        "clue-quinlan-key-receipt"
+      ],
+      "availableClues": [
+        "clue-apothecary-acid-ledger",
+        "clue-hidden-stairwell-latch",
+        "clue-quinlan-key-receipt"
+      ]
+    },
+    {
+      "id": "node-castle-second-floor",
+      "name": "The Second-Floor Labyrinth & Soundproof Vault",
+      "title": "The Second-Floor Labyrinth & Soundproof Vault",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Thirty-five windowless rooms connected by angled corridors, false partitions, hinged brickwork, and doors that open onto solid masonry. Iron plates line the asphyxiation chambers, wired to an electric indicator board in Holmes's bedroom.",
+      "atmosphere": "Claustrophobic darkness, the hiss of residual coal gas, and angles that seem to lean inward when viewed from the corner of the eye.",
+      "secret": "The rooms are constructed as a three-dimensional hyper-geometric trap; walking the corridor counterclockwise shifts the investigator's perception toward the basement rift.",
+      "npcs": ["Apparition of Emeline Cigrand"],
+      "npcIds": ["npc-emeline-echo"],
+      "locationId": "loc-castle-second-floor",
+      "leadInClueIds": [
+        "clue-missing-stenographers-list",
+        "clue-hidden-stairwell-latch",
+        "clue-quinlan-confession-note"
+      ],
+      "leadOutClueIds": [
+        "clue-vault-footprint-etching",
+        "clue-edison-wax-cylinder",
+        "clue-hollow-wall-plumbline"
+      ],
+      "availableClues": [
+        "clue-vault-footprint-etching",
+        "clue-edison-wax-cylinder",
+        "clue-hollow-wall-plumbline"
+      ]
+    },
+    {
+      "id": "node-quinlan-quarters",
+      "name": "Caretaker Pat Quinlan's Courtyard Quarters",
+      "title": "Caretaker Pat Quinlan's Courtyard Quarters",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "A cramped, kerosene-scented apartment overlooking the Castle's inner courtyard. Stolen architectural fragments, plumber's wrenches, and rosaries cover the walls around a man who has not slept in months.",
+      "atmosphere": "Flickering oil lamps, the smell of spilled kerosene, and the distant metallic groan of the Castle's vertical chutes.",
+      "secret": "Pat Quinlan has been ordered to burn the Castle at midnight to seal what Holmes awakened in the cellar, unaware that fire will only feed the kiln.",
+      "npcs": ["Pat Quinlan"],
+      "npcIds": ["npc-pat-quinlan"],
+      "locationId": "loc-quinlan-quarters",
+      "leadInClueIds": [
+        "clue-dismissed-masons-affidavit",
+        "clue-quinlan-key-receipt",
+        "clue-edison-wax-cylinder"
+      ],
+      "leadOutClueIds": [
+        "clue-blueprint-castle-2nd-floor",
+        "clue-quinlan-confession-note",
+        "clue-toronto-stovepipe-telegram"
+      ],
+      "availableClues": [
+        "clue-blueprint-castle-2nd-floor",
+        "clue-quinlan-confession-note",
+        "clue-toronto-stovepipe-telegram"
+      ]
+    },
+    {
+      "id": "node-castle-basement-climax",
+      "name": "The Dissecting Cellar & Non-Euclidean Kiln (Climax)",
+      "title": "The Dissecting Cellar & Non-Euclidean Kiln (Climax)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "Deep beneath 63rd Street, the greased wooden chute terminates beside acid vats, lime pits, surgical tables, and a massive brick crematorium. Inside the open flue, Alice Pitezel's tin box rests beside a pulsing, multi-spherical geometric breach.",
+      "atmosphere": "Blinding iridescent spheres, the roar of an unlit furnace drawing air backward, and the smell of ozone and calcined bone.",
+      "secret": "Destroying the engraved keystone of the kiln and recovering the tin box of letters collapses the geometric circuit before the Lurker at the Threshold manifests.",
+      "npcs": ["Pat Quinlan", "Manifestation of the Threshold"],
+      "npcIds": ["npc-pat-quinlan", "npc-threshold-manifestation"],
+      "locationId": "loc-castle-basement",
+      "leadInClueIds": [
+        "clue-apothecary-acid-ledger",
+        "clue-vault-footprint-etching",
+        "clue-blueprint-castle-2nd-floor"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-chicago-precinct",
+      "toId": "node-castle-pharmacy",
+      "clueId": "clue-pitezel-insurance-dossier",
+      "description": "Fidelity Mutual telegrams trace Benjamin Pitezel's dealings directly to Holmes's ground-floor pharmacy."
+    },
+    {
+      "fromId": "node-chicago-precinct",
+      "toId": "node-quinlan-quarters",
+      "clueId": "clue-dismissed-masons-affidavit",
+      "description": "Bricklayers' depositions identify caretaker Pat Quinlan as the holder of the fragmented floorplans."
+    },
+    {
+      "fromId": "node-chicago-precinct",
+      "toId": "node-castle-second-floor",
+      "clueId": "clue-missing-stenographers-list",
+      "description": "Missing persons reports place Emeline Cigrand and Minnie Williams in the second-floor apartments."
+    },
+    {
+      "fromId": "node-castle-pharmacy",
+      "toId": "node-castle-basement-climax",
+      "clueId": "clue-apothecary-acid-ledger",
+      "description": "Acid and quicklime records point straight down the freight dumbwaiter into the dissecting cellar."
+    },
+    {
+      "fromId": "node-castle-pharmacy",
+      "toId": "node-castle-second-floor",
+      "clueId": "clue-hidden-stairwell-latch",
+      "description": "The hidden spring-latch behind the counter opens the narrow stair into the second-floor maze."
+    },
+    {
+      "fromId": "node-castle-pharmacy",
+      "toId": "node-quinlan-quarters",
+      "clueId": "clue-quinlan-key-receipt",
+      "description": "Custom gas-valve invoices lead to caretaker Pat Quinlan's courtyard rooms."
+    },
+    {
+      "fromId": "node-castle-second-floor",
+      "toId": "node-castle-basement-climax",
+      "clueId": "clue-vault-footprint-etching",
+      "description": "The trapdoor beside Emeline Cigrand's acid-etched footprint drops directly into the cellar chute."
+    },
+    {
+      "fromId": "node-castle-second-floor",
+      "toId": "node-quinlan-quarters",
+      "clueId": "clue-edison-wax-cylinder",
+      "description": "Wiring from Holmes's recording manifold runs directly to the caretaker's courtyard quarters."
+    },
+    {
+      "fromId": "node-castle-second-floor",
+      "toId": "node-castle-pharmacy",
+      "clueId": "clue-hollow-wall-plumbline",
+      "description": "Plumb-line measurements lead back down to the hollow shafts behind the pharmacy ceiling."
+    },
+    {
+      "fromId": "node-quinlan-quarters",
+      "toId": "node-castle-basement-climax",
+      "clueId": "clue-blueprint-castle-2nd-floor",
+      "description": "The composite blueprint reveals the hidden subterranean kiln and vertical disposal chute."
+    },
+    {
+      "fromId": "node-quinlan-quarters",
+      "toId": "node-castle-second-floor",
+      "clueId": "clue-quinlan-confession-note",
+      "description": "Quinlan's confession identifies the exact soundproof rooms on the second floor."
+    },
+    {
+      "fromId": "node-quinlan-quarters",
+      "toId": "node-chicago-precinct",
+      "clueId": "clue-toronto-stovepipe-telegram",
+      "description": "The Western Union telegram ties the Castle's furnace to Detective Geyer's precinct files."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-inspector-shea",
+      "name": "Inspector John Shea (Chicago Police)",
+      "description": "Veteran Chicago Police inspector overwhelmed by the sheer scale of corruption and missing visitors left in the wake of the 1893 World's Fair.",
+      "secret": "City Hall pressured him to classify the Englewood disappearances as runaway cases to protect Exposition tourism."
+    },
+    {
+      "id": "npc-horace-gary",
+      "name": "Horace Gary (Fidelity Mutual Counsel)",
+      "description": "Sharp-eyed Philadelphia insurance attorney who uncovered Holmes's cadaver-substitution fraud.",
+      "secret": "Suspects that Benjamin Pitezel was terrified of something inside the Chicago building long before his death."
+    },
+    {
+      "id": "npc-charles-chappell",
+      "name": "Charles Chappell (Articulator & Clerk)",
+      "description": "Pale, nervous technician who articulated human skeletons for Holmes to sell to medical schools.",
+      "secret": "Noticed strange geometric carvings on the inside of the skulls he bleached on the second floor."
+    },
+    {
+      "id": "npc-pat-quinlan",
+      "name": "Pat Quinlan (The Castle Caretaker)",
+      "description": "Gaunt, hollow-eyed janitor of the Englewood building who guarded the upper floors for Holmes.",
+      "secret": "Haunted by voices in the chutes, he plans to burn the entire block down tonight to silence the basement."
+    },
+    {
+      "id": "npc-emeline-echo",
+      "name": "Dimensional Echo of Emeline Cigrand",
+      "description": "A temporal impression of Holmes's former stenographer trapped within the non-Euclidean angles of the soundproof vault.",
+      "secret": "Points toward the chute release lever that leads to Alice Pitezel's letters in the basement."
+    },
+    {
+      "id": "npc-threshold-manifestation",
+      "name": "The Geometry in the Kiln (Aspect of Yog-Sothoth)",
+      "description": "A conglomerate of rotating, iridescent angles and burning bone-ash coalescing inside the basement furnace.",
+      "secret": "Anchored by the carved keystone in the kiln arch; shattering the keystone collapses the spatial anomaly."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-chicago-precinct",
+      "name": "Englewood Police Precinct",
+      "description": "Brick police headquarters in Englewood holding the impounded files and telegrams of the Holmes-Pitezel investigation.",
+      "atmosphere": "Gas lamps, telegraph clicks, and damp November chill."
+    },
+    {
+      "id": "loc-castle-pharmacy",
+      "name": "Holmes's Ground-Floor Pharmacy (63rd & Wallace)",
+      "description": "Street-level drugstore and shopfront concealing the entrances to the upper labyrinth and basement shafts.",
+      "atmosphere": "Cobalt glass, smell of chloroform and lime, and creaking timber above."
+    },
+    {
+      "id": "loc-castle-second-floor",
+      "name": "The Second-Floor Labyrinth",
+      "description": "Thirty-five windowless rooms, false doors, asphyxiation chambers, and iron-plated vaults.",
+      "atmosphere": "Suffocating silence broken by hissing gas pipes and impossible corridor angles."
+    },
+    {
+      "id": "loc-quinlan-quarters",
+      "name": "Caretaker Pat Quinlan's Quarters",
+      "description": "Courtyard rooms where the building's janitor keeps the stolen architectural plans and gas keys.",
+      "atmosphere": "Reek of kerosene, whispered prayers, and drafty brick walls."
+    },
+    {
+      "id": "loc-castle-basement",
+      "name": "The Dissecting Cellar & Kiln",
+      "description": "Subterranean vault beneath the Castle containing acid vats, lime pits, the disposal chute, and the non-Euclidean furnace.",
+      "atmosphere": "Searing ozone, alchemical ash, and warping spatial geometry."
+    }
+  ],
+  "handouts": [
+    {
+      "slug": "blueprint-castle-2nd-floor",
+      "title": "Composite Blueprint: 63rd & Wallace St. (Second Floor)",
+      "image": "/handouts/englewood-murder-castle-1893/blueprint-castle-2nd-floor.webp",
+      "handoutType": "map",
+      "nodeId": "node-quinlan-quarters",
+      "textContent": "Architectural survey of the 2nd floor at 63rd & Wallace St., Chicago (1893). Note: Room 14 (Asphyxiation Vault) and Room 22 share an impossible 114-degree interior partition concealing Vertical Chute B to the basement kiln."
+    },
+    {
+      "slug": "letter-alice-pitezel-tin",
+      "title": "Alice Pitezel's Unmailed Letter (Found in Flue Tin)",
+      "image": "/handouts/englewood-murder-castle-1893/letter-alice-pitezel-tin.webp",
+      "handoutType": "letter",
+      "nodeId": "node-castle-basement-climax",
+      "textContent": "Dearest Mama, Mr. Holmes says we may not go outside until Papa returns, and that the rooms upstairs have no windows because the Chicago air is bad for Howard's lungs. At night the iron chute in the wall hums like a beehive..."
+    },
+    {
+      "slug": "coroner-footprint-vault",
+      "title": "Forensic Sketch: Acid-Etched Footprint on Vault Door",
+      "image": "/handouts/englewood-murder-castle-1893/coroner-footprint-vault.webp",
+      "handoutType": "report",
+      "nodeId": "node-castle-second-floor",
+      "textContent": "Cook County Coroner's Exhibit D (Nov 1894): Indelible chemical impression of a female right foot etched into the Bessemer steel lining of the second-floor vault door. The metal around the toes shows crystalline warping."
+    },
+    {
+      "slug": "audio-edison-wax-cylinder",
+      "title": "Edison Wax Cylinder: 'Experiment IX - Room 14'",
+      "image": "/handouts/englewood-murder-castle-1893/coroner-footprint-vault.webp",
+      "audioUrl": "/audio/handouts/englewood-murder-castle-1893/edison-wax-cylinder-1893.mp3",
+      "handoutType": "report",
+      "nodeId": "node-castle-second-floor",
+      "textContent": "Edison phonograph recording recovered from Holmes's bedroom safe: needle scratch, the hiss of opening gas valves, a calm voice counting minutes, and a resonant, multi-tonal vibration answering from inside the iron chute."
+    }
+  ]
+}

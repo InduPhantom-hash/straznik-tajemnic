@@ -1,0 +1,515 @@
+{
+  "id": "ovidhall-lake-anomaly-2005",
+  "title": "I'm in a Field: The Ovidhall Lake Anomaly",
+  "documentType": "scenario",
+  "isCampaign": false,
+  "era": "modern",
+  "yearRange": "2005",
+  "activeSceneYear": 2005,
+  "startDate": "2005-07-03T18:00",
+  "initialWeather": "Oppressive 90-degree Michigan summer heat and thick cicada drone over the bogs",
+  "setting": "Casnovia & Muskegon County, Michigan, July 2005",
+  "startingLocation": "Ovidhall Lake Shore & Muskegon County Morgue, Michigan",
+  "summary": "Twenty-one days after 22-year-old Todd Geib vanished from a bonfire party in a Casnovia apple orchard following a disoriented 12:51 AM cell phone call ('I'm in a field'), his body suddenly appears in Ovidhall Lake - a kettle pond already searched three times by sonar and scent dogs. His corpse is found floating straight upright, head and shoulders protruding above the water like a pale buoy. Autopsy reveals zero water in his lungs, unknown tricyclic compounds in his blood, and tissue preservation proving he died less than 48 hours ago. Beneath the glacial kettle lakes of Michigan, a subterranean colony of Gla'aki and its undying Smiley-Face initiates are harvesting living hosts.",
+  "boundarySummary": "The investigation covers rural Casnovia, Ravenna (Half Moon Bar & Grille), the Muskegon forensic laboratory, and the Ovidhall Lake bog basin. Leaving the county before collapsing the flooded glacial sinkhole allows the orchard initiates to claim the next three youths marked at the bonfire.",
+  "truthAnchor": {
+    "culprit": "The Great Lakes Covenant of Gla'aki (operating as the 'Smiley Face' network) and the subterranean spined entity slumbering in the flooded karst beneath Ovidhall Lake",
+    "motive": "Victims lured from rural bonfires and bars are injected with Gla'aki's neurotoxic spine-fluid (which registers on hospital gas-chromatography as tricyclic antidepressants) to hold them in metabolic stasis for 21 days in an air-filled subterranean cenote before returning them upright to the surface as resonant beacons.",
+    "murderWeapon": "Dry asphyxiation and metabolic stasis induced by Gla'aki spine-ichor, leaving zero lake water or diatoms in the lungs.",
+    "keyAlibi": "Local authorities classify the death as an accidental drowning on the night of June 12, ignoring the impossibility of an un-decomposed body floating vertically after three weeks of 90-degree summer heat.",
+    "immutableFacts": [
+      "Todd Geib was alive in a subterranean glacial pocket beneath the orchard between June 12 and June 30, 2005, which is why scent dogs and sonar searches of Ovidhall Lake found nothing for 20 days.",
+      "The upright vertical posture of the body in Ovidhall Lake is caused by crystalline metallic salts crystallizing in the lower spine from Gla'aki's fluid.",
+      "Zero water or pond diatoms exist in the victim's alveoli ('dry drowning'), proving death occurred in an air-filled chamber before immersion.",
+      "A fluorescent yellow 'Smiley Face' painted on the concrete culvert at Ovidhall Lake marks the submerged limestone intake leading to the stasis chamber."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 2005,
+      "month": 7,
+      "day": 4,
+      "hour": 23,
+      "minute": 59
+    },
+    "totalHours": 30,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Phase 0: The Upright Buoy",
+        "description": "Police tape surrounds Ovidhall Lake. County officials push to close the file as an accidental drowning before the Fourth of July holiday."
+      },
+      {
+        "phase": 1,
+        "title": "Phase 1: Dead-Zone Interference",
+        "description": "Cell phones near the Casnovia orchard receive delayed 3-week-old voice packets from the night of June 12. The water level in the kettle pond drops six inches."
+      },
+      {
+        "phase": 2,
+        "title": "Phase 2: The Second Bonfire",
+        "description": "White panel vans bearing out-of-state plates are spotted near the Half Moon Bar. Pale figures with pinprick scars at the base of the neck patrol the orchard."
+      },
+      {
+        "phase": 3,
+        "title": "Phase 3: The Spines Rise in Ovidhall",
+        "description": "The glacial sinkhole beneath Ovidhall Lake opens completely. Metallic spines breach the reed beds as the entity draws the whole bog downward."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-ovidhall-1",
+      "text": "Forensic entomology and vitreous potassium levels prove Todd Geib's heart stopped no earlier than June 30 - eighteen days after his last phone call.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-ovidhall-2",
+      "text": "The 'antidepressant' peak on the Muskegon toxicology chromatograph is actually an organic organometallic alkaloid secreted by subterranean lake organisms.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-ovidhall-3",
+      "text": "Cell-tower triangulation from 12:51 AM on June 12 shows Todd's Nokia phone transmitted from 40 feet BELOW the elevation of the Casnovia apple orchard.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-ovidhall-4",
+      "text": "The yellow Smiley Face graffiti found at Ovidhall Lake is mixed with crushed freshwater mussel nacre that glows under ultraviolet crime-scene lamps.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-ovidhall-5",
+      "text": "A 19th-century Michigan geological survey at the hydrology station shows Ovidhall Lake and the orchard are connected by a flooded limestone karst tube.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-ovidhall-6",
+      "text": "Beneath Todd's fingernails are traces of blind cave-crustacean chitin found only in sealed subterranean aquifers."
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue-photo-ovidhall-smiley-graffiti",
+      "name": "UV Crime-Scene Photo of the Smiley Face & Upright Recovery",
+      "description": "Photograph taken on the bank of Ovidhall Lake showing the body floating vertically from the chest up, and a freshly painted yellow Smiley Face on the drainage weir pointing toward the orchard.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-ovidhall-lake-shore",
+      "targetNodeId": "node-casnovia-orchard",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-sonar-search-grid-log",
+      "name": "Search-and-Rescue Dive & K9 Grid Maps (June 13-28)",
+      "description": "Official Michigan State Police search logs proving dive teams and cadaver dogs swept Ovidhall Lake three separate times with zero hits before July 2, cross-referenced with the Muskegon morgue intake.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-ovidhall-lake-shore",
+      "targetNodeId": "node-muskegon-morgue",
+      "requiredSkill": "Navigate"
+    },
+    {
+      "id": "clue-karst-sinkhole-current",
+      "name": "Submerged Limestone Vortex & Mussel Shell Trail",
+      "description": "At the center of the kettle pond, a cold upward thermal current vents from a submerged limestone shaft mapped at the Ravenna hydrology station.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-ovidhall-lake-shore",
+      "targetNodeId": "node-half-moon-bar",
+      "requiredSkill": "Science (Geology / Biology)"
+    },
+    {
+      "id": "clue-autopsy-toxicology-muskegon",
+      "name": "Muskegon Autopsy & Gas-Chromatography Report",
+      "description": "Pathology file: zero lake water in the lungs, post-mortem interval of only 48 hours despite 21 days missing, and a puncture mark over the third vertebra filled with metallic spinal fluid.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-muskegon-morgue",
+      "targetNodeId": "node-subterranean-cenote-climax",
+      "requiredSkill": "Medicine"
+    },
+    {
+      "id": "clue-blind-crustacean-chitin",
+      "name": "Subterranean Cave-Shrimp Chitin Under Fingernails",
+      "description": "Microscopic scrapings from the victim's hands match blind troglobitic amphipods native to the flooded karst caves beneath the Casnovia orchard.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-muskegon-morgue",
+      "targetNodeId": "node-casnovia-orchard",
+      "requiredSkill": "Science (Biology)"
+    },
+    {
+      "id": "clue-toxicology-bar-receipt",
+      "name": "Stomach Contents & Half Moon Bar Timestamped Tab",
+      "description": "Undigested food from the night of June 11 proves metabolism was frozen less than an hour after leaving the Half Moon Bar & Grille.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-muskegon-morgue",
+      "targetNodeId": "node-half-moon-bar",
+      "requiredSkill": "Library Use"
+    },
+    {
+      "id": "clue-gsm-tower-triangulation-log",
+      "name": "Cingular GSM Tower Triangulation Log (00:47 - 00:57 AM)",
+      "description": "Engineering printout showing Todd's phone signal dropped 40 feet underground in the middle of the orchard field at 12:51 AM right above a collapsed well shaft.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-casnovia-orchard",
+      "targetNodeId": "node-subterranean-cenote-climax",
+      "requiredSkill": "Electrical Repair"
+    },
+    {
+      "id": "clue-audio-voicemail-in-a-field",
+      "name": "Recovered Voicemail Audio: 'I'm in a Field' (12:51 AM)",
+      "description": "Digital audio file from June 12: Todd's disoriented voice saying 'I'm in a field', followed by the rhythmic metallic clanking of an old orchard irrigation pump house.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-casnovia-orchard",
+      "targetNodeId": "node-ovidhall-lake-shore",
+      "requiredSkill": "Listen"
+    },
+    {
+      "id": "clue-bonfire-fight-witness",
+      "name": "Bonfire Witness Statement on the White Panel Van",
+      "description": "A partygoer admits seeing two pale men in utility jackets offer Todd a ride near the orchard road after a fight broke out at 12:45 AM, heading toward Ravenna.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-casnovia-orchard",
+      "targetNodeId": "node-half-moon-bar",
+      "requiredSkill": "Persuade"
+    },
+    {
+      "id": "clue-glacial-karst-survey-map",
+      "name": "1898 Glacial Karst & Cenote Survey of Muskegon County",
+      "description": "Archived at the Ravenna station: a hydrologist's map showing an air-filled subterranean cenote directly connecting the orchard sinkhole to the bottom of Ovidhall Lake.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-half-moon-bar",
+      "targetNodeId": "node-subterranean-cenote-climax",
+      "requiredSkill": "Navigate"
+    },
+    {
+      "id": "clue-bartender-smiley-coaster",
+      "name": "Surveillance Tape & Smiley-Face Bar Coaster",
+      "description": "CCTV from Half Moon Bar on June 11 shows a stranger slipping a clear vial into a drink and leaving a coaster marked with the exact UV Smiley glyph found at Ovidhall Lake.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-half-moon-bar",
+      "targetNodeId": "node-ovidhall-lake-shore",
+      "requiredSkill": "Spot Hidden"
+    },
+    {
+      "id": "clue-medical-waste-manifest",
+      "name": "Stolen Veterinary Ketamine & Lab Log",
+      "description": "A discarded vial behind the bar's dumpster links the paralytic agent to the toxicology anomalies analyzed at the Muskegon morgue.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-half-moon-bar",
+      "targetNodeId": "node-muskegon-morgue",
+      "requiredSkill": "Medicine"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-ovidhall-lake-shore",
+      "name": "Ovidhall Lake Shore & The Smiley-Face Weir",
+      "title": "Ovidhall Lake Shore & The Smiley-Face Weir",
+      "type": "intro",
+      "description": "A secluded, reed-choked kettle pond surrounded by boggy woods in rural Casnovia. Yellow crime-scene tape flutters where volunteers found Todd Geib's body standing straight upright in the dark water twenty-one days after he vanished.",
+      "atmosphere": "Buzzing mosquitoes, stagnant peat smell, unnaturally cold ripples at the center of the pond, and a painted yellow Smiley Face staring from the concrete weir.",
+      "npcs": ["Det. Kevin Gannon", "Volunteer Diver Mark Heller"],
+      "npcIds": ["npc-kevin-gannon", "npc-mark-heller"],
+      "locationId": "loc-ovidhall-lake-shore",
+      "leadInClueIds": [
+        "clue-audio-voicemail-in-a-field",
+        "clue-bartender-smiley-coaster"
+      ],
+      "leadOutClueIds": [
+        "clue-photo-ovidhall-smiley-graffiti",
+        "clue-sonar-search-grid-log",
+        "clue-karst-sinkhole-current"
+      ],
+      "availableClues": [
+        "clue-photo-ovidhall-smiley-graffiti",
+        "clue-sonar-search-grid-log",
+        "clue-karst-sinkhole-current"
+      ]
+    },
+    {
+      "id": "node-muskegon-morgue",
+      "name": "Muskegon County Forensic Pathology Lab",
+      "title": "Muskegon County Forensic Pathology Lab",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Stainless-steel autopsy suite and gas-chromatography laboratory. Under harsh surgical lights, the forensic evidence defies every textbook on freshwater drowning.",
+      "atmosphere": "Hum of refrigeration units, smell of formalin, and the unsettling stillness of a body that refuses to decay.",
+      "secret": "The lungs are bone-dry, the lower spine is magnetized by crystalline needles, and the blood contains an unknown organometallic stasis compound.",
+      "npcs": ["Dr. Alan Mercer (County Medical Examiner)"],
+      "npcIds": ["npc-alan-mercer"],
+      "locationId": "loc-muskegon-morgue",
+      "leadInClueIds": [
+        "clue-sonar-search-grid-log",
+        "clue-medical-waste-manifest"
+      ],
+      "leadOutClueIds": [
+        "clue-autopsy-toxicology-muskegon",
+        "clue-blind-crustacean-chitin",
+        "clue-toxicology-bar-receipt"
+      ],
+      "availableClues": [
+        "clue-autopsy-toxicology-muskegon",
+        "clue-blind-crustacean-chitin",
+        "clue-toxicology-bar-receipt"
+      ]
+    },
+    {
+      "id": "node-casnovia-orchard",
+      "name": "Casnovia Apple Orchard & The 12:51 AM Field",
+      "title": "Casnovia Apple Orchard & The 12:51 AM Field",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Gnarled rows of apple trees giving way to waist-high marsh grass and the charred remains of the June 11 bonfire. Half-hidden in the weeds stands a rusted iron grate covering an old glacial sinkhole.",
+      "atmosphere": "Flickering cell phone bars, static hissing from speakers, and a cold draft rising from the earth beneath the grass.",
+      "secret": "Todd did not wander into a random field; at 12:51 AM he was already descending into the sunken limestone pasture beneath the orchard.",
+      "npcs": ["Tyler Vance (Bonfire Host)"],
+      "npcIds": ["npc-tyler-vance"],
+      "locationId": "loc-casnovia-orchard",
+      "leadInClueIds": [
+        "clue-photo-ovidhall-smiley-graffiti",
+        "clue-blind-crustacean-chitin"
+      ],
+      "leadOutClueIds": [
+        "clue-gsm-tower-triangulation-log",
+        "clue-audio-voicemail-in-a-field",
+        "clue-bonfire-fight-witness"
+      ],
+      "availableClues": [
+        "clue-gsm-tower-triangulation-log",
+        "clue-audio-voicemail-in-a-field",
+        "clue-bonfire-fight-witness"
+      ]
+    },
+    {
+      "id": "node-half-moon-bar",
+      "name": "Half Moon Bar & Grille / Ravenna Hydrology Station",
+      "title": "Half Moon Bar & Grille / Ravenna Hydrology Station",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "A neon-lit rural Michigan roadhouse where Todd spent his last evening before the bonfire, adjacent to the county watershed monitoring office.",
+      "atmosphere": "Neon beer signs, jukebox hum, and faded geological survey maps of Michigan's kettle lakes.",
+      "secret": "Members of the Great Lakes Covenant use the roadhouse to scout young men and dose them with diluted Gla'aki ichor before guiding them to the orchard sinkhole.",
+      "npcs": ["Cole Holloway (Hydrologist & Initiate)"],
+      "npcIds": ["npc-cole-holloway"],
+      "locationId": "loc-half-moon-bar",
+      "leadInClueIds": [
+        "clue-karst-sinkhole-current",
+        "clue-toxicology-bar-receipt",
+        "clue-bonfire-fight-witness"
+      ],
+      "leadOutClueIds": [
+        "clue-glacial-karst-survey-map",
+        "clue-bartender-smiley-coaster",
+        "clue-medical-waste-manifest"
+      ],
+      "availableClues": [
+        "clue-glacial-karst-survey-map",
+        "clue-bartender-smiley-coaster",
+        "clue-medical-waste-manifest"
+      ]
+    },
+    {
+      "id": "node-subterranean-cenote-climax",
+      "name": "The Subterranean Cenote Beneath Ovidhall Lake (Climax)",
+      "title": "The Subterranean Cenote Beneath Ovidhall Lake (Climax)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "An air-filled limestone cavern forty feet beneath the orchard and Ovidhall Lake. Bioluminescent green mold coats the stalactites above a black subterranean pool where metallic spines jut from the water and pale initiates tend cocooned victims in timeless stasis.",
+      "atmosphere": "Dripping mineral water, hypnotic telepathic pulsing, and the terrifying realization of an ancient organism slumbering beneath the Great Lakes.",
+      "secret": "Detonating the orchard irrigation fuel tanks or collapsing the limestone sluice gate seals the cenote and severs the Smiley-Face initiates from Gla'aki's brood.",
+      "npcs": ["Cole Holloway", "Brood-Aspect of Gla'aki"],
+      "npcIds": ["npc-cole-holloway", "npc-glaaki-brood"],
+      "locationId": "loc-subterranean-cenote",
+      "leadInClueIds": [
+        "clue-autopsy-toxicology-muskegon",
+        "clue-gsm-tower-triangulation-log",
+        "clue-glacial-karst-survey-map"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-ovidhall-lake-shore",
+      "toId": "node-casnovia-orchard",
+      "clueId": "clue-photo-ovidhall-smiley-graffiti",
+      "description": "The UV Smiley Face glyph on the lake weir points along a beaten path straight into the Casnovia apple orchard."
+    },
+    {
+      "fromId": "node-ovidhall-lake-shore",
+      "toId": "node-muskegon-morgue",
+      "clueId": "clue-sonar-search-grid-log",
+      "description": "The impossibility of the 21-day search logs demands an immediate examination of the body at the Muskegon morgue."
+    },
+    {
+      "fromId": "node-ovidhall-lake-shore",
+      "toId": "node-half-moon-bar",
+      "clueId": "clue-karst-sinkhole-current",
+      "description": "Thermal currents in the pond lead investigators to the watershed records at Ravenna / Half Moon Bar."
+    },
+    {
+      "fromId": "node-muskegon-morgue",
+      "toId": "node-subterranean-cenote-climax",
+      "clueId": "clue-autopsy-toxicology-muskegon",
+      "description": "Dry lungs and crystalline spinal fluid prove the victim was held in an air-filled subterranean chamber beneath the lake."
+    },
+    {
+      "fromId": "node-muskegon-morgue",
+      "toId": "node-casnovia-orchard",
+      "clueId": "clue-blind-crustacean-chitin",
+      "description": "Cave-crustacean traces under the fingernails lead to the karst sinkhole in the Casnovia orchard."
+    },
+    {
+      "fromId": "node-muskegon-morgue",
+      "toId": "node-half-moon-bar",
+      "clueId": "clue-toxicology-bar-receipt",
+      "description": "Undigested stomach contents and a bar receipt trace Todd's last hours back to Half Moon Bar & Grille."
+    },
+    {
+      "fromId": "node-casnovia-orchard",
+      "toId": "node-subterranean-cenote-climax",
+      "clueId": "clue-gsm-tower-triangulation-log",
+      "description": "GSM triangulation places the 12:51 AM call forty feet underground inside the flooded cenote."
+    },
+    {
+      "fromId": "node-casnovia-orchard",
+      "toId": "node-ovidhall-lake-shore",
+      "clueId": "clue-audio-voicemail-in-a-field",
+      "description": "Background pump acoustics on the 12:51 AM voicemail lead back to the Ovidhall Lake weir."
+    },
+    {
+      "fromId": "node-casnovia-orchard",
+      "toId": "node-half-moon-bar",
+      "clueId": "clue-bonfire-fight-witness",
+      "description": "Witnesses at the bonfire saw the white van heading toward the Ravenna roadhouse."
+    },
+    {
+      "fromId": "node-half-moon-bar",
+      "toId": "node-subterranean-cenote-climax",
+      "clueId": "clue-glacial-karst-survey-map",
+      "description": "The 1898 geological survey reveals the submerged limestone tube entering the cenote beneath Ovidhall Lake."
+    },
+    {
+      "fromId": "node-half-moon-bar",
+      "toId": "node-ovidhall-lake-shore",
+      "clueId": "clue-bartender-smiley-coaster",
+      "description": "The UV-reactive Smiley coaster links the roadhouse suspect directly to the Ovidhall Lake shore."
+    },
+    {
+      "fromId": "node-half-moon-bar",
+      "toId": "node-muskegon-morgue",
+      "clueId": "clue-medical-waste-manifest",
+      "description": "Recovered vials behind the bar match the unidentified tricyclic peak in the Muskegon autopsy."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-kevin-gannon",
+      "name": "Det. Kevin Gannon (NYPD Ret.)",
+      "description": "Veteran homicide detective investigating a nationwide pattern of young men found in bodies of water near Smiley Face graffiti.",
+      "secret": "Possesses case files from Michigan, Wisconsin, and Iowa showing identical 3-week disappearance intervals."
+    },
+    {
+      "id": "npc-alan-mercer",
+      "name": "Dr. Alan Mercer (Medical Examiner)",
+      "description": "Pressured county pathologist who signed the 'undetermined drowning' certificate despite knowing the lungs contained no water.",
+      "secret": "Kept a vial of the crystalline spinal fluid hidden in his private laboratory freezer."
+    },
+    {
+      "id": "npc-tyler-vance",
+      "name": "Tyler Vance (Orchard Witness)",
+      "description": "Local youth who attended the June 11 bonfire and heard the strange metallic hum from the field after midnight.",
+      "secret": "Found Todd's baseball cap beside the sunken limestone grate two days after the party but was too afraid to tell police."
+    },
+    {
+      "id": "npc-cole-holloway",
+      "name": "Cole Holloway (Watershed Hydrologist)",
+      "description": "Soft-spoken county technician with a pinprick scar at the base of his neck, serving the entity beneath Ovidhall Lake.",
+      "secret": "Uses the Smiley Face symbol to mark intake culverts where the stasis-held victims are released back into surface ponds."
+    },
+    {
+      "id": "npc-glaaki-brood",
+      "name": "The Spined Dweller of Ovidhall (Brood of Gla'aki)",
+      "description": "An ancient, iridescent oval mass bristling with flexible metallic spines, resting in the glacial aquifer beneath the kettle lake.",
+      "secret": "Vulnerable to fire, high-voltage electrical discharge, and the collapse of the limestone cavern roof."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-ovidhall-lake-shore",
+      "name": "Ovidhall Lake (Casnovia, Michigan)",
+      "description": "Boggy, reed-ringed kettle pond where the victim's body was found floating vertically on July 2, 2005.",
+      "atmosphere": "Stagnant summer heat, dragonflies, and an unnatural cold spot at the pond's center."
+    },
+    {
+      "id": "loc-muskegon-morgue",
+      "name": "Muskegon County Medical Examiner's Office",
+      "description": "Modern forensic pathology and toxicology laboratory.",
+      "atmosphere": "Sterile steel, chromatography monitors, and forensic dread."
+    },
+    {
+      "id": "loc-casnovia-orchard",
+      "name": "Casnovia Apple Orchard & Bonfire Field",
+      "description": "Rural Michigan orchard where the June 11 party took place and the 12:51 AM calls originated.",
+      "atmosphere": "Twisted apple boughs, tall marsh grass, and a hidden karst sinkhole."
+    },
+    {
+      "id": "loc-half-moon-bar",
+      "name": "Half Moon Bar & Grille (Ravenna)",
+      "description": "Small-town Michigan bar and adjacent county watershed station.",
+      "atmosphere": "Neon signs, gravel parking lot, and old hydrological charts."
+    },
+    {
+      "id": "loc-subterranean-cenote",
+      "name": "Subterranean Glacial Cenote",
+      "description": "Flooded limestone cavern connecting the orchard sinkhole to the bottom of Ovidhall Lake.",
+      "atmosphere": "Green bioluminescence, black water, and metallic spines."
+    }
+  ],
+  "handouts": [
+    {
+      "slug": "autopsy-toxicology-muskegon",
+      "title": "Muskegon Forensic Autopsy & Toxicology Report (#05-712)",
+      "image": "/handouts/ovidhall-lake-anomaly-2005/autopsy-toxicology-muskegon.webp",
+      "handoutType": "report",
+      "nodeId": "node-muskegon-morgue",
+      "textContent": "MUSKEGON COUNTY MEDICAL EXAMINER - CASE #2005-0712 (GEIB, TODD). Recovery: Floating vertically (head/shoulders above surface) in Ovidhall Lake after 21 days. Lungs: 0 mL pond water, negative for diatoms. Tissue state: Consistent with 24-48h post-mortem, NOT 21 days. Blood: Unidentified tricyclic organometallic compound."
+    },
+    {
+      "slug": "photo-ovidhall-smiley-graffiti",
+      "title": "Evidence Photo: Ovidhall Lake Weir & UV Smiley Glyph",
+      "image": "/handouts/ovidhall-lake-anomaly-2005/photo-ovidhall-smiley-graffiti.webp",
+      "handoutType": "newspaper",
+      "nodeId": "node-ovidhall-lake-shore",
+      "textContent": "EVIDENCE PHOTO #14 (July 2, 2005 - Ovidhall Lake, Casnovia MI): Concrete outflow weir 30 yards from vertical body recovery site. Yellow luminescent 'Smiley Face' symbol painted with crushed freshwater nacre, oriented toward the orchard karst line."
+    },
+    {
+      "slug": "gsm-tower-triangulation-log",
+      "title": "Cingular Wireless GSM Triangulation Log (June 12, 2005)",
+      "image": "/handouts/ovidhall-lake-anomaly-2005/gsm-tower-triangulation-log.webp",
+      "handoutType": "report",
+      "nodeId": "node-casnovia-orchard",
+      "textContent": "CELLULAR SUBPOENA LOG - JUNE 12, 2005: 00:47 AM (Outgoing - 22 sec, Sector B Orchard); 00:49 AM (Outgoing - 14 sec); 00:51 AM (Outgoing - 'I'm in a field' - Signal attenuation indicates transmitter depth -12.4m BELOW surface terrain in limestone karst cavity)."
+    },
+    {
+      "slug": "audio-voicemail-in-a-field",
+      "title": "Voicemail Audio Extraction: June 12, 2005 (00:51 AM)",
+      "image": "/handouts/ovidhall-lake-anomaly-2005/gsm-tower-triangulation-log.webp",
+      "audioUrl": "/audio/handouts/ovidhall-lake-anomaly-2005/voicemail-in-a-field-2005.mp3",
+      "handoutType": "report",
+      "nodeId": "node-casnovia-orchard",
+      "textContent": "Extracted cellular voicemail from 12:51 AM, June 12, 2005: heavy breathing, complete absence of crickets, a confused whisper ('I'm in a field... the water is above me...'), and a deep, resonant metallic chime before static cuts the line."
+    }
+  ]
+}
