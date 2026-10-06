@@ -3,22 +3,26 @@ import path from 'node:path';
 import {
   EQUIPMENT_CATALOG,
   applyCatalogTemplate,
-  findEquipmentTemplate,
-  resolveCatalogAsset,
 } from '@/lib/equipment-catalog';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
-import { OCCUPATION_EQUIPMENT, ALL_EQUIPMENT } from '@/lib/equipment-data';
+import { OCCUPATION_EQUIPMENT } from '@/lib/equipment-data';
+
+interface MissingManifestItem {
+  source: string;
+  characterName?: string;
+  occupation?: string;
+  itemName: string;
+  era: string;
+  category: string;
+  templateId?: string | null;
+  currentImageUrl?: string | null;
+}
 
 describe('Equipment Catalog Gap Audit for Issue #594', () => {
   it('generuje precyzyjny manifest brakujących grafik WebP dla ekwipunku startowego i Strefy 11', () => {
-    const catalogDir = path.resolve(process.cwd(), 'public/equipment/catalog');
-    const existingWebpFiles = new Set(
-      fs.existsSync(catalogDir) ? fs.readdirSync(catalogDir) : []
-    );
-
     const allPresets = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
-    const missingItemsMap = new Map<string, any>();
+    const missingItemsMap = new Map<string, MissingManifestItem>();
 
     // 1. Sprawdzamy gotowe postacie (Predefined + Strefa 11)
     allPresets.forEach((character) => {
