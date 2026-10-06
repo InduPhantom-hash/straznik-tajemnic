@@ -6,59 +6,475 @@
   "era": "prl-1970s",
   "yearRange": "1973-1974",
   "activeSceneYear": 1973,
-  "setting": "Polska Ludowa, Zima 1973/1974 (Warszawa - Elbląg - Prabuty)",
+  "startDate": "1973-10-18T19:30",
+  "initialWeather": "Zimna mżawka i chłodny wiatr od Zalewu Wiślanego",
+  "setting": "Polska Ludowa, Jesień/Zima 1973 r. (Warszawa - Elbląg - Prabuty)",
   "startingLocation": "Główny Gmach Państwowego Studia RTV, Warszawa, ul. Woronicza",
   "summary": "Badacze zostają zaangażowani przez redaktorkę Helenę Krawczyk z programu 'Sygnały Nieznanego' po Międzynarodowym Kongresie Psychotronicznym w Pradze. Ich zadaniem jest naukowa weryfikacja niezwykłych fenomenów ojca Klimuszki - franciszkanina z Elbląga, który odnajduje zaginionych na podstawie samych fotografii. Śledztwo szybko uderza w tajne operacje Służby Bezpieczeństwa oraz ujawnia przerażającą prawdę o traumie z 1941 roku i czwartym wymiarze czasu.",
+  "boundarySummary": "Obszar operacyjny obejmuje oś Warszawa - Elbląg - Prabuty. Próba samowolnego opuszczenia rejonu Żuław i Powiśla przed wyjaśnieniem sprawy skutkuje blokadą drogową Milicji Obywatelskiej, zatrzymaniem pod zarzutem szpiegostwa przemysłowego przez funkcjonariuszy Departamentu IV MSW lub odebraniem przepustek prasowych RTV i natychmiastową konfiskatą zebranych materiałów przez Służbę Bezpieczeństwa.",
+  "truthAnchor": {
+    "culprit": "Generał Edward Majewski (Departament IV MSW) oraz ponadwymiarowy byt czasoprzestrzenny (Echo z Prabut / Pomiot Yog-Sothotha)",
+    "motive": "Departament IV MSW pod kryptonimem KLIN próbuje militarnie wymusić na ojcu Klimuszce otwarcie trwałej szczeliny retrospektywnej w ruinach kościoła w Prabutach do inwigilacji przeszłości i przyszłości.",
+    "murderWeapon": "Przeciążenie astralno-elektromagnetyczne wywołujące wylew wewnętrzny i wypalenie synaps u świadków widzenia bez osłony ziołowej (Receptura nr 152).",
+    "keyAlibi": "Oficjalnie generał Majewski przebywa na naradzie partyjnej w Warszawie, podczas gdy jego grupa operacyjna SB w wozie transmisyjnym pod Prabutami rozstawia generatory rezonansowe.",
+    "immutableFacts": [
+      "Ojciec Andrzej Czesław Klimuszko nie jest sprawcą anomalii - jego dar jasnowidzenia to skutek uboczny porażenia energią szczeliny w 1945 roku.",
+      "Receptura ziołowa nr 152 realnie tłumi fale czwartego wymiaru i chroni układ nerwowy przed paraliżem w krypcie w Prabutach.",
+      "Pod ołtarzem zrujnowanego kościoła w Prabutach spoczywa stopiony relikwiarz z 1945 roku, który działa jak soczewka czasoprzestrzenna.",
+      "Operacja MSW o kryptonimie KLIN dąży do przejęcia artefaktu w Prabutach przed północą 19 października 1973 roku."
+    ]
+  },
+  "doomClock": {
+    "deadline": {
+      "year": 1973,
+      "month": 9,
+      "day": 19,
+      "hour": 23,
+      "minute": 59
+    },
+    "totalHours": 28,
+    "stages": [
+      {
+        "phase": 0,
+        "title": "Faza 0: Cisza (Weryfikacja prasowa)",
+        "description": "Badacze swobodnie analizują materiały w redakcji RTV i wyruszają w teren. Czarna Wołga SB obserwuje ich z daleka bez otwartej ingerencji."
+      },
+      {
+        "phase": 1,
+        "title": "Faza 1: Narastająca presja (Podsłuchy i cenzura)",
+        "description": "W telefonach słychać trzaski podsłuchu SB. Wokół klasztoru w Elblągu kręcą się wywiadowcy w cywilu, a świadkowie oglądają się za siebie ze strachem."
+      },
+      {
+        "phase": 2,
+        "title": "Faza 2: Bezpośrednie zagrożenie (Kordon operacyjny KLIN)",
+        "description": "Grupa operacyjna SB zamyka drogi dojazdowe do Prabut. W powietrzu czuć ozon, a wskazówki kompasów i zegarków zaczynają wariować."
+      },
+      {
+        "phase": 3,
+        "title": "Faza 3: Punkt kulminacyjny (Otwarcie Szczeliny Czasu)",
+        "description": "Generatory SB w ruinach kościoła w Prabutach osiągają pełną moc. Granica między rokiem 1945 a 1973 pęka, budząc drapieżne echo czwartego wymiaru."
+      }
+    ]
+  },
+  "secretsPool": [
+    {
+      "id": "sec-prabuty-1",
+      "text": "Klisze fotograficzne przechowywane w pobliżu relikwiarza z Prabut rejestrują sylwetki żołnierzy i zakonników z 1945 roku nałożone na współczesne tło.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-prabuty-2",
+      "text": "W aktach personalnych dr. Jarosława Skrzyńskiego znajduje się zobowiązanie do współpracy z Departamentem IV MSW podpisane pod przymusem po Kongresie w Pradze.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-prabuty-3",
+      "text": "Mieszanka ziołowa nr 152 zawiera wysuszone kłącze rośliny rosnącej wyłącznie na zgliszczach krypty w Prabutach, skażonej popiołem bursztynowym.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-prabuty-4",
+      "text": "Kościelny Tadeusz Polak ukrywa w piwnicy starej plebanii niemiecki dziennik ewakuacyjny z 1945 roku, opisujący skrzynię z bursztynową soczewką.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-prabuty-5",
+      "text": "Na taśmie szpulowej ZK-140 w paśmie poniżej słyszalnego progu zarejestrowano metaliczny pogłos bijącego dzwonu kościelnego, który spłonął w 1945 roku.",
+      "isDiscovered": false
+    },
+    {
+      "id": "sec-prabuty-6",
+      "text": "Ojciec Klimuszko podczas najgłębszych transów widzi dokładną datę własnej śmierci oraz twarze ludzi, którzy dopiero za kilkadziesiąt lat wejdą do krypty.",
+      "isDiscovered": false
+    }
+  ],
   "clues": [
     {
       "id": "clue-photo-prabuty",
-      "name": "Zdjęcie z klinowym pismem",
-      "description": "Czarno-biała fotografia zaginionego z 1947 r. Z tyłu widnieje niewyraźny adnotat ojca Klimuszki ze wskazaniem miejsca pochówku. Pod lupą tło zdjęcia zdaje się minimalnie falować."
+      "name": "Zdjęcie z klinowym pismem (1947)",
+      "description": "Czarno-biała fotografia ruin w Prabutach z 1947 r. Z tyłu widnieje adnotacja ojca Klimuszki wskazująca klasztor w Elblągu jako miejsce przechowywania jego dzienników wizji. Pod lupą tło zdjęcia zdaje się minimalnie falować.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-warszawa-redakcja",
+      "targetNodeId": "node-elblag-klasztor",
+      "requiredSkill": "Spostrzegawczość"
     },
     {
-      "id": "clue-amber-ashes",
-      "name": "Popiół ze Skrzyni Skarbów",
-      "description": "Próbka spalonej żywicy z transportu z 1945 r. Wbrew logice, popiół wydziela zapach ozonu i ma właściwości lekko luminescencyjne."
+      "id": "clue-prague-delegation-list",
+      "name": "Lista delegatów Kongresu w Pradze z pieczęcią MSW",
+      "description": "Kopia listy wyjazdowej z biurka redaktor Krawczyk. Przy nazwisku o. Klimuszki widnieje czerwona pieczęć Departamentu IV MSW w Warszawie i kryptonim operacyjny KLIN.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-warszawa-redakcja",
+      "targetNodeId": "node-msw-warszawa",
+      "requiredSkill": "Biblioteka"
     },
     {
-      "id": "clue-sb-file-klin",
-      "name": "Tajna Teczka MSW 'Kryptonim KLIN'",
-      "description": "Dokumentacja Służby Bezpieczeństwa dotycząca obserwacji zakonnika w Prabutach i Elblągu oraz prób wykorzystania jego widzenia w wywiadzie."
+      "id": "clue-skrzynski-psychotronic-report",
+      "name": "Wstępny raport dr. Skrzyńskiego o anomalii w Prabutach",
+      "description": "Relacja eksperta z redakcji RTV opisująca niewytłumaczalne poparzenia radiacyjne i świetliste smugi nad starą plebanią i cmentarzem w Prabutach.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-warszawa-redakcja",
+      "targetNodeId": "node-prabuty-wykopaliska",
+      "requiredSkill": "Perswazja"
     },
     {
       "id": "clue-herbal-recipe-152",
       "name": "Rękopis Mieszanki Ziołowej Nr 152",
-      "description": "Niepublikowana receptura ojca Klimuszki zawierająca rzadkie odmiany ziół tłumiących percepcję strachu i odbiór szumów astralnych."
+      "description": "Niepublikowana receptura ojca Klimuszki zawierająca rzadkie zioła zbierane wyłącznie przy ruinach cmentarza w Prabutach, tłumiące percepcję strachu i odbiór szumów astralnych.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-elblag-klasztor",
+      "targetNodeId": "node-prabuty-wykopaliska",
+      "requiredSkill": "Nauka (Botanika / Farmacja)"
+    },
+    {
+      "id": "clue-wiretap-bug-elblag",
+      "name": "Pluskwa podsłuchowa WUSW w celi klasztornej",
+      "description": "Ukryty w kratce wentylacyjnej celi mikrofon dynamiczny z wybitym numerem ewidencyjnym gabinetu generała Majewskiego w warszawskim MSW.",
+      "sourceType": "material",
+      "clueType": "core",
+      "sourceNodeId": "node-elblag-klasztor",
+      "targetNodeId": "node-msw-warszawa",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-klimuszko-vision-crypt",
+      "name": "Prorocze widzenie o. Klimuszki o krypcie pod ołtarzem",
+      "description": "Bezpośrednie świadectwo zakonnika wygłoszone w półśnie: pod zapadniętym ołtarzem kościoła w Prabutach pulsuje otwarta rana w czasie, której nie wolno dotknąć bez osłony ziołowej.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-elblag-klasztor",
+      "targetNodeId": "node-prabuty-krypta-climax",
+      "requiredSkill": "Psychologia"
+    },
+    {
+      "id": "clue-amber-ashes",
+      "name": "Luminescencyjny Popiół ze Skrzyni Skarbów (1945)",
+      "description": "Próbka spalonej żywicy bursztynowej z wykopalisk przy plebanii w Prabutach. Wydziela silny zapach ozonu, a jej smuga prowadzi bezpośrednio do zasypanego wejścia krypty pod ołtarzem.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-prabuty-wykopaliska",
+      "targetNodeId": "node-prabuty-krypta-climax",
+      "requiredSkill": "Spostrzegawczość"
+    },
+    {
+      "id": "clue-polak-testimony-monk",
+      "name": "Zeznanie kościelnego Tadeusza Polaka o ucieczce zakonnika",
+      "description": "Stary kościelny wspomina, jak w 1945 r. młody Klimuszko wybiegł z podziemi kościoła z posiwiałymi skroniami i wyjechał do klasztoru św. Pawła w Elblągu.",
+      "sourceType": "testimony",
+      "clueType": "core",
+      "sourceNodeId": "node-prabuty-wykopaliska",
+      "targetNodeId": "node-elblag-klasztor",
+      "requiredSkill": "Urok Osobisty"
+    },
+    {
+      "id": "clue-military-tire-tracks",
+      "name": "Ślady opon wozu pelengacyjnego MSW i zgubiona przepustka",
+      "description": "Świeże koleiny ciężarówki wojskowej Star przy cmentarzu w Prabutach oraz upuszczony blankiet rozkazu wyjazdu podpisany w gabinecie generała Majewskiego w MSW.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-prabuty-wykopaliska",
+      "targetNodeId": "node-msw-warszawa",
+      "requiredSkill": "Tropienie"
+    },
+    {
+      "id": "clue-sb-file-klin",
+      "name": "Tajna Teczka MSW 'Kryptonim KLIN'",
+      "description": "Ściśle tajna dokumentacja Departamentu IV MSW zawierająca plan geodezyjny krypty pod ołtarzem w Prabutach oraz rozkaz uruchomienia generatorów w punkcie anomalii.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-msw-warszawa",
+      "targetNodeId": "node-prabuty-krypta-climax",
+      "requiredSkill": "Biblioteka"
+    },
+    {
+      "id": "clue-sb-wiretap-elblag-log",
+      "name": "Taśma szpulowa ZK-140 z podsłuchu celi w Elblągu",
+      "description": "Zapis audio z archiwum MSW dokumentujący manifestację drugiego, nieludzkiego głosu w celi o. Klimuszki w klasztorze w Elblągu.",
+      "sourceType": "anomaly",
+      "clueType": "core",
+      "sourceNodeId": "node-msw-warszawa",
+      "targetNodeId": "node-elblag-klasztor",
+      "requiredSkill": "Nasłuchiwanie"
+    },
+    {
+      "id": "clue-msw-excavation-order",
+      "name": "Rozkaz zabezpieczenia wykopalisk przy plebanii w Prabutach",
+      "description": "Szyfrogram MSW nakazujący milicji odgrodzenie terenu starego cmentarza i plebanii w Prabutach pod pretekstem niewypałów z II wojny światowej.",
+      "sourceType": "document",
+      "clueType": "core",
+      "sourceNodeId": "node-msw-warszawa",
+      "targetNodeId": "node-prabuty-wykopaliska",
+      "requiredSkill": "Prawo"
     }
   ],
   "nodes": [
     {
       "id": "node-warszawa-redakcja",
-      "title": "Redakcja 'Sygnałów Nieznanego'",
-      "description": "Zimny, socrealistyczny gabinet redaktorki Heleny Krawczyk. Wokół kłęby dymu z papierosów 'Sport' i worki listów od telewidzów.",
+      "name": "Redakcja 'Sygnałów Nieznanego' (RTV Warszawa)",
+      "title": "Redakcja 'Sygnałów Nieznanego' (RTV Warszawa)",
+      "type": "intro",
+      "description": "Zimny, socrealistyczny gabinet redaktorki Heleny Krawczyk przy ul. Woronicza. Wokół kłęby dymu z papierosów 'Sport', taśmy montażowe i worki listów od telewidzów poruszonych fenomenem jasnowidza z Elbląga.",
+      "atmosphere": "Stukot maszyn do pisania, dym tytoniowy, zapach taniej kawy zbożowej i nerwowe spojrzenia w stronę korytarza.",
       "npcs": ["Helena Krawczyk", "dr Jarosław Skrzyński"],
-      "availableClues": ["clue-photo-prabuty"]
+      "npcIds": ["npc-helena-krawczyk", "npc-jaroslaw-skrzynski"],
+      "locationId": "loc-warszawa-redakcja",
+      "leadInClueIds": [],
+      "leadOutClueIds": [
+        "clue-photo-prabuty",
+        "clue-prague-delegation-list",
+        "clue-skrzynski-psychotronic-report"
+      ],
+      "availableClues": [
+        "clue-photo-prabuty",
+        "clue-prague-delegation-list",
+        "clue-skrzynski-psychotronic-report"
+      ]
     },
     {
       "id": "node-elblag-klasztor",
-      "title": "Klasztor św. Pawła w Elblągu",
-      "description": "Skromna cela ojca Klimuszki pachnąca suszonymi ziołami, miętą i starym papierem. Za oknem mroźny wiatr od Zalewu Wiślanego.",
+      "name": "Klasztor św. Pawła w Elblągu (Cela o. Klimuszki)",
+      "title": "Klasztor św. Pawła w Elblągu (Cela o. Klimuszki)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Skromna cela franciszkanina pachnąca suszonymi ziołami, miętą i starym papierem. Za oknem słychać mroźny wiatr od Zalewu Wiślanego, a pod ścianą stoi niepozorna czarna Wołga SB.",
+      "atmosphere": "Zapach suszonego dziurawca i waleriany, tykanie ściennego zegara, półmrok rozświetlany świecą i narastające napięcie elektromagnetyczne.",
+      "secret": "Cela jest całodobowo podsłuchiwana przez SB, a sam o. Klimuszko używa mieszanki nr 152, by powstrzymać wizje rozrywające jego umysł.",
       "npcs": ["Ojciec Andrzej Czesław Klimuszko"],
-      "availableClues": ["clue-herbal-recipe-152"]
+      "npcIds": ["npc-klimuszko"],
+      "locationId": "loc-elblag-klasztor",
+      "leadInClueIds": [
+        "clue-photo-prabuty",
+        "clue-polak-testimony-monk",
+        "clue-sb-wiretap-elblag-log"
+      ],
+      "leadOutClueIds": [
+        "clue-herbal-recipe-152",
+        "clue-wiretap-bug-elblag",
+        "clue-klimuszko-vision-crypt"
+      ],
+      "availableClues": [
+        "clue-herbal-recipe-152",
+        "clue-wiretap-bug-elblag",
+        "clue-klimuszko-vision-crypt"
+      ]
     },
     {
       "id": "node-prabuty-wykopaliska",
+      "name": "Stara Plebania i Cmentarz w Prabutach",
       "title": "Stara Plebania i Cmentarz w Prabutach",
-      "description": "Miejscowość, w której Klimuszko po wojnie odnajdywał ukryte w ziemi rzadkie starodruki i srebra. Lokalni mieszkańcy wciąż wspomną o tajemniczych błyskach światła.",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Mglista, poniemiecka miejscowość na Powiślu, w której Klimuszko tuż po wojnie odnajdywał ukryte w ziemi starodruki i srebra. Lokalni mieszkańcy wciąż szepczą o nocnych błyskach światła wśród nagrobków.",
+      "atmosphere": "Gęsta mgła znad jeziora Liwieniec, krakanie wron, zapach wilgotnego torfu i dziwne mrowienie na skórze.",
+      "secret": "W ziemi wokół starej plebanii zalega radioaktywno-luminescencyjny popiół bursztynowy z 1945 roku, wskazujący podziemny korytarz do krypty.",
       "npcs": ["Tadeusz Polak"],
-      "availableClues": ["clue-amber-ashes"]
+      "npcIds": ["npc-tadeusz-polak"],
+      "locationId": "loc-prabuty-wykopaliska",
+      "leadInClueIds": [
+        "clue-skrzynski-psychotronic-report",
+        "clue-herbal-recipe-152",
+        "clue-msw-excavation-order"
+      ],
+      "leadOutClueIds": [
+        "clue-amber-ashes",
+        "clue-polak-testimony-monk",
+        "clue-military-tire-tracks"
+      ],
+      "availableClues": [
+        "clue-amber-ashes",
+        "clue-polak-testimony-monk",
+        "clue-military-tire-tracks"
+      ]
     },
     {
       "id": "node-msw-warszawa",
-      "title": "Gabinet Generała Majewskiego (MSW)",
-      "description": "Ciemne meble, godło państwowe na ścianie i cichy szum aparatów telefonicznych. Miejsce, gdzie decyduje się los operacji psychotronicznych.",
+      "name": "Archiwum Operacyjne i Gabinet Gen. Majewskiego (MSW)",
+      "title": "Archiwum Operacyjne i Gabinet Gen. Majewskiego (MSW)",
+      "type": "location",
+      "isBottleneck": true,
+      "description": "Ciężkie dębowe meble, godło państwowe na ścianie, pancerne szafy na akta i cichy szum dalekopisów. Centrum dowodzenia operacją psychotroniczną KLIN.",
+      "atmosphere": "Chłód instytucjonalnego terroru, szczęk zamków szyfrowych, brzęczenie jarzeniówek i zapach pasty do podłóg.",
+      "secret": "Generał Majewski ukrywa przed Komitetem Centralnym fakt, że poprzedni eksperyment w Prabutach zakończył się śmiercią dwóch techników SB.",
       "npcs": ["Generał Edward Majewski"],
-      "availableClues": ["clue-sb-file-klin"]
+      "npcIds": ["npc-edward-majewski"],
+      "locationId": "loc-msw-warszawa",
+      "leadInClueIds": [
+        "clue-prague-delegation-list",
+        "clue-wiretap-bug-elblag",
+        "clue-military-tire-tracks"
+      ],
+      "leadOutClueIds": [
+        "clue-sb-file-klin",
+        "clue-sb-wiretap-elblag-log",
+        "clue-msw-excavation-order"
+      ],
+      "availableClues": [
+        "clue-sb-file-klin",
+        "clue-sb-wiretap-elblag-log",
+        "clue-msw-excavation-order"
+      ]
+    },
+    {
+      "id": "node-prabuty-krypta-climax",
+      "name": "Zawalona Krypta pod Ruinami Kościoła w Prabutach (Finał)",
+      "title": "Zawalona Krypta pod Ruinami Kościoła w Prabutach (Finał)",
+      "type": "climax",
+      "isBottleneck": true,
+      "isClimax": true,
+      "description": "Podziemna komora pod spalonym w 1945 roku ołtarzem w Prabutach. Kable z wojskowego generatora SB oplatają popękane gotyckie kolumny, a w centrum unosi się pulsująca soczewka zakrzywionego czasu.",
+      "atmosphere": "Ogłuszający pisk aparatury pomiarowej, zapach ozonu i spalonego bursztynu, nakładające się na siebie obrazy z 1941, 1945 i 1973 roku.",
+      "secret": "Zniszczenie bursztynowej soczewki lub odcięcie zasilania generatorów SB przed północą zamyka szczelinę czwartego wymiaru, ratując umysł o. Klimuszki.",
+      "npcs": ["Generał Edward Majewski", "Ojciec Andrzej Czesław Klimuszko"],
+      "npcIds": ["npc-edward-majewski", "npc-klimuszko"],
+      "locationId": "loc-prabuty-krypta",
+      "leadInClueIds": [
+        "clue-klimuszko-vision-crypt",
+        "clue-amber-ashes",
+        "clue-sb-file-klin"
+      ],
+      "leadOutClueIds": [],
+      "availableClues": []
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "node-warszawa-redakcja",
+      "toId": "node-elblag-klasztor",
+      "clueId": "clue-photo-prabuty",
+      "description": "Adnotacja o. Klimuszki na odwrocie fotografii ruin prowadzi bezpośrednio do jego celi w klasztorze w Elblągu."
+    },
+    {
+      "fromId": "node-warszawa-redakcja",
+      "toId": "node-msw-warszawa",
+      "clueId": "clue-prague-delegation-list",
+      "description": "Pieczęć Departamentu IV MSW i kryptonim KLIN na liście delegatów kierują trop do gabinetu gen. Majewskiego."
+    },
+    {
+      "fromId": "node-warszawa-redakcja",
+      "toId": "node-prabuty-wykopaliska",
+      "clueId": "clue-skrzynski-psychotronic-report",
+      "description": "Wstępny raport dr. Skrzyńskiego wskazuje na anomalie świetlne przy starej plebanii i cmentarzu w Prabutach."
+    },
+    {
+      "fromId": "node-elblag-klasztor",
+      "toId": "node-prabuty-wykopaliska",
+      "clueId": "clue-herbal-recipe-152",
+      "description": "Składniki receptury ziołowej nr 152 prowadzą na zgliszcza i cmentarz przy plebanii w Prabutach."
+    },
+    {
+      "fromId": "node-elblag-klasztor",
+      "toId": "node-msw-warszawa",
+      "clueId": "clue-wiretap-bug-elblag",
+      "description": "Odnaleziona w celi pluskwa podsłuchowa zdradza bezpośredni nadzór archiwum operacyjnego MSW."
+    },
+    {
+      "fromId": "node-elblag-klasztor",
+      "toId": "node-prabuty-krypta-climax",
+      "clueId": "clue-klimuszko-vision-crypt",
+      "description": "Prorocza wizja o. Klimuszki wskazuje zawaloną kryptę pod ołtarzem w Prabutach jako epicentrum czwartego wymiaru."
+    },
+    {
+      "fromId": "node-prabuty-wykopaliska",
+      "toId": "node-prabuty-krypta-climax",
+      "clueId": "clue-amber-ashes",
+      "description": "Ślad luminescencyjnego popiołu bursztynowego prowadzi z wykopalisk wprost do podziemnej krypty pod kościołem."
+    },
+    {
+      "fromId": "node-prabuty-wykopaliska",
+      "toId": "node-elblag-klasztor",
+      "clueId": "clue-polak-testimony-monk",
+      "description": "Zeznanie kościelnego Tadeusza Polaka opisuje ucieczkę porażonego zakonnika do klasztoru w Elblągu."
+    },
+    {
+      "fromId": "node-prabuty-wykopaliska",
+      "toId": "node-msw-warszawa",
+      "clueId": "clue-military-tire-tracks",
+      "description": "Ślady wozu pelengacyjnego i upuszczony rozkaz wyjazdu prowadzą do centrali Departamentu IV MSW."
+    },
+    {
+      "fromId": "node-msw-warszawa",
+      "toId": "node-prabuty-krypta-climax",
+      "clueId": "clue-sb-file-klin",
+      "description": "Plany geodezyjne w teczce KLIN wskazują kryptę pod ołtarzem w Prabutach jako cel finałowej operacji SB."
+    },
+    {
+      "fromId": "node-msw-warszawa",
+      "toId": "node-elblag-klasztor",
+      "clueId": "clue-sb-wiretap-elblag-log",
+      "description": "Taśma szpulowa ZK-140 z podsłuchu kieruje śledztwo do celi o. Klimuszki w Elblągu."
+    },
+    {
+      "fromId": "node-msw-warszawa",
+      "toId": "node-prabuty-wykopaliska",
+      "clueId": "clue-msw-excavation-order",
+      "description": "Szyfrogram o kordonie wokół plebanii kieruje badaczy na teren wykopalisk w Prabutach."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-helena-krawczyk",
+      "name": "Helena Krawczyk",
+      "description": "Ambitna redaktorka programu 'Sygnały Nieznanego' w Telewizji Polskiej, szukająca twardych dowodów na zjawiska psychotroniczne.",
+      "secret": "Obawia się zamknięcia redakcji przez cenzurę po interwencji MSW."
+    },
+    {
+      "id": "npc-jaroslaw-skrzynski",
+      "name": "dr Jarosław Skrzyński",
+      "description": "Konsultant naukowy ds. bioelektroniki i psychotroniki, uczestnik Kongresu w Pradze.",
+      "secret": "Szantażowany przez SB, potajemnie przekazuje raporty do gabinetu gen. Majewskiego."
+    },
+    {
+      "id": "npc-klimuszko",
+      "name": "Ojciec Andrzej Czesław Klimuszko",
+      "description": "Franciszkanin i zielarz z Elbląga obdarzony darem jasnowidzenia fotometrycznego.",
+      "secret": "W 1945 roku w krypcie w Prabutach spojrzał w głąb szczeliny czwartego wymiaru, co na zawsze połączyło jego umysł z anomalią."
+    },
+    {
+      "id": "npc-tadeusz-polak",
+      "name": "Tadeusz Polak",
+      "description": "Sędziwy kościelny i grabarz z Prabut, świadek powojennych wykopalisk i pożaru kościoła w 1945 roku.",
+      "secret": "Przechowuje na strychu plebanii ocalałe fragmenty stopionego bursztynu z krypty."
+    },
+    {
+      "id": "npc-edward-majewski",
+      "name": "Generał Edward Majewski",
+      "description": "Wysoki oficer Departamentu IV MSW nadzorujący tajny program psychotroniczny KLIN.",
+      "secret": "Zamierza osobiście przejąć kontrolę nad szczeliną czasową w Prabutach, by zyskać absolutną przewagę polityczną w bloku wschodnim."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-warszawa-redakcja",
+      "name": "Redakcja 'Sygnałów Nieznanego' (RTV Warszawa)",
+      "description": "Gabinet i montażownia w gmachu TVP przy ul. Woronicza w Warszawie.",
+      "atmosphere": "Zadymione korytarze, szum przewijanych taśm i atmosfera cichej inwigilacji."
+    },
+    {
+      "id": "loc-elblag-klasztor",
+      "name": "Klasztor św. Pawła w Elblągu",
+      "description": "Franciszkański klasztor w Elblągu, miejsce pracy zielarskiej i odosobnienia o. Klimuszki.",
+      "atmosphere": "Woń suszonych ziół, chłód kamiennych murów i dyskretna obecność wywiadowców SB."
+    },
+    {
+      "id": "loc-prabuty-wykopaliska",
+      "name": "Stara Plebania i Cmentarz w Prabutach",
+      "description": "Powojenne cmentarzysko i opuszczona plebania w Prabutach na Powiślu.",
+      "atmosphere": "Wilgotna mgła, zapach ozonu i świeże ślady opon wojskowych ciężarówek."
+    },
+    {
+      "id": "loc-msw-warszawa",
+      "name": "Gabinet Generała Majewskiego (MSW Warszawa)",
+      "description": "Zabezpieczone skrzydło Departamentu IV MSW przy ul. Rakowieckiej w Warszawie.",
+      "atmosphere": "Pancerne szafy, dalekopisy i bezwzględny rygor tajnych służb PRL."
+    },
+    {
+      "id": "loc-prabuty-krypta",
+      "name": "Zawalona Krypta pod Ruinami Kościoła w Prabutach",
+      "description": "Podziemna krypta pod gotyckimi ruinami, epicentrum anomalii czasoprzestrzennej z 1945 roku.",
+      "atmosphere": "Błękitne wyładowania, falujące powietrze i przenikające się szepty z różnych dekad."
     }
   ],
   "handouts": [
@@ -67,6 +483,7 @@
       "title": "Fotografia z ruin w Prabutach (1947)",
       "image": "/handouts/cien-nad-prabutami/clue-photo-prabuty.webp",
       "handoutType": "newspaper",
+      "nodeId": "node-warszawa-redakcja",
       "textContent": "Czarno-biała fotografia przedstawiająca ruiny kościoła w Prabutach z odręczną notatką o. Klimuszki: „To nie światło słoneczne przenikało przez sklepienie...”."
     },
     {
@@ -74,6 +491,7 @@
       "title": "Teczka SB: Kryptonim KLIN",
       "image": "/handouts/cien-nad-prabutami/clue-sb-file-klin.webp",
       "handoutType": "report",
+      "nodeId": "node-msw-warszawa",
       "textContent": "Ściśle tajny meldunek Departamentu IV MSW z 1973 r. dotyczący inwigilacji franciszkanina z Elbląga i anomalnych zjawisk elektromagnetycznych w celi klasztornej."
     },
     {
@@ -81,6 +499,7 @@
       "title": "Rękopis receptury ziołowej nr 152",
       "image": "/handouts/cien-nad-prabutami/clue-herbal-recipe-152.webp",
       "handoutType": "letter",
+      "nodeId": "node-elblag-klasztor",
       "textContent": "Zapis proporcji ziół z dopiskiem: „Pić przed snem, by uciszyć głosy czwartego wymiaru”."
     },
     {
@@ -89,6 +508,7 @@
       "image": "/handouts/cien-nad-prabutami/clue-sb-file-klin.webp",
       "audioUrl": "/audio/handouts/cien-nad-prabutami/tasma-sb-elblag.mp3",
       "handoutType": "report",
+      "nodeId": "node-msw-warszawa",
       "textContent": "Nagranie operacyjne SB: szum taśmy szpulowej, modlitwa i nagły trzask pękającego szkła pod wpływem nieznanej energii."
     }
   ]
