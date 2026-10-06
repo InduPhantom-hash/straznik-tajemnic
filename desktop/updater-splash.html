@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strażnik Tajemnic — Aktualizacja</title>
+  <style>
+    :root {
+      --bg-obsidian: #08090C;
+      --card-bg: #101216;
+      --gold-primary: #D4AF37;
+      --gold-bright: #F6E05E;
+      --gold-dark: #8C6A18;
+      --emerald-glow: #10B981;
+      --text-main: #E2E8F0;
+      --text-muted: #94A3B8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-obsidian);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cinzel", "Cormorant Garamond", Georgia, serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-app-region: drag;
+    }
+
+    .container {
+      width: 320px;
+      height: 380px;
+      background: linear-gradient(180deg, #12141A 0%, #0A0B0E 100%);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.15);
+      border-radius: 12px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* Ozdobne narożniki Art Déco */
+    .corner {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid var(--gold-primary);
+      pointer-events: none;
+    }
+    .corner-tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+    .corner-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+    .corner-bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+    .corner-br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+    .eye-wrapper {
+      width: 110px;
+      height: 110px;
+      margin-top: 10px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Animacja rotacji promieni */
+    .rotating-rays {
+      transform-origin: 60px 60px;
+      animation: spinRays 20s linear infinite;
+    }
+    @keyframes spinRays {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Animacja pulsującej źrenicy */
+    .pulsing-pupil {
+      transform-origin: 60px 60px;
+      animation: pulseGlow 2.5s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.12); opacity: 1; }
+    }
+
+    .content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-bright);
+      text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    }
+
+    .status-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      min-height: 34px;
+      max-width: 260px;
+      transition: opacity 0.2s ease;
+    }
+
+    .progress-bar-rail {
+      width: 85%;
+      height: 4px;
+      background: rgba(212, 175, 55, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+    }
+
+    .progress-bar-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+      animation: sweepRail 1.8s ease-in-out infinite;
+    }
+    @keyframes sweepRail {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+
+    .hint {
+      font-size: 10px;
+      color: rgba(148, 163, 184, 0.6);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <div class="eye-wrapper">
+      <svg width="110" height="110" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F6E05E" />
+            <stop offset="40%" stopColor="#D4AF37" />
+            <stop offset="80%" stopColor="#AA7C11" />
+            <stop offset="100%" stopColor="#E2C974" />
+          </linearGradient>
+          <radialGradient id="pupil" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.95" />
+            <stop offset="60%" stopColor="#047857" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#022C22" stopOpacity="1" />
+          </radialGradient>
+        </defs>
+
+        <!-- Promienie Art Déco (rotujące) -->
+        <g class="rotating-rays">
+          <circle cx="60" cy="60" r="48" stroke="url(#gold)" stroke-width="1.2" stroke-dasharray="2 6" opacity="0.65" />
+          <circle cx="60" cy="60" r="42" stroke="url(#gold)" stroke-width="0.8" opacity="0.45" />
+          
+          <!-- 8 promieni -->
+          <g transform="rotate(0 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(45 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(90 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(135 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(180 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(225 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(270 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+          <g transform="rotate(315 60 60)">
+            <line x1="60" y1="8" x2="60" y2="24" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" />
+            <polygon points="60,4 57.5,12 62.5,12" fill="url(#gold)" opacity="0.85" />
+          </g>
+        </g>
+
+        <!-- Stabilny kontur oka -->
+        <g>
+          <path d="M 16 60 Q 60 22 104 60 Q 60 98 16 60 Z" fill="#0A0B0D" stroke="url(#gold)" stroke-width="1.8" />
+          <path d="M 24 60 Q 60 30 96 60 Q 60 90 24 60 Z" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.65" stroke-dasharray="4 2" />
+          <circle cx="60" cy="60" r="18" stroke="url(#gold)" stroke-width="1.4" fill="none" />
+        </g>
+
+        <!-- Pulsująca źrenica -->
+        <g class="pulsing-pupil">
+          <circle cx="60" cy="60" r="11" fill="url(#pupil)" />
+          <ellipse cx="60" cy="60" rx="4" ry="7.5" fill="#030708" stroke="url(#gold)" stroke-width="1" />
+          <circle cx="58" cy="57" r="1.5" fill="#FDF6B6" opacity="0.9" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="content">
+      <h1 class="title" id="titleLabel">Strażnik Tajemnic</h1>
+      <p class="status-text" id="statusLabel">Przebudowa mechanizmów i podmiana plików…</p>
+    </div>
+
+    <div class="progress-bar-rail">
+      <div class="progress-bar-indicator"></div>
+    </div>
+
+    <div class="hint">Aplikacja uruchomi się samoczynnie</div>
+  </div>
+
+  <script>
+    // Prosta komunikacja oparta o parametry URL lub plik statusu
+    const params = new URLSearchParams(window.location.search);
+    const customStatus = params.get('status');
+    const lang = params.get('lang') || 'pl';
+
+    if (customStatus) {
+      document.getElementById('statusLabel').textContent = decodeURIComponent(customStatus);
+    } else if (lang === 'en') {
+      document.getElementById('titleLabel').textContent = 'Keeper of Arcana';
+      document.getElementById('statusLabel').textContent = 'Replacing core files and updating components…';
+      document.querySelector('.hint').textContent = 'The game will reopen automatically';
+    }
+  </script>
+</body>
+</html>
