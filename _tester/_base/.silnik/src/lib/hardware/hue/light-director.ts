@@ -1,0 +1,169 @@
+/**
+ * @file light-director.ts
+ * Reżyser Światła (Smart Lighting Director) dla Strażnika Tajemnic AI.
+ * Odpowiada za deterministyczne mapowanie stanu świata i somatyczne impulsy grozy na fizyczne oświetlenie.
+ */
+
+import { HueClient } from './hue-client';
+import {
+  HueLightStateSnapshot,
+  LightPreset,
+  SceneLightingMood,
+} from './types';
+import presetsData from './light-presets.json';
+
+export class LightDirector {
+  private client: HueClient;
+  private initialSnapshot: HueLightStateSnapshot[] | null = null;
+  private currentMood: SceneLightingMood = 'kerosene_lamp';
+  private presets: Record<string, LightPreset>;
+
+  constructor(client: HueClient) {
+    this.client = client;
+    this.presets = (presetsData as unknown as { presets: Record<string, LightPreset> }).presets;
+  }
+
+  public getPresets(): Record<string, LightPreset> {
+    return this.presets;
+  }
+
+  public getCurrentMood(): SceneLightingMood {
+    return this.currentMood;
+  }
+
+  /**
+   * Start sesji: pobiera stan początkowy oświetlenia do bezpiecznego przywrócenia (Safety Snapshot)
+   */
+  public async onSessionStart(): Promise<void> {
+    const config = this.client.getConfig();
+    if (!config.enabled) return;
+
+    this.initialSnapshot = await this.client.captureSnapshot();
+    // Ustawienie domyślnego nastroju wnętrz retro lat 20.
+    await this.applyPreset('kerosene_lamp', 3000);
+  }
+
+  /**
+   * Zakończenie sesji [KONIEC_SESJI]: bezpieczne przywrócenie stanu oświetlenia sprzed gry
+   */
+  public async onSessionEnd(): Promise<void> {
+    const config = this.client.getConfig();
+    if (!config.enabled || !this.initialSnapshot) return;
+
+    await this.client.restoreSnapshot(this.initialSnapshot, 4000);
+    this.initialSnapshot = null;
+  }
+
+  /**
+   * Awaryjny przycisk bezpieczeństwa w UI (Emergency Light):
+   * Natychmiast zapala bezpieczne, jasne światło domowe (2700K, 80% jasności)
+   */
+  public async triggerEmergencyLight(): Promise<void> {
+    await this.client.applyToSelectedLights({
+      on: { on: true },
+      dimming: { brightness: 80 },
+      color_temperature: { mirek: 370 }, // 2700K ciepła biel domowa
+      dynamics: { duration: 1000 },
+    });
+  }
+
+  /**
+   * Zastosowanie konkretnego nastroju barwnego (np. zmiana lokacji lub pory dnia)
+   */
+  public async applyPreset(
+    presetId: SceneLightingMood | string,
+    overrideTransitionMs?: number
+  ): Promise<boolean> {
+    const preset = this.presets[presetId];
+    if (!preset) return false;
+
+    this.currentMood = presetId as SceneLightingMood;
+    const duration = overrideTransitionMs ?? preset.transitionMs;
+
+    const payload: Record<string, unknown> = {
+      on: { on: true },
+      dimming: { brightness: preset.brightness },
+      dynamics: { duration },
+    };
+
+    if (preset.mirek) {
+      payload.color_temperature = { mirek: preset.mirek };
+    } else if (preset.xy) {
+      payload.color = { xy: { x: preset.xy[0], y: preset.xy[1] } };
+    }
+
+    await this.client.applyToSelectedLights(payload);
+    return true;
+  }
+
+  /**
+   * Somatyczny Szok: Reakcja na utratę Poczytalności (SAN Loss).
+   * Krok 1: Natychmiastowe zgaśnięcie do ciemności (200 ms).
+   * Krok 2: Powolna adaptacja wzroku do mroku i powrót do nastroju sceny (4000 ms).
+   */
+  public async triggerSanityShock(): Promise<void> {
+    const config = this.client.getConfig();
+    if (!config.enabled) return;
+
+    // Krok 1: Natychmiastowe uderzenie ciemności
+    await this.client.applyToSelectedLights({
+      on: { on: true },
+      dimming: { brightness: 3 }, // prawie całkowity mrok
+      dynamics: { duration: 200 },
+    });
+
+    // Krok 2: Adaptacja wzroku po 1.2 sekundy szoku
+    setTimeout(async () => {
+      await this.applyPreset(this.currentMood, 4000);
+    }, 1200);
+  }
+
+  /**
+   * Subtelny impuls zakłócenia (Flicker / Pech / Fumble)
+   */
+  public async triggerFlicker(): Promise<void> {
+    const config = this.client.getConfig();
+    if (!config.enabled) return;
+
+    const currentPreset = this.presets[this.currentMood];
+    const baseBrightness = currentPreset ? currentPreset.brightness : 35;
+
+    // Krótkie przygaśnięcie
+    await this.client.applyToSelectedLights({
+      dimming: { brightness: Math.max(5, Math.floor(baseBrightness * 0.2)) },
+      dynamics: { duration: 150 },
+    });
+
+    setTimeout(async () => {
+      await this.client.applyToSelectedLights({
+        dimming: { brightness: baseBrightness },
+        dynamics: { duration: 300 },
+      });
+    }, 250);
+  }
+
+  /**
+   * Deterministyczna analiza stanu gry: dobór nastroju na podstawie pory dnia i opisu lokacji
+   */
+  public evaluateEnvironmentMood(params: {
+    hour?: number;
+    isOutdoor?: boolean;
+    isUnderground?: boolean;
+    isSanatoriumOrClinic?: boolean;
+    isOccultScene?: boolean;
+  }): SceneLightingMood {
+    if (params.isOccultScene) return 'cosmic_horror';
+    if (params.isUnderground) return 'subterranean_dark';
+    if (params.isSanatoriumOrClinic) return 'institutional_cold';
+
+    const hour = params.hour ?? 20;
+    const isNight = hour >= 22 || hour < 5;
+    const isDay = hour >= 7 && hour < 18;
+
+    if (params.isOutdoor) {
+      return isDay ? 'new_england_fog' : 'subterranean_dark';
+    }
+
+    return isNight ? 'candlelight' : 'kerosene_lamp';
+  }
+}

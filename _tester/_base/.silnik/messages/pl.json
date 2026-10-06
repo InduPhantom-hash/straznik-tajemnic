@@ -8610,5 +8610,32 @@
     "facts": "Fakty",
     "gaps": "Luki i Pytania",
     "recommendation": "Rekomendowany Kolejny Ruch"
+  },
+  "HueSettings": {
+    "title": "Inteligentne Oświetlenie (Philips Hue)",
+    "description": "Nastrojowe oświetlenie pokoju gracza przez lokalny mostek Philips Hue Bridge (100% LAN).",
+    "statusActive": "Aktywne ({count} lamp)",
+    "statusDisabled": "Wyłączone / Brak mostka",
+    "expand": "Rozwiń",
+    "collapse": "Zwiń",
+    "enabled": "Włączone",
+    "disabled": "Wyłączone",
+    "pairRequiredBeforeEnabling": "Przed włączeniem sparuj aplikację z mostkiem Hue.",
+    "bridgeIpAddress": "Adres IP mostka w sieci lokalnej",
+    "scanLan": "Wykryj w LAN",
+    "scanning": "Wyszukiwanie mostków w sieci...",
+    "foundBridges": "Znaleziono {count} mostek/mostki w sieci.",
+    "noBridgesFound": "Nie znaleziono mostków w sieci. Wpisz IP ręcznie.",
+    "discoveryError": "Błąd wyszukiwania mostków.",
+    "detectedBridges": "Wykryte mostki:",
+    "provideIpFirst": "Podaj najpierw adres IP mostka.",
+    "pressButtonInstruction": "Wciśnij duży przycisk na mostku Hue i kliknij [Paruj].",
+    "linking": "Łączenie z mostkiem...",
+    "linkSuccess": "Pomyślnie połączono z mostkiem Hue!",
+    "linkFailed": "Nie udało się połączyć. Upewnij się, że wciśnięto przycisk.",
+    "pairBridgeButton": "Paruj z mostkiem",
+    "selectLightsTitle": "Wybierz lampy biorące udział w sesji",
+    "loadingLights": "Wczytywanie listy lamp...",
+    "noLightsFound": "Nie znaleziono zarejestrowanych lamp na mostku."
   }
 }

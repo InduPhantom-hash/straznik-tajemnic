@@ -8610,5 +8610,32 @@
     "facts": "Facts",
     "gaps": "Gaps and Questions",
     "recommendation": "Recommended Next Move"
+  },
+  "HueSettings": {
+    "title": "Smart Lighting (Philips Hue)",
+    "description": "Atmospheric room lighting via local Philips Hue Bridge (100% LAN).",
+    "statusActive": "Active ({count} lights)",
+    "statusDisabled": "Disabled / No bridge",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "pairRequiredBeforeEnabling": "Pair with Hue bridge before enabling.",
+    "bridgeIpAddress": "Bridge IP address in local network",
+    "scanLan": "Detect in LAN",
+    "scanning": "Scanning network for bridges...",
+    "foundBridges": "Found {count} bridge(s) on network.",
+    "noBridgesFound": "No bridges found on network. Enter IP manually.",
+    "discoveryError": "Bridge discovery error.",
+    "detectedBridges": "Detected bridges:",
+    "provideIpFirst": "Enter bridge IP address first.",
+    "pressButtonInstruction": "Press the large button on your Hue bridge and click [Pair].",
+    "linking": "Connecting to bridge...",
+    "linkSuccess": "Successfully paired with Hue bridge!",
+    "linkFailed": "Connection failed. Make sure the bridge button was pressed.",
+    "pairBridgeButton": "Pair with Bridge",
+    "selectLightsTitle": "Select lights participating in session",
+    "loadingLights": "Loading lights list...",
+    "noLightsFound": "No registered lights found on the bridge."
   }
 }
