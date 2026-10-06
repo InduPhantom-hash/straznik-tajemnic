@@ -58,6 +58,8 @@ export interface WelcomeScreenProps {
   isStarting?: boolean;
   startProgress?: number;
   startStatus?: string;
+  /** Flaga sterująca aktywnością dźwięku i animacji cytatu na dole. */
+  quoteActive?: boolean;
 }
 
 export interface Quote {

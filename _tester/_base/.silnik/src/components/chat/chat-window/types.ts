@@ -184,4 +184,6 @@ export interface ChatWindowProps {
   onCloseCheatChase?: () => void;
   activeChaseState?: ChaseState | null;
   onChaseStateChange?: (state: ChaseState) => void;
+  /** Flaga aktywności cytatu WelcomeScreen (dźwięk maszyny i pisanie). */
+  quoteActive?: boolean;
 }
