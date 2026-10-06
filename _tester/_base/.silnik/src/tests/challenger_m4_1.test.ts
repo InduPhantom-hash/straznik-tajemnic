@@ -532,7 +532,9 @@ W bibliotece leży ten sam list od archiwisty.
       const tag = '[PRZEDMIOT: Protokół przesłuchania - Komenda MO | dokument]';
 
       const result = appendJournalToParty([char], char, tag, 'msg-hyphen-check');
-      const clue = result.characters[0].investigatorDossier?.clues[0]!;
+      const clue = result.characters[0].investigatorDossier?.clues[0];
+      expect(clue).toBeDefined();
+      if (!clue) return;
 
       // Verify no em-dash or en-dash in title or description
       expect(clue.title).not.toContain('\u2013');

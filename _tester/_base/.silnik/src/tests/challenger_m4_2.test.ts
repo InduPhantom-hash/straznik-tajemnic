@@ -111,9 +111,9 @@ describe('Challenger M4-2 Empirical Adversarial Stress Suite', () => {
       // apply-journal-tags.ts:1323 references activeCharacter.id without optional chaining.
       let threwTypeError = false;
       try {
-        appendJournalToParty([], undefined as any, '[PRZEDMIOT: Mapa | mapa]', 'msg-undefined-active');
-      } catch (err: any) {
-        if (err instanceof TypeError && err.message.includes('id')) {
+        appendJournalToParty([], undefined as unknown as Character, '[PRZEDMIOT: Mapa | mapa]', 'msg-undefined-active');
+      } catch (err: unknown) {
+        if (err instanceof TypeError && (err as Error).message.includes('id')) {
           threwTypeError = true;
         }
       }
@@ -121,10 +121,11 @@ describe('Challenger M4-2 Empirical Adversarial Stress Suite', () => {
     });
 
     it('1.4: auto-heals character missing investigatorDossier via ensureCharacterDossier', () => {
+      const baseChar = createMockCharacter();
       const charWithoutDossier = {
-        ...createMockCharacter(),
-        investigatorDossier: undefined as any,
-      };
+        ...baseChar,
+      } as Character;
+      delete (charWithoutDossier as { investigatorDossier?: unknown }).investigatorDossier;
 
       const res = appendJournalToParty(
         [charWithoutDossier],
@@ -142,15 +143,15 @@ describe('Challenger M4-2 Empirical Adversarial Stress Suite', () => {
     });
 
     it('1.5: handles character with incomplete investigatorDossier (missing clues array)', () => {
+      const baseChar = createMockCharacter();
       const charIncompleteDossier = {
-        ...createMockCharacter(),
+        ...baseChar,
         investigatorDossier: {
           npcs: [],
           locations: [],
           notes: [],
-          // clues is undefined
-        } as any,
-      };
+        },
+      } as unknown as Character;
 
       const res = appendJournalToParty(
         [charIncompleteDossier],
@@ -165,11 +166,12 @@ describe('Challenger M4-2 Empirical Adversarial Stress Suite', () => {
     });
 
     it('1.6: handles missing journal and equipment arrays without crash', () => {
+      const baseChar = createMockCharacter();
       const charMissingArrays = {
-        ...createMockCharacter(),
-        journal: undefined as any,
-        equipment: undefined as any,
-      };
+        ...baseChar,
+      } as Character;
+      delete (charMissingArrays as { journal?: unknown }).journal;
+      delete (charMissingArrays as { equipment?: unknown }).equipment;
 
       const res = appendJournalToParty(
         [charMissingArrays],
@@ -411,7 +413,7 @@ Proboszcz dzialal w porozumieniu z UB
 
       // Step 2: Section parser verification
       const sections = parseIntoSections(cleaned);
-      const handoutSections = sections.filter((s: any) => s.type === 'handout');
+      const handoutSections = sections.filter((s) => s.type === 'handout');
       expect(handoutSections.length).toBe(3);
 
       // Step 3: Journal and dossier processing

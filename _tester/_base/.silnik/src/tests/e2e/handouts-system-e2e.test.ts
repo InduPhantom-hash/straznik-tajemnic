@@ -23,19 +23,8 @@ import { buildHandoutsContext } from '@/app/api/chat/_helpers/build-handouts-con
 import { cleanupContent } from '@/components/chat/narrative/cleanup';
 import { parseIntoSections } from '@/components/chat/narrative/parse-sections';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
-import type { Character, JournalEntry } from '@/lib/types';
-import type { InvestigatorDossier } from '@/lib/journal/dossier-types';
-
+import type { Character } from '@/lib/types';
 import { createEmptyDossier } from '@/lib/journal/dossier-types';
-
-// Dynamic resolver loader (M3 contract)
-let resolveHandoutBySlug: ((slug: string, context?: AdventureContext | null) => AdventureHandout | null) | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  resolveHandoutBySlug = require('@/lib/handout-resolver').resolveHandoutBySlug;
-} catch {
-  resolveHandoutBySlug = null;
-}
 
 // ============================================================================
 // FIXTURES & TEST HELPERS
@@ -272,19 +261,19 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
       ];
 
       it('1.2.1: includes available handouts in GM prompt context', () => {
-        const context = (buildHandoutsContext as any)(sampleHandouts, null);
+        const context = buildHandoutsContext(sampleHandouts, null);
         expect(context).toContain('DOSTĘPNE HANDOUTY');
         expect(context).toContain('Mapa sztabowa okolic Walimia');
       });
 
       it('1.2.2: provides explicit deterministic instruction for [HANDOUT:<slug>] or image serving', () => {
-        const context = (buildHandoutsContext as any)(sampleHandouts, null);
+        const context = buildHandoutsContext(sampleHandouts, null);
         // Expect prompt instructions to either explicitly guide [HANDOUT:<slug>] or strict format
         expect(context).toMatch(/(\[HANDOUT:[^\]]+\]|wstaw dokładnie)/i);
       });
 
       it('1.2.3: excludes keeperOnly items from available player handouts list', () => {
-        const context = (buildHandoutsContext as any)(sampleHandouts, null);
+        const context = buildHandoutsContext(sampleHandouts, null);
         // The keeper secret should not be listed as a regular player-facing handout to present
         const availableSectionMatch = context.match(/## DOSTĘPNE HANDOUTY[\s\S]*?(?=##|$)/);
         if (availableSectionMatch) {
@@ -297,7 +286,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
       });
 
       it('1.2.4: scopes handouts to active chapter when options provided', () => {
-        const contextCh1 = (buildHandoutsContext as any)(sampleHandouts, null, {
+        const contextCh1 = buildHandoutsContext(sampleHandouts, null, {
           activeChapterId: 'rozdzial-1',
         });
         expect(contextCh1).toBeTruthy();
@@ -315,7 +304,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
           },
         ];
 
-        const context = (buildHandoutsContext as any)(sampleHandouts, samplePuzzles);
+        const context = buildHandoutsContext(sampleHandouts, samplePuzzles);
         expect(context).toContain('ŁAMIGŁÓWKI');
         expect(context).toContain('Szyfr w kalendarzu');
         expect(context).toContain('IDEA ROLL');
@@ -363,7 +352,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
         expect(sections.length).toBeGreaterThanOrEqual(1);
 
         const hasHandoutSection = sections.some(
-          (s: any) => (s.type === 'handout' && (s.handoutSlug === 'teczka-sb-klin' || s.content?.includes('teczka-sb-klin'))) ||
+          (s) => (s.type === 'handout' && (s.handoutSlug === 'teczka-sb-klin' || s.content?.includes('teczka-sb-klin'))) ||
                       (s.content?.includes('HANDOUT:teczka-sb-klin'))
         );
         expect(hasHandoutSection).toBe(true);
@@ -472,12 +461,12 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
   describe('Tier 2: Boundary & Corner Cases (Defenses & Stress)', () => {
     describe('2.1: Empty, Null, and Undefined Inputs (Boundary 1)', () => {
       it('2.1.1: buildHandoutsContext returns empty string for null handouts', () => {
-        const context = (buildHandoutsContext as any)(null, null);
+        const context = buildHandoutsContext(null, null);
         expect(context).toBe('');
       });
 
       it('2.1.2: buildHandoutsContext returns empty string for empty array', () => {
-        const context = (buildHandoutsContext as any)([], []);
+        const context = buildHandoutsContext([], []);
         expect(context).toBe('');
       });
 
@@ -485,7 +474,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
         const handouts: ExtendedHandout[] = [
           { slug: 'h-1', title: 'H1', image: '/img.webp' },
         ];
-        expect(() => (buildHandoutsContext as any)(handouts, null, undefined)).not.toThrow();
+        expect(() => buildHandoutsContext(handouts, null, undefined)).not.toThrow();
       });
 
       it('2.1.4: parseIntoSections handles empty string without throwing', () => {
@@ -592,7 +581,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
       ];
 
       it('2.4.1: keeperOnly: true is not included in general available presentation', () => {
-        const ctx = (buildHandoutsContext as any)(sensitiveHandouts, null);
+        const ctx = buildHandoutsContext(sensitiveHandouts, null);
         // The secret tunnel must not be presented as a normal handout to show to players
         const availableBlock = ctx.split('##')[1] || '';
         if (availableBlock.includes('DOSTĘPNE HANDOUTY')) {
@@ -610,7 +599,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
             keeperOnly: true,
           },
         ];
-        const ctx = (buildHandoutsContext as any)(singlePrivate, null);
+        const ctx = buildHandoutsContext(singlePrivate, null);
         const playerDirectives = ctx.match(/wstaw dokładnie:.*Prywatny notes/i);
         expect(playerDirectives).toBeNull();
       });
@@ -626,7 +615,7 @@ describe('Universal Handouts System E2E Suite (Issue #649)', () => {
             isPlayerFacing: false,
           },
         ];
-        const ctx = (buildHandoutsContext as any)(chapterSensitive, null, {
+        const ctx = buildHandoutsContext(chapterSensitive, null, {
           activeChapterId: 'rozdzial-1',
         });
         expect(ctx).not.toMatch(/wstaw dokładnie:.*Klucz do zagadki komory/i);
@@ -900,35 +889,6 @@ Oficer wlacza magnetofon szpulowy. Z glosnika dobiega znieksztalcony glos.
     });
 
     it('4.2: Multi-chapter scenario simulation with strict keeper containment', () => {
-      const chapterScenario = {
-        id: 'tajemnica-krypty',
-        title: 'Tajemnica Krypty Walimia',
-        handouts: [
-          {
-            slug: 'letter-father',
-            title: 'List starego proboszcza',
-            image: '/handouts/list.webp',
-            chapterId: 'act-1',
-            isPlayerFacing: true,
-          },
-          {
-            slug: 'keeper-tactical-map',
-            title: 'Tajna mapa pułapek w podziemiach (Keeper Only)',
-            image: '/handouts/pulapki.webp',
-            chapterId: 'act-1',
-            keeperOnly: true,
-            isPlayerFacing: false,
-          },
-          {
-            slug: 'telegram-bishop',
-            title: 'Telegram od biskupa',
-            image: '/handouts/telegram.webp',
-            chapterId: 'act-2',
-            isPlayerFacing: true,
-          },
-        ],
-      } as AdventureContext;
-
       let party = [createMockCharacter('char-lead', 'Janusz Kowalski')];
 
       // Act 1: Discover public letter
