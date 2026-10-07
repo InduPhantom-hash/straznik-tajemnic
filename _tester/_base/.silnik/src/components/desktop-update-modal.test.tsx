@@ -50,6 +50,14 @@ describe('DesktopUpdateModal & DesktopUpdateNotifier Dark Art Deco', () => {
     expect(screen.getByRole('img', { name: /symbol oka strażnika tajemnic/i })).toBeInTheDocument();
     expect(screen.getByText(/Nowa Depesza i Ulepszenia/i)).toBeInTheDocument();
 
+    // Weryfikacja responsywności i wyśrodkowania modalu (nie może być nadpisane przez relative)
+    const modalContent = screen.getByTestId('desktop-update-modal');
+    expect(modalContent).toHaveClass('fixed');
+    expect(modalContent).toHaveClass('left-[50%]');
+    expect(modalContent).toHaveClass('top-[50%]');
+    expect(modalContent).toHaveClass('translate-x-[-50%]');
+    expect(modalContent).toHaveClass('translate-y-[-50%]');
+
     // Kliknięcie Aktualizuj teraz
     const updateBtn = screen.getByRole('button', { name: /Aktualizuj teraz/i });
     fireEvent.click(updateBtn);

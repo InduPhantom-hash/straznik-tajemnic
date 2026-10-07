@@ -57,7 +57,7 @@ export function DesktopUpdateModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="desktop-update-modal"
-        className="w-[min(94vw,480px)] max-h-[85vh] flex flex-col items-center border border-brass/60 bg-[#0B0C0F] p-4 sm:p-6 text-foreground shadow-2xl rounded-xl relative overflow-y-auto journal-scroll z-[9999]"
+        className="w-[min(94vw,480px)] max-h-[85vh] flex flex-col items-center border border-brass/60 bg-[#0B0C0F] p-4 sm:p-6 text-foreground shadow-2xl rounded-xl overflow-y-auto journal-scroll z-[9999]"
       >
         {/* Dekoracyjne złote linie narożne Art Déco */}
         <div className="pointer-events-none absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/70" />
