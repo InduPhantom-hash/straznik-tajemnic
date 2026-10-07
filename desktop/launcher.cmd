@@ -44,6 +44,8 @@ if exist "%SCRIPT_DIR%..\bin\node.exe" (
 
 cd /d "%SCRIPT_DIR%.."
 
+set NODE_OPTIONS=--max-old-space-size=4096
+
 echo Uruchamianie gry Strażnik Tajemnic AI...
 "%NODE_BIN%" "%SCRIPT_DIR%supervisor.mjs"
 

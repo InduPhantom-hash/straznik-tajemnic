@@ -19,6 +19,10 @@ import {
   initSessionLogger
 } from './supervisor.mjs';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function runTests() {
   console.log('=== Rozpoczynam testy modułu desktop/supervisor.mjs ===\n');
@@ -234,8 +238,22 @@ async function runTests() {
   await new Promise((resolve) => loopbackServer.close(resolve));
   console.log('  PASS: detekcja i połączenia są w 100% oparte na deterministycznym 127.0.0.1.\n');
 
+  // Test 7: Limit pamięci sterty V8 (NODE_OPTIONS --max-old-space-size=4096)
+  console.log('[7/7] Test: Limit pamięci Node.js (NODE_OPTIONS --max-old-space-size=4096)');
+  const supervisorSource = fs.readFileSync(path.join(__dirname, 'supervisor.mjs'), 'utf8');
+  assert.ok(
+    supervisorSource.includes('--max-old-space-size=4096'),
+    'supervisor.mjs musi przekazywać --max-old-space-size=4096 w konfiguracji NODE_OPTIONS serwera'
+  );
+  const launcherCmdSource = fs.readFileSync(path.join(__dirname, 'launcher.cmd'), 'utf8');
+  assert.ok(
+    launcherCmdSource.includes('--max-old-space-size=4096'),
+    'launcher.cmd musi definiować set NODE_OPTIONS=--max-old-space-size=4096 przed startem'
+  );
+  console.log('  PASS: konfiguracja limitu pamięci 4GB Node.js jest obecna w supervisorze i launcherze.\n');
+
   console.log('====================================================');
-  console.log('Wszystkie testy supervisora zakończone SUKCESEM (6/6)!');
+  console.log('Wszystkie testy supervisora zakończone SUKCESEM (7/7)!');
   console.log('====================================================');
 }
 

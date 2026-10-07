@@ -73,4 +73,23 @@ describe('pdfParserService', () => {
       'PDF jest chroniony hasłem'
     );
   });
+
+  it('obsługuje callback onProgress i raportuje etapy parsowania stron', async () => {
+    mockedExtractText.mockResolvedValue({
+      text: ['Strona 1', 'Strona 2'],
+      totalPages: 2,
+    } as never);
+
+    const progressUpdates: Array<{ current: number; total: number; stage: string }> = [];
+    const result = await pdfParserService.parsePDFBuffer(pdfBuffer(), {
+      onProgress: (current, total, stage) => {
+        progressUpdates.push({ current, total, stage });
+      },
+    });
+
+    expect(result.pages).toBe(2);
+    expect(progressUpdates.length).toBeGreaterThan(0);
+    expect(progressUpdates.some((p) => p.stage === 'pages' || p.stage === 'init')).toBe(true);
+  });
 });
+

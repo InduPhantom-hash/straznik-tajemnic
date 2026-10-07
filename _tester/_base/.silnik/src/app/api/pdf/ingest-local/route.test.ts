@@ -367,5 +367,18 @@ describe('GET /api/pdf/ingest-local', () => {
       hasBaseRules: true,
     });
   });
+
+  it('zapisuje postęp i zdarzenia parsowania do logs/pdf-ingest.log', async () => {
+    const { appendPdfIngestLog } = await import('@/lib/pdf/pdf-ingest-logger');
+    appendPdfIngestLog('Testowy wpis postępu parsowania');
+
+    const logsDir = path.join(tmpDir, 'logs');
+    const logFile = path.join(logsDir, 'pdf-ingest.log');
+
+    expect(fs.existsSync(logFile)).toBe(true);
+    const content = fs.readFileSync(logFile, 'utf-8');
+    expect(content).toContain('[PDF-INGEST] Testowy wpis postępu parsowania');
+  });
 });
+
 

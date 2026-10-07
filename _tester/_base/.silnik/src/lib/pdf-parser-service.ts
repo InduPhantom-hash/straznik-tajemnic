@@ -19,11 +19,19 @@ export interface ParsedPDFData {
   size: number;
 }
 
+export interface ParsePDFOptions {
+  batchSize?: number;
+  onProgress?: (current: number, total: number, stage: 'init' | 'pages' | 'complete') => void;
+}
+
 class PDFParserService {
   /**
    * Parsuje PDF buffer do tekstu z wykorzystaniem unpdf (WebAssembly)
    */
-  async parsePDFBuffer(buffer: Buffer): Promise<ParsedPDFData> {
+  async parsePDFBuffer(
+    buffer: Buffer,
+    options?: ParsePDFOptions
+  ): Promise<ParsedPDFData> {
     try {
       // Sprawdź czy buffer nie jest pusty
       if (!buffer || buffer.length === 0) {
@@ -46,6 +54,8 @@ class PDFParserService {
       }
 
       console.log('🔄 Rozpoczynanie parsowania PDF przez silnik unpdf (WASM)...');
+      options?.onProgress?.(0, 0, 'init');
+
       let uint8Array: Uint8Array | null = new Uint8Array(buffer);
 
       let textResult: { text?: string | string[]; totalPages?: number } | null = null;
@@ -95,6 +105,8 @@ class PDFParserService {
       const totalPages = textResult?.totalPages || pagesList.length || 0;
       textResult = null;
 
+      options?.onProgress?.(totalPages, totalPages, 'pages');
+
       // Zbuduj jednolity tekst z wyraźnymi separatorami stron dla lepszego podziału
       const fullText = pagesList
         .map((pageContent, idx) => {
@@ -112,6 +124,8 @@ class PDFParserService {
       console.log(
         `📊 PDF sparsowany pomyślnie przez unpdf: ${textLength} znaków ze stron: ${totalPages}`
       );
+
+      options?.onProgress?.(totalPages, totalPages, 'complete');
 
       const info = (metaResult?.info || {}) as Record<string, unknown>;
       metaResult = null;
