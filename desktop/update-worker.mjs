@@ -628,7 +628,7 @@ async function pollHealthCheck() {
     return true;
   }
 
-  const endpoint = `http://localhost:${port}/api/desktop/cold-start`;
+  const endpoint = `http://127.0.0.1:${port}/api/desktop/cold-start`;
   // Sprawdzamy do 150 prób (150 * 300ms = 45s) na uruchomienie i pełną gotowość serwera
   for (let attempt = 0; attempt < 150; attempt++) {
     try {
