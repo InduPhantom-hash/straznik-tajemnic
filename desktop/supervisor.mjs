@@ -437,9 +437,21 @@ function activateExistingWindow(paths, url) {
 }
 
 /**
- * Odpala dedykowane okno aplikacji bez pasków nawigacyjnych (Chrome/Edge --app).
+ * Pobiera listę potencjalnych ścieżek instalacji Google Chrome na Windows.
+ * Celowo wyklucza Microsoft Edge zgodnie z zasadą Chrome-only.
  */
-function launchAppWindow(paths, url, log) {
+export function getWindowsBrowserCandidates(customEnv = process.env, customHome = os.homedir()) {
+  return [
+    path.join(customEnv.ProgramFiles || 'C:\\Program Files', 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(customEnv['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(customEnv.LocalAppData || path.join(customHome, 'AppData', 'Local'), 'Google', 'Chrome', 'Application', 'chrome.exe')
+  ];
+}
+
+/**
+ * Odpala dedykowane okno aplikacji bez pasków nawigacyjnych (Chrome --app).
+ */
+export function launchAppWindow(paths, url, log = () => {}) {
   const platform = process.platform;
 
   if (platform === 'darwin') {
@@ -464,19 +476,11 @@ function launchAppWindow(paths, url, log) {
   }
 
   if (platform === 'win32') {
-    const edgePaths = [
-      path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
-      path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Microsoft', 'Edge', 'Application', 'msedge.exe')
-    ];
-    const chromePaths = [
-      path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Google', 'Chrome', 'Application', 'chrome.exe'),
-      path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Google', 'Chrome', 'Application', 'chrome.exe')
-    ];
-
-    const browserCandidate = [...edgePaths, ...chromePaths].find((p) => fs.existsSync(p));
+    const chromePaths = getWindowsBrowserCandidates();
+    const browserCandidate = chromePaths.find((p) => fs.existsSync(p));
 
     if (browserCandidate) {
-      log(`Otwieram okno przeglądarki Windows (${browserCandidate}) w trybie --app...`);
+      log(`Otwieram okno Google Chrome (${browserCandidate}) w trybie --app...`);
       return spawn(
         browserCandidate,
         [
@@ -490,7 +494,7 @@ function launchAppWindow(paths, url, log) {
       );
     }
 
-    log(`Brak dedykowanego Edge/Chrome, otwieram domyślną przeglądarkę systemową.`);
+    log(`Brak Google Chrome, otwieram domyślną przeglądarkę systemową.`);
     execSync(`start "" "${url}"`);
     return null;
   }

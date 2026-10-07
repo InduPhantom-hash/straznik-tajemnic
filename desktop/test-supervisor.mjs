@@ -14,7 +14,8 @@ import {
   isPortAvailable,
   findAvailablePort,
   checkExistingInstance,
-  killProcessTree
+  killProcessTree,
+  getWindowsBrowserCandidates
 } from './supervisor.mjs';
 
 async function runTests() {
@@ -134,8 +135,24 @@ async function runTests() {
   assert.equal(isAliveAfter, false, 'Po killProcessTree proces testowy musi zostać bezwzględnie ubity');
   console.log('  PASS: killProcessTree skutecznie eliminuje procesy potomne.\n');
 
+  // Test 5: Reguła Chrome-Only dla Windows (brak msedge.exe w kandydatach)
+  console.log('[5/5] Test: getWindowsBrowserCandidates() - reguła Chrome-Only');
+  const mockEnv = {
+    ProgramFiles: 'C:\\Program Files',
+    'ProgramFiles(x86)': 'C:\\Program Files (x86)',
+    LocalAppData: 'C:\\Users\\Użytkownik\\AppData\\Local'
+  };
+  const candidates = getWindowsBrowserCandidates(mockEnv, 'C:\\Users\\Użytkownik');
+  assert.ok(candidates.length >= 3, 'Powinny być co najmniej 3 ścieżki kandydatów Chrome');
+  for (const c of candidates) {
+    assert.ok(c.toLowerCase().includes('chrome.exe'), `Ścieżka kandydata ${c} musi wskazywać na chrome.exe`);
+    assert.ok(!c.toLowerCase().includes('edge'), `Ścieżka kandydata ${c} NIE MOŻE zawierać Microsoft Edge`);
+    assert.ok(!c.toLowerCase().includes('msedge'), `Ścieżka kandydata ${c} NIE MOŻE zawierać msedge.exe`);
+  }
+  console.log('  PASS: getWindowsBrowserCandidates ściśle przestrzega reguły Chrome-Only i ignoruje Edge.\n');
+
   console.log('====================================================');
-  console.log('Wszystkie testy supervisora zakończone SUKCESEM (4/4)!');
+  console.log('Wszystkie testy supervisora zakończone SUKCESEM (5/5)!');
   console.log('====================================================');
 }
 

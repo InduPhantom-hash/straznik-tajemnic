@@ -1,4 +1,6 @@
 @echo off
+chcp 65001 >nul
+setlocal
 set "ROOT_DIR=%~dp0"
 if exist "%ROOT_DIR%runtime\desktop\launcher.cmd" (
     call "%ROOT_DIR%runtime\desktop\launcher.cmd"
@@ -9,3 +11,4 @@ if exist "%ROOT_DIR%runtime\desktop\launcher.cmd" (
     echo Upewnij sie, ze archiwum ZIP zostalo poprawnie wypakowane w calosci.
     pause
 )
+endlocal
