@@ -49,6 +49,8 @@ describe('NPC Voice Mapping & Tone of Voice (Issue #170)', () => {
     });
 
     it('poprawnie rozpoznaje imiona żeńskie bez końcówki -a (znane imiona epoki i anglosaskie)', () => {
+      expect(inferGenderFromName('Abigail')).toBe('female');
+      expect(inferGenderFromName('Abigail Vance')).toBe('female');
       expect(inferGenderFromName('Helen')).toBe('female');
       expect(inferGenderFromName('Ruth')).toBe('female');
       expect(inferGenderFromName('Alice')).toBe('female');
@@ -140,6 +142,31 @@ describe('NPC Voice Mapping & Tone of Voice (Issue #170)', () => {
 
       const resolved = resolveDynamicNpcVoice('Helena', voiceMap);
       expect(resolved.voiceId).toBe('Aoede');
+    });
+
+    it('Issue #693: przypisuje kobiecy głos dla Abigail Vance z uwzględnieniem wieku i twardego bezpiecznika płci', () => {
+      const voiceMap = new Map<string, string>();
+      // Młoda archiwistka / badaczka
+      const youngAbigail = resolveDynamicNpcVoice('Abigail Vance', voiceMap, undefined, {
+        description: 'Młoda asystentka archiwum w Bostonie, dwudziestokilkuletnia dziewczyna',
+      });
+      expect(youngAbigail.voiceId).toBe('Leda');
+      expect(youngAbigail.audioDirection).toContain('female');
+
+      // Dojrzała kobieta bez wskazania młodego wieku
+      const adultMap = new Map<string, string>();
+      const adultAbigail = resolveDynamicNpcVoice('Abigail Vance', adultMap, undefined, {
+        description: 'Archiwistka w Bostonie',
+      });
+      expect(adultAbigail.voiceId).toBe('Aoede');
+      expect(adultAbigail.audioDirection).toContain('female');
+
+      // Twardy bezpiecznik płci: próba przypisania męskiego głosu kobiecie zostaje skorygowana
+      const corruptMap = new Map<string, string>();
+      corruptMap.set('abigail vance', 'Puck');
+      const fixed = resolveDynamicNpcVoice('Abigail Vance', corruptMap);
+      expect(fixed.voiceId).not.toBe('Puck');
+      expect(['Aoede', 'Leda', 'Gacrux']).toContain(fixed.voiceId);
     });
 
     it('zwraca męski głos Puck dla nowo napotkanego mężczyzny', () => {
