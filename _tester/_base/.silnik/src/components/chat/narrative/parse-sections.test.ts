@@ -311,5 +311,26 @@ describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
     expect(handout?.stickyNote?.about).toBe('Akta');
     expect(handout?.stickyNote?.clue).toBe('Slad');
   });
+
+  it('poprawnie parsuje tag [DOWÓD:slug] oraz [EVIDENCE:slug] jako sekcję handoutu (Issue #661)', () => {
+    const text = [
+      'Badacz przeszukuje biurko Knotta.',
+      '[DOWÓD:clue-01-knott-keys]',
+      'Mosiężne klucze leżą obok wizytówki.',
+    ].join('\n');
+    const sections = parseIntoSections(text);
+    const handout = sections.find((s) => s.type === 'handout');
+    expect(handout).toBeDefined();
+    expect(handout?.handoutSlug).toBe('clue-01-knott-keys');
+
+    const textEn = [
+      'Investigator examines the evidence.',
+      '[EVIDENCE:clue-02-boston-globe-1918]',
+    ].join('\n');
+    const sectionsEn = parseIntoSections(textEn);
+    const handoutEn = sectionsEn.find((s) => s.type === 'handout');
+    expect(handoutEn).toBeDefined();
+    expect(handoutEn?.handoutSlug).toBe('clue-02-boston-globe-1918');
+  });
 });
 

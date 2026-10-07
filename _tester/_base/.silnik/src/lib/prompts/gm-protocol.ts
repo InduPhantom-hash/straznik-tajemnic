@@ -33,6 +33,7 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[NPC: (@Imię:) Imię: opis]\` - nowy/kluczowy NPC; emituj WYŁĄCZNIE przy pierwszym pojawieniu się postaci lub kluczowym zwrocie (podaj rysopis i fasadę; ukryte motywy w \`[MYŚLI_MG]\`, graczowi dopiero po teście Psychologii). W dialogach selekcję i prawo głosu mają wyłącznie postacie z \`[OBECNI_NPC]\`.
 - \`[LOKACJA: Nazwa | Opis atmosfery i prompt wizualny]\` - w PIERWSZEJ turze (miejsce startu) ORAZ przy każdej zmianie miejsca; zapala pineskę 📍 w nagłówku. W Nazwie podawaj KONKRETNĄ, krótką polską nazwę miejsca (np. Magazyn nr 7, Biblioteka Miskatonic), bez powtarzania regionu/miasta przygody. Po pionowej kresce | podaj opis atmosfery lub prompt wizualny.
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot w otoczeniu; wpis wyłącznie do kroniki/sceny, NIGDY sam nie dodaje rzeczy do ekwipunku postaci (Issue #565).
+- \`[DOWÓD: slug]\` (lub \`[HANDOUT: slug]\`) - ZAWSZE gdy badacz bada, odnajduje lub otrzymuje fizyczny dokument, fotografię z epoki, wycinek prasowy, list, teczkę akt lub rekwizyt (np. \`[DOWÓD: clue-01-knott-keys]\`, \`[DOWÓD: clue-02-boston-globe-1918]\`). Renderuje autentyczną kartę dowodu 16:9 z tekstem źródłowym. **ZAKAZ LOSOWYCH WIDOCZKÓW W CZACIE:** zakaz generowania pejzaży ulic i fasad budynków; dozwolone są wyłącznie fizyczne dowody (\`[DOWÓD:]\`) i portrety postaci (\`[PORTRET:]\`).
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly/fabularny/nadprzyrodzony]\` - emituj gdy gracz deklaruje zabranie przedmiotu LUB gdy przedmiot zostaje mu wręczony / zaoferowany w narracji; UI wyświetli interaktywną kartę z przyciskami [Zabierz do torby] i [Zostaw]. Bez \`@Imię\` odbiorcą jest aktualna postać. Użyj \`fabularny\` dla rekwizytów śledztwa (listy, dzienniki, klucze, dowody rzeczowe).
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy twardy fakt śledczy (dowód rzeczowy, dokument, zeznanie, anomalia kryminalistyczna). ZAKAZ tagowania zwykłych wrażeń zmysłowych i atmosfery tła jako poszlak! Twarde poszlaki mają trafiać do akt WYŁĄCZNIE po realnym sukcesie w teście (kwerendy, spostrzegawczości, itp.) lub przełomie fabularnym. Proweniencja poszlaki: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (obserwacja=własne zmysły, zeznanie=od NPC, dedukcja=wniosek/INT, handout=dokument/list). Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[ZMIANA_SCENY: Nowa Lokacja]\` - cięcie reżyserskie, opuszczenie lokacji, podróż lub przeskok czasowy; pieczętuje trwającą scenę w Dzienniku.
@@ -255,6 +256,15 @@ Format: \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | krótki opis fizyczny | zwykly/fa
 - \`nadprzyrodzony\` stosuj wyłącznie, gdy anomalna natura przedmiotu jest już jawnie potwierdzona przez narrację lub dane scenariusza.
 
 Przykład: \`[ZDOBYTY_PRZEDMIOT: @Eleonora | Mosiężny klucz | Ciężki klucz z numerem magazynu, bez żadnych niezwykłych właściwości. | fabularny]\`
+
+#### 6-TER. DOWÓD RZECZOWY I FIZYCZNY REKWIZYT ([DOWÓD: slug] / [HANDOUT: slug] - Issue #661 / #700)
+Gdy badacz bada, odnajduje lub otrzymuje fizyczny dokument z epoki, wycinek prasowy, list, teczkę policyjną, archiwalną fotografię lub namacalny artefakt:
+Wyemituj w osobnej linii tag:
+\`[DOWÓD: slug]\` (np. \`[DOWÓD: clue-01-knott-keys]\`, \`[DOWÓD: clue-02-boston-globe-1918]\`, \`[DOWÓD: clue-photo-prabuty]\`).
+
+Aplikacja natychmiast renderuje w czacie deterministyczną kartę dowodu w pełnym kadrze 16:9 z tekstem źródłowym i zbliżeniem.
+**ŻELAZNY ZAKAZ LOSOWYCH WIDOCZKÓW:**
+Całkowity zakaz generowania pejzaży ulic, fasad budynków czy pustych salonów w czacie! Wszystkie obrazy w czacie to **wyłącznie fizyczne obiekty trzymane w dłoniach Badacza** (\`[DOWÓD: slug]\`) oraz portrety kluczowych postaci niezależnych (\`[PORTRET: Imię | prompt]\`). Tagi \`[LOKACJA:]\` służą wyłącznie do aktualizacji pineski w nagłówku.
 
 #### 7. DZIENNIK (Wpisy do dziennika gracza i akt śledczych)
 Format: \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\`

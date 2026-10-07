@@ -74,6 +74,18 @@ describe('resolveHandoutBySlug (Issue #649)', () => {
     expect(result?.audioUrl).toBeTruthy();
   });
 
+  it('rozwiazuje fizyczne dowody ze Startera Nawiedzony Dom (Issue #661 / #700)', () => {
+    const keys = resolveHandoutBySlug('clue-01-knott-keys', null);
+    expect(keys).toBeDefined();
+    expect(keys?.title).toContain('Knotta');
+    expect(keys?.image).toBe('/adventure-packs/case-s11-01/clue-01-knott-keys.webp');
+
+    const globe = resolveHandoutBySlug('boston-globe-1918', null);
+    expect(globe).toBeDefined();
+    expect(globe?.title).toContain('Boston Globe');
+    expect(globe?.handoutType).toBe('newspaper');
+  });
+
   it('zwraca null dla nieistniejacego sluga bez bledu krytycznego', () => {
     const result = resolveHandoutBySlug('nieistniejacy-rekvizyt-404', mockContext);
     expect(result).toBeNull();
