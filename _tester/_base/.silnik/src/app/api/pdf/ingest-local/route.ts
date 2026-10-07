@@ -35,6 +35,7 @@ import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 import { buildLocalCustomAdventures } from '@/lib/pdf/adventure-local-builder';
 import { LOCAL_RAG_NAMESPACES, UpsertVector } from '@/lib/vector-db/vector-types';
 import type { CustomAdventure } from '@/lib/adventures-data';
+import { appendPdfIngestLog } from '@/lib/pdf/pdf-ingest-logger';
 import fs from 'fs';
 import path from 'path';
 import { getWritableDataDir } from '@/lib/paths';
@@ -278,7 +279,21 @@ export async function POST(request: NextRequest) {
       arrayBuffer = null;
 
       try {
-        const parsed = await pdfParserService.parsePDFBuffer(buffer);
+        appendPdfIngestLog(
+          `Start parsowania pliku "${fileName}" (${file.size} bajtów, typ: ${type}, kolumna docelowa: ${targetColumn || 'auto'})...`
+        );
+
+        const parsed = await pdfParserService.parsePDFBuffer(buffer, {
+          onProgress: (current, total, stage) => {
+            if (stage === 'init') {
+              appendPdfIngestLog(`Inicjalizacja silnika unpdf/WASM dla "${fileName}"...`);
+            } else if (stage === 'pages' && total > 0) {
+              appendPdfIngestLog(`Zakończono ekstrakcję stron: ${current}/${total} dla "${fileName}".`);
+            } else if (stage === 'complete') {
+              appendPdfIngestLog(`Ukończono przetwarzanie tekstu PDF dla "${fileName}".`);
+            }
+          },
+        });
         pdfText = parsed.text;
         pdfPagesCount = parsed.pages || 1;
         // Natychmiastowe czyszczenie bufora i tablicy stron po ekstrakcji tekstu
@@ -290,14 +305,17 @@ export async function POST(request: NextRequest) {
         console.log(
           `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
         );
+        appendPdfIngestLog(
+          `Sukces parsowania "${fileName}": ${pdfPagesCount} stron, ${pdfText.length} znaków tekstu.`
+        );
       } catch (parseError) {
         buffer = null;
+        const errMsg = parseError instanceof Error ? parseError.message : 'Nieznany błąd';
+        appendPdfIngestLog(`Błąd parsowania "${fileName}": ${errMsg}`);
         return NextResponse.json(
           {
             success: false,
-            error: `Błąd parsowania PDF: ${
-              parseError instanceof Error ? parseError.message : 'Nieznany błąd'
-            }`,
+            error: `Błąd parsowania PDF: ${errMsg}`,
           },
           { status: 422 }
         );

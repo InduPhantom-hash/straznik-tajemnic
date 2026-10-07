@@ -350,6 +350,7 @@ export async function runSupervisor(options = {}) {
     STRAZNIK_DESKTOP_UPDATE: process.env.STRAZNIK_DESKTOP_UPDATE || '1',
     ZEW_UPDATE_MANIFEST_URL: process.env.ZEW_UPDATE_MANIFEST_URL || defaultManifestUrl,
     ZEW_SESSION_LOG_FILE: sessionLogFile,
+    NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=4096',
     ...(defaultSelfUpdate !== undefined ? { ZEW_DESKTOP_SELF_UPDATE: defaultSelfUpdate } : {})
   };
 
