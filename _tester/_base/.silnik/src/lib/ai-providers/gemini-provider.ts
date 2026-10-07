@@ -81,6 +81,62 @@ const THINKING_LEVEL_MAP: Record<'low' | 'medium' | 'high', ThinkingLevel> = {
   high: ThinkingLevel.HIGH,
 };
 
+/**
+ * Detekcja błędów kwalifikujących się do natychmiastowego retry z exponential backoff:
+ * - 429 Too Many Requests / RESOURCE_EXHAUSTED / Quota exceeded
+ * - 502 Bad Gateway / 503 Service Unavailable / 504 Gateway Timeout / UNAVAILABLE / high demand
+ */
+export function isRetryableGeminiError(err: unknown): boolean {
+  if (!err) return false;
+  const errMsg = err instanceof Error ? err.message : String(err);
+  return (
+    errMsg.includes('429') ||
+    errMsg.includes('RESOURCE_EXHAUSTED') ||
+    errMsg.includes('quota') ||
+    errMsg.includes('Quota exceeded') ||
+    errMsg.includes('too many requests') ||
+    errMsg.includes('502') ||
+    errMsg.includes('503') ||
+    errMsg.includes('504') ||
+    errMsg.includes('high demand') ||
+    errMsg.includes('UNAVAILABLE') ||
+    errMsg.includes('overloaded') ||
+    errMsg.includes('Service Unavailable')
+  );
+}
+
+/**
+ * Wykonuje operację z automatycznym ponawianiem (exponential backoff + jitter).
+ * Domyślnie: 3 próby (baseDelay = 1000ms: ~1s, ~2s z jitterem).
+ * W środowisku testowym (process.env.NODE_ENV === 'test') delay jest skrócony do symbolicznych wartości.
+ */
+async function executeWithRetry<T>(
+  fn: () => Promise<T>,
+  modelName: string,
+  maxRetries = 2,
+  baseDelayMs = 1000
+): Promise<T> {
+  const isTest = process.env.NODE_ENV === 'test';
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err: unknown) {
+      if (attempt >= maxRetries || !isRetryableGeminiError(err)) {
+        throw err;
+      }
+      attempt++;
+      const jitter = Math.random() * 200;
+      const delay = isTest ? 10 : Math.min(8000, baseDelayMs * Math.pow(2, attempt - 1) + jitter);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `⚠️ Model "${modelName}" zgłosił błąd przeciążenia/limitu (${errMsg}). Ponawiam (próba ${attempt}/${maxRetries}) za ${Math.round(delay)}ms...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 export class GeminiChatProvider implements IChatProvider {
   readonly type = 'gemini' as const;
   private ai: GoogleGenAI;
@@ -323,7 +379,10 @@ export class GeminiChatProvider implements IChatProvider {
           );
         }
         activeModel = candidate;
-        firstResponse = await streamOnce(activeModel, config);
+        firstResponse = await executeWithRetry(
+          () => streamOnce(activeModel, config),
+          activeModel
+        );
         break;
       } catch (err: unknown) {
         lastError = err;
@@ -349,12 +408,12 @@ export class GeminiChatProvider implements IChatProvider {
 
         if (isRateLimit) {
           console.warn(
-            `⚠️ Model "${candidate}" zgłosił rate-limit 429 (${errMsg}). Oczekiwanie 1500ms i próba alternatywnego modelu w kaskadzie...`
+            `⚠️ Model "${candidate}" wyczerpał ponowienia rate-limit 429 (${errMsg}). Oczekiwanie 1500ms i próba alternatywnego modelu w kaskadzie...`
           );
           await new Promise((r) => setTimeout(r, 1500));
         } else {
           console.warn(
-            `⚠️ Model "${candidate}" niedostępny (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
+            `⚠️ Model "${candidate}" niedostępny po ponowieniach (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
           );
         }
       }
@@ -472,11 +531,15 @@ export class GeminiChatProvider implements IChatProvider {
           );
         }
         activeModel = candidate;
-        response = await ai.models.generateContent({
-          model: activeModel,
-          contents,
-          config,
-        });
+        response = await executeWithRetry(
+          () =>
+            ai.models.generateContent({
+              model: activeModel,
+              contents,
+              config,
+            }),
+          activeModel
+        );
         break;
       } catch (err: unknown) {
         lastError = err;
@@ -502,12 +565,12 @@ export class GeminiChatProvider implements IChatProvider {
 
         if (isRateLimit) {
           console.warn(
-            `⚠️ Model "${candidate}" zgłosił rate-limit 429 (${errMsg}). Oczekiwanie 1500ms i próba alternatywnego modelu w kaskadzie...`
+            `⚠️ Model "${candidate}" wyczerpał ponowienia rate-limit 429 (${errMsg}). Oczekiwanie 1500ms i próba alternatywnego modelu w kaskadzie...`
           );
           await new Promise((r) => setTimeout(r, 1500));
         } else {
           console.warn(
-            `⚠️ Model "${candidate}" niedostępny (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
+            `⚠️ Model "${candidate}" niedostępny po ponowieniach (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
           );
         }
       }

@@ -237,6 +237,30 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
       expect(wizardCode).toContain('data-testid="skills-filter-invested"');
       expect(wizardCode).toContain('data-testid="skills-filter-empty-state"');
     });
+
+    it('defines oracle overloaded banner keys in PL and EN and testids in wizard code (Issue #691)', () => {
+      const plPath = path.resolve(__dirname, '../../../../messages/pl.json');
+      const enPath = path.resolve(__dirname, '../../../../messages/en.json');
+      const pl = JSON.parse(fs.readFileSync(plPath, 'utf8'));
+      const en = JSON.parse(fs.readFileSync(enPath, 'utf8'));
+
+      const requiredKeys = [
+        'oracleOverloadedTitle',
+        'oracleOverloadedDesc',
+        'oracleRetry',
+        'oracleDismiss',
+      ];
+
+      for (const key of requiredKeys) {
+        expect(pl.CharacterWizard[key]).toBeTruthy();
+        expect(en.CharacterWizard[key]).toBeTruthy();
+      }
+
+      const wizardPath = path.resolve(__dirname, '../character-wizard.tsx');
+      const wizardCode = fs.readFileSync(wizardPath, 'utf8');
+      expect(wizardCode).toContain("'oracle-overloaded-skills-banner'");
+      expect(wizardCode).toContain("'oracle-overloaded-biography-banner'");
+    });
   });
 });
 
