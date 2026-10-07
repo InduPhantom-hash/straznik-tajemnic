@@ -57,7 +57,7 @@ export function DesktopUpdateModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="desktop-update-modal"
-        className="w-[min(94vw,520px)] max-h-[90vh] flex flex-col items-center border border-brass/60 bg-[#0B0C0F] p-6 text-foreground shadow-2xl rounded-xl relative overflow-hidden"
+        className="w-[min(94vw,480px)] max-h-[85vh] flex flex-col items-center border border-brass/60 bg-[#0B0C0F] p-4 sm:p-6 text-foreground shadow-2xl rounded-xl relative overflow-y-auto journal-scroll z-[9999]"
       >
         {/* Dekoracyjne złote linie narożne Art Déco */}
         <div className="pointer-events-none absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/70" />
@@ -66,9 +66,9 @@ export function DesktopUpdateModal({
         <div className="pointer-events-none absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/70" />
 
         {/* 1. Animowane Oko Art Déco */}
-        <div className="my-2 flex justify-center">
+        <div className="my-1 shrink-0 flex justify-center">
           <ArtDecoEye
-            size={88}
+            size={76}
             mode={phase === 'downloading' ? 'rotating' : 'gentle'}
             className="drop-shadow-[0_0_20px_rgba(212,175,55,0.25)]"
           />
@@ -76,34 +76,34 @@ export function DesktopUpdateModal({
 
         {/* Faza 1: Changelog */}
         {phase === 'changelog' && (
-          <div className="w-full flex flex-col items-center text-center space-y-4">
+          <div className="w-full flex flex-col items-center text-center space-y-3">
             <div>
-              <DialogTitle className="font-display text-xl font-bold tracking-[0.14em] uppercase text-brass">
+              <DialogTitle className="font-display text-lg sm:text-xl font-bold tracking-[0.14em] uppercase text-brass">
                 {t('modalTitle')}
               </DialogTitle>
-              <DialogDescription className="mt-1 text-sm text-brass/80 font-special-elite">
+              <DialogDescription className="mt-1 text-xs sm:text-sm text-brass/80 font-special-elite">
                 {t('availableVersion', { version: targetVersionLabel })}
               </DialogDescription>
             </div>
 
             {typeof update.commitsBehind === 'number' && update.commitsBehind > 0 && (
-              <span className="inline-block px-3 py-1 text-xs font-mono rounded border border-brass/30 bg-brass/10 text-brass">
+              <span className="inline-block px-3 py-0.5 text-xs font-mono rounded border border-brass/30 bg-brass/10 text-brass">
                 {t('commitsBehind', { count: update.commitsBehind })}
               </span>
             )}
 
             {/* Boks z changelogiem w ramce monospaced / typewriter */}
-            <div className="w-full max-h-48 overflow-y-auto text-left rounded border border-brass/30 bg-black/60 p-3.5 text-xs text-foreground/90 font-mono space-y-2">
+            <div className="w-full max-h-36 sm:max-h-44 overflow-y-auto text-left rounded border border-brass/30 bg-black/60 p-3 text-xs text-foreground/90 font-mono space-y-2">
               <div className="text-brass/70 uppercase tracking-widest text-[10px] border-b border-brass/20 pb-1">
                 {t('changelogHeader')}
               </div>
-              <div className="space-y-1.5 leading-relaxed text-muted-foreground">
+              <div className="space-y-1 leading-relaxed text-muted-foreground">
                 <p className="text-emerald-400 font-semibold">• {t('changePoint1')}</p>
                 <p className="text-brass/90">• {t('changePoint2')}</p>
                 <p className="text-brass/90">• {t('changePoint3')}</p>
               </div>
               {update.manifest.releaseNotes && (
-                <div className="pt-2 text-center">
+                <div className="pt-1.5 text-center">
                   <a
                     href={update.manifest.releaseNotes}
                     target="_blank"
@@ -116,18 +116,18 @@ export function DesktopUpdateModal({
               )}
             </div>
 
-            {/* Przyciski akcji */}
-            <div className="w-full pt-2 flex flex-col sm:flex-row gap-2.5">
+            {/* Przyciski akcji (zawsze widoczne, sticky-friendly) */}
+            <div className="w-full pt-1 flex flex-col sm:flex-row gap-2 shrink-0">
               <Button
                 variant="outline"
-                className="flex-1 border-brass/40 text-brass hover:bg-brass/10"
+                className="flex-1 border-brass/40 text-brass hover:bg-brass/10 h-9 text-xs sm:text-sm"
                 onClick={handleLater}
               >
                 {t('later')}
               </Button>
               {update.canSelfUpdate ? (
                 <Button
-                  className="flex-1 bg-brass hover:bg-brass/90 text-black font-semibold tracking-wider uppercase"
+                  className="flex-1 bg-brass hover:bg-brass/90 text-black font-semibold tracking-wider uppercase h-9 text-xs sm:text-sm"
                   onClick={handleStartUpdate}
                 >
                   {t('updateNow')}
