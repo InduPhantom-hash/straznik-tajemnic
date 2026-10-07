@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 title Strażnik Tajemnic AI - Launcher
@@ -9,6 +10,7 @@ echo   Desktop Process Supervisor - Windows Runtime
 echo ====================================================
 
 set "SCRIPT_DIR=%~dp0"
+set "NODE_BIN="
 
 REM 1. Sprawdzenie wbudowanego srodowiska Node.js (Zero-Setup)
 if exist "%SCRIPT_DIR%..\bin\node.exe" (
@@ -17,6 +19,8 @@ if exist "%SCRIPT_DIR%..\bin\node.exe" (
     set "NODE_BIN=%SCRIPT_DIR%bin\node.exe"
 ) else if exist "%SCRIPT_DIR%node\node.exe" (
     set "NODE_BIN=%SCRIPT_DIR%node\node.exe"
+) else if exist "%SCRIPT_DIR%..\runtime\bin\node.exe" (
+    set "NODE_BIN=%SCRIPT_DIR%..\runtime\bin\node.exe"
 ) else (
     REM 2. Fallback: srodowisko zainstalowane w systemie Windows
     where node >nul 2>&1
