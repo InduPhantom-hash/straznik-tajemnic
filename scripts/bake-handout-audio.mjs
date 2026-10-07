@@ -234,15 +234,22 @@ async function main() {
     if (isFallback) {
       console.log(`🎙️ Generowanie audio fallback z filtrem vintage [${handout.id}]...`);
       try {
-        const { execSync } = await import('child_process');
+        const { execFileSync } = await import('child_process');
         const tempAiff = path.join(OUTPUT_DIR, `temp_${Date.now()}_${handout.id}.aiff`);
         const macVoice = handout.macVoice || (handout.lang === 'en' ? 'Daniel' : 'Zosia');
 
-        // Synteza przez macOS say z dobranym głosem (PL: Zosia, EN: Daniel/Fred)
-        execSync(`say -v "${macVoice}" -o "${tempAiff}" "${handout.text.replace(/"/g, '\\"')}"`);
+        // Synteza przez macOS say z dobranym głosem (PL: Zosia, EN: Daniel/Fred) bez powłoki shella
+        execFileSync('say', ['-v', macVoice, '-o', tempAiff, handout.text], { stdio: 'ignore' });
         
         // Przepuszczenie przez ffmpeg z filtrem pasmowym (charakterystyka taśmy magnetofonowej / radia)
-        execSync(`ffmpeg -y -i "${tempAiff}" -af "highpass=f=200,lowpass=f=3200,volume=1.3" -codec:a libmp3lame -b:a 128k "${targetFile}" 2>/dev/null`);
+        execFileSync('ffmpeg', [
+          '-y',
+          '-i', tempAiff,
+          '-af', 'highpass=f=200,lowpass=f=3200,volume=1.3',
+          '-codec:a', 'libmp3lame',
+          '-b:a', '128k',
+          targetFile,
+        ], { stdio: 'ignore' });
         
         if (fs.existsSync(tempAiff)) {
           fs.unlinkSync(tempAiff);
