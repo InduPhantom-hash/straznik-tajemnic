@@ -16,6 +16,7 @@ import {
   AMERICAN_COLD_CASES_ADVENTURES,
   BUILT_IN_ADVENTURES,
 } from '@/lib/adventures-data';
+import { STARTER_HAUNTING_ADVENTURE } from '@/lib/starter-haunting-data';
 
 export type AnyAdventureContext = CoreAdventureContext | DataAdventureContext;
 
@@ -137,8 +138,8 @@ export function resolveHandoutBySlug(
     }
   }
 
-  // 3. Przeszukaj wszystkie przygody STREFA_11_ADVENTURES i AMERICAN_COLD_CASES_ADVENTURES
-  for (const adv of [...STREFA_11_ADVENTURES, ...AMERICAN_COLD_CASES_ADVENTURES]) {
+  // 3. Przeszukaj wszystkie przygody STREFA_11_ADVENTURES, AMERICAN_COLD_CASES_ADVENTURES oraz Starter
+  for (const adv of [...STREFA_11_ADVENTURES, ...AMERICAN_COLD_CASES_ADVENTURES, STARTER_HAUNTING_ADVENTURE]) {
     if (adv.handouts && adv.handouts.length > 0) {
       const match = findInList(adv.handouts, cleanSlug);
       if (match) return match;

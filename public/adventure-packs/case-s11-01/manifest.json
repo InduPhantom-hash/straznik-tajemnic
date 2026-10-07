@@ -1,0 +1,150 @@
+{
+  "caseId": "case-s11-01",
+  "era": "1920s-us",
+  "predefinedAdventureId": "nawiedzony-dom",
+  "visualDna": {
+    "styleCore": "dark chiaroscuro oil painting, silver gelatin print, analog film grain, Boston 1920, tactile paper texture, zero modern elements",
+    "colorAndLightingScript": "sepia and silver gelatin toning, harsh angle gaslight, cold lantern illumination in cellars, heavy shadows, authentic 1920s Massachusetts mood",
+    "cssFilterOverride": "sepia(0.25) contrast(1.1) brightness(0.95)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-knott-keys",
+      "category": "item-clue",
+      "file": "clue-01-knott-keys.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-knott-keys",
+      "tagsPl": ["klucze", "mosiądz", "wizytówka", "knott", "zaliczka", "dolary"],
+      "tagsEn": ["keys", "brass", "business card", "knott", "retainer", "dollars"]
+    },
+    {
+      "id": "clue-02-boston-globe-1918",
+      "category": "item-clue",
+      "file": "clue-02-boston-globe-1918.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-boston-globe-1918",
+      "tagsPl": ["gazeta", "wycinek", "boston globe", "artykuł", "maszynopis", "macario"],
+      "tagsEn": ["newspaper", "clipping", "boston globe", "article", "typescript", "macario"]
+    },
+    {
+      "id": "clue-03-land-registry-1852",
+      "category": "item-clue",
+      "file": "clue-03-land-registry-1852.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-03-land-registry-1852",
+      "tagsPl": ["księga wieczysta", "rejestr gruntów", "akt własności", "pergamin", "1852"],
+      "tagsEn": ["land registry", "deeds", "property record", "parchment", "1852"]
+    },
+    {
+      "id": "clue-04-lawsuit-1853",
+      "category": "item-clue",
+      "file": "clue-04-lawsuit-1853.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-04-lawsuit-1853",
+      "tagsPl": ["pozew", "sąd", "sąsiedzi", "eksmisja", "corbitt", "1853"],
+      "tagsEn": ["lawsuit", "court petition", "neighbors", "eviction", "corbitt", "1853"]
+    },
+    {
+      "id": "clue-05-obituary-1866",
+      "category": "item-clue",
+      "file": "clue-05-obituary-1866.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-05-obituary-1866",
+      "tagsPl": ["nekrolog", "zgon", "śmierć", "testament", "piwnica", "1866"],
+      "tagsEn": ["obituary", "death notice", "will", "cellar", "1866"]
+    },
+    {
+      "id": "clue-06-court-executor-record",
+      "category": "item-clue",
+      "file": "clue-06-court-executor-record.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-06-court-executor-record",
+      "tagsPl": ["akta sądowe", "wykonawca testamentu", "michael thomas", "kaplica kontemplacji"],
+      "tagsEn": ["court records", "executor", "michael thomas", "chapel of contemplation"]
+    },
+    {
+      "id": "clue-07-police-raid-file",
+      "category": "item-clue",
+      "file": "clue-07-police-raid-file.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-07-police-raid-file",
+      "tagsPl": ["teczka policyjna", "nalot", "strzelanina", "sekta", "raport bpd", "1912"],
+      "tagsEn": ["police file", "raid", "shootout", "cult", "bpd report", "1912"]
+    },
+    {
+      "id": "clue-08-cult-symbol-sketch",
+      "category": "item-clue",
+      "file": "clue-08-cult-symbol-sketch.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-08-cult-symbol-sketch",
+      "tagsPl": ["symbol", "szkic", "oko", "glif", "okultyzm", "węgiel"],
+      "tagsEn": ["symbol", "sketch", "eye", "glyph", "occult", "charcoal"]
+    },
+    {
+      "id": "clue-09-corbitt-journal",
+      "category": "item-clue",
+      "file": "clue-09-corbitt-journal.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-09-corbitt-journal",
+      "tagsPl": ["dziennik", "pamiętnik", "skóra", "łacina", "rytuał", "corbitt"],
+      "tagsEn": ["journal", "diary", "leather", "latin", "ritual", "corbitt"]
+    },
+    {
+      "id": "item-corbitt-dagger",
+      "category": "item-gear",
+      "file": "item-corbitt-dagger.webp",
+      "aspectRatio": "16:9",
+      "catalogItemIdOverride": "corbitt-dagger",
+      "tagsPl": ["sztylet", "ostrze", "brąz", "kość", "antyk"],
+      "tagsEn": ["dagger", "blade", "bronze", "bone", "antique"]
+    },
+    {
+      "id": "npc-01-steven-knott",
+      "category": "npc",
+      "file": "npc-steven-knott.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["knott", "steven knott", "właściciel", "landlord", "garnitur"],
+      "tagsEn": ["knott", "steven knott", "owner", "landlord", "suit"]
+    },
+    {
+      "id": "npc-02-arty-wilmot",
+      "category": "npc",
+      "file": "npc-arty-wilmot.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["wilmot", "arty wilmot", "redaktor", "boston globe", "szelki"],
+      "tagsEn": ["wilmot", "arty wilmot", "editor", "boston globe", "suspenders"]
+    },
+    {
+      "id": "npc-03-ruth-blake",
+      "category": "npc",
+      "file": "npc-ruth-blake.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["blake", "ruth blake", "archiwistka", "kostnica gazetowa", "okulary"],
+      "tagsEn": ["blake", "ruth blake", "archivist", "morgue", "glasses"]
+    },
+    {
+      "id": "npc-04-mr-dooley",
+      "category": "npc",
+      "file": "npc-mr-dooley.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["dooley", "mr dooley", "sklepikarz", "irlandczyk", "kaszkiet"],
+      "tagsEn": ["dooley", "mr dooley", "shopkeeper", "irish", "flat cap"]
+    },
+    {
+      "id": "npc-05-gabriela-macario",
+      "category": "npc",
+      "file": "npc-gabriela-macario.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["macario", "gabriela macario", "szpital", "roxbury", "trauma"],
+      "tagsEn": ["macario", "gabriela macario", "hospital", "roxbury", "trauma"]
+    },
+    {
+      "id": "npc-06-walter-corbitt",
+      "category": "npc",
+      "file": "npc-walter-corbitt.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["corbitt", "walter corbitt", "mumia", "piwnica", "czarnoksiężnik"],
+      "tagsEn": ["corbitt", "walter corbitt", "mummy", "cellar", "sorcerer"]
+    }
+  ]
+}

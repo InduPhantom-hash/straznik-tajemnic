@@ -51,7 +51,7 @@ export function parseStickyNote(raw: string): { stickyNote?: StickyNote; cleaned
 export function parseIntoSections(content: string): Section[] {
   const sections: Section[] = [];
   const normalizedContent = content.replace(
-    /\s*(\[HANDOUT:\s*[^\]]*?\])\s*/gi,
+    /\s*(\[(?:HANDOUT|DOWÓD|DOWOD|EVIDENCE):\s*[^\]]*?\])\s*/gi,
     '\n$1\n'
   );
   const lines = normalizedContent.split('\n');
@@ -223,8 +223,8 @@ export function parseIntoSections(content: string): Section[] {
       continue;
     }
 
-    // Wykryj tag handoutu [HANDOUT:<slug>]
-    const handoutTagMatch = trimmedLine.match(/^\[HANDOUT:\s*([^\]]*?)\s*\]$/i);
+    // Wykryj tag handoutu / dowodu [HANDOUT:<slug>] lub [DOWÓD:<slug>]
+    const handoutTagMatch = trimmedLine.match(/^\[(?:HANDOUT|DOWÓD|DOWOD|EVIDENCE):\s*([^\]]*?)\s*\]$/i);
     if (handoutTagMatch) {
       if (currentSection && currentSection.content.trim()) {
         sections.push(currentSection);
