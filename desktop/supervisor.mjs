@@ -206,7 +206,7 @@ export async function runSupervisor(options = {}) {
 
   if (instanceCheck.running && instanceCheck.isStraznik) {
     log(`Strażnik Tajemnic AI już działa na porcie ${basePort}. Aktywuję istniejące okno.`);
-    activateExistingWindow(paths, `http://localhost:${basePort}`);
+    activateExistingWindow(paths, `http://127.0.0.1:${basePort}`);
     return { status: 'reused_existing', port: basePort };
   }
 
@@ -250,6 +250,7 @@ export async function runSupervisor(options = {}) {
     ...process.env,
     PORT: String(targetPort),
     ZEW_APP_PORT: String(targetPort),
+    HOSTNAME: '127.0.0.1',
     ZEW_DATA_DIR: paths.dataRoot,
     RAG_DATA_DIR: path.join(paths.dataRoot, 'rag'),
     STRAZNIK_DESKTOP_COLD_START: '1',
@@ -274,15 +275,15 @@ export async function runSupervisor(options = {}) {
 
   if (process.platform === 'win32') {
     if (hasDirectNext) {
-      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath}...`);
-      serverProcess = spawn(process.execPath, [nextBin, 'start', '--port', String(targetPort)], {
+      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath} (127.0.0.1:${targetPort})...`);
+      serverProcess = spawn(process.execPath, [nextBin, 'start', '--hostname', '127.0.0.1', '--port', String(targetPort)], {
         cwd: paths.gameDir,
         env,
         detached: false,
         stdio: serverStdio
       });
     } else {
-      serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start'], {
+      serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start', '--', '-H', '127.0.0.1', '-p', String(targetPort)], {
         cwd: paths.gameDir,
         env,
         detached: false,
@@ -291,15 +292,15 @@ export async function runSupervisor(options = {}) {
     }
   } else {
     if (hasDirectNext) {
-      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath}...`);
-      serverProcess = spawn(process.execPath, [nextBin, 'start', '--port', String(targetPort)], {
+      log(`Uruchamiam Next.js bezpośrednio przez ${process.execPath} (127.0.0.1:${targetPort})...`);
+      serverProcess = spawn(process.execPath, [nextBin, 'start', '--hostname', '127.0.0.1', '--port', String(targetPort)], {
         cwd: paths.gameDir,
         env,
         detached: true,
         stdio: serverStdio
       });
     } else {
-      serverProcess = spawn('npm', ['start'], {
+      serverProcess = spawn('npm', ['start', '--', '-H', '127.0.0.1', '-p', String(targetPort)], {
         cwd: paths.gameDir,
         env,
         detached: true,
@@ -320,10 +321,10 @@ export async function runSupervisor(options = {}) {
     try { fs.unlinkSync(paths.pidFile); } catch (_) {}
     process.exit(1);
   }
-  log(`Serwer odpowiada pod adresem http://localhost:${targetPort}`);
+  log(`Serwer odpowiada pod adresem http://127.0.0.1:${targetPort}`);
 
-  // 5. Otwarcie okna UI
-  const windowUrl = `http://localhost:${targetPort}`;
+  // 5. Otwarcie okna UI (deterministyczny adres IP pętli zwrotnej 127.0.0.1, niezależny od hosts)
+  const windowUrl = `http://127.0.0.1:${targetPort}`;
   const windowProc = launchAppWindow(paths, windowUrl, log);
 
   // 6. Centralny mechanizm czyszczenia (Cleanup Trap)

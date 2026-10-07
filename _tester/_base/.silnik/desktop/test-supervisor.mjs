@@ -151,8 +151,22 @@ async function runTests() {
   }
   console.log('  PASS: getWindowsBrowserCandidates ściśle przestrzega reguły Chrome-Only i ignoruje Edge.\n');
 
+  // Test 6: Niezależność od pliku hosts (determinizm IPv4 Loopback 127.0.0.1)
+  console.log('[6/6] Test: IP Loopback - weryfikacja niezależności od hosts (127.0.0.1)');
+  const loopbackServer = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ available: true }));
+  });
+  const loopbackPort = 49998;
+  await new Promise((resolve) => loopbackServer.listen({ port: loopbackPort, host: '127.0.0.1' }, resolve));
+  const loopbackCheck = await checkExistingInstance(loopbackPort, 1000);
+  assert.equal(loopbackCheck.running, true, 'checkExistingInstance musi bezbłędnie łączyć się przez 127.0.0.1');
+  assert.equal(loopbackCheck.isStraznik, true, 'Instancja na 127.0.0.1 musi być rozpoznana bez zależności od resolvera hosts');
+  await new Promise((resolve) => loopbackServer.close(resolve));
+  console.log('  PASS: detekcja i połączenia są w 100% oparte na deterministycznym 127.0.0.1.\n');
+
   console.log('====================================================');
-  console.log('Wszystkie testy supervisora zakończone SUKCESEM (5/5)!');
+  console.log('Wszystkie testy supervisora zakończone SUKCESEM (6/6)!');
   console.log('====================================================');
 }
 
