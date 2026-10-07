@@ -1258,6 +1258,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
                     textForQueue = hasInsideWords ? cleanInsideQuote : '';
                   }
                 }
+              } else if (markerMatch && !hasOpeningQuoteInMarker) {
+                // Bezpiecznik Issue #693: jeśli kwestia 'Imię: Dialog' nie została objęta cudzysłowem dialogowym,
+                // zresetuj mówcę natychmiast po tym zdaniu, aby kolejne zdania narracji nie wyciekały głosem NPC.
+                shouldResetNpcAfterSentence = true;
               }
             }
           }

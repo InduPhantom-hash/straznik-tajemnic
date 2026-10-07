@@ -251,11 +251,11 @@ export async function POST(request: NextRequest) {
       ? enhanceAudioDirectionWithPhonetics(audioDirection || '', 'pl')
       : audioDirection;
 
-    // Treść dla modelu: jeśli przekazano dyrektywę reżyserską (Issue #162 + #173),
-    // podajemy ją jako prefiks instrukcji stylu mowy (Google TTS audio prompting).
-    const promptText = effectiveAudioDirection?.trim()
-      ? `${effectiveAudioDirection.trim()}\n\n${normalizedText}`
-      : normalizedText;
+    // Issue #693: Do syntezy audio przekazujemy wyłącznie właściwy tekst literacki (normalizedText).
+    // Wcześniejsze doklejanie angielskiej dyrektywy reżyserskiej (`${effectiveAudioDirection}\n\n${normalizedText}`)
+    // powodowało, że model wielojęzyczny Gemini TTS przy languageCode='pl-PL' czytał angielskie instrukcje
+    // na głos z polską fonetyką („gwara / mowa Cthulhu / węgierski”), których w ogóle nie było w tekście opowieści.
+    const promptText = normalizedText;
 
     // IND-191 + IND-236: retry server-side. Walidacja audio jest WEWNĄTRZ operacji -
     // brak inlineData rzuca sentinel (text-instead-of-audio) → ponowienie zamiast 500.

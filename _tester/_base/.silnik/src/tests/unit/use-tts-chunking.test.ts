@@ -773,4 +773,36 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     expect(narratorPayload.text).toBe('Odwraca wzrok w stronę okna.');
     expect(narratorPayload.audioDirection).toContain('whisper');
   });
+
+  it('Issue #693: resetuje mówcę po kwestii NPC bez cudzysłowu dialogowego i nie rozlewa głosu ani szeptu na kolejne zdanie narracji', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Sytuacja z sesji gracza: kwestia Abigail Vance bez cudzysłowu, po której następuje opis narratora
+    const text =
+      'Abigail Vance: [szept] Panie Sterling, rejestry są zabezpieczone.\nZanim pada odpowiedź, mosiężny dzwonek nad drzwiami odzywa się gwałtownie.';
+
+    await act(async () => {
+      result.current.addToQueue(text, 'msg-693-unquoted-npc', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    // Kwestia Abigail Vance: głos żeński (Aoede/Leda), szept
+    expect(['Aoede', 'Leda', 'Gacrux']).toContain(npcPayload.voice);
+    expect(npcPayload.voice).not.toBe('Puck');
+    expect(npcPayload.text).toContain('Panie Sterling, rejestry są zabezpieczone.');
+    expect(npcPayload.audioDirection).toContain('whisper');
+
+    // Narracja o dzwonku: głos lektora (Kore), zerowany mówca, brak szeptu
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toContain('Zanim pada odpowiedź, mosiężny dzwonek');
+    expect(narratorPayload.audioDirection).not.toContain('whisper');
+  });
 });

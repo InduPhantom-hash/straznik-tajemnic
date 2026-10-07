@@ -115,6 +115,7 @@ export const MALE_A_NAMES = new Set([
 
 // Popularne imiona żeńskie (polskie, epokowe 1920/1970 oraz anglosaskie)
 export const KNOWN_FEMALE_NAMES = new Set([
+  'abigail',
   'anna',
   'maria',
   'elżbieta',
@@ -148,6 +149,14 @@ export const KNOWN_FEMALE_NAMES = new Set([
   'jane',
   'rose',
   'florence',
+  'madeline',
+  'gwendolyn',
+  'gwen',
+  'miriam',
+  'judith',
+  'vivian',
+  'winnifred',
+  'winifred',
   'beatrice',
   'constance',
   'martha',
@@ -647,27 +656,43 @@ export function resolveDynamicNpcVoice(
   // 2. Sprawdź czy postać istnieje w mapie głosów (np. z localStorage gm_npcs)
   const existingVoiceId = resolveNpcVoice(speakerName, npcVoiceMap);
 
-  // 3. Rozpoznaj płeć
+  // 3. Rozpoznaj płeć i wiek
   const gender =
     inferGenderFromName(speakerName) ||
     (context
       ? inferGenderFromNPC({ name: speakerName, ...context } as NPC)
       : null) ||
     'male';
+  const age = context ? inferAgeFromNPC({ name: speakerName, ...context } as NPC) : null;
 
-  // 4. Przypisz odpowiedni głos
+  // 4. Przypisz odpowiedni głos z uwzględnieniem płci i wieku
   let voiceId = existingVoiceId;
   if (!voiceId) {
     if (context?.type === 'monster') {
       voiceId = 'Enceladus';
     } else if (gender === 'female') {
-      voiceId = 'Aoede'; // Bezkompromisowo żeński głos
+      if (age === 'old') {
+        voiceId = 'Gacrux'; // Dojrzała, starsza kobieta
+      } else if (age === 'young') {
+        voiceId = 'Leda'; // Młoda kobieta / dziewczyna
+      } else {
+        voiceId = 'Aoede'; // Bezkompromisowo żeński głos dorosłej kobiety
+      }
     } else {
-      voiceId = 'Puck'; // Męski głos postaci
+      if (age === 'old') {
+        voiceId = 'Algenib'; // Starszy, szorstki męski głos
+      } else if (age === 'young') {
+        voiceId = 'Puck'; // Młodzieńczy męski głos
+      } else {
+        voiceId = 'Puck'; // Męski głos postaci
+      }
     }
-  } else if (gender === 'female' && voiceId === 'Charon') {
-    // Bezpiecznik: jeśli w starych danych zapisał się Charon dla kobiety, nadpisz na Aoede!
-    voiceId = 'Aoede';
+  } else if (gender === 'female' && (voiceId === 'Charon' || voiceId === 'Puck' || voiceId === 'Fenrir' || voiceId === 'Orus')) {
+    // Bezpiecznik: jeśli w starych danych zapisał się męski głos dla kobiety, nadpisz na kobiecy!
+    voiceId = age === 'old' ? 'Gacrux' : age === 'young' ? 'Leda' : 'Aoede';
+  } else if (gender === 'male' && (voiceId === 'Aoede' || voiceId === 'Sulafat' || voiceId === 'Callirrhoe' || voiceId === 'Leda' || voiceId === 'Gacrux')) {
+    // Bezpiecznik: jeśli w starych danych zapisał się żeński głos dla mężczyzny, nadpisz na męski!
+    voiceId = age === 'old' ? 'Algenib' : 'Puck';
   }
 
   // 5. Zbuduj Tone of Voice
