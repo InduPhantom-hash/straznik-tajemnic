@@ -5,6 +5,7 @@ import './globals.css';
 import './fonts.css';
 import { PHProvider } from '@/lib/posthog';
 import { Toaster } from '@/components/ui/toaster';
+import { DesktopTelemetryTracker } from '@/components/desktop-telemetry-tracker';
 
 export const metadata: Metadata = {
   title: 'Strażnik Tajemnic | Pradawna Wiedza',
@@ -32,6 +33,7 @@ export default async function RootLayout({
       <body className="font-serif" suppressHydrationWarning>
         {/* PHProvider transparentnie odpada gdy NEXT_PUBLIC_POSTHOG_KEY nie jest ustawiony */}
         <PHProvider>
+          <DesktopTelemetryTracker />
           {children}
           {/* IND-234: nieblokujące toasty (zastępują alert()) */}
           <Toaster />

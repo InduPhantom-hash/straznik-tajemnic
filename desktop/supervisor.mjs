@@ -57,6 +57,48 @@ export function resolvePaths(customAppDir) {
   }
   const logFile = process.env.ZEW_LOG_FILE || defaultLog;
 
+  // Wykrywanie najwyższego korzenia aplikacji (tam gdzie leży główny launcher)
+  let launcherRootDir = appDir;
+
+  if (platform === 'darwin') {
+    // Na macOS jeśli aplikacja działa z bundle'a .app (np. /Applications/Straznik.app lub ~/Desktop/Straznik.app)
+    // lub ze źródeł, logs tworzymy w nadrzędnym folderze obok launchera / .app albo w root repo
+    if (appDir.includes('.app/Contents/Resources/runtime')) {
+      const appIndex = appDir.indexOf('.app');
+      const appBundleDir = path.dirname(appDir.substring(0, appIndex + 4));
+      launcherRootDir = appBundleDir;
+    } else {
+      launcherRootDir = appDir;
+    }
+  } else {
+    // Na Windows paczka ZIP rozpakowuje się do straznik-tajemnic-windows/:
+    // - runtime/ (w nim jest desktop/ i silnik)
+    // - Graj - Strażnik Tajemnic.cmd
+    // - INSTRUKCJA-WINDOWS.txt
+    // Sprawdzamy nadrzędne katalogi aż trafimy na Graj - Strażnik Tajemnic.cmd
+    let cur = appDir;
+    for (let i = 0; i < 3; i++) {
+      const p = path.resolve(cur, '..');
+      if (
+        fs.existsSync(path.join(cur, 'Graj - Strażnik Tajemnic.cmd')) ||
+        fs.existsSync(path.join(cur, 'INSTRUKCJA-WINDOWS.txt'))
+      ) {
+        launcherRootDir = cur;
+        break;
+      }
+      if (
+        fs.existsSync(path.join(p, 'Graj - Strażnik Tajemnic.cmd')) ||
+        fs.existsSync(path.join(p, 'INSTRUKCJA-WINDOWS.txt'))
+      ) {
+        launcherRootDir = p;
+        break;
+      }
+      cur = p;
+    }
+  }
+
+  const logsDir = process.env.ZEW_LOGS_DIR || path.join(launcherRootDir, 'logs');
+
   return {
     appDir,
     gameDir,
@@ -65,8 +107,41 @@ export function resolvePaths(customAppDir) {
     profileDir,
     pidFile,
     coldStartFlag,
-    logFile
+    logFile,
+    logsDir,
+    launcherRootDir
   };
+}
+
+/**
+ * Inicjalizuje plik sesji logowania (NLog/file target) z rotacją i retencją do 5 plików.
+ */
+export function initSessionLogger(logsDir) {
+  try {
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[:.]/g, '-');
+    const sessionLogFile = path.join(logsDir, `session-${stamp}.log`);
+
+    // Retencja do 5 plików sesyjnych
+    const existing = fs.readdirSync(logsDir)
+      .filter((f) => f.startsWith('session-') && f.endsWith('.log'))
+      .sort()
+      .map((f) => path.join(logsDir, f));
+
+    if (existing.length >= 5) {
+      const toDelete = existing.slice(0, existing.length - 4);
+      for (const f of toDelete) {
+        try { fs.unlinkSync(f); } catch (_) {}
+      }
+    }
+    fs.writeFileSync(sessionLogFile, `[${now.toISOString()}] === Session log started ===\n`);
+    return sessionLogFile;
+  } catch (_) {
+    return null;
+  }
 }
 
 // --- Funkcje pomocnicze sieci i portów ---
@@ -188,14 +263,32 @@ export function writeLog(logFile, message) {
 
 export async function runSupervisor(options = {}) {
   const paths = resolvePaths(options.appDir);
-  const log = (msg) => writeLog(paths.logFile, msg);
+  const sessionLogFile = initSessionLogger(paths.logsDir) || paths.logFile;
+
+  // Logowanie do obu celów (legacy logFile + sesyjny plik w logs/)
+  const log = (msg) => {
+    writeLog(paths.logFile, msg);
+    if (sessionLogFile && sessionLogFile !== paths.logFile) {
+      writeLog(sessionLogFile, msg);
+    }
+  };
+
+  // Przechwytywanie nieobsłużonych wyjątków procesu supervisora
+  process.on('uncaughtException', (err) => {
+    log(`[FATAL UNCAUGHT EXCEPTION] ${err?.stack || err?.message || err}`);
+  });
+  process.on('unhandledRejection', (reason) => {
+    log(`[FATAL UNHANDLED REJECTION] ${reason?.stack || reason?.message || reason}`);
+  });
 
   log(`=== Supervisor start (PID: ${process.pid}, platform: ${process.platform}) ===`);
+  log(`Aktywny plik sesji logowania: ${sessionLogFile}`);
 
   // Przygotowanie katalogów
   fs.mkdirSync(paths.runtimeDir, { recursive: true });
   fs.mkdirSync(paths.profileDir, { recursive: true });
   fs.mkdirSync(paths.dataRoot, { recursive: true });
+  fs.mkdirSync(paths.logsDir, { recursive: true });
 
   const basePort = options.basePort || 4050;
   let targetPort = basePort;
@@ -256,12 +349,13 @@ export async function runSupervisor(options = {}) {
     STRAZNIK_DESKTOP_COLD_START: '1',
     STRAZNIK_DESKTOP_UPDATE: process.env.STRAZNIK_DESKTOP_UPDATE || '1',
     ZEW_UPDATE_MANIFEST_URL: process.env.ZEW_UPDATE_MANIFEST_URL || defaultManifestUrl,
+    ZEW_SESSION_LOG_FILE: sessionLogFile,
     ...(defaultSelfUpdate !== undefined ? { ZEW_DESKTOP_SELF_UPDATE: defaultSelfUpdate } : {})
   };
 
   let serverStdio = 'ignore';
   try {
-    const logFd = fs.openSync(paths.logFile, 'a');
+    const logFd = fs.openSync(sessionLogFile || paths.logFile, 'a');
     serverStdio = ['ignore', logFd, logFd];
   } catch (err) {
     log(`Nie udało się otworzyć pliku logów serwera: ${err.message}`);
