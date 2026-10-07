@@ -42,8 +42,8 @@ ROZWIĄZYWANIE PROBLEMÓW:
   pracę lokalnego serwera w tle (brak procesów zombie).
   
 - Logi diagnostyczne:
-  W razie problemów z uruchomieniem sprawdź plik logów:
-  %APPDATA%\ZewCthulhu\logs\straznik-tajemnic-ai.log
+  W razie problemów z uruchomieniem sprawdź plik logów w folderze gry:
+  logs\straznik-tajemnic-ai.log (oraz logs\session-*.log)
 
 - Zgłaszanie uwag i aktualizacje:
   https://github.com/InduPhantom-hash/straznik-tajemnic/releases
