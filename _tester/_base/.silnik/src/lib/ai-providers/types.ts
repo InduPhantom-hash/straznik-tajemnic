@@ -21,7 +21,7 @@ export interface GeminiExtraOptions {
 
   // === Thinking (Gemini 3.x) ===
   /** Kontrola głębokości rozumowania dla Gemini 3.x */
-  thinkingLevel?: 'low' | 'medium' | 'high' | 'auto';
+  thinkingLevel?: 'minimal' | 'low' | 'medium' | 'high' | 'auto';
 
   // === Sampling ===
   /** Liczba najprawdopodobniejszych tokenów przy każdym kroku (1-100) */
@@ -97,7 +97,7 @@ export interface ChatCompletionRequest {
   geminiOptions?: GeminiExtraOptions;
 
   /** @deprecated użyj geminiOptions.thinkingLevel - alias zostanie usunięty w v4.1 */
-  thinkingLevel?: 'low' | 'medium' | 'high' | 'auto';
+  thinkingLevel?: 'minimal' | 'low' | 'medium' | 'high' | 'auto';
   /** @deprecated użyj geminiOptions.fileAttachments - alias zostanie usunięty w v4.1 */
   fileAttachments?: Array<{ fileUri: string; mimeType: string }>;
   /** @deprecated użyj geminiOptions.additionalContext - alias zostanie usunięty w v4.1 */

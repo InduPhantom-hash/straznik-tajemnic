@@ -71,15 +71,41 @@ const EMPTY_RESPONSE_FALLBACK =
   'Mgła spowija na chwilę umysł Mistrza Gry, a wątek narracji się rwie. (Wyślij swoją akcję ponownie.)';
 
 /**
- * IND-203: mapowanie poziomu myślenia z UI ('low'/'medium'/'high') na enum SDK
- * (ThinkingLevel.LOW/MEDIUM/HIGH). 'auto' celowo pominięte - oznacza "model decyduje",
+ * IND-203: mapowanie poziomu myślenia z UI ('minimal'/'low'/'medium'/'high') na enum SDK
+ * (ThinkingLevel.MINIMAL/LOW/MEDIUM/HIGH). 'auto' celowo pominięte - oznacza "model decyduje",
  * więc thinkingConfig.thinkingLevel nie jest wtedy ustawiany.
  */
-const THINKING_LEVEL_MAP: Record<'low' | 'medium' | 'high', ThinkingLevel> = {
+const THINKING_LEVEL_MAP: Record<'minimal' | 'low' | 'medium' | 'high', ThinkingLevel> = {
+  minimal: ThinkingLevel.MINIMAL,
   low: ThinkingLevel.LOW,
   medium: ThinkingLevel.MEDIUM,
   high: ThinkingLevel.HIGH,
 };
+
+/**
+ * Sprawdza, czy dany model należy do nowoczesnej rodziny modeli Gemini (Gemini 3.x+ / Flash latest / Pro latest),
+ * w których parametry samplingu (temperature, top_p, top_k) są wycofane przez Google API,
+ * a kontrola myślenia odbywa się wyłącznie przez thinkingLevel.
+ */
+export function isModernGeminiModel(modelId: string): boolean {
+  return (
+    modelId.includes('gemini-3') ||
+    modelId.includes('flash-latest') ||
+    modelId.includes('pro-latest')
+  );
+}
+
+/**
+ * Zwraca bezpieczną konfigurację thinkingConfig dla ponowienia po pustej odpowiedzi:
+ * Dla nowoczesnych modeli (Gemini 3.x+) wymusza poziom minimalny (MINIMAL),
+ * natomiast dla starszych (np. gemini-2.5) zachowuje thinkingBudget = 0.
+ */
+export function resolveRetryThinkingConfig(modelId: string): Record<string, unknown> {
+  if (isModernGeminiModel(modelId)) {
+    return { thinkingLevel: ThinkingLevel.MINIMAL };
+  }
+  return { thinkingBudget: THINKING_BUDGET_RETRY };
+}
 
 /**
  * Detekcja błędów kwalifikujących się do natychmiastowego retry z exponential backoff:
@@ -159,13 +185,22 @@ export class GeminiChatProvider implements IChatProvider {
     const additionalContext =
       opts?.additionalContext ?? request.additionalContext;
 
+    const isModern = isModernGeminiModel(this.modelId);
+
     // === config - wszystkie pola generacji bezpośrednio (IND-19: nie ma sub-obiektu generationConfig) ===
     const config: Record<string, unknown> = {
-      temperature: request.temperature,
-      topP: request.topP,
       maxOutputTokens: request.maxOutputTokens,
     };
-    if (opts?.topK !== undefined) config.topK = opts.topK;
+
+    // Google API Deprecation (2026): modele Gemini 3.x+ wycofują parametry samplingu.
+    // Przesłanie temperature, topP, topK powoduje błąd HTTP 400 INVALID_ARGUMENT.
+    // Parametry te dołączamy TYLKO dla modeli starszych generacji (np. gemini-2.5).
+    if (!isModern) {
+      if (request.temperature !== undefined) config.temperature = request.temperature;
+      if (request.topP !== undefined) config.topP = request.topP;
+      if (opts?.topK !== undefined) config.topK = opts.topK;
+    }
+
     if (opts?.candidateCount !== undefined)
       config.candidateCount = opts.candidateCount;
     if (opts?.stopSequences?.length) config.stopSequences = opts.stopSequences;
@@ -179,24 +214,22 @@ export class GeminiChatProvider implements IChatProvider {
     if (opts?.responseSchema !== undefined)
       config.responseSchema = opts.responseSchema;
 
-    // Thinking level dla modeli 3.x i Pro - IND-203: SDK oczekuje go WEWNĄTRZ
-    // config.thinkingConfig (nie top-level config.thinkingLevel, które było cicho
-    // ignorowane → ULTRA myślał na domyślnym poziomie zamiast ustawionego).
-    if (
-      (this.modelId.includes('gemini-3') || this.modelId.includes('pro-latest')) &&
-      thinkingLevel &&
-      thinkingLevel !== 'auto'
-    ) {
-      config.thinkingConfig = {
-        thinkingLevel: THINKING_LEVEL_MAP[thinkingLevel],
-      };
-    }
-
-    // gemini-2.5-* (flash/pro) lub flash-lite: myślenie WYŁĄCZONE (budget 0). Powody w JSDoc
-    // THINKING_BUDGET_GEMINI_25: (1) IND-199 pusta odpowiedź, (2) wyciek myślenia
-    // jako pierwszy chunk (thought:false) → duplikacja narracji (pre-flight 06-24).
-    if (this.modelId.includes('gemini-2.5') || this.modelId.includes('flash-lite')) {
-      config.thinkingConfig = { thinkingBudget: THINKING_BUDGET_GEMINI_25 };
+    // Thinking level dla modeli nowoczesnych (Gemini 3.x, flash-latest, pro-latest) - IND-203:
+    // SDK oczekuje go WEWNĄTRZ config.thinkingConfig.
+    // 'auto' oznacza "model decyduje", więc thinkingConfig.thinkingLevel nie jest wtedy ustawiany.
+    if (isModern) {
+      if (thinkingLevel && thinkingLevel !== 'auto' && thinkingLevel in THINKING_LEVEL_MAP) {
+        config.thinkingConfig = {
+          thinkingLevel: THINKING_LEVEL_MAP[thinkingLevel],
+        };
+      }
+    } else {
+      // gemini-2.5-* (flash/pro): myślenie WYŁĄCZONE (budget 0). Powody w JSDoc
+      // THINKING_BUDGET_GEMINI_25: (1) IND-199 pusta odpowiedź, (2) wyciek myślenia
+      // jako pierwszy chunk (thought:false) → duplikacja narracji (pre-flight 06-24).
+      if (this.modelId.includes('gemini-2.5')) {
+        config.thinkingConfig = { thinkingBudget: THINKING_BUDGET_GEMINI_25 };
+      }
     }
 
     // === safetySettings - mapuj string UI → enum SDK ===
@@ -457,7 +490,7 @@ export class GeminiChatProvider implements IChatProvider {
         });
         const retryConfig = {
           ...config,
-          thinkingConfig: { thinkingBudget: THINKING_BUDGET_RETRY },
+          thinkingConfig: resolveRetryThinkingConfig(activeModel),
         };
         try {
           for await (const text of pump(await streamOnce(activeModel, retryConfig))) {

@@ -182,4 +182,87 @@ describe('GeminiChatProvider.finishReason', () => {
     expect(mockGenerateContent.mock.calls[0][0].model).toBe('gemini-test');
     expect(mockGenerateContent.mock.calls[1][0].model).toBe('gemini-test');
   });
+
+  describe('Google API sampling & thinking deprecation migration', () => {
+    it('nie dołącza temperature, topP, topK ani thinkingBudget dla nowoczesnych modeli Gemini 3.x', async () => {
+      mockGenerateContent.mockResolvedValueOnce({
+        text: 'Odpowiedź testowa',
+        usageMetadata: { totalTokenCount: 20 },
+      });
+
+      const provider = new GeminiChatProvider('test-key', 'gemini-3.8-flash');
+      const req: ChatCompletionRequest = {
+        ...request,
+        temperature: 0.8,
+        topP: 0.95,
+        geminiOptions: {
+          topK: 40,
+          thinkingLevel: 'high',
+        },
+      };
+
+      await provider.chat(req);
+
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+      const callConfig = mockGenerateContent.mock.calls[0][0].config;
+
+      // Parametry samplingu muszą być wycięte dla Gemini 3.x
+      expect(callConfig.temperature).toBeUndefined();
+      expect(callConfig.topP).toBeUndefined();
+      expect(callConfig.topK).toBeUndefined();
+
+      // thinkingConfig musi używać thinkingLevel z enum SDK (HIGH), bez thinkingBudget
+      expect(callConfig.thinkingConfig).toEqual({ thinkingLevel: 'HIGH' });
+      expect(callConfig.thinkingConfig?.thinkingBudget).toBeUndefined();
+    });
+
+    it('poprawnie obsługuje thinkingLevel minimal dla nowoczesnych modeli', async () => {
+      mockGenerateContent.mockResolvedValueOnce({
+        text: 'Odpowiedź minimal',
+      });
+
+      const provider = new GeminiChatProvider('test-key', 'gemini-3.8-flash');
+      const req: ChatCompletionRequest = {
+        ...request,
+        geminiOptions: {
+          thinkingLevel: 'minimal',
+        },
+      };
+
+      await provider.chat(req);
+
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+      const callConfig = mockGenerateContent.mock.calls[0][0].config;
+      expect(callConfig.thinkingConfig).toEqual({ thinkingLevel: 'MINIMAL' });
+    });
+
+    it('dołącza temperature, topP, topK oraz thinkingBudget=0 dla starszych modeli (gemini-2.5)', async () => {
+      mockGenerateContent.mockResolvedValueOnce({
+        text: 'Odpowiedź legacy',
+      });
+
+      const provider = new GeminiChatProvider('test-key', 'gemini-2.5-flash');
+      const req: ChatCompletionRequest = {
+        ...request,
+        temperature: 0.7,
+        topP: 0.9,
+        geminiOptions: {
+          topK: 20,
+        },
+      };
+
+      await provider.chat(req);
+
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+      const callConfig = mockGenerateContent.mock.calls[0][0].config;
+
+      // Parametry samplingu zachowane dla legacy
+      expect(callConfig.temperature).toBe(0.7);
+      expect(callConfig.topP).toBe(0.9);
+      expect(callConfig.topK).toBe(20);
+
+      // Dla 2.5 thinkingBudget=0 wyłączone
+      expect(callConfig.thinkingConfig).toEqual({ thinkingBudget: 0 });
+    });
+  });
 });
