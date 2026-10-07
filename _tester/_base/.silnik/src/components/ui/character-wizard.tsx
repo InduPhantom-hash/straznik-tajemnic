@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { Badge } from './badge';
 import { HelpIcon } from './tooltip';
-import { Skull, Zap, Sparkles, Users, RotateCcw } from 'lucide-react';
+import { Skull, Zap, Sparkles, Users, RotateCcw, AlertTriangle } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
 import { PregenCharacterSelector } from './pregen-character-selector';
@@ -214,6 +214,23 @@ function coerceFieldToText(value: unknown): string {
       .filter(Boolean)
       .join(', ');
   return '';
+}
+
+function isOracleOverloadedError(errOrStatus: unknown): boolean {
+  if (typeof errOrStatus === 'number') {
+    return errOrStatus === 429 || errOrStatus === 502 || errOrStatus === 503 || errOrStatus === 504;
+  }
+  const msg = errOrStatus instanceof Error ? errOrStatus.message : String(errOrStatus ?? '');
+  return (
+    msg.includes('429') ||
+    msg.includes('502') ||
+    msg.includes('503') ||
+    msg.includes('504') ||
+    msg.includes('RESOURCE_EXHAUSTED') ||
+    msg.includes('quota') ||
+    msg.includes('overloaded') ||
+    msg.includes('Service Unavailable')
+  );
 }
 
 /** Świeża mapa stanu losowania - wszystkie cechy nierzucone, przerzut wolny. */
@@ -704,6 +721,50 @@ export function CharacterWizardV2({
   const [isDistributingSkills, setIsDistributingSkills] = useState(false);
   // Stan dla modala potwierdzenia resetu punktów
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  // Stan dla błędu przeciążenia Wyroczni (429/503) w kreatorze
+  const [oracleOverloaded, setOracleOverloaded] = useState<{ step: 'skills' | 'biography' } | null>(null);
+
+  const renderOracleOverloadedBanner = (testId: string, onRetryAction: () => void) => (
+    <div
+      data-testid={testId}
+      className="border border-amber-500/50 bg-black/90 p-4 shadow-[0_0_25px_rgba(245,158,11,0.2)] relative space-y-3 animate-in fade-in zoom-in-95"
+    >
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="space-y-1 flex-1">
+          <h4 className="text-sm font-display font-bold uppercase tracking-wider text-amber-200">
+            {t('oracleOverloadedTitle')}
+          </h4>
+          <p className="text-xs font-serif text-foreground/90 leading-relaxed">
+            {t('oracleOverloadedDesc')}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 pt-1 border-t border-brass/20">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => {
+            setOracleOverloaded(null);
+            onRetryAction();
+          }}
+          className="bg-amber-600 hover:bg-amber-500 text-black font-display font-semibold text-xs uppercase tracking-wider"
+        >
+          <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+          {t('oracleRetry')}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setOracleOverloaded(null)}
+          className="border-brass/30 text-brass text-xs font-display uppercase tracking-wider hover:bg-brass/10"
+        >
+          {t('oracleDismiss')}
+        </Button>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     if (!isResetConfirmOpen) return;
@@ -868,11 +929,15 @@ export function CharacterWizardV2({
           `Character wizard skills API error: ${response.status} ${response.statusText}`,
           'error'
         );
-        toast({
-          variant: 'destructive',
-          title: t('toasts.apiError'),
-          description: `${response.status} ${response.statusText}`,
-        });
+        if (response.status === 429 || response.status === 502 || response.status === 503) {
+          setOracleOverloaded({ step: 'skills' });
+        } else {
+          toast({
+            variant: 'destructive',
+            title: t('toasts.apiError'),
+            description: `${response.status} ${response.statusText}`,
+          });
+        }
         setIsDistributingSkills(false);
         return;
       }
@@ -1111,11 +1176,22 @@ export function CharacterWizardV2({
       }
     } catch (err) {
       Sentry.captureException(err);
-      toast({
-        variant: 'destructive',
-        title: t('toasts.aiConnectionErrorTitle'),
-        description: err instanceof Error ? err.message : t('toasts.unknownError'),
-      });
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (
+        errMsg.includes('429') ||
+        errMsg.includes('502') ||
+        errMsg.includes('503') ||
+        errMsg.includes('RESOURCE_EXHAUSTED') ||
+        errMsg.includes('quota')
+      ) {
+        setOracleOverloaded({ step: 'skills' });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: t('toasts.aiConnectionErrorTitle'),
+          description: err instanceof Error ? err.message : t('toasts.unknownError'),
+        });
+      }
     }
 
     setIsDistributingSkills(false);
@@ -1259,6 +1335,11 @@ export function CharacterWizardV2({
       });
 
       if (!response.ok) {
+        if (response.status === 429 || response.status === 502 || response.status === 503) {
+          setOracleOverloaded({ step: 'biography' });
+          setState((prev) => ({ ...prev, isGeneratingBackstory: false }));
+          return;
+        }
         throw new Error(
           t('apiErrorWithStatus', {
             status: response.status,
@@ -1348,11 +1429,22 @@ export function CharacterWizardV2({
       }
     } catch (err) {
       Sentry.captureException(err);
-      toast({
-        variant: 'destructive',
-        title: t('toasts.aiConnectionErrorTitle'),
-        description: t('toasts.tryAgain'),
-      });
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (
+        errMsg.includes('429') ||
+        errMsg.includes('502') ||
+        errMsg.includes('503') ||
+        errMsg.includes('RESOURCE_EXHAUSTED') ||
+        errMsg.includes('quota')
+      ) {
+        setOracleOverloaded({ step: 'biography' });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: t('toasts.aiConnectionErrorTitle'),
+          description: t('toasts.tryAgain'),
+        });
+      }
       setState((prev) => ({ ...prev, isGeneratingBackstory: false }));
     }
   };
@@ -3211,6 +3303,12 @@ export function CharacterWizardV2({
           </div>
         )}
 
+        {/* Inline Banner przy przeciążeniu Wyroczni (Issue #691) */}
+        {oracleOverloaded?.step === 'skills' &&
+          renderOracleOverloadedBanner('oracle-overloaded-skills-banner', () => {
+            void autoDistributeSkillsAI();
+          })}
+
         <StepHeading
           title={t('stepSkillsTitle')}
           subtitle={t('stepSkillsSubtitle')}
@@ -3693,6 +3791,12 @@ export function CharacterWizardV2({
 
   const renderStep4 = () => (
     <div className="space-y-4">
+      {/* Inline Banner przy przeciążeniu Wyroczni (Issue #691) */}
+      {oracleOverloaded?.step === 'biography' &&
+        renderOracleOverloadedBanner('oracle-overloaded-biography-banner', () => {
+          void generateBackstory();
+        })}
+
       <StepHeading
         title={t('stepBiographyTitle')}
         subtitle={t('stepBiographySubtitle')}

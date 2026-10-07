@@ -52,24 +52,44 @@ function isNetworkBlip(error: unknown): boolean {
   return /failed to fetch|networkerror|network request failed/i.test(msg);
 }
 
+function isRetryableHttpStatus(status: number): boolean {
+  return status === 429 || status === 502 || status === 503 || status === 504;
+}
+
 async function fetchWithRetry(
   url: string,
   options: Parameters<typeof fetchWithApiKeys>[1],
   retries = 3,
-  backoffMs = 1000
+  backoffMs = 1500,
+  onRetry?: (attempt: number, reason: string) => void
 ): Promise<Response> {
+  const isTest = process.env.NODE_ENV === 'test';
   let lastError: unknown;
+  let lastResponse: Response | undefined;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      return await fetchWithApiKeys(url, options);
+      const res = await fetchWithApiKeys(url, options);
+      if (res) {
+        lastResponse = res;
+        if (!res.ok && isRetryableHttpStatus(res.status) && attempt < retries) {
+          onRetry?.(attempt + 1, `HTTP ${res.status}`);
+          const delay = isTest ? 10 : backoffMs * Math.pow(1.5, attempt) + Math.random() * 200;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        return res;
+      }
+      if (lastResponse) return lastResponse;
+      throw new Error('No response received');
     } catch (error) {
       lastError = error;
       if (!isNetworkBlip(error) || attempt === retries) throw error;
-      await new Promise((resolve) =>
-        setTimeout(resolve, backoffMs * (attempt + 1))
-      );
+      onRetry?.(attempt + 1, 'Network blip');
+      const delay = isTest ? 10 : backoffMs * (attempt + 1);
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
+  if (lastResponse) return lastResponse;
   throw lastError;
 }
 
@@ -879,31 +899,43 @@ export function useGameStart({
           ? 'Tuning into the ether (contacting the Keeper)...'
           : 'Słuchanie szumów z eteru (kontakt ze Strażnikiem)...'
       );
-      const response = await fetchWithRetry('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getApiKeyHeaders(),
+      const response = await fetchWithRetry(
+        '/api/chat',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getApiKeyHeaders(),
+          },
+          body: JSON.stringify({
+            message: introPrompt,
+            messages: [],
+            pdfMemory: pdfMemory,
+            // Sanityzuj postać (portret + miniatury ekwipunku = base64 ~MB) by nie
+            // przekroczyć limitu payloadu /api/chat (regresja B2 28.06).
+            character: sanitizeCharacterForApi(activeCharacter),
+            characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
+            hotSeatConfig: resolvedHotSeat,
+            adventureContext: adventureContext,
+            memoryScope,
+            assistantMessageId,
+            eraContext: loadStoredWorldSetup()?.eraContext,
+            locale,
+            isGameStart: true,
+            aiSettings: aiSettings,
+            gameTime: timeManager.getTime(),
+          }),
         },
-        body: JSON.stringify({
-          message: introPrompt,
-          messages: [],
-          pdfMemory: pdfMemory,
-          // Sanityzuj postać (portret + miniatury ekwipunku = base64 ~MB) by nie
-          // przekroczyć limitu payloadu /api/chat (regresja B2 28.06).
-          character: sanitizeCharacterForApi(activeCharacter),
-          characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
-          hotSeatConfig: resolvedHotSeat,
-          adventureContext: adventureContext,
-          memoryScope,
-          assistantMessageId,
-          eraContext: loadStoredWorldSetup()?.eraContext,
-          locale,
-          isGameStart: true,
-          aiSettings: aiSettings,
-          gameTime: timeManager.getTime(),
-        }),
-      });
+        3,
+        1500,
+        (attempt) => {
+          setStartStatus(
+            locale === 'en'
+              ? `Astral waves are turbulent (Gemini high demand, retry ${attempt}/3)...`
+              : `Astralne fale są wzburzone (przeciążenie serwera Gemini, próba ${attempt}/3)...`
+          );
+        }
+      );
 
       // Walidacja HTTP przed strumieniowaniem SSE. Bez tego serwer zwracający
       // JSON z błędem (np. 401 BYOK_KEY_MISSING) jest cicho ignorowany przez

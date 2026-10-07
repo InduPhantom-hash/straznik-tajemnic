@@ -118,6 +118,7 @@ describe('GeminiChatProvider.finishReason', () => {
     expect(mockGenerateContentStream).toHaveBeenCalledTimes(2);
   });
 
+
   it('zwraca kompletny tekst i metadane tokenów przez unarne generateContent w chat()', async () => {
     mockGenerateContent.mockResolvedValue({
       text: '{"name":"John Doe","birthplace":"Boston"}',
@@ -139,5 +140,46 @@ describe('GeminiChatProvider.finishReason', () => {
     });
     expect(mockGenerateContent).toHaveBeenCalledTimes(1);
     expect(mockGenerateContentStream).not.toHaveBeenCalled();
+  });
+
+  it('ponawia zapytanie na tym samym modelu przy błędzie 429 (Too Many Requests) z exponential backoff przed zmianą modelu w kaskadzie', async () => {
+    mockGenerateContentStream
+      .mockRejectedValueOnce(new Error('429 RESOURCE_EXHAUSTED: Quota exceeded'))
+      .mockResolvedValueOnce(
+        streamResponse([
+          { text: 'Odpowiedź po udanym ponowieniu 429.' },
+        ])
+      );
+
+    const provider = new GeminiChatProvider('test-key', 'gemini-test');
+    const result = await provider.streamChat(request);
+
+    const text: string[] = [];
+    for await (const chunk of result.stream) {
+      text.push(chunk.text);
+    }
+
+    expect(text).toEqual(['Odpowiedź po udanym ponowieniu 429.']);
+    expect(mockGenerateContentStream).toHaveBeenCalledTimes(2);
+    // Sprawdź, czy wywołano 2 razy dla tego samego początkowego modelu 'gemini-test'
+    expect(mockGenerateContentStream.mock.calls[0][0].model).toBe('gemini-test');
+    expect(mockGenerateContentStream.mock.calls[1][0].model).toBe('gemini-test');
+  });
+
+  it('ponawia zapytanie w chat() przy błędzie 503 (Service Unavailable) z exponential backoff przed przejściem do fallbacku', async () => {
+    mockGenerateContent
+      .mockRejectedValueOnce(new Error('503 Service Unavailable: The model is overloaded.'))
+      .mockResolvedValueOnce({
+        text: '{"status":"ok"}',
+        usageMetadata: { totalTokenCount: 50 },
+      });
+
+    const provider = new GeminiChatProvider('test-key', 'gemini-test');
+    const result = await provider.chat(request);
+
+    expect(result.text).toBe('{"status":"ok"}');
+    expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+    expect(mockGenerateContent.mock.calls[0][0].model).toBe('gemini-test');
+    expect(mockGenerateContent.mock.calls[1][0].model).toBe('gemini-test');
   });
 });
