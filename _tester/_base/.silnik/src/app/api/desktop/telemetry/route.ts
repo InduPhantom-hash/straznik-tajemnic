@@ -20,7 +20,9 @@ export async function POST(request: Request) {
     if (sessionLog) {
       try {
         await appendFile(sessionLog, logLine, 'utf8');
-      } catch (_) {}
+      } catch {
+        // Ignoruj błąd zapisu do pliku sesji
+      }
     }
 
     // 2. Rezerwowy zapis do katalogu danych aplikacji
@@ -29,9 +31,10 @@ export async function POST(request: Request) {
     await appendFile(path.join(fallbackDir, 'ui-telemetry.log'), logLine, 'utf8');
 
     return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : 'Błąd zapisu logu';
     return NextResponse.json(
-      { ok: false, error: error?.message || 'Błąd zapisu logu' },
+      { ok: false, error: errMessage },
       { status: 500 }
     );
   }

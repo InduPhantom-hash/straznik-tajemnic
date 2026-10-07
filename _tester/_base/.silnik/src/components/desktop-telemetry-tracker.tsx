@@ -13,7 +13,7 @@ export function DesktopTelemetryTracker() {
     const sendTelemetry = (payload: {
       level: 'ERROR' | 'WARN' | 'INFO';
       message: string;
-      details?: any;
+      details?: Record<string, unknown> | null;
     }) => {
       try {
         if (typeof window === 'undefined' || !window.fetch) return;
@@ -28,7 +28,9 @@ export function DesktopTelemetryTracker() {
         }).catch(() => {
           // Ciche niepowodzenie, aby nie wywołać pętli błędów
         });
-      } catch (_) {}
+      } catch {
+        // Ciche niepowodzenie
+      }
     };
 
     const handleError = (event: ErrorEvent) => {
