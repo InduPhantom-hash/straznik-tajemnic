@@ -34,28 +34,6 @@ export function resolvePaths(customAppDir) {
   }
 
   const platform = process.platform;
-  let defaultDataRoot;
-  if (platform === 'darwin') {
-    defaultDataRoot = path.join(os.homedir(), 'Library', 'Application Support', 'ZewCthulhu');
-  } else if (platform === 'win32') {
-    defaultDataRoot = path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'ZewCthulhu');
-  } else {
-    defaultDataRoot = path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share'), 'ZewCthulhu');
-  }
-
-  const dataRoot = process.env.ZEW_DATA_DIR || defaultDataRoot;
-  const runtimeDir = path.join(dataRoot, 'desktop');
-  const profileDir = path.join(runtimeDir, 'chrome-profile');
-  const pidFile = path.join(runtimeDir, 'server.pid');
-  const coldStartFlag = path.join(runtimeDir, 'cold-start-requested');
-
-  let defaultLog;
-  if (platform === 'darwin') {
-    defaultLog = path.join(os.homedir(), 'Library', 'Logs', 'straznik-tajemnic-ai.log');
-  } else {
-    defaultLog = path.join(dataRoot, 'logs', 'straznik-tajemnic-ai.log');
-  }
-  const logFile = process.env.ZEW_LOG_FILE || defaultLog;
 
   // Wykrywanie najwyższego korzenia aplikacji (tam gdzie leży główny launcher)
   let launcherRootDir = appDir;
@@ -97,7 +75,33 @@ export function resolvePaths(customAppDir) {
     }
   }
 
+  let defaultDataRoot;
+  if (platform === 'darwin') {
+    defaultDataRoot = path.join(os.homedir(), 'Library', 'Application Support', 'ZewCthulhu');
+  } else if (platform === 'win32') {
+    // Portable Zero-Setup: Wszystkie dane sesji, sejwy, SQLite i profil Chrome żyją wewnątrz paczki gry
+    defaultDataRoot = path.join(launcherRootDir, 'data');
+  } else {
+    defaultDataRoot = path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share'), 'ZewCthulhu');
+  }
+
+  const dataRoot = process.env.ZEW_DATA_DIR || defaultDataRoot;
+  const runtimeDir = path.join(dataRoot, 'desktop');
+  const profileDir = path.join(runtimeDir, 'chrome-profile');
+  const pidFile = path.join(runtimeDir, 'server.pid');
+  const coldStartFlag = path.join(runtimeDir, 'cold-start-requested');
+
   const logsDir = process.env.ZEW_LOGS_DIR || path.join(launcherRootDir, 'logs');
+
+  let defaultLog;
+  if (platform === 'darwin') {
+    defaultLog = path.join(os.homedir(), 'Library', 'Logs', 'straznik-tajemnic-ai.log');
+  } else if (platform === 'win32') {
+    defaultLog = path.join(logsDir, 'straznik-tajemnic-ai.log');
+  } else {
+    defaultLog = path.join(dataRoot, 'logs', 'straznik-tajemnic-ai.log');
+  }
+  const logFile = process.env.ZEW_LOG_FILE || defaultLog;
 
   return {
     appDir,

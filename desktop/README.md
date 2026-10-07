@@ -71,6 +71,6 @@ Wygenerowane artefakty (`icon.icns`, `icon.png`, `../.desktop/`, `../dist/`) są
 ## Rozwiązywanie problemów
 
 - **macOS: Okno się nie otwiera / „nie działa"**: zajrzyj do `~/Library/Logs/straznik-tajemnic-ai.log`.
-- **Windows: Okno się nie otwiera**: sprawdź plik logów w `%APPDATA%\ZewCthulhu\logs\straznik-tajemnic-ai.log`.
+- **Windows: Okno się nie otwiera**: sprawdź plik logów w `logs\straznik-tajemnic-ai.log` (lub `logs\session-*.log`) w katalogu aplikacji.
 - **„command not found: npm"** w logu: launcher nie znalazł node. Przebuduj (`build-app.sh` zaszywa ścieżkę node z `command -v node`).
 - **Zajęty port**: supervisor automatycznie szuka wolnego portu od 4050 w górę. W razie potrzeby ręcznego czyszczenia na macOS: `lsof -ti :4050 | xargs kill`.

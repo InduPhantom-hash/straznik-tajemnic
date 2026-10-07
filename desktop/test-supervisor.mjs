@@ -58,6 +58,53 @@ async function runTests() {
       paths.dataRoot.includes('Library/Application Support/ZewCthulhu'),
       'Na macOS katalog danych musi być w Library/Application Support/ZewCthulhu'
     );
+  } else if (process.platform === 'win32') {
+    assert.equal(
+      paths.dataRoot,
+      path.join(paths.launcherRootDir, 'data'),
+      'Na Windows katalog danych musi być ściśle relatywny do paczki (<launcherRootDir>/data)'
+    );
+    assert.equal(
+      paths.logFile,
+      path.join(paths.logsDir, 'straznik-tajemnic-ai.log'),
+      'Na Windows plik logów musi być w <logsDir>/straznik-tajemnic-ai.log'
+    );
+    assert.ok(
+      !paths.dataRoot.includes('AppData'),
+      'Na Windows dataRoot nie może wyciekać do AppData'
+    );
+  }
+
+  // Weryfikacja symulacji Windows (gdy test uruchomiony na macOS/Linux)
+  {
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+    const originalEnvDataDir = process.env.ZEW_DATA_DIR;
+    const originalEnvLogsDir = process.env.ZEW_LOGS_DIR;
+    delete process.env.ZEW_DATA_DIR;
+    delete process.env.ZEW_LOGS_DIR;
+
+    try {
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+      const winPaths = resolvePaths();
+      assert.equal(
+        winPaths.dataRoot,
+        path.join(winPaths.launcherRootDir, 'data'),
+        '[Symulacja Win32] dataRoot musi wskazywać na <launcherRootDir>/data'
+      );
+      assert.equal(
+        winPaths.logFile,
+        path.join(winPaths.launcherRootDir, 'logs', 'straznik-tajemnic-ai.log'),
+        '[Symulacja Win32] logFile musi wskazywać na <launcherRootDir>/logs/straznik-tajemnic-ai.log'
+      );
+      assert.ok(
+        !winPaths.dataRoot.includes('AppData'),
+        '[Symulacja Win32] dataRoot nie może zawierać AppData'
+      );
+    } finally {
+      Object.defineProperty(process, 'platform', originalPlatform);
+      if (originalEnvDataDir !== undefined) process.env.ZEW_DATA_DIR = originalEnvDataDir;
+      if (originalEnvLogsDir !== undefined) process.env.ZEW_LOGS_DIR = originalEnvLogsDir;
+    }
   }
   console.log('  PASS: resolvePaths poprawnie mapuje ścieżki i separuje dane użytkownika.\n');
 

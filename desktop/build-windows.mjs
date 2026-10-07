@@ -106,6 +106,12 @@ if (fs.existsSync(instructionSource)) {
   throw new Error(`Nie znaleziono pliku źródłowego: ${instructionSource}`);
 }
 
+// Przygotowanie katalogów dla pełnej przenośności (Zero-Setup Portable):
+// data/ - baza danych SQLite, sejwy, profil Chrome, RAG
+// logs/ - pliki logów sesyjnych i diagnostycznych
+fs.mkdirSync(path.join(packageDir, 'data'), { recursive: true });
+fs.mkdirSync(path.join(packageDir, 'logs'), { recursive: true });
+
 // 3. Kopiowanie runtime gry z wykluczeniami
 console.log('[3/5] Kopiowanie zasobów aplikacji (Next.js build, node_modules, public)...');
 
