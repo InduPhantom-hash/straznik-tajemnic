@@ -97,7 +97,7 @@ export function DesktopUpdateNotifier() {
       {(update?.available || result) && !modalOpen && (
         <aside
           data-testid="desktop-update-notification"
-          className="fixed bottom-5 right-5 z-[110] w-[min(92vw,400px)] rounded-lg border border-brass/60 bg-[#0B0C0F]/95 p-4 shadow-2xl backdrop-blur space-y-3"
+          className="fixed bottom-6 right-6 z-[9999] w-[min(92vw,390px)] rounded-xl border border-brass/60 bg-[#0B0C0F]/95 p-3.5 sm:p-4 shadow-2xl backdrop-blur space-y-2.5"
         >
           {result ? (
             <>
@@ -107,18 +107,18 @@ export function DesktopUpdateNotifier() {
             </>
           ) : (
             <div className="flex items-start gap-3">
-              <ArtDecoEye size={44} mode="gentle" className="shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0 space-y-1.5">
+              <ArtDecoEye size={42} mode="gentle" className="shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0 space-y-1">
                 <h2 className="font-display text-sm font-semibold text-brass truncate">
                   {t('notificationTitle', { version: targetVersionLabel })}
                 </h2>
                 <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
                   {t('notificationDescription')}
                 </p>
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-1.5">
                   <Button
                     size="sm"
-                    className="bg-brass hover:bg-brass/90 text-black text-xs font-semibold px-3 h-7"
+                    className="bg-brass hover:bg-brass/90 text-black text-xs font-semibold px-3 h-7 cursor-pointer"
                     onClick={() => setModalOpen(true)}
                   >
                     {t('openModal')}
@@ -126,7 +126,7 @@ export function DesktopUpdateNotifier() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs text-muted-foreground hover:text-foreground h-7"
+                    className="text-xs text-muted-foreground hover:text-foreground h-7 cursor-pointer"
                     onClick={later}
                   >
                     {t('later')}
