@@ -98,16 +98,36 @@ export function AudioReelPlayer({
       }
     });
 
-    ws.on('play', () => setIsPlaying(true));
+    ws.on('play', () => {
+      setIsPlaying(true);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('straznik:pause-tts'));
+        window.dispatchEvent(new CustomEvent('straznik:audio-handout-play', { detail: { audioUrl } }));
+      }
+    });
     ws.on('pause', () => setIsPlaying(false));
     ws.on('finish', () => {
       setIsPlaying(false);
       setCurrentTime(0);
     });
 
+    // Wstrzymaj ten player, gdy inny handout zaczyna grać
+    const handleOtherHandoutPlay = (e: Event) => {
+      const customEvent = e as CustomEvent<{ audioUrl?: string }>;
+      if (customEvent.detail?.audioUrl !== audioUrl && ws.isPlaying()) {
+        ws.pause();
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('straznik:audio-handout-play', handleOtherHandoutPlay);
+    }
+
     wavesurferRef.current = ws;
 
     return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('straznik:audio-handout-play', handleOtherHandoutPlay);
+      }
       ws.destroy();
       wavesurferRef.current = null;
     };
