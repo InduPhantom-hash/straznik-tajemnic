@@ -1,0 +1,25 @@
+{
+  "id": "nawiedzony-dom",
+  "title": "The Haunting - Boston 1920",
+  "issue": 700,
+  "visualStyle": "Archival silver-gelatin photography with restrained sepia, optical vignette, and fine analog grain",
+  "generatedWith": "OpenAI ImageGen",
+  "assets": [
+    { "file": "clue-01-knott-keys.webp", "type": "clue", "title": "Steven Knott's keys and commission", "width": 1536, "height": 864 },
+    { "file": "clue-02-boston-globe-1918.webp", "type": "clue", "title": "Unpublished Boston Globe article, 1918", "width": 1536, "height": 864 },
+    { "file": "clue-03-land-registry-1852.webp", "type": "clue", "title": "Boston Registry of Deeds folio, 1852", "width": 1536, "height": 864 },
+    { "file": "clue-04-lawsuit-1853.webp", "type": "clue", "title": "Petition against Walter Corbitt, 1853", "width": 1536, "height": 864 },
+    { "file": "clue-05-obituary-1866.webp", "type": "clue", "title": "Walter Corbitt obituary, 1866", "width": 1536, "height": 864 },
+    { "file": "clue-06-court-executor-record.webp", "type": "clue", "title": "Chapel of Contemplation executor record", "width": 1536, "height": 864 },
+    { "file": "clue-07-police-raid-file.webp", "type": "clue", "title": "Boston Police Department raid file, 1912", "width": 1536, "height": 864 },
+    { "file": "clue-08-cult-symbol-sketch.webp", "type": "clue", "title": "Cult symbol sketch", "width": 1536, "height": 864 },
+    { "file": "clue-09-corbitt-journal.webp", "type": "clue", "title": "Walter Corbitt's occult journal", "width": 1536, "height": 864 },
+    { "file": "item-corbitt-dagger.webp", "type": "item", "title": "Corbitt's ritual dagger", "width": 1536, "height": 864 },
+    { "file": "npc-steven-knott.webp", "type": "portrait", "title": "Steven Knott", "width": 768, "height": 1024 },
+    { "file": "npc-arty-wilmot.webp", "type": "portrait", "title": "Arty Wilmot", "width": 768, "height": 1024 },
+    { "file": "npc-ruth-blake.webp", "type": "portrait", "title": "Ruth Blake", "width": 768, "height": 1024 },
+    { "file": "npc-mr-dooley.webp", "type": "portrait", "title": "Mr. Dooley", "width": 768, "height": 1024 },
+    { "file": "npc-gabriela-macario.webp", "type": "portrait", "title": "Gabriela Macario", "width": 768, "height": 1024 },
+    { "file": "npc-walter-corbitt.webp", "type": "portrait", "title": "Walter Corbitt", "width": 768, "height": 1024 }
+  ]
+}

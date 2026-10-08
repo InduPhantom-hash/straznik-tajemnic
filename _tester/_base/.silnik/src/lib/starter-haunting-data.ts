@@ -20,10 +20,6 @@ export const HAUNTING_HANDOUTS: AdventureHandout[] = [
     slug: 'clue-02-boston-globe-1918',
     title: 'Nieopublikowany artykuł, „Boston Globe” (1918)',
     image: '/adventure-packs/case-s11-01/clue-02-boston-globe-1918.webp',
-    audioUrl: '/audio/handouts/nawiedzony-dom/audio-clue-02-boston-globe-pl.mp3',
-    audioUrlPl: '/audio/handouts/nawiedzony-dom/audio-clue-02-boston-globe-pl.mp3',
-    audioUrlEn: '/audio/handouts/nawiedzony-dom/audio-clue-02-boston-globe-en.mp3',
-    reelType: 'radio',
     handoutType: 'newspaper',
     textContent:
       'Nieopublikowany artykuł „Boston Globe” (1918): W 1880 r. do Corbitt House wprowadziła się rodzina francuskich imigrantów; seria krwawych wypadków przyniosła śmierć rodziców i kalectwo trojga dzieci. W 1914 r. najstarszy z kolejnych lokatorów oszalał i odebrał sobie życie nożem kuchennym. W 1918 r. rodzina Macario uciekła z rezydencji w niewyjaśnionych okolicznościach.',
@@ -80,25 +76,9 @@ export const HAUNTING_HANDOUTS: AdventureHandout[] = [
     slug: 'clue-09-corbitt-journal',
     title: 'Dziennik okultystyczny Waltera Corbitta',
     image: '/adventure-packs/case-s11-01/clue-09-corbitt-journal.webp',
-    audioUrl: '/audio/handouts/nawiedzony-dom/audio-clue-09-corbitt-journal-pl.mp3',
-    audioUrlPl: '/audio/handouts/nawiedzony-dom/audio-clue-09-corbitt-journal-pl.mp3',
-    audioUrlEn: '/audio/handouts/nawiedzony-dom/audio-clue-09-corbitt-journal-en.mp3',
-    reelType: 'gramophone',
     handoutType: 'diary',
     textContent:
       'Staroświecki, spleśniały pamiętnik oprawny w czarną skórę. Notatki Corbitta spisane po angielsku i łacinie opisują rytuały przywoływania Istoty w Ścianach oraz instrukcje zachowania świadomości po śmierci ciała.',
-  },
-  {
-    slug: 'audio-gabriela-macario-plea',
-    title: 'Zeznanie Gabrieli Macario (Szpital w Roxbury)',
-    image: '/adventure-packs/case-s11-01/clue-01-knott-keys.webp',
-    audioUrl: '/audio/handouts/nawiedzony-dom/audio-gabriela-macario-plea-pl.mp3',
-    audioUrlPl: '/audio/handouts/nawiedzony-dom/audio-gabriela-macario-plea-pl.mp3',
-    audioUrlEn: '/audio/handouts/nawiedzony-dom/audio-gabriela-macario-plea-en.mp3',
-    reelType: 'gramophone',
-    handoutType: 'report',
-    textContent:
-      'Przerażające zeznanie Gabrieli Macario ze szpitala psychiatrycznego w Roxbury: „To nie był dom... To było żywe stworzenie. Budziłam się w nocy, a to stało nachylone nad moim łóżkiem. Miało płonące, żółte oczy. Kiedy wpadało we wściekłość, naczynia same fruwały po kuchni... Błagam was, nie wchodźcie do tej piwnicy! Vittorio nie oszalał... on tylko usłyszał jego głos!”',
   },
   {
     slug: 'item-corbitt-dagger',
