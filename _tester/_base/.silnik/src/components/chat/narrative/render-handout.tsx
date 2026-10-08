@@ -10,7 +10,7 @@
 
 import { useState, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import type { Section, HandoutType } from './types';
 import { Volume2, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioReelPlayer } from '@/components/ui/audio-reel-player';
@@ -92,6 +92,13 @@ function HandoutCard({
   adventureContext?: AnyAdventureContext | null;
 }) {
   const t = useTranslations('NarrativeFormatter');
+  let locale = 'pl';
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    locale = useLocale();
+  } catch {
+    locale = 'pl';
+  }
 
   const resolved = section.handoutSlug
     ? resolveHandoutBySlug(section.handoutSlug, adventureContext)
@@ -101,7 +108,14 @@ function HandoutCard({
   const effectiveContent = resolved?.textContent || section.content || '';
   const effectiveType: HandoutType = resolved?.handoutType || section.handoutType || 'note';
   const effectiveImageUrl = resolved?.image || section.imageUrl;
-  const effectiveAudioUrl = resolved?.audioUrl || section.audioUrl;
+  
+  // Wielojęzyczny dobór ścieżki audio (PL vs EN) z graceful fallbackiem
+  const rawAudioUrl =
+    locale === 'en'
+      ? (resolved?.audioUrlEn || section.audioUrl || resolved?.audioUrl)
+      : (resolved?.audioUrlPl || section.audioUrl || resolved?.audioUrl);
+  const effectiveAudioUrl = rawAudioUrl;
+  const effectiveReelType = resolved?.reelType || 'reel_to_reel';
   const styles = getHandoutStyles(effectiveType);
 
   const hasStickyNote = Boolean(section.stickyNote);
@@ -225,6 +239,8 @@ function HandoutCard({
             <div className="mt-3">
               <AudioReelPlayer
                 audioUrl={effectiveAudioUrl}
+                title={effectiveTitle}
+                reelType={effectiveReelType}
                 transcript={effectiveContent}
               />
             </div>

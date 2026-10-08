@@ -84,6 +84,22 @@ describe('resolveHandoutBySlug (Issue #649)', () => {
     expect(globe).toBeDefined();
     expect(globe?.title).toContain('Boston Globe');
     expect(globe?.handoutType).toBe('newspaper');
+    expect(globe?.audioUrl).toBe('/audio/handouts/nawiedzony-dom/audio-clue-02-boston-globe-pl.mp3');
+    expect(globe?.audioUrlPl).toBe('/audio/handouts/nawiedzony-dom/audio-clue-02-boston-globe-pl.mp3');
+    expect(globe?.audioUrlEn).toBe('/audio/handouts/nawiedzony-dom/audio-clue-02-boston-globe-en.mp3');
+    expect(globe?.reelType).toBe('radio');
+
+    const corbitt = resolveHandoutBySlug('clue-09-corbitt-journal', null);
+    expect(corbitt).toBeDefined();
+    expect(corbitt?.audioUrlPl).toBe('/audio/handouts/nawiedzony-dom/audio-clue-09-corbitt-journal-pl.mp3');
+    expect(corbitt?.audioUrlEn).toBe('/audio/handouts/nawiedzony-dom/audio-clue-09-corbitt-journal-en.mp3');
+    expect(corbitt?.reelType).toBe('gramophone');
+
+    const macario = resolveHandoutBySlug('audio-gabriela-macario-plea', null);
+    expect(macario).toBeDefined();
+    expect(macario?.audioUrlPl).toBe('/audio/handouts/nawiedzony-dom/audio-gabriela-macario-plea-pl.mp3');
+    expect(macario?.audioUrlEn).toBe('/audio/handouts/nawiedzony-dom/audio-gabriela-macario-plea-en.mp3');
+    expect(macario?.reelType).toBe('gramophone');
   });
 
   it('zwraca null dla nieistniejacego sluga bez bledu krytycznego', () => {

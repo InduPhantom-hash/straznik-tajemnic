@@ -35,6 +35,12 @@ export interface AdventureHandout {
   image: string;
   /** Opcjonalna ścieżka do nagrania audio lektora/rekwizytu (np. '/audio/handouts/cien-nad-prabutami/tasma-sb-elblag.mp3'). */
   audioUrl?: string;
+  /** Opcjonalna dedykowana ścieżka do wersji polskiej nagrania audio */
+  audioUrlPl?: string;
+  /** Opcjonalna dedykowana ścieżka do wersji angielskiej nagrania audio */
+  audioUrlEn?: string;
+  /** Opcjonalny wariant diegetycznego odtwarzacza audio */
+  reelType?: 'reel_to_reel' | 'cassette' | 'gramophone' | 'radio';
   /** Opcjonalny typ handoutu dla renderera tekstu w czacie */
   handoutType?: 'newspaper' | 'letter' | 'telegram' | 'report' | 'diary' | 'book' | 'map';
   /** Opcjonalna transkrypcja lub nienaruszony tekst RAW z podręcznika */

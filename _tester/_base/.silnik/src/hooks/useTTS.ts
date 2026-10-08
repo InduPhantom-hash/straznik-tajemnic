@@ -520,6 +520,21 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     }
   }, [voiceEnabled, isTTSEnabled, stopCurrentAudio]);
 
+  // Zatrzymanie lektora narracji, gdy gracz odtwarza diegetyczny handout audio (Issue #703 / Q6)
+  useEffect(() => {
+    const handlePauseTTS = () => {
+      console.log('🔇 [TTS] Zatrzymano narrację MG na rzecz odtwarzanego handoutu audio');
+      stopCurrentAudio();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('straznik:pause-tts', handlePauseTTS);
+      return () => {
+        window.removeEventListener('straznik:pause-tts', handlePauseTTS);
+      };
+    }
+  }, [stopCurrentAudio]);
+
   const toggleAudioPause = useCallback(() => {
     const audio = currentAudioRef.current;
     if (audio) {

@@ -59,6 +59,67 @@ export const PREDEFINED_HANDOUTS = [
     text: 'Czy to nagrywa? Proszę... one nie mają twarzy, a mimo to na mnie patrzą. Zstępują ze wzgórz za każdym razem, gdy mgła opada nad rzekę Miskatonic... Doktórze, niech pan nie gasi lampy!',
     outputFilename: 'arkham_phonograph_record.mp3',
   },
+  // === CASE-S01: NAWIEDZONY DOM / THE HAUNTING (Issue #703) ===
+  {
+    id: 'haunting_boston_globe_pl',
+    title: 'Boston Globe (1918) - Artykuł PL (Nawiedzony Dom)',
+    scenario: 'nawiedzony-dom',
+    mediaType: 'radio_broadcast',
+    voiceType: 'radio_announcer_1920s',
+    elevenVoiceId: 'pNInz6obpgDQGcFmaJgB', // Adam
+    text: 'Nieopublikowany artykuł „Boston Globe”, rok 1918. W roku 1880 do Corbitt House wprowadziła się rodzina francuskich imigrantów. Niebawem doszło do serii krwawych wypadków: rodzice ponieśli śmierć, a troje dzieci zostało kalekami. W 1914 najstarszy z braci oszalał i odebrał sobie życie nożem kuchennym. W 1918 roku państwo Macario uciekli w niewyjaśnionych okolicznościach po tym, jak mąż popadł w morderczy szał.',
+    outputFilename: 'nawiedzony-dom/audio-clue-02-boston-globe-pl.mp3',
+  },
+  {
+    id: 'haunting_boston_globe_en',
+    title: 'The Boston Globe (1918) - Feature EN (The Haunting)',
+    scenario: 'nawiedzony-dom',
+    mediaType: 'radio_broadcast',
+    voiceType: 'radio_announcer_1920s',
+    elevenVoiceId: 'onwK4e9ZLuTAKqWW03F9', // Daniel - Broadcaster
+    text: 'Unpublished feature, The Boston Globe, 1918. In 1880, a French immigrant family moved into the Corbitt House. A tragic series of accidents followed: the parents perished, leaving three crippled children. In 1914, the eldest brother went mad and took his own life with a kitchen knife. In 1918, the Macario family fled in terror after the husband fell into a murderous frenzy.',
+    outputFilename: 'nawiedzony-dom/audio-clue-02-boston-globe-en.mp3',
+  },
+  {
+    id: 'haunting_corbitt_journal_pl',
+    title: 'Dziennik Waltera Corbitta PL (Nawiedzony Dom)',
+    scenario: 'nawiedzony-dom',
+    mediaType: 'phonograph_cylinder',
+    voiceType: 'ominous_old_man',
+    elevenVoiceId: 'N2lVS1w4EtoT3dr4eOWO', // Callum
+    text: '...I rzekł do mnie Ten, Który Czeka w Ciemności: twoje ciało wyschnie na kształt dębowego drewna, lecz duch twój nie opuści ścian tego domu. Każda kropla krwi wylana na podłogę piwnicy przedłuża żywot sługi Dawcy Tajemnic. Jam jest Walter Corbitt, pan tego progu na wieki wieków...',
+    outputFilename: 'nawiedzony-dom/audio-clue-09-corbitt-journal-pl.mp3',
+  },
+  {
+    id: 'haunting_corbitt_journal_en',
+    title: "Walter Corbitt's Journal EN (The Haunting)",
+    scenario: 'nawiedzony-dom',
+    mediaType: 'phonograph_cylinder',
+    voiceType: 'ominous_old_man',
+    elevenVoiceId: 'N2lVS1w4EtoT3dr4eOWO', // Callum
+    text: '...And He Who Waits in the Darkness spoke unto me: your flesh shall wither like cured oak, yet your soul shall never depart these walls. Every drop of blood spilled upon this cellar loam feedeth the servant of the Secret Giver. I am Walter Corbitt, keeper of this threshold forevermore...',
+    outputFilename: 'nawiedzony-dom/audio-clue-09-corbitt-journal-en.mp3',
+  },
+  {
+    id: 'haunting_gabriela_macario_plea_pl',
+    title: 'Błaganie Gabrieli Macario PL (Nawiedzony Dom)',
+    scenario: 'nawiedzony-dom',
+    mediaType: 'audio_interview',
+    voiceType: 'terrified_woman',
+    elevenVoiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah
+    text: 'To nie był dom... To było żywe stworzenie. Budziłam się w nocy, a to stało nachylone nad moim łóżkiem. Miało płonące, żółte oczy. Kiedy wpadało we wściekłość, naczynia same fruwały po kuchni... Błagam was, nie wchodźcie do tej piwnicy! Vittorio nie oszalał... on tylko usłyszał jego głos!',
+    outputFilename: 'nawiedzony-dom/audio-gabriela-macario-plea-pl.mp3',
+  },
+  {
+    id: 'haunting_gabriela_macario_plea_en',
+    title: "Gabriela Macario's Plea EN (The Haunting)",
+    scenario: 'nawiedzony-dom',
+    mediaType: 'audio_interview',
+    voiceType: 'terrified_woman',
+    elevenVoiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah
+    text: "It wasn't a house... it was a living thing. I would wake in the dead of night to find it leaning over our bed. Burning, jaundiced eyes. When its fury broke, dishes hurled across the room of their own accord... I beg you, do not set foot in that cellar! Vittorio was not mad... he only heard its voice!",
+    outputFilename: 'nawiedzony-dom/audio-gabriela-macario-plea-en.mp3',
+  },
   // === STREFA 11 (Autorskie Polskie Scenariusze) ===
   {
     id: 'strefa11_prabuty_wiretap',
