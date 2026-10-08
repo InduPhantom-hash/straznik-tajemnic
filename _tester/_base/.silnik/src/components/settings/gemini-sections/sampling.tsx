@@ -19,7 +19,7 @@ export function SamplingSection({ g, updateGemini }: GeminiSectionProps) {
             🎛️ Sampling
           </span>
           <span className="text-xs text-muted-foreground font-special-elite uppercase tracking-[0.1em]">
-            T:{g.temperature.toFixed(1)} · P:{g.topP.toFixed(2)} · K:{g.topK}
+            T:{g.temperature.toFixed(1)}
           </span>
         </span>
       </AccordionTrigger>
@@ -53,70 +53,6 @@ export function SamplingSection({ g, updateGemini }: GeminiSectionProps) {
               </span>
               <span className="text-sm font-special-elite text-primary min-w-[3rem] text-right">
                 {g.temperature.toFixed(1)}
-              </span>
-            </div>
-          </div>
-
-          {/* topP */}
-          <div>
-            <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
-              {GEMINI_HELP.topP.label}
-              <HelpIcon
-                content={`${GEMINI_HELP.topP.desc} ${GEMINI_HELP.topP.example ?? ''}`}
-              />
-            </label>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground font-special-elite min-w-[2rem]">
-                0.0
-              </span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={g.topP}
-                onChange={(e) =>
-                  updateGemini({ topP: parseFloat(e.target.value) })
-                }
-                className="flex-1 h-1.5 bg-[#2a241b] accent-primary rounded-full appearance-none cursor-pointer slider-thumb"
-              />
-              <span className="text-xs text-muted-foreground font-special-elite min-w-[2rem]">
-                1.0
-              </span>
-              <span className="text-sm font-special-elite text-primary min-w-[3rem] text-right">
-                {g.topP.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {/* topK */}
-          <div>
-            <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
-              {GEMINI_HELP.topK.label}
-              <HelpIcon
-                content={`${GEMINI_HELP.topK.desc} ${GEMINI_HELP.topK.example ?? ''}`}
-              />
-            </label>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground font-special-elite min-w-[2rem]">
-                1
-              </span>
-              <input
-                type="range"
-                min="1"
-                max="100"
-                step="1"
-                value={g.topK}
-                onChange={(e) =>
-                  updateGemini({ topK: parseInt(e.target.value, 10) })
-                }
-                className="flex-1 h-1.5 bg-[#2a241b] accent-primary rounded-full appearance-none cursor-pointer slider-thumb"
-              />
-              <span className="text-xs text-muted-foreground font-special-elite min-w-[2rem]">
-                100
-              </span>
-              <span className="text-sm font-special-elite text-primary min-w-[3rem] text-right">
-                {g.topK}
               </span>
             </div>
           </div>

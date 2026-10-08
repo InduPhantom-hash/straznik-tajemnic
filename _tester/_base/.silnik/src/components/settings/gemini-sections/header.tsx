@@ -58,6 +58,17 @@ export function HeaderSection({
         if (reqId !== requestIdRef.current) return;
         if (data.modelPing) {
           setModelPing(data.modelPing);
+          // Auto-healing: jeśli wybrany model został wycofany (not_found / 404), przełącz automatycznie na alias dynamiczny
+          if (data.modelPing.reason === 'not_found' && modelId !== 'gemini-flash-latest') {
+            console.warn(`[Auto-Healing] Model ${modelId} wycofany. Automatyczne przełączenie na gemini-flash-latest.`);
+            setSettings((prev) => ({
+              ...prev,
+              geminiSettings: {
+                ...prev.geminiSettings,
+                model: 'gemini-flash-latest',
+              },
+            }));
+          }
         } else {
           setModelPing({
             model: modelId,
@@ -226,12 +237,14 @@ export function HeaderSection({
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
           >
             <option value="gemini-flash-latest">
-              {t('modelFlashLatest')}
+              {t('modelFlashLatest')} (Auto / Zawsze najnowszy)
             </option>
             <option value="gemini-flash-lite-latest">
-              {t('modelFlashLiteLatest')}
+              {t('modelFlashLiteLatest')} (Auto Lite)
             </option>
-            <option value="gemini-pro-latest">{t('modelProLatest')}</option>
+            <option value="gemini-pro-latest">
+              {t('modelProLatest')} (Auto Pro)
+            </option>
             <option value="gemini-3.8-flash">{t('model38Flash')}</option>
             <option value="gemini-3.7-flash">{t('model37Flash')}</option>
             <option value="gemini-3.6-flash">{t('model36Flash')}</option>
@@ -240,9 +253,6 @@ export function HeaderSection({
             </option>
             <option value="gemini-3.1-flash-lite">
               {t('model31FlashLite')}
-            </option>
-            <option value="gemini-3-flash-preview">
-              {t('model3FlashPreview')}
             </option>
             <option value="gemini-2.5-pro">{t('model25Pro')}</option>
             <option value="gemini-2.5-flash">{t('model25Flash')}</option>
@@ -254,6 +264,7 @@ export function HeaderSection({
               'gemini-2.0-flash-exp',
               'gemini-2.0-flash-lite',
               'gemini-3-pro-preview',
+              'gemini-3-flash-preview',
             ].includes(g.model) && (
               <option value={g.model} disabled>
                 {g.model} ({t('modelDeprecated')})
