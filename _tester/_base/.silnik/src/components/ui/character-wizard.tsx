@@ -1956,7 +1956,7 @@ export function CharacterWizardV2({
           subtitle={t('stepConceptSubtitle')}
         />
         {adventureContext && (
-          <p className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass -mt-2">
+          <p className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass -mt-2">
             {t('adventureLabel', {
               title: adventureContext.title || '',
               location: adventureContext.location || '',
@@ -1965,9 +1965,9 @@ export function CharacterWizardV2({
         )}
 
         {adventureContext?.investigatorRequirements && (
-          <div className="border border-amber-500/40 bg-amber-950/25 p-3 rounded-sm flex items-start gap-3">
+          <div className="border border-amber-500/40 bg-amber-950/25 p-3.5 rounded-sm flex items-start gap-3">
             <Users className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-1 text-xs">
+            <div className="space-y-1.5 text-sm">
               <span className="font-display uppercase tracking-wider font-semibold text-amber-200">
                 Wymogi scenariusza dotyczące Badaczy
               </span>
@@ -1975,7 +1975,7 @@ export function CharacterWizardV2({
                 {adventureContext.investigatorRequirements.summary}
               </p>
               {adventureContext.investigatorRequirements.minAge !== undefined && (
-                <p className="font-mono text-amber-300/80">
+                <p className="font-mono text-amber-300/90 font-medium">
                   Dozwolony wiek: {adventureContext.investigatorRequirements.minAge} - {adventureContext.investigatorRequirements.maxAge || 90} lat.
                 </p>
               )}
@@ -1987,10 +1987,10 @@ export function CharacterWizardV2({
         <div className="flex flex-col gap-2 border border-brass/30 bg-[#120f0c] px-4 py-3 rounded-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="font-special-elite text-sm uppercase tracking-[0.14em] text-brass/90 font-semibold">
                 {t('rulesetConventionLabel')}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-display text-xs uppercase font-semibold tracking-wider text-brass">
+              <span className="inline-flex items-center gap-1.5 font-display text-sm uppercase font-semibold tracking-wider text-brass">
                 {state.rulesetVariant === 'pulp' ? (
                   <>
                     <Zap className="h-3.5 w-3.5 text-primary" />
@@ -2004,7 +2004,7 @@ export function CharacterWizardV2({
                 )}
               </span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => {
@@ -2016,14 +2016,14 @@ export function CharacterWizardV2({
                     derived: calculateDerived(prev.stats, prev.age, 'classic'),
                   }));
                 }}
-                className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border cursor-pointer ${
+                className={`px-3 py-1.5 text-xs sm:text-sm font-display uppercase tracking-wider transition-colors border cursor-pointer ${
                   state.rulesetVariant === 'classic'
                     ? 'border-brass bg-brass/20 text-brass font-bold'
-                    : 'border-brass/20 text-muted-foreground hover:text-brass hover:bg-brass/5'
+                    : 'border-brass/25 text-muted-foreground hover:text-brass hover:bg-brass/5'
                 }`}
               >
                 <span className="flex items-center gap-1">
-                  <Skull className="h-3 w-3" />
+                  <Skull className="h-3.5 w-3.5" />
                   {t('rulesetClassicShort')}
                 </span>
               </button>
@@ -2038,20 +2038,20 @@ export function CharacterWizardV2({
                     derived: calculateDerived(prev.stats, prev.age, 'pulp'),
                   }));
                 }}
-                className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border cursor-pointer ${
+                className={`px-3 py-1.5 text-xs sm:text-sm font-display uppercase tracking-wider transition-colors border cursor-pointer ${
                   state.rulesetVariant === 'pulp'
                     ? 'border-primary bg-primary/20 text-primary font-bold shadow-[0_0_8px_rgba(13,148,136,0.3)]'
-                    : 'border-brass/20 text-muted-foreground hover:text-primary hover:bg-primary/5'
+                    : 'border-brass/25 text-muted-foreground hover:text-primary hover:bg-primary/5'
                 }`}
               >
                 <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3" />
+                  <Zap className="h-3.5 w-3.5" />
                   {t('rulesetPulpShort')}
                 </span>
               </button>
             </div>
           </div>
-          <p className="font-serif italic text-xs text-muted-foreground/90 border-t border-brass/15 pt-2">
+          <p className="font-serif italic text-sm text-foreground/80 border-t border-brass/15 pt-2">
             {state.rulesetVariant === 'pulp'
               ? t('rulesetPulpExplanation')
               : t('rulesetClassicExplanation')}
@@ -2094,33 +2094,33 @@ export function CharacterWizardV2({
         {/* Szczegóły wybranego archetypu */}
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
           <div className="border border-brass/30 bg-[#0e1413] p-4">
-            <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
+            <h4 className="font-display uppercase tracking-[0.1em] text-base text-brass font-semibold mb-2 flex items-center gap-2">
               {selectedArchetype.icon} {selectedArchetype.name}
             </h4>
-            <p className="font-serif italic text-sm text-muted-foreground mb-3">
+            <p className="font-serif italic text-sm text-foreground/85 mb-3">
               {selectedArchetype.description}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div>
-                <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                <span className="font-special-elite text-xs sm:text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold block mb-0.5">
                   {t('suggestedOccupations')}
                 </span>
-                <div className="text-foreground">
+                <div className="text-foreground font-medium">
                   {((selectedDetails?.suggestedOccupations || selectedArchetype?.suggestedOccupations) || [])
                     .slice(0, 3)
                     .join(', ')}
                 </div>
               </div>
               <div>
-                <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                <span className="font-special-elite text-xs sm:text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold block mb-0.5">
                   {t('traits')}
                 </span>
-                <div className="text-foreground">
+                <div className="text-foreground font-medium">
                   {((selectedDetails?.suggestedTraits || selectedArchetype?.suggestedTraits) || []).join(', ')}
                 </div>
               </div>
               <div>
-                <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                <span className="font-special-elite text-xs sm:text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold block mb-0.5">
                   {selectedArchetype?.suggestedMotivations?.length
                     ? t('motivations')
                     : state.rulesetVariant === 'pulp'
@@ -2271,7 +2271,7 @@ export function CharacterWizardV2({
             </p>
             {statMethod === 'pointbuy' && (
               <div className="mt-3 flex items-center gap-3">
-                <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                <span className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
                   {t('pointPool')}
                 </span>
                 <span
@@ -2419,13 +2419,13 @@ export function CharacterWizardV2({
                 )}
 
                 {(statMethod === 'pointbuy' || rollState.rolled) && (
-                  <div className="font-special-elite text-xs tracking-[0.06em] text-muted-foreground mt-1">
+                  <div className="font-special-elite text-sm tracking-[0.08em] font-semibold text-brass mt-1">
                     ½:{half(value)} ⅕:{fifth(value)}
                   </div>
                 )}
 
                 {/* Onboarding: krótki opis cechy własnymi słowami (P2) */}
-                <p className="font-serif text-xs leading-snug text-muted-foreground/80 mt-2">
+                <p className="font-serif text-sm leading-snug text-foreground/80 mt-2">
                   {statShortDesc[stat]}
                 </p>
               </div>
@@ -2772,7 +2772,7 @@ export function CharacterWizardV2({
         {/* Cechy pochodne */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="border border-[#b3322c]/40 bg-[#16130f] p-3 text-center">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-[#d9685f]">
+            <div className="flex items-center justify-center font-special-elite text-sm uppercase tracking-[0.12em] font-semibold text-[#d9685f]">
               ❤️ {t('hpAbbr')}{' '}
               <HelpIcon
                 content={
@@ -2788,7 +2788,7 @@ export function CharacterWizardV2({
             </div>
           </div>
           <div className="border border-brass/40 bg-[#16130f] p-3 text-center">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass">
+            <div className="flex items-center justify-center font-special-elite text-sm uppercase tracking-[0.12em] font-semibold text-brass">
               🧠 {t('sanAbbr')}{' '}
               <HelpIcon
                 content={
@@ -2804,7 +2804,7 @@ export function CharacterWizardV2({
             </div>
           </div>
           <div className="border border-brass/30 bg-[#0e1413] p-3 text-center shadow-[0_0_14px_rgba(13,148,136,.14)]">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80">
+            <div className="flex items-center justify-center font-special-elite text-sm uppercase tracking-[0.12em] font-semibold text-brass">
               ✨ {t('mpAbbr')}{' '}
               <HelpIcon
                 content={
@@ -2820,7 +2820,7 @@ export function CharacterWizardV2({
             </div>
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <div className="flex items-center justify-center font-special-elite text-sm uppercase tracking-[0.12em] font-semibold text-brass/90">
               💪 {t('damageBonusAbbr')}{' '}
               <HelpIcon
                 content={
@@ -2836,7 +2836,7 @@ export function CharacterWizardV2({
             </div>
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <div className="flex items-center justify-center font-special-elite text-sm uppercase tracking-[0.12em] font-semibold text-brass/90">
               🏋️ {t('buildLabel')}{' '}
               <HelpIcon
                 content={
@@ -2852,7 +2852,7 @@ export function CharacterWizardV2({
             </div>
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <div className="flex items-center justify-center font-special-elite text-sm uppercase tracking-[0.12em] font-semibold text-brass/90">
               🏃 {t('moveLabel')}{' '}
               <HelpIcon
                 content={
@@ -3404,14 +3404,14 @@ export function CharacterWizardV2({
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-display text-xs uppercase tracking-[0.12em] text-brass font-semibold">
+                <span className="font-display text-sm uppercase tracking-[0.12em] text-brass font-semibold">
                   ★ {t('occupationPointsTitle')}
                 </span>
-                <span className="font-serif italic text-xs text-muted-foreground">
+                <span className="font-serif italic text-sm text-muted-foreground">
                   ({selectedOcc ? selectedOcc.formula : t('occupationUnknown')})
                 </span>
               </div>
-              <span className="font-special-elite text-xs text-muted-foreground">
+              <span className="font-special-elite text-sm text-brass/90 font-medium">
                 {t('pointsSpentRatio', {
                   used: usage.occupationPointsUsed,
                   available: state.occupationPoints,
@@ -3421,24 +3421,24 @@ export function CharacterWizardV2({
 
             <div className="flex items-baseline justify-between mb-2">
               <div>
-                <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground font-special-elite mr-2">
+                <span className="text-sm uppercase tracking-[0.08em] text-brass/90 font-special-elite mr-2">
                   {t('pointsRemainingShort')}:
                 </span>
                 <span
                   className={`font-display text-2xl font-bold ${
                     usage.isOccupationOverLimit
                       ? 'text-destructive'
-                      : 'text-brass/90'
+                      : 'text-brass'
                   }`}
                 >
                   {usage.occupationPointsRemaining}
                 </span>
-                <span className="font-special-elite text-xs text-muted-foreground ml-1">
+                <span className="font-special-elite text-sm text-brass/90 ml-1">
                   pkt
                 </span>
               </div>
               {state.creditRating > 0 && (
-                <span className="font-serif italic text-xs text-muted-foreground">
+                <span className="font-serif italic text-sm text-foreground/80">
                   {t('creditRatingIncluded', { count: state.creditRating })}
                 </span>
               )}
@@ -3482,14 +3482,14 @@ export function CharacterWizardV2({
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-display text-xs uppercase tracking-[0.12em] text-teal-400 font-semibold">
+                <span className="font-display text-sm uppercase tracking-[0.12em] text-teal-400 font-semibold">
                   ✦ {t('interestPointsTitle')}
                 </span>
-                <span className="font-serif italic text-xs text-muted-foreground">
+                <span className="font-serif italic text-sm text-muted-foreground">
                   ({t('intFormulaShort', { value: state.stats.int })})
                 </span>
               </div>
-              <span className="font-special-elite text-xs text-muted-foreground">
+              <span className="font-special-elite text-sm text-teal-300/90 font-medium">
                 {t('pointsSpentRatio', {
                   used: usage.interestPointsUsed,
                   available: state.interestPoints,
@@ -3499,7 +3499,7 @@ export function CharacterWizardV2({
 
             <div className="flex items-baseline justify-between mb-2">
               <div>
-                <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground font-special-elite mr-2">
+                <span className="text-sm uppercase tracking-[0.08em] text-teal-300/90 font-special-elite mr-2">
                   {t('pointsRemainingShort')}:
                 </span>
                 <span
@@ -3511,11 +3511,11 @@ export function CharacterWizardV2({
                 >
                   {usage.interestPointsRemaining}
                 </span>
-                <span className="font-special-elite text-xs text-muted-foreground ml-1">
+                <span className="font-special-elite text-sm text-teal-300/90 ml-1">
                   pkt
                 </span>
               </div>
-              <span className="font-serif italic text-xs text-muted-foreground">
+              <span className="font-serif italic text-sm text-foreground/80">
                 {t('hobbiesAndExcess')}
               </span>
             </div>
@@ -3646,40 +3646,40 @@ export function CharacterWizardV2({
                     type="button"
                     onClick={() => setSkillFilter('all')}
                     data-testid="skills-filter-all"
-                    className={`px-3.5 py-1.5 text-xs font-display uppercase tracking-[0.12em] transition-all border ${
+                    className={`px-3.5 py-1.5 text-xs sm:text-sm font-display uppercase tracking-[0.12em] font-semibold transition-all border ${
                       skillFilter === 'all'
                         ? 'border-brass bg-brass/20 text-brass font-bold shadow-[0_0_12px_rgba(201,162,39,0.2)] ring-1 ring-brass/50'
                         : 'border-brass/25 bg-[#0a0f0e] text-muted-foreground hover:border-brass/45 hover:text-foreground'
                     }`}
                   >
                     {t('skillsFilterAll')}{' '}
-                    <span className="font-mono text-[11px] opacity-85">({totalCount})</span>
+                    <span className="font-mono text-xs font-semibold opacity-90">({totalCount})</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSkillFilter('occupational')}
                     data-testid="skills-filter-occupational"
-                    className={`px-3.5 py-1.5 text-xs font-display uppercase tracking-[0.12em] transition-all border ${
+                    className={`px-3.5 py-1.5 text-xs sm:text-sm font-display uppercase tracking-[0.12em] font-semibold transition-all border ${
                       skillFilter === 'occupational'
                         ? 'border-brass bg-brass/20 text-brass font-bold shadow-[0_0_12px_rgba(201,162,39,0.2)] ring-1 ring-brass/50'
                         : 'border-brass/25 bg-[#0a0f0e] text-muted-foreground hover:border-brass/45 hover:text-foreground'
                     }`}
                   >
                     ★ {t('skillsFilterOccupational')}{' '}
-                    <span className="font-mono text-[11px] opacity-85">({occupationalCount})</span>
+                    <span className="font-mono text-xs font-semibold opacity-90">({occupationalCount})</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSkillFilter('invested')}
                     data-testid="skills-filter-invested"
-                    className={`px-3.5 py-1.5 text-xs font-display uppercase tracking-[0.12em] transition-all border ${
+                    className={`px-3.5 py-1.5 text-xs sm:text-sm font-display uppercase tracking-[0.12em] font-semibold transition-all border ${
                       skillFilter === 'invested'
                         ? 'border-brass bg-brass/20 text-brass font-bold shadow-[0_0_12px_rgba(201,162,39,0.2)] ring-1 ring-brass/50'
                         : 'border-brass/25 bg-[#0a0f0e] text-muted-foreground hover:border-brass/45 hover:text-foreground'
                     }`}
                   >
                     ✦ {t('skillsFilterInvested')}{' '}
-                    <span className="font-mono text-[11px] opacity-85">({investedCount})</span>
+                    <span className="font-mono text-xs font-semibold opacity-90">({investedCount})</span>
                   </button>
                 </div>
               </div>
@@ -3761,18 +3761,18 @@ export function CharacterWizardV2({
                               min={baseValue}
                               max={skillName === 'Mity Cthulhu' ? 0 : 99}
                             />
-                            <div className="font-special-elite text-xs text-muted-foreground">
+                            <div className="font-special-elite text-sm text-foreground/90 font-medium">
                               <div>
                                 {t('baseShort')}{' '}
-                                <span className="text-brass/80">{baseValue}</span>
+                                <span className="text-brass font-bold">{baseValue}</span>
                               </div>
-                              <div className="text-foreground">
+                              <div className="text-brass-light font-semibold">
                                 {half(value)}/{fifth(value)}
                               </div>
                             </div>
                           </div>
                           {pointsAdded > 0 && (
-                            <span className="font-special-elite text-xs text-brass/80">
+                            <span className="font-special-elite text-sm font-semibold text-brass">
                               +{t('pointsAdded', { count: pointsAdded })}
                             </span>
                           )}
@@ -3816,7 +3816,7 @@ export function CharacterWizardV2({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
+          <label className="block font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold mb-1">
             {t('fullName')}
           </label>
           <input
@@ -3825,12 +3825,12 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, name: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground focus:outline-none focus:border-brass/30"
             placeholder={t('namePlaceholder')}
           />
         </div>
         <div>
-          <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
+          <label className="block font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold mb-1">
             {t('gender')}
           </label>
           <select
@@ -3838,7 +3838,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, gender: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground focus:outline-none focus:border-brass/30"
           >
             <option value="">{t('selectPlaceholder')}</option>
             <option value="male">{t('male')}</option>
@@ -3846,7 +3846,7 @@ export function CharacterWizardV2({
           </select>
         </div>
         <div>
-          <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
+          <label className="block font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold mb-1">
             {t('birthplace')}
           </label>
           <input
@@ -3855,12 +3855,12 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, birthplace: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground focus:outline-none focus:border-brass/30"
             placeholder={t('birthplacePlaceholder')}
           />
         </div>
         <div>
-          <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
+          <label className="block font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold mb-1">
             {t('appearanceDescription')}
           </label>
           <input
@@ -3869,19 +3869,19 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, description: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground focus:outline-none focus:border-brass/30"
             placeholder={t('appearancePlaceholder')}
           />
         </div>
         <div className="md:col-span-2">
           <div className="flex items-center justify-between mb-1">
-            <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <label className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
               {t('ideologyLabel')}
             </label>
             <button
               onClick={() => generateSingleField('ideology')}
               disabled={!!generatingField}
-              className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
+              className="font-display uppercase tracking-[0.1em] text-xs sm:text-sm px-2.5 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
               {generatingField === 'ideology' ? t('generatingEllipsis') : t('generateButton')}
             </button>
@@ -3891,19 +3891,19 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, ideology: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('ideologyPlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <label className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
               {t('importantPeople')}
             </label>
             <button
               onClick={() => generateSingleField('importantPeople')}
               disabled={!!generatingField}
-              className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
+              className="font-display uppercase tracking-[0.1em] text-xs sm:text-sm px-2.5 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
               {generatingField === 'importantPeople' ? t('generatingEllipsis') : t('generateButton')}
             </button>
@@ -3913,19 +3913,19 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, importantPeople: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('importantPeoplePlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <label className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
               {t('significantPlaces')}
             </label>
             <button
               onClick={() => generateSingleField('significantPlaces')}
               disabled={!!generatingField}
-              className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
+              className="font-display uppercase tracking-[0.1em] text-xs sm:text-sm px-2.5 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
               {generatingField === 'significantPlaces' ? t('generatingEllipsis') : t('generateButton')}
             </button>
@@ -3938,19 +3938,19 @@ export function CharacterWizardV2({
                 significantPlaces: e.target.value,
               }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('significantPlacesPlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <label className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
               {t('personalItems')}
             </label>
             <button
               onClick={() => generateSingleField('personalItems')}
               disabled={!!generatingField}
-              className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
+              className="font-display uppercase tracking-[0.1em] text-xs sm:text-sm px-2.5 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
               {generatingField === 'personalItems' ? t('generatingEllipsis') : t('generateButton')}
             </button>
@@ -3960,19 +3960,19 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, personalItems: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('personalItemsPlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <label className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
               {t('traitsLabel')}
             </label>
             <button
               onClick={() => generateSingleField('traits')}
               disabled={!!generatingField}
-              className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
+              className="font-display uppercase tracking-[0.1em] text-xs sm:text-sm px-2.5 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
               {generatingField === 'traits' ? t('generatingEllipsis') : t('generateButton')}
             </button>
@@ -3982,19 +3982,19 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, traits: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('traitsPlaceholder')}
           />
         </div>
-        <div className="md:col-span-2 border border-brass/20 bg-[#0e1413] p-3">
+        <div className="md:col-span-2 border border-brass/20 bg-[#0e1413] p-3.5">
           <div className="flex items-center justify-between mb-1">
-            <label className="font-display uppercase tracking-[0.1em] text-xs text-brass/80">
+            <label className="font-display uppercase tracking-[0.1em] text-sm text-brass font-semibold">
               ★ {t('keyConnection')}
             </label>
             <button
               onClick={() => generateSingleField('keyConnection')}
               disabled={!!generatingField}
-              className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
+              className="font-display uppercase tracking-[0.1em] text-xs sm:text-sm px-2.5 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
               {generatingField === 'keyConnection' ? t('generatingEllipsis') : t('generateButton')}
             </button>
@@ -4004,7 +4004,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, keyConnection: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-base text-foreground h-24 2xl:h-36 focus:outline-none"
             placeholder={t('keyConnectionPlaceholder')}
           />
         </div>
@@ -4149,11 +4149,11 @@ export function CharacterWizardV2({
             {/* Podsumowanie postaci (Akta Badacza) */}
             <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)] flex-1 flex flex-col justify-between">
               <div>
-                <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-xs font-semibold mb-2">
+                <div className="font-display uppercase tracking-[0.1em] text-brass text-sm font-semibold mb-2">
                   ✓ {t('summary')}
                 </div>
-                <div className="text-sm text-foreground">
-                  <strong className="text-brass/90 text-base">
+                <div className="text-base text-foreground">
+                  <strong className="text-brass text-lg">
                     {state.name || t('defaultCharacterName')}
                   </strong>
                   <span className="text-muted-foreground">
@@ -4165,16 +4165,16 @@ export function CharacterWizardV2({
               </div>
 
               {/* Siatka atrybutów */}
-              <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-brass/20 text-center font-special-elite text-xs">
+              <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-brass/20 text-center font-special-elite text-sm font-medium">
                 {STAT_KEYS.map((stat) => (
                   <div
                     key={stat}
-                    className="bg-[#14110c] border border-brass/20 py-1 px-1"
+                    className="bg-[#14110c] border border-brass/20 py-1.5 px-1"
                   >
-                    <span className="text-muted-foreground text-[10px] uppercase block tracking-wider">
+                    <span className="text-brass/80 text-xs font-semibold uppercase block tracking-wider">
                       {stat.toUpperCase()}
                     </span>
-                    <span className="text-brass font-bold">
+                    <span className="text-brass font-bold text-base">
                       {state.stats[stat]}
                     </span>
                   </div>
@@ -4189,46 +4189,46 @@ export function CharacterWizardV2({
             <div className="border border-brass/28 bg-[#16130f] p-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div>
-                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                  <div className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
                     {t('level')}
                   </div>
-                  <div className="font-display text-foreground font-bold mt-1">
+                  <div className="font-display text-foreground font-bold text-base mt-1">
                     {t.has(`wealthLevels.${wealthInfo.key}`)
                       ? t(`wealthLevels.${wealthInfo.key}`)
                       : wealthInfo.level}
                   </div>
                 </div>
                 <div>
-                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                  <div className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
                     {t('cash')}
                   </div>
-                  <div className="font-display text-brass/80 font-bold mt-1">
+                  <div className="font-display text-brass font-bold text-base mt-1">
                     {wealthInfo.cash}
                   </div>
                 </div>
                 <div>
-                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                  <div className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
                     {t('assets')}
                   </div>
-                  <div className="font-display text-muted-foreground font-bold mt-1">
+                  <div className="font-display text-muted-foreground font-bold text-base mt-1">
                     {wealthInfo.key === 'pauper' || wealthInfo.assets === 'Brak'
                       ? t('assetsNone')
                       : wealthInfo.assets}
                   </div>
                 </div>
                 <div>
-                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                  <div className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
                     {t('spendingPerDay')}
                   </div>
-                  <div className="font-display text-brass/80 font-bold mt-1">
+                  <div className="font-display text-brass font-bold text-base mt-1">
                     {wealthInfo.spending}
                   </div>
                 </div>
               </div>
               {wealthInfo.livingConditions && (
                 <div className="mt-3 pt-3 border-t border-brass/15 text-left">
-                  <div className="font-serif italic text-xs text-muted-foreground/85 leading-snug">
-                    <span className="font-semibold text-brass/80 not-italic">🏠 {t('livingConditions')}:</span> {wealthInfo.livingConditions}
+                  <div className="font-serif italic text-sm text-foreground/85 leading-relaxed">
+                    <span className="font-semibold text-brass not-italic">🏠 {t('livingConditions')}:</span> {wealthInfo.livingConditions}
                   </div>
                 </div>
               )}
@@ -4418,7 +4418,7 @@ export function CharacterWizardV2({
         <div className="px-6 py-3 flex-shrink-0 border-b border-brass/20 bg-[#120f0c] flex items-center justify-between gap-4">
           {/* Lewa strona: Krok i tytuł */}
           <div className="flex items-center gap-2.5">
-            <span className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary font-bold">
+            <span className="font-special-elite text-sm uppercase tracking-[0.2em] text-primary font-bold">
               {t('stepOf', { current: state.step, total: TOTAL_STEPS })}
             </span>
             <span className="text-brass/40 font-serif">·</span>
@@ -4437,7 +4437,7 @@ export function CharacterWizardV2({
                 <div
                   key={idx}
                   title={`${stepNo}. ${name}`}
-                  className={`flex items-center justify-center font-display text-xs transition-all ${
+                  className={`flex items-center justify-center font-display text-xs sm:text-sm transition-all ${
                     active
                       ? 'h-6 px-2.5 border border-primary bg-primary text-[#04110f] font-bold shadow-[0_0_10px_rgba(13,148,136,.4)]'
                       : done
@@ -4480,7 +4480,7 @@ export function CharacterWizardV2({
             ‹ {t('back')}
           </Button>
 
-          <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+          <div className="font-special-elite text-sm uppercase tracking-[0.1em] text-brass/90 font-semibold">
             {t('stepOf', { current: state.step, total: TOTAL_STEPS })}
           </div>
 

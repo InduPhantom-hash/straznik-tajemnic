@@ -474,36 +474,36 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="font-serif text-base font-semibold text-foreground tracking-wide truncate">
+                          <div className="font-serif text-lg font-semibold text-foreground tracking-wide truncate">
                             {activeCharacter.name}
                           </div>
-                          <div className="text-xs text-muted-foreground font-special-elite tracking-wide truncate">
+                          <div className="text-sm text-brass/90 font-special-elite font-medium tracking-wide truncate">
                             {activeCharacter.occupation}
                           </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-1.5 mt-3 text-xs">
+                      <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                         <Badge
                           variant="outline"
-                          className="w-full inline-flex items-center justify-center text-center bg-destructive/15 text-destructive border-destructive/40 py-1"
+                          className="w-full inline-flex items-center justify-center text-center bg-destructive/15 text-destructive border-destructive/40 py-1 text-xs sm:text-sm font-semibold"
                         >
                           {t('hpAbbr')}: {activeCharacter.hp}/{derived.maxHp}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="w-full inline-flex items-center justify-center text-center bg-brass/15 text-brass border-brass/40 py-1"
+                          className="w-full inline-flex items-center justify-center text-center bg-brass/15 text-brass border-brass/40 py-1 text-xs sm:text-sm font-semibold"
                         >
                           {t('sanAbbr')}: {activeCharacter.san}/{derived.maxSan}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="w-full inline-flex items-center justify-center text-center bg-primary/15 text-primary border-primary/40 py-1"
+                          className="w-full inline-flex items-center justify-center text-center bg-primary/15 text-primary border-primary/40 py-1 text-xs sm:text-sm font-semibold"
                         >
                           {t('mpAbbr')}: {activeCharacter.mp}/{derived.maxMp}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="w-full inline-flex items-center justify-center text-center bg-gold/10 text-gold border-gold/40 py-1"
+                          className="w-full inline-flex items-center justify-center text-center bg-gold/10 text-gold border-gold/40 py-1 text-xs sm:text-sm font-semibold"
                         >
                           {t('luckAbbr')}: {activeCharacter.luck}
                         </Badge>
@@ -609,7 +609,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full h-auto min-h-10 py-2 px-3 border-border text-muted-foreground bg-muted/30 opacity-70 cursor-not-allowed font-special-elite text-xs whitespace-normal flex items-center justify-center gap-2"
+                    className="w-full h-auto min-h-10 py-2.5 px-3 border-border text-muted-foreground bg-muted/30 opacity-70 cursor-not-allowed font-special-elite text-sm whitespace-normal flex items-center justify-center gap-2"
                     title={t('sessionClosedTitle')}
                   >
                     <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -619,7 +619,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full h-auto min-h-10 py-2 px-3 border-brass/60 text-brass bg-brass/10 font-special-elite animate-pulse cursor-wait whitespace-normal text-xs leading-snug flex items-center justify-center gap-2 text-center"
+                    className="w-full h-auto min-h-10 py-2.5 px-3 border-brass/60 text-brass bg-brass/10 font-special-elite animate-pulse cursor-wait whitespace-normal text-sm leading-snug flex items-center justify-center gap-2 text-center"
                     title={t('awaitingClosureTitle')}
                   >
                     <Hourglass className="w-4 h-4 mr-1 animate-spin text-brass shrink-0" />

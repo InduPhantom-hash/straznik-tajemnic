@@ -417,7 +417,7 @@ export function SessionJournal({
         <div className="flex items-center gap-3">
           <BookOpen className="h-6 w-6 text-brass shrink-0" />
           <div>
-            <div className="font-special-elite text-[10px] uppercase tracking-[0.22em] text-brass/80">
+            <div className="font-special-elite text-xs uppercase tracking-[0.22em] text-brass font-semibold">
               {t('titleEyebrow')}
             </div>
             <div className="flex items-center gap-3">
@@ -427,7 +427,7 @@ export function SessionJournal({
               {/* Licznik wskazówek (Clue Counter - Mechanika 1) */}
               <div
                 data-testid="clue-counter-badge"
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brass/10 border border-brass/40 text-brass text-xs font-mono font-medium shadow-sm"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brass/15 border border-brass/40 text-brass text-xs sm:text-sm font-mono font-semibold shadow-sm"
                 title={t('clueCounterTooltip')}
               >
                 <span>🔍</span>
@@ -439,12 +439,12 @@ export function SessionJournal({
                 </span>
               </div>
             </div>
-            <div className="text-xs font-serif text-muted-foreground flex items-center gap-2 mt-0.5">
+            <div className="text-sm font-serif text-foreground/80 flex items-center gap-2 mt-0.5">
               <span>{t('investigatorLabel', { name: character.name })}</span>
               {(currentInGameDate || character.activeScene?.inGameDate) && (
                 <>
                   <span className="text-brass/40">•</span>
-                  <span className="text-brass/75">
+                  <span className="text-brass/90 font-medium">
                     {currentInGameDate || character.activeScene?.inGameDate}
                   </span>
                 </>
@@ -452,7 +452,7 @@ export function SessionJournal({
               {isShared && participantNames.length > 0 && (
                 <>
                   <span className="text-brass/40">•</span>
-                  <span className="text-emerald-400/90 font-mono text-[11px]">
+                  <span className="text-emerald-400 font-mono text-xs font-semibold">
                     {t('sharedWith', { names: participantNames.join(' i ') })}
                   </span>
                 </>
@@ -476,26 +476,26 @@ export function SessionJournal({
       </header>
 
       {/* 2. Dyskretny pasek statusu trwającej sceny */}
-      <div className="bg-[#0e0a07] border-b border-brass/20 px-6 py-2 flex items-center justify-between gap-4 text-xs shrink-0">
+      <div className="bg-[#0e0a07] border-b border-brass/20 px-6 py-2.5 flex items-center justify-between gap-4 text-sm shrink-0">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <span className="font-mono uppercase tracking-wider text-brass/90">
+          <span className="font-mono uppercase tracking-wider text-brass font-medium">
             {ongoingLocation
               ? t('currentLocationStatus', { location: ongoingLocation })
               : t('statusInvestigationOngoing')}
           </span>
           {character.activeScene?.isLocationExhausted && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm shrink-0">
               <span>✓</span>
               <span>{t('locationExhaustedBadge')}</span>
             </span>
           )}
         </div>
         {character.activeScene && (
-          <span className="text-[11px] font-mono text-muted-foreground hidden sm:inline">
+          <span className="text-xs font-mono text-brass/80 font-medium hidden sm:inline">
             Scena #{character.activeScene.sceneNumber} {t('activeSceneBadge')}
           </span>
         )}
@@ -618,22 +618,22 @@ export function SessionJournal({
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                             </span>
-                            <span className="text-[11px] bg-emerald-950/60 text-emerald-400 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/40 shrink-0 font-bold">
+                            <span className="text-xs bg-emerald-950/60 text-emerald-400 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/40 shrink-0 font-bold">
                               Scena #{ongoingSceneCard.sceneNumber}
                             </span>
                           </div>
-                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono uppercase px-1.5 py-0.5 rounded border border-emerald-500/30 shrink-0 tracking-wider font-bold">
+                          <span className="text-xs bg-emerald-500/20 text-emerald-300 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/30 shrink-0 tracking-wider font-bold">
                             {t('ongoingBadge')}
                           </span>
                         </div>
 
-                        <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-emerald-300 transition-colors">
+                        <h3 className="font-serif font-bold text-base leading-snug line-clamp-2 text-foreground group-hover:text-emerald-300 transition-colors">
                           {ongoingSceneCard.title}
                         </h3>
 
-                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                        <div className="text-sm text-foreground/80 mt-1 flex items-center gap-1.5">
                           <span className="shrink-0">📍</span>
-                          <span className="truncate text-brass/90">{ongoingSceneCard.location}</span>
+                          <span className="truncate text-brass font-medium">{ongoingSceneCard.location}</span>
                         </div>
                       </div>
                     )}
@@ -661,21 +661,21 @@ export function SessionJournal({
                           )}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className="text-[11px] bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0">
+                            <span className="text-xs bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0 font-bold">
                               Scena #{scene.sceneNumber}
                             </span>
                             {scene.inGameDate && (
-                              <span className="text-[11px] text-brass/70 font-mono shrink-0">
+                              <span className="text-xs text-brass/80 font-mono font-medium shrink-0">
                                 📅 {scene.inGameDate}
                               </span>
                             )}
                           </div>
 
-                          <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
+                          <h3 className="font-serif font-bold text-base leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
                             {scene.title}
                           </h3>
 
-                          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                          <div className="text-sm text-foreground/80 mt-1 flex items-center gap-1.5">
                             <span className="shrink-0">📍</span>
                             <span className="truncate">{scene.location}</span>
                           </div>
@@ -707,12 +707,12 @@ export function SessionJournal({
                         )}
                       >
                         <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <span className="text-[11px] bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0 font-bold">
+                          <span className="text-xs bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0 font-bold">
                             Akt #{report.actNumber}
                           </span>
                           <span
                             className={cn(
-                              'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded border shrink-0 tracking-wider font-bold',
+                              'text-xs font-mono uppercase px-2 py-0.5 rounded border shrink-0 tracking-wider font-bold',
                               report.status === 'completed'
                                 ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
                                 : 'bg-amber-950/60 text-amber-300 border-amber-500/40'
@@ -722,14 +722,14 @@ export function SessionJournal({
                           </span>
                         </div>
 
-                        <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
+                        <h3 className="font-serif font-bold text-base leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
                           {report.title}
                         </h3>
 
-                        <div className="text-[11px] text-muted-foreground mt-1.5 flex items-center justify-between">
+                        <div className="text-xs text-foreground/80 mt-1.5 flex items-center justify-between font-medium">
                           <span>{t('entriesCount', { count: report.confirmedFacts.length })}</span>
                           {report.inGameDate && (
-                            <span className="text-brass/70 font-mono">📅 {report.inGameDate}</span>
+                            <span className="text-brass font-mono">📅 {report.inGameDate}</span>
                           )}
                         </div>
                       </div>

@@ -5547,6 +5547,28 @@
       }
     }
   },
+  "TypographySettings": {
+    "eyebrow": "Accessibility & Ergonomics",
+    "title": "Text Size & Readability",
+    "description": "Adjust the scale of typography and interface elements for your screen while preserving the Dark Art Deco atmosphere.",
+    "scales": {
+      "normal": {
+        "label": "A Standard",
+        "description": "Baseline interface size (optimal for desktop monitors)."
+      },
+      "larger": {
+        "label": "A+ Larger",
+        "description": "Enhanced readability for labels, character sheets and journal (recommended for laptops)."
+      },
+      "largest": {
+        "label": "A++ Large",
+        "description": "Maximum contrast and clarity for forms and investigation chronicle."
+      }
+    },
+    "previewTitle": "Chronicle Readability Preview",
+    "previewText": "\"By the glow of the oil lamp, the typewritten words become crisp and legible. The dark corners of Arkham will conceal no more clues.\"",
+    "appliedNotice": "Scale synchronized across the game interface."
+  },
   "ImageSettings": {
     "eyebrow": "Keeper Visuals",
     "sectionTitle": "Image Generation (Gemini Imagen)",

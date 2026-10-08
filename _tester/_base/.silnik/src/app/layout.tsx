@@ -29,7 +29,13 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} className="dark" suppressHydrationWarning>
-      <head />
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('straznik_text_scale');if(s==='larger'||s==='largest'||s==='normal'){document.documentElement.setAttribute('data-text-scale',s);}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="font-serif" suppressHydrationWarning>
         {/* PHProvider transparentnie odpada gdy NEXT_PUBLIC_POSTHOG_KEY nie jest ustawiony */}
         <PHProvider>

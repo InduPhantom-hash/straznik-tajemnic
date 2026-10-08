@@ -26,6 +26,7 @@ import { DebugSettings } from '../settings/debug-settings';
 import { GeminiSettings } from '../settings/gemini-settings';
 // M3 sesja 146: ElevenLabsSettings DROPPED per D2.
 import { QualityPresets } from '../settings/quality-presets';
+import { TypographySettings } from '../settings/typography-settings';
 import { TTSSettings } from '../settings/tts-settings';
 import { UpdateSettings } from '../settings/update-settings';
 import { HueSettingsSection } from '../settings/hue-settings-section';
@@ -78,6 +79,7 @@ export function SettingsModal({
 
         <div className="space-y-6 py-4">
           <QualityPresets settings={m.settings} setSettings={m.setSettings} />
+          <TypographySettings />
 
           {/* IND-272: panel kosztów czyta server-side /api/user/usage (jedno źródło prawdy). */}
           <CostControlSettings
