@@ -20,7 +20,7 @@
     --ring: 174 84% 38%;
     --radius: 0.5rem;
     --muted: 33 18% 11%;
-    --muted-foreground: 40 18% 64%;    /* #b3a892 tekst wyciszony */
+    --muted-foreground: 40 20% 72%;    /* #c6bead tekst wyciszony z podbitym kontrastem */
     --accent: 33 18% 11%;
     --accent-foreground: 42 33% 89%;
     --destructive: 3 61% 44%;          /* #b3322c bordowa czerwień */
@@ -50,7 +50,7 @@
     --input: 33 22% 10%;
     --ring: 174 84% 38%;
     --muted: 33 18% 11%;
-    --muted-foreground: 40 18% 64%;
+    --muted-foreground: 40 20% 72%;
     --accent: 33 18% 11%;
     --accent-foreground: 42 33% 89%;
     --destructive: 3 61% 44%;
@@ -82,9 +82,25 @@
 }
 
 @layer base {
+  :root {
+    --text-scale-factor: 1;
+  }
+
+  html[data-text-scale="normal"] {
+    --text-scale-factor: 1;
+  }
+
+  html[data-text-scale="larger"] {
+    --text-scale-factor: 1.15;
+  }
+
+  html[data-text-scale="largest"] {
+    --text-scale-factor: 1.25;
+  }
+
   html {
     overflow-x: hidden;
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale-factor, 1));
   }
 
   /*
@@ -94,13 +110,13 @@
    */
   @media (min-width: 2000px) {
     html {
-      font-size: 17.5px;
+      font-size: calc(17.5px * var(--text-scale-factor, 1));
     }
   }
 
   @media (min-width: 3200px) {
     html {
-      font-size: 19.5px;
+      font-size: calc(19.5px * var(--text-scale-factor, 1));
     }
   }
 

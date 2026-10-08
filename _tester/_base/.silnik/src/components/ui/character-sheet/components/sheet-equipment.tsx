@@ -156,12 +156,12 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-brass/20">
           <div className="flex items-center gap-2">
             <Coins className="w-4 h-4 text-brass" />
-            <span className="font-display uppercase tracking-[0.18em] text-xs font-semibold text-brass">
+            <span className="font-display uppercase tracking-[0.18em] text-sm font-semibold text-brass">
               {t('livingStandard')}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-special-elite text-xs bg-brass/10 text-brass border border-brass/30 px-2 py-0.5 rounded">
+            <span className="font-special-elite text-xs sm:text-sm bg-brass/15 text-brass border border-brass/40 px-2.5 py-0.5 rounded font-semibold">
               {finances.tierLabel} ({finances.creditRating}%)
             </span>
           </div>
@@ -169,8 +169,8 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-special-elite text-sm mb-3">
           <div className="bg-[#100c09] border border-brass/20 p-2.5 rounded-sm">
-            <div className="text-[11px] uppercase tracking-wider text-brass/70 mb-1 flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-brass/80" />
+            <div className="text-xs uppercase tracking-wider text-brass/90 mb-1 flex items-center gap-1.5 font-semibold">
+              <Wallet className="w-3.5 h-3.5 text-brass" />
               {t('dailySpending')}
             </div>
             <div className="text-foreground font-bold text-base">
@@ -179,8 +179,8 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
           </div>
 
           <div className="bg-[#100c09] border border-brass/20 p-2.5 rounded-sm">
-            <div className="text-[11px] uppercase tracking-wider text-brass/70 mb-1 flex items-center gap-1.5">
-              <Coins className="w-3.5 h-3.5 text-brass/80" />
+            <div className="text-xs uppercase tracking-wider text-brass/90 mb-1 flex items-center gap-1.5 font-semibold">
+              <Coins className="w-3.5 h-3.5 text-brass" />
               {t('cash')}
             </div>
             <div className="text-foreground font-bold text-base">
@@ -189,8 +189,8 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
           </div>
 
           <div className="bg-[#100c09] border border-brass/20 p-2.5 rounded-sm">
-            <div className="text-[11px] uppercase tracking-wider text-brass/70 mb-1 flex items-center gap-1.5">
-              <Landmark className="w-3.5 h-3.5 text-brass/80" />
+            <div className="text-xs uppercase tracking-wider text-brass/90 mb-1 flex items-center gap-1.5 font-semibold">
+              <Landmark className="w-3.5 h-3.5 text-brass" />
               {t('assets')}
             </div>
             <div className="text-foreground font-bold text-base truncate" title={finances.formattedAssets}>

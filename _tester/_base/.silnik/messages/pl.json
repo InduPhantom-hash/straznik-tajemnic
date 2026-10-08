@@ -5547,6 +5547,28 @@
       }
     }
   },
+  "TypographySettings": {
+    "eyebrow": "Dostępność i Ergonomia",
+    "title": "Rozmiar Tekstu i Czytelność",
+    "description": "Dopasuj wielkość krojów pisma i elementów interfejsu do swojego ekranu bez naruszania klimatu Dark Art Déco.",
+    "scales": {
+      "normal": {
+        "label": "A Standardowy",
+        "description": "Bazowy rozmiar interfejsu (optymalny dla dużych monitorów)."
+      },
+      "larger": {
+        "label": "A+ Większy",
+        "description": "Zwiększona czytelność etykiet, kart i dziennika (polecane dla laptopów)."
+      },
+      "largest": {
+        "label": "A++ Duży",
+        "description": "Maksymalny kontrast i wyrazistość formularzy oraz kroniki śledztwa."
+      }
+    },
+    "previewTitle": "Podgląd Czytelności Kroniki",
+    "previewText": "„W blasku naftowej lampy litery maszynopisu stają się wyraźne. Mroczne zakamarki Arkham nie skryją już żadnej poszlaki.”",
+    "appliedNotice": "Rozmiar został zsynchronizowany z interfejsem gry."
+  },
   "ImageSettings": {
     "eyebrow": "Wizualia Strażnika",
     "sectionTitle": "Generowanie Obrazów (Gemini Imagen)",
