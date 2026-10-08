@@ -18,6 +18,10 @@ jest.mock('next-intl', () => ({
       confidential: 'DLA BADACZA',
       bufferingNarrator: 'Wsłuchiwanie się w głos z zaświatów...',
       chronicleDossier: 'Akta Śledztwa',
+      playBriefing: 'Odsłuchaj zapowiedź sprawy',
+      pauseBriefing: 'Pauza',
+      playingBriefing: 'Odtwarzanie zapowiedzi sprawy...',
+      briefingAudioTitle: 'Zapowiedź lektorska (audiobook)',
       defaultChronicleIntro: 'W cieniu zapomnianych ulic i zakurzonych archiwów kryją się sekrety...',
       defaultChronicleHook: 'Zbieg tajemniczych okoliczności rzuca badaczy w samo serce śledztwa...',
       enterAdventure: 'Rozpocznij Przygodę',
@@ -73,6 +77,8 @@ describe('TTSHardLoadingScreen (Issue #177, #364 & #482)', () => {
     // Lewy boks: bezspoilerowy investigatorIntro
     expect(screen.getByText('Naukowa weryfikacja fenomenów ojca Klimuszki uderza w tajne operacje SB.')).toBeInTheDocument();
     expect(screen.queryByText('Pełny opis ze spoilerem o czwartym wymiarze i anomalii czasowej.')).not.toBeInTheDocument();
+    // Przycisk odsłuchu zapowiedzi lektorskiej
+    expect(screen.getByRole('button', { name: /Odsłuchaj zapowiedź sprawy/i })).toBeInTheDocument();
 
     // Zero tagów motywów w lewym boksie (Issue #482)
     expect(screen.queryByText('Motywy:')).not.toBeInTheDocument();

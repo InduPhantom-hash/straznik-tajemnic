@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Porównanie Głosów Lektorów - Strażnik Tajemnic</title>
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --card-bg: #12161f;
+      --gold: #d4af37;
+      --gold-light: #f3e5ab;
+      --gold-dim: #7a6320;
+      --emerald: #11b3a3;
+      --text: #e6e8ec;
+      --text-muted: #9aa0a6;
+      --border: #222938;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 2.5rem 1.5rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    .symbol { font-size: 2.5rem; color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 2.1rem;
+      color: var(--gold-light);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 0.5rem;
+    }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .quote-box {
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 3px solid var(--gold);
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      margin-bottom: 2rem;
+      font-style: italic;
+      color: var(--gold-light);
+      font-size: 0.95rem;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 2rem 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--gold-dim), transparent);
+    }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .card:hover { border-color: var(--gold); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+    .card-title { font-size: 1.15rem; color: var(--gold-light); font-weight: 600; margin-bottom: 0.25rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(17, 179, 163, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(17, 179, 163, 0.3);
+      margin-bottom: 0.75rem;
+    }
+    .badge-gold {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+    .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; flex-grow: 1; }
+    audio { width: 100%; height: 40px; border-radius: 4px; outline: none; }
+    footer { text-align: center; margin-top: 3rem; color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="symbol">𓂀</div>
+      <h1>Wybór Głosu: Próbki Lektorów</h1>
+      <p class="subtitle">Ten sam fragment tekstu z Nawiedzonego Domu nagrany 8 różnymi głębokimi głosami z ElevenLabs</p>
+    </header>
+
+    <div class="quote-box">
+      „Boston, lata dwudzieste. Przy cichej ulicy na French Hill stoi wiktoriański dom z cegły, którego nikt nie chce kupić, a w nocy z piwnicy wciąż dobiega nienaturalny chłód. Przekrocz próg i odkryj tajemnicę domu, o którym Boston wolałby zapomnieć.”
+    </div>
+
+    <!-- SEKCJA 2: NAJGŁĘBSZE GŁOSY STUDIO / TRAILER -->
+    <div class="section-title">Nowa seria: Najgłębszy bas studyjny & kino</div>
+    <div class="grid">
+      <!-- JACEK BROADCAST -->
+      <div class="card">
+        <div>
+          <div class="card-title">1. Jacek (Studio Broadcast)</div>
+          <span class="badge badge-gold">Neumann TLM + SSL &bull; Deep Warm Broadcast</span>
+          <p class="card-desc">Głęboki, ciepły głos radiowy nagrany w referencyjnym studiu. Wyjątkowo gęsty bas, świetna narracja książkowa.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_jacek_broadcast.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <!-- JACEK PLACEK -->
+      <div class="card">
+        <div>
+          <div class="card-title">2. Jacek Placek (Trailers & Raw Power)</div>
+          <span class="badge badge-gold">Premium Deep Male &bull; Zwiastuny i Thrillery</span>
+          <p class="card-desc">Mroczny, potężny bas zwiastunów kinowych. Ogromny autorytet, niski tembr i mroczna powaga.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_jacek_placek_trailers.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <!-- LEO DEEP LOW -->
+      <div class="card">
+        <div>
+          <div class="card-title">3. Leo (Deep, Low Narrator)</div>
+          <span class="badge badge-gold">Low Narrator &bull; Immersive Storytelling</span>
+          <p class="card-desc">Aksamitny, bardzo niski i spokojny ton narracyjny stworzony do długich, immersyjnych historii i grozy.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_leo_deep_low.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <!-- MICHAŁ KUBLIK -->
+      <div class="card">
+        <div>
+          <div class="card-title">4. Michał Kublik</div>
+          <span class="badge badge-gold">Masculine, Mature, Deep &bull; Dokument</span>
+          <p class="card-desc">Dojrzały, szlachetny i niski głos z nienaganną dykcją, idealny do kronik i dokumentów grozy.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_michal_kublik.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+
+    <!-- SEKCJA 1: POPRZEDNIE PRÓBKI -->
+    <div class="section-title">Poprzednia seria próbek</div>
+    <div class="grid">
+      <!-- MATTHEW -->
+      <div class="card">
+        <div>
+          <div class="card-title">5. Matthew</div>
+          <span class="badge">Professional PL &bull; Deep, Strong</span>
+          <p class="card-desc">Głęboki, uniwersalny głos narracyjny audiobooków w języku polskim.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_matthew_polish_deep.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <!-- BART S. -->
+      <div class="card">
+        <div>
+          <div class="card-title">6. Bart S.</div>
+          <span class="badge">Professional PL &bull; Głęboki i Zmotywowany</span>
+          <p class="card-desc">Męski rezonans radiowy i zmotywowana dykcja.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_bart_polish_deep.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <!-- BRIAN -->
+      <div class="card">
+        <div>
+          <div class="card-title">7. Brian</div>
+          <span class="badge">Premade &bull; Deep Resonant</span>
+          <p class="card-desc">Niski lektor filmowy w stylu zachodnich trailerów.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_brian_deep.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <!-- GEORGE -->
+      <div class="card">
+        <div>
+          <div class="card-title">8. George</div>
+          <span class="badge">Premade &bull; Captivating Storyteller</span>
+          <p class="card-desc">Ciepły, brytyjski gawędziarz BBC.</p>
+        </div>
+        <audio controls preload="none">
+          <source src="sample_george_storyteller.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+
+    <footer>
+      Strażnik Tajemnic AI &bull; Porównanie Lektorów &bull; ElevenLabs Studio
+    </footer>
+  </div>
+</body>
+</html>

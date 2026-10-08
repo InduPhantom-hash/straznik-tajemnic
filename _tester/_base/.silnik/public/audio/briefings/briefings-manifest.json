@@ -1,0 +1,92 @@
+[
+  {
+    "id": "the_haunting_intro_pl",
+    "scenario": "the-haunting",
+    "lang": "pl",
+    "title": "Nawiedzony Dom: Zapowiedź sprawy",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Boston, lata dwudzieste. Przy cichej ulicy na French Hill stoi wiktoriański dom z cegły, którego nikt nie chce kupić, a kolejni lokatorzy uciekają z niego po zaledwie kilku dobach. Oficjalne kartoteki milczą o tragediach, które rozegrały się za jego zabitymi deskami oknami, lecz w nocy z piwnicy wciąż dobiega nienaturalny chłód. Czy to jedynie mroczna legenda miejska, czy w fundamentach starego domostwa drzemie coś, co nigdy nie zaznało spokoju? Przekrocz próg i odkryj tajemnicę domu, o którym Boston wolałby zapomnieć.",
+    "outputFilename": "the-haunting/briefing-pl.mp3"
+  },
+  {
+    "id": "the_haunting_intro_en",
+    "scenario": "the-haunting",
+    "lang": "en",
+    "title": "The Haunting: Case Preview",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Boston, the nineteen-twenties. On a quiet street in French Hill stands a faded Victorian brick house that no tenant will occupy for more than a few days. Official city records remain silent about the tragedies that unfolded behind its shuttered windows, yet in the dead of night, an unnatural chill still rises from the cellar floor. Is it merely a morbid urban legend, or does something ancient and restless linger within the foundation? Step across the threshold and uncover the secret that Boston desperately tried to bury.",
+    "outputFilename": "the-haunting/briefing-en.mp3"
+  },
+  {
+    "id": "prabuty_intro_pl",
+    "scenario": "cien-nad-prabutami",
+    "lang": "pl",
+    "title": "Cień nad Prabutami: Zapowiedź sprawy",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Październik 1973 roku. W zrujnowanym po wojnie miasteczku na Powiślu ziemia zaczyna drżeć w rytmie, którego nie rejestrują sejsmografy. Podczas gdy Służba Bezpieczeństwa zaciska kordon wokół celi słynnego jasnowidza w Elblągu, z zawalonych gotyckich krypt starego kościoła bije nienaturalne, błękitne światło. Na zgliszczach przeszłości czas przestaje płynąć w jednym kierunku, a granica między wiarą, nauką i czystym obłędem zaczyna pękać. Czy zdołasz odkryć prawdę, zanim szczelina pochłonie wszystko?",
+    "outputFilename": "cien-nad-prabutami/briefing-pl.mp3"
+  },
+  {
+    "id": "traszyn_intro_pl",
+    "scenario": "tajemnica-dzieci-z-traszyna",
+    "lang": "pl",
+    "title": "Tajemnica Dzieci z Traszyna: Zapowiedź sprawy",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Sierpień 1983 roku. W zapomnianej przez świat wsi na wschodzie Polski duszne, burzowe noce przynoszą koszmar, którego nie potrafi wytłumaczyć medycyna. Dzieci z miejscowego gospodarstwa budzą się w śmiertelnym przerażeniu, wpatrzone w belkowania opuszczonej stodoły na skraju lasu. Mieszkańcy szepczą o starym modlitewniku, odwróconym krzyżu i obcej obecności wołającej z głębi ziemi. Gdy nadciąga nawałnica, a wieś pogrąża się w mroku, tylko nieliczni odważą się wejść tam, gdzie cień odrywa się od ścian.",
+    "outputFilename": "tajemnica-dzieci-z-traszyna/briefing-pl.mp3"
+  },
+  {
+    "id": "kowary_intro_pl",
+    "scenario": "tajemnica-pendnika-lagiewki",
+    "lang": "pl",
+    "title": "Tajemnica Pędnika Łągiewki: Zapowiedź sprawy",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Maj 1996 roku. U stóp Karkonoszy, w cieniu opuszczonych sztolni uranowych w Kowarach, genialny polski konstruktor tworzy maszynę, która zdaje się łamać podstawowe prawa dynamiki Newtona. Samochód uderzający w betonową ścianę zatrzymuje się bez najmniejszego odrzutu, lecz każda próba wyzwala niewytłumaczalne anomalie grawitacyjne. Gdy wokół warsztatu pojawiają się obcy obserwatorzy, a igły kompasów zaczynają wirować, staje się jasne, że w metalowych trybach pędnika uwięziono siłę, której nikt nie potrafi kontrolować.",
+    "outputFilename": "tajemnica-pendnika-lagiewki/briefing-pl.mp3"
+  },
+  {
+    "id": "glogow_intro_pl",
+    "scenario": "przybysz-z-matriksa-glogow",
+    "lang": "pl",
+    "title": "Przybysz z Matriksa - Głogów: Zapowiedź sprawy",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Listopad 2001 roku. W zalanym jesienną szarzyzną Głogowie ekrany kineskopowych telewizorów zaczynają śnieżyć, emitując zniekształcony głos zza krawędzi czasu. Mieszkańców ogarnia paraliżujące poczucie powracających wspomnień, a w opuszczonych kazamatach osiemnastowiecznej twierdzy woda w rzece zaczyna reagować na niewidzialny puls. Czy to technologiczna mistyfikacja lokalnego pasjonata, czy w podziemnych labiryntach Odry otwiera się pętla, z której nie ma już odwrotu?",
+    "outputFilename": "przybysz-z-matriksa-glogow/briefing-pl.mp3"
+  },
+  {
+    "id": "holmes_intro_en",
+    "scenario": "englewood-murder-castle-1893",
+    "lang": "en",
+    "title": "The Englewood Labyrinth: Case Preview",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Chicago, autumn of eighteen ninety-three. Beneath the dazzling electric spectacle of the World's Fair, an ominous shadow hangs over the Englewood district. At Sixty-Third and Wallace Street looms a hulking fortress of brick and timber, housing a maze of windowless corridors, shifting false walls, and stairs that lead nowhere. Scores of visitors have vanished within its doors, swallowed by a predatory architectural puzzle. Step inside the castle and confront the calculating mind that turned urban ambition into an inescapable tomb.",
+    "outputFilename": "englewood-murder-castle-1893/briefing-en.mp3"
+  },
+  {
+    "id": "franks_intro_en",
+    "scenario": "almer-coe-spectacles-1924",
+    "lang": "en",
+    "title": "The Almer Coe Spectacles: Case Preview",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Chicago, May nineteen twenty-four. On a sunlit afternoon in affluent Kenwood, an ambitious youth vanishes on his way home from school. What begins as a ruthless kidnapping for ransom soon unravels when a single clue is recovered from a desolate marsh drainage ditch: an exclusive pair of horn-rimmed eyeglasses with custom spring hinges. In an era of unbridled intellect and chilling vanity, a trail of optical precision leads into the darkest recesses of human arrogance and cold obsession.",
+    "outputFilename": "almer-coe-spectacles-1924/briefing-en.mp3"
+  },
+  {
+    "id": "circleville_intro_en",
+    "scenario": "circleville-letters-1983",
+    "lang": "en",
+    "title": "The Circleville Letters: Case Preview",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Circleville, Ohio, nineteen eighty-three. Behind the idyllic white fences of a small Midwestern town lies an unrelenting web of poison-pen letters and poisonous whispers. For years, an unseen author has exposed the deepest private secrets of the townspeople, delivering threats that turned deadly on country roads. Even with the prime suspect locked in solitary confinement, the anonymous letters continue to arrive with unrelenting precision. Someone is watching every doorstep, and the silence of Circleville is about to shatter.",
+    "outputFilename": "circleville-letters-1983/briefing-en.mp3"
+  },
+  {
+    "id": "ovidhall_intro_en",
+    "scenario": "ovidhall-lake-anomaly-2005",
+    "lang": "en",
+    "title": "The Ovidhall Lake Anomaly: Case Preview",
+    "elevenVoiceId": "zfMIm1Ql8XCay1x94oAk",
+    "text": "Western Michigan, June two thousand and five. In the early morning hours, a fractured voicemail is recorded on a rural cellular tower: a disoriented student reports the forest has disappeared, replaced by rising waters and standing stones. Hours later, only abandoned personal belongings remain near the shoreline weir, with no tracks leading away. As strange pressure tremors pulse from the dark depths beneath Ovidhall Lake, an investigative team must piece together what happens when reality quietly dissolves into the water.",
+    "outputFilename": "ovidhall-lake-anomaly-2005/briefing-en.mp3"
+  }
+]

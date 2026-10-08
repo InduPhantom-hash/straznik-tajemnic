@@ -15,10 +15,15 @@ import {
   ArrowLeft,
   Key,
   ChevronDown,
+  Volume2,
+  VolumeX,
+  Pause,
+  Headphones,
 } from 'lucide-react';
 import type { AdventureContext } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era';
 import { getSettingTrivia, getSafeDossierIntro } from '@/lib/era/setting-trivia';
+import { getBriefingAudio } from '@/lib/audio/briefing-audio-resolver';
 import type { GameStartError } from '@/hooks/useGameStart';
 
 export interface TTSHardLoadingScreenProps {
@@ -90,6 +95,47 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   const location = region || adventureContext?.location || adventureContext?.country;
   const eraLabel = eraContext?.effectiveYear ? String(eraContext.effectiveYear) : undefined;
 
+  // Rejestr zapowiedzi lektorskiej (Briefing Audio / Audiobook)
+  const briefingAudio = useMemo(() => {
+    return getBriefingAudio(adventureContext, { title, locale });
+  }, [adventureContext, title, locale]);
+
+  const [isPlayingBriefing, setIsPlayingBriefing] = useState<boolean>(false);
+  const [briefingAudioEl, setBriefingAudioEl] = useState<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (briefingAudioEl) {
+        briefingAudioEl.pause();
+        briefingAudioEl.src = '';
+      }
+    };
+  }, [briefingAudioEl]);
+
+  const toggleBriefingAudio = () => {
+    if (!briefingAudio?.audioUrl) return;
+
+    if (isPlayingBriefing && briefingAudioEl) {
+      briefingAudioEl.pause();
+      setIsPlayingBriefing(false);
+      return;
+    }
+
+    let audio = briefingAudioEl;
+    if (!audio) {
+      audio = new Audio(briefingAudio.audioUrl);
+      audio.onended = () => setIsPlayingBriefing(false);
+      audio.onerror = () => setIsPlayingBriefing(false);
+      setBriefingAudioEl(audio);
+    }
+
+    audio.play().then(() => {
+      setIsPlayingBriefing(true);
+    }).catch(() => {
+      setIsPlayingBriefing(false);
+    });
+  };
+
   // Lewy panel: Bezspoilerowe Dossier dla Badacza (Issue #482 & #612)
   const storyDossier = useMemo(() => {
     return getSafeDossierIntro(adventureContext, {
@@ -106,6 +152,10 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   }, [adventureContext, eraContext, locale]);
 
   const handleConfirm = () => {
+    if (briefingAudioEl) {
+      briefingAudioEl.pause();
+      setIsPlayingBriefing(false);
+    }
     if (onConfirmEnterGame) {
       onConfirmEnterGame();
     }
@@ -204,6 +254,48 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                   {storyDossier}
                 </p>
               </div>
+
+              {/* Odtwarzacz zapowiedzi sprawy (Narrator Audiobook / Leo) */}
+              {briefingAudio && (
+                <div className="mt-4 pt-3 border-t border-brass/25">
+                  <button
+                    type="button"
+                    onClick={toggleBriefingAudio}
+                    className={`w-full group flex items-center justify-between px-3.5 py-2.5 rounded border transition-all duration-300 text-xs font-mono uppercase tracking-wider ${
+                      isPlayingBriefing
+                        ? 'bg-primary/20 border-primary text-primary-foreground shadow-[0_0_15px_rgba(17,179,163,0.3)]'
+                        : 'bg-black/40 border-brass/40 text-gold-light hover:border-gold hover:bg-black/60 shadow-sm'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                          isPlayingBriefing
+                            ? 'bg-primary text-black'
+                            : 'bg-gold/20 text-gold group-hover:bg-gold group-hover:text-black'
+                        }`}
+                      >
+                        {isPlayingBriefing ? (
+                          <Pause className="w-3.5 h-3.5 fill-current" />
+                        ) : (
+                          <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                        )}
+                      </span>
+                      <div className="flex flex-col text-left">
+                        <span className="font-semibold text-xs tracking-wide">
+                          {isPlayingBriefing ? t('pauseBriefing') : t('playBriefing')}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-mono lowercase opacity-80">
+                          {isPlayingBriefing ? t('playingBriefing') : `${t('briefingAudioTitle')} • ~0:${briefingAudio.durationEstimateSeconds}`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-brass">
+                      <Headphones className="w-4 h-4 opacity-70 group-hover:opacity-100" />
+                    </div>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Dolna belka lewej karty: subtelny status śledztwa zamiast zbędnych tagów motywów */}

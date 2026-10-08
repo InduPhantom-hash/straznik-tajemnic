@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strażnik Tajemnic - Odsłuch Zapowiedzi Spraw (Book Blurbs)</title>
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --card-bg: #12161f;
+      --gold: #d4af37;
+      --gold-light: #f3e5ab;
+      --gold-dim: #7a6320;
+      --emerald: #11b3a3;
+      --text: #e6e8ec;
+      --text-muted: #9aa0a6;
+      --border: #222938;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 2.5rem 1.5rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2rem;
+    }
+
+    .symbol {
+      font-size: 2.5rem;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      display: inline-block;
+      text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    }
+
+    h1 {
+      font-family: "Cinzel", Georgia, serif;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+      color: var(--gold-light);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      letter-spacing: 1px;
+    }
+
+    .section-title {
+      font-family: "Cinzel", Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--gold);
+      margin: 2.5rem 0 1rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--gold-dim), transparent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--gold-dim);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(17, 179, 163, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(17, 179, 163, 0.3);
+      white-space: nowrap;
+    }
+
+    .badge-en {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--gold-light);
+      margin-bottom: 0.25rem;
+    }
+
+    .card-meta {
+      font-size: 0.8rem;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-text {
+      font-size: 0.92rem;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.35);
+      padding: 0.9rem;
+      border-radius: 6px;
+      border-left: 3px solid var(--gold);
+      font-style: italic;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+      line-height: 1.55;
+    }
+
+    audio {
+      width: 100%;
+      height: 40px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    audio::-webkit-media-controls-panel {
+      background-color: #1a202c;
+    }
+
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+      color: var(--gold-light);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="symbol">𓂀</div>
+      <h1>Zapowiedzi Spraw: Lektor Audiobooka</h1>
+      <p class="subtitle">Narracyjne wprowadzenia do scenariuszy w konwencji blurbu z tylnej okładki powieści grozy</p>
+    </header>
+
+    <!-- SEKCYJNY PODZIAŁ -->
+    <div class="section-title">Oficjalny Starter Podręcznikowy (Dual-Track)</div>
+    <div class="grid">
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">Nawiedzony Dom (The Haunting)</div>
+            <span class="badge">PL</span>
+          </div>
+          <div class="card-meta">Konwencja: Powieść grozy &bull; Boston 1920s</div>
+          <div class="card-text">
+            „Boston, lata dwudzieste. Przy cichej ulicy na French Hill stoi wiktoriański dom z cegły, którego nikt nie chce kupić, a kolejni lokatorzy uciekają z niego po zaledwie kilku dobach. Oficjalne kartoteki milczą o tragediach, które rozegrały się za jego zabitymi deskami oknami, lecz w nocy z piwnicy wciąż dobiega nienaturalny chłód. Czy to jedynie mroczna legenda miejska, czy w fundamentach starego domostwa drzemie coś, co nigdy nie zaznało spokoju? Przekrocz próg i odkryj tajemnicę domu, o którym Boston wolałby zapomnieć.”
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="the-haunting/briefing-pl.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">The Haunting</div>
+            <span class="badge badge-en">EN</span>
+          </div>
+          <div class="card-meta">Konwencja: Gothic Mystery &bull; Boston 1920s</div>
+          <div class="card-text">
+            "Boston, the nineteen-twenties. On a quiet street in French Hill stands a faded Victorian brick house that no tenant will occupy for more than a few days. Official city records remain silent about the tragedies that unfolded behind its shuttered windows, yet in the dead of night, an unnatural chill still rises from the cellar floor. Is it merely a morbid urban legend, or does something ancient and restless linger within the foundation? Step across the threshold and uncover the secret that Boston desperately tried to bury."
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="the-haunting/briefing-en.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+
+    <div class="section-title">Polskie Quick Adventures (Strefa 11)</div>
+    <div class="grid">
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">Cień nad Prabutami (1973)</div>
+            <span class="badge">PL</span>
+          </div>
+          <div class="card-meta">Konwencja: Zimnowojenny dreszczowiec &bull; PRL 1973</div>
+          <div class="card-text">
+            „Październik 1973 roku. W zrujnowanym po wojnie miasteczku na Powiślu ziemia zaczyna drżeć w rytmie, którego nie rejestrują sejsmografy. Podczas gdy Służba Bezpieczeństwa zaciska kordon wokół celi słynnego jasnowidza w Elblągu, z zawalonych gotyckich krypt starego kościoła bije nienaturalne, błękitne światło. Na zgliszczach przeszłości czas przestaje płynąć w jednym kierunku, a granica między wiarą, nauką i czystym obłędem zaczyna pękać. Czy zdołasz odkryć prawdę, zanim szczelina pochłonie wszystko?”
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="cien-nad-prabutami/briefing-pl.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">Tajemnica Dzieci z Traszyna (1983)</div>
+            <span class="badge">PL</span>
+          </div>
+          <div class="card-meta">Konwencja: Ludowa groza &bull; Polska B 1983</div>
+          <div class="card-text">
+            „Sierpień 1983 roku. W zapomnianej przez świat wsi na wschodzie Polski duszne, burzowe noce przynoszą koszmar, którego nie potrafi wytłumaczyć medycyna. Dzieci z miejscowego gospodarstwa budzą się w śmiertelnym przerażeniu, wpatrzone w belkowania opuszczonej stodoły na skraju lasu. Mieszkańcy szepczą o starym modlitewniku, odwróconym krzyżu i obcej obecności wołającej z głębi ziemi. Gdy nadciąga nawałnica, a wieś pogrąża się w mroku, tylko nieliczni odważą się wejść tam, gdzie cień odrywa się od ścian.”
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="tajemnica-dzieci-z-traszyna/briefing-pl.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">Tajemnica Pędnika Łągiewki (1996)</div>
+            <span class="badge">PL</span>
+          </div>
+          <div class="card-meta">Konwencja: Technothriller &bull; Karkonosze 1996</div>
+          <div class="card-text">
+            „Maj 1996 roku. U stóp Karkonoszy, w cieniu opuszczonych sztolni uranowych w Kowarach, genialny polski konstruktor tworzy maszynę, która zdaje się łamać podstawowe prawa dynamiki Newtona. Samochód uderzający w betonową ścianę zatrzymuje się bez najmniejszego odrzutu, lecz każda próba wyzwala niewytłumaczalne anomalie grawitacyjne. Gdy wokół warsztatu pojawiają się obcy obserwatorzy, a igły kompasów zaczynają wirować, staje się jasne, że w metalowych trybach pędnika uwięziono siłę, której nikt nie potrafi kontrolować.”
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="tajemnica-pendnika-lagiewki/briefing-pl.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">Przybysz z Matriksa: Głogów (2001)</div>
+            <span class="badge">PL</span>
+          </div>
+          <div class="card-meta">Konwencja: Cyfrowy niepokój &bull; Przełom wieków 2001</div>
+          <div class="card-text">
+            „Listopad 2001 roku. W zalanym jesienną szarzyzną Głogowie ekrany kineskopowych telewizorów zaczynają śnieżyć, emitując zniekształcony głos zza krawędzi czasu. Mieszkańców ogarnia paraliżujące poczucie powracających wspomnień, a w opuszczonych kazamatach osiemnastowiecznej twierdzy woda w rzece zaczyna reagować na niewidzialny puls. Czy to technologiczna mistyfikacja lokalnego pasjonata, czy w podziemnych labiryntach Odry otwiera się pętla, z której nie ma już odwrotu?”
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="przybysz-z-matriksa-glogow/briefing-pl.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+
+    <div class="section-title">Amerykańskie Cold Cases (USA)</div>
+    <div class="grid">
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">The Englewood Labyrinth (1893)</div>
+            <span class="badge badge-en">EN</span>
+          </div>
+          <div class="card-meta">Konwencja: Victorian Noir &bull; Chicago 1893</div>
+          <div class="card-text">
+            "Chicago, autumn of eighteen ninety-three. Beneath the dazzling electric spectacle of the World's Fair, an ominous shadow hangs over the Englewood district. At Sixty-Third and Wallace Street looms a hulking fortress of brick and timber, housing a maze of windowless corridors, shifting false walls, and stairs that lead nowhere. Scores of visitors have vanished within its doors, swallowed by a predatory architectural puzzle. Step inside the castle and confront the calculating mind that turned urban ambition into an inescapable tomb."
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="englewood-murder-castle-1893/briefing-en.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">The Almer Coe Spectacles (1924)</div>
+            <span class="badge badge-en">EN</span>
+          </div>
+          <div class="card-meta">Konwencja: Jazz Age Mystery &bull; Chicago 1924</div>
+          <div class="card-text">
+            "Chicago, May nineteen twenty-four. On a sunlit afternoon in affluent Kenwood, an ambitious youth vanishes on his way home from school. What begins as a ruthless kidnapping for ransom soon unravels when a single clue is recovered from a desolate marsh drainage ditch: an exclusive pair of horn-rimmed eyeglasses with custom spring hinges. In an era of unbridled intellect and chilling vanity, a trail of optical precision leads into the darkest recesses of human arrogance and cold obsession."
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="almer-coe-spectacles-1924/briefing-en.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">The Circleville Letters (1983)</div>
+            <span class="badge badge-en">EN</span>
+          </div>
+          <div class="card-meta">Konwencja: True Crime Weird &bull; Ohio 1983</div>
+          <div class="card-text">
+            "Circleville, Ohio, nineteen eighty-three. Behind the idyllic white fences of a small Midwestern town lies an unrelenting web of poison-pen letters and poisonous whispers. For years, an unseen author has exposed the deepest private secrets of the townspeople, delivering threats that turned deadly on country roads. Even with the prime suspect locked in solitary confinement, the anonymous letters continue to arrive with unrelenting precision. Someone is watching every doorstep, and the silence of Circleville is about to shatter."
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="circleville-letters-1983/briefing-en.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">The Ovidhall Lake Anomaly (2005)</div>
+            <span class="badge badge-en">EN</span>
+          </div>
+          <div class="card-meta">Konwencja: Modern Folk Horror &bull; Michigan 2005</div>
+          <div class="card-text">
+            "Western Michigan, June two thousand and five. In the early morning hours, a fractured voicemail is recorded on a rural cellular tower: a disoriented student reports the forest has disappeared, replaced by rising waters and standing stones. Hours later, only abandoned personal belongings remain near the shoreline weir, with no tracks leading away. As strange pressure tremors pulse from the dark depths beneath Ovidhall Lake, an investigative team must piece together what happens when reality quietly dissolves into the water."
+          </div>
+        </div>
+        <audio controls preload="none">
+          <source src="ovidhall-lake-anomaly-2005/briefing-en.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+
+    <footer>
+      Strażnik Tajemnic AI &bull; Zapowiedzi Spraw &bull; Pre-baked Audio Studio
+    </footer>
+  </div>
+</body>
+</html>
