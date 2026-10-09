@@ -190,3 +190,78 @@ export function extractItems(text: string): ParsedEvent[] {
 
   return events;
 }
+
+export interface ParsedChaseTag {
+  type: 'pieszy' | 'kolowy';
+  distance: number;
+  opponent?: string;
+  opponentMov?: number;
+}
+
+/**
+ * Wyłuskuje znacznik rozpoczęcia pościgu [POŚCIG: typ=... | dystans=...] z narracji MG.
+ */
+export function extractChaseTag(text: string): ParsedChaseTag | null {
+  if (!text) return null;
+  const match = text.match(/\[(?:POŚCIG|POSCIG|CHASE):\s*([^\]]+)\]/i);
+  if (!match) return null;
+
+  const content = match[1].trim();
+  const isVehicle = /\b(kolowy|kołowy|pojazd|samoch[oó]d|auto|vehicle)\b/i.test(content);
+
+  let distance = 2;
+  const distMatch =
+    content.match(/\b(?:dystans|distance)\s*=\s*(\d+)/i) ||
+    content.match(/\b(\d+)\s*(?:p[oó]l|segment[oó]w|krok[oó]w)?\b/);
+  if (distMatch) {
+    const parsed = parseInt(distMatch[1], 10);
+    if (!isNaN(parsed) && parsed > 0 && parsed <= 5) {
+      distance = parsed;
+    }
+  }
+
+  let opponent: string | undefined;
+  const oppMatch = content.match(/\b(?:wrog|wróg|enemy|przeciwnik)\s*=\s*([^|;\]]+)/i);
+  if (oppMatch) {
+    opponent = oppMatch[1].trim();
+  }
+
+  let opponentMov: number | undefined;
+  const movMatch = content.match(/\b(?:wrog_mov|wróg_mov|mov)\s*=\s*(\d+)/i);
+  if (movMatch) {
+    const parsedMov = parseInt(movMatch[1], 10);
+    if (!isNaN(parsedMov) && parsedMov > 0) {
+      opponentMov = parsedMov;
+    }
+  }
+
+  return {
+    type: isVehicle ? 'kolowy' : 'pieszy',
+    distance,
+    opponent,
+    opponentMov,
+  };
+}
+
+export interface ParsedChaseEndTag {
+  outcome: 'ucieczka' | 'schwytanie' | 'walka';
+}
+
+/**
+ * Wyłuskuje znacznik zakończenia pościgu [KONIEC_POŚCIGU: wynik=...] z narracji MG.
+ */
+export function extractChaseEndTag(text: string): ParsedChaseEndTag | null {
+  if (!text) return null;
+  const match = text.match(/\[(?:KONIEC_POŚCIGU|KONIEC_POSCIGU|CHASE_END):\s*([^\]]+)\]/i);
+  if (!match) return null;
+
+  const content = match[1].trim();
+  if (/\b(schwytanie|zlapanie|złapanie|caught)\b/i.test(content)) {
+    return { outcome: 'schwytanie' };
+  }
+  if (/\b(walka|starciu|starcie|combat|engaged)\b/i.test(content)) {
+    return { outcome: 'walka' };
+  }
+  return { outcome: 'ucieczka' };
+}
+

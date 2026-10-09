@@ -6,6 +6,8 @@
 import {
   calculateChaseActionPoints,
   createChaseState,
+  createInitialChaseFromTag,
+  advanceChaseOnSkillRoll,
   executePlayerManeuver,
   executePursuerTurns,
   formatChaseForChat,
@@ -14,6 +16,10 @@ import {
   adjustedChaseMov,
   speedRollOutcomeFromCheck,
 } from '@/lib/chase/chase-engine';
+import {
+  extractChaseTag,
+  extractChaseEndTag,
+} from '@/lib/parsers/event-parser';
 
 describe('chase-engine (CoC 7e RAW)', () => {
   describe('Kalkulacja punktów akcji (MOV)', () => {
@@ -697,4 +703,149 @@ describe('chase-engine (CoC 7e RAW)', () => {
       expect(reportEn).toContain('@Margaret');
     });
   });
+
+  describe('Mechanika Pościgów CoC 7e RAW (Issue #739)', () => {
+    describe('Parser tagów pościgu (extractChaseTag & extractChaseEndTag)', () => {
+      it('ekstrahuje tag rozpoczęcia pościgu pieszego z domyślnym dystansem', () => {
+        const text = 'Słyszysz kroki za plecami! [POŚCIG: typ=pieszy | dystans=2 | wrog=Kultysta z nożem] Uciekaj!';
+        const parsed = extractChaseTag(text);
+
+        expect(parsed).not.toBeNull();
+        expect(parsed?.type).toBe('pieszy');
+        expect(parsed?.distance).toBe(2);
+        expect(parsed?.opponent).toBe('Kultysta z nożem');
+      });
+
+      it('ekstrahuje tag pościgu kołowego', () => {
+        const text = '[POŚCIG: kolowy | dystans=3 | wrog=Czarne auto gangsterów] Rzuć na gaz!';
+        const parsed = extractChaseTag(text);
+
+        expect(parsed).not.toBeNull();
+        expect(parsed?.type).toBe('kolowy');
+        expect(parsed?.distance).toBe(3);
+        expect(parsed?.opponent).toBe('Czarne auto gangsterów');
+      });
+
+      it('ekstrahuje tag zakończenia pościgu', () => {
+        const textUcieczka = 'Wpadasz w tłum na targu. [KONIEC_POŚCIGU: wynik=ucieczka] Jesteś bezpieczny.';
+        const parsed1 = extractChaseEndTag(textUcieczka);
+        expect(parsed1?.outcome).toBe('ucieczka');
+
+        const textSchwytanie = '[KONIEC_POŚCIGU: wynik=schwytanie] Zimna dłoń chwyta cię za ramię.';
+        const parsed2 = extractChaseEndTag(textSchwytanie);
+        expect(parsed2?.outcome).toBe('schwytanie');
+
+        const textWalka = '[KONIEC_POŚCIGU: wynik=walka] Nie masz dokąd uciec, stajesz do walki.';
+        const parsed3 = extractChaseEndTag(textWalka);
+        expect(parsed3?.outcome).toBe('walka');
+      });
+    });
+
+    describe('createInitialChaseFromTag', () => {
+      it('tworzy poprawny stan pościgu pieszego z MOV Badacza', () => {
+        const chase = createInitialChaseFromTag({
+          activeCharacter: {
+            id: 'char_1',
+            name: 'Edward',
+            move: 9,
+            dex: 60,
+          },
+          type: 'pieszy',
+          initialDistance: 2,
+          opponentName: 'Ghul',
+        });
+
+        expect(chase.status).toBe('ongoing');
+        const player = chase.participants.find((p) => p.isPlayer);
+        const pursuer = chase.participants.find((p) => !p.isPlayer);
+
+        expect(player?.name).toBe('Edward');
+        expect(player?.mov).toBe(9);
+        expect(player?.segmentIndex).toBe(2);
+        expect(pursuer?.name).toBe('Ghul');
+        expect(pursuer?.segmentIndex).toBe(0);
+        expect(chase.segments.length).toBe(5);
+      });
+
+      it('tworzy pościg kołowy z parametrami pojazdu', () => {
+        const chase = createInitialChaseFromTag({
+          type: 'kolowy',
+          initialDistance: 3,
+          opponentName: 'Czarna limuzyna',
+        });
+
+        expect(chase.status).toBe('ongoing');
+        const player = chase.participants.find((p) => p.isPlayer);
+        expect(player?.mov).toBe(12);
+        expect(player?.segmentIndex).toBe(3);
+        expect(chase.segments[1]?.hazard?.requiredSkill).toBe('Prowadzenie samochodu');
+      });
+    });
+
+    describe('advanceChaseOnSkillRoll (Deterministyczny reducer)', () => {
+      let state: ReturnType<typeof createInitialChaseFromTag>;
+
+      beforeEach(() => {
+        state = createInitialChaseFromTag({
+          activeCharacter: { id: 'p1', name: 'Badacz', move: 8, dex: 50 },
+          initialDistance: 2,
+        });
+      });
+
+      it('sukces ekstremalny zwiększa przewagę Badacza (+1 pole)', () => {
+        const next = advanceChaseOnSkillRoll(state, 'extreme');
+        const player = next.participants.find((p) => p.isPlayer);
+        const pursuer = next.participants.find((p) => !p.isPlayer);
+
+        expect(player?.segmentIndex).toBe(3); // 2 + 1
+        expect(pursuer?.segmentIndex).toBe(0); // bez zmian
+        expect(player!.segmentIndex - pursuer!.segmentIndex).toBe(3);
+      });
+
+      it('sukces zwykły utrzymuje tempo i dystans (obaj przesuwają się o 1)', () => {
+        const next = advanceChaseOnSkillRoll(state, 'regular');
+        const player = next.participants.find((p) => p.isPlayer);
+        const pursuer = next.participants.find((p) => !p.isPlayer);
+
+        expect(player?.segmentIndex).toBe(3); // 2 + 1
+        expect(pursuer?.segmentIndex).toBe(1); // 0 + 1
+        expect(player!.segmentIndex - pursuer!.segmentIndex).toBe(2); // dystans zachowany
+      });
+
+      it('porażka pozwala ścigającemu zbliżyć się o 1 pole (Fail-Forward)', () => {
+        const next = advanceChaseOnSkillRoll(state, 'fail');
+        const player = next.participants.find((p) => p.isPlayer);
+        const pursuer = next.participants.find((p) => !p.isPlayer);
+
+        expect(player?.segmentIndex).toBe(2); // Badacz traci tempo
+        expect(pursuer?.segmentIndex).toBe(1); // Wróg nadrabia o 1
+        expect(player!.segmentIndex - pursuer!.segmentIndex).toBe(1); // dystans zmalał do 1
+      });
+
+      it('pech/farsa zbliża ścigającego o 2 pola i powoduje zwarcie (engaged)', () => {
+        const next = advanceChaseOnSkillRoll(state, 'fumble');
+        const player = next.participants.find((p) => p.isPlayer);
+        const pursuer = next.participants.find((p) => !p.isPlayer);
+
+        expect(player?.segmentIndex).toBe(2);
+        expect(pursuer?.segmentIndex).toBe(2); // dogonił
+        expect(next.status).toBe('engaged');
+        expect(player?.isCaught).toBe(true);
+      });
+
+      it('dotarcie do mety (segment 4) kończy pościg ucieczką (escaped)', () => {
+        // Ustaw badacza na przedostatnim polu (3)
+        state.participants[0].segmentIndex = 3;
+        state.participants[1].segmentIndex = 0;
+
+        const next = advanceChaseOnSkillRoll(state, 'regular');
+        const player = next.participants.find((p) => p.isPlayer);
+
+        expect(player?.segmentIndex).toBe(4); // ostatni segment
+        expect(next.status).toBe('escaped');
+        expect(player?.isEscaped).toBe(true);
+      });
+    });
+  });
 });
+

@@ -116,6 +116,7 @@ graph TD
     game -->|Rzut przeciwstawny / Opposed roll| opposed_roll_modal
     game -->|Rzut na umiejętność / Roll skill test| roll_test_modal
     game -->|Ponów zapis kroniki po błędzie / Retry chronicle save after error| game
+    game -->|Oś Pościgu w nagłówku czatu / Chase header tracker| chase_card
 ```
 
 ## Routy
@@ -194,6 +195,7 @@ graph TD
 | Aktywna sesja | Rzut przeciwstawny / Opposed roll | Test przeciwstawny d100 Weird Fiction (Opposed Roll) | `src/components/dialogs/OpposedRollModal.tsx` |
 | Aktywna sesja | Rzut na umiejętność / Roll skill test | Tacka testu umiejętności d100 Weird Fiction | `src/components/dialogs/RollTestModal.tsx` |
 | Aktywna sesja | Ponów zapis kroniki po błędzie / Retry chronicle save after error | Aktywna sesja | `src/components/chat/chat-window/components/message-card.tsx` |
+| Aktywna sesja | Oś Pościgu w nagłówku czatu / Chase header tracker | Pościg narracyjny i tor przeszkód w czacie (Fiction First d100 Weird Fiction) | `src/components/chat/chat-window/components/chase-header-tracker.tsx` |
 
 ## Zasady aktualizacji
 

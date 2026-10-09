@@ -40,6 +40,8 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[KARTA_SCENY: Tytuł | Lokacja]...[/KARTA_SCENY]\` - podsumowanie zamkniętej sceny dla akt śledczych (osoby, co zdobyto [WYŁĄCZNIE przedmioty fabularne; zakaz pospolitych jak baterie/telefon/zapałki], ustalenia, cel/kolejny krok).
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **DYWERSYFIKACJA UMIEJĘTNOŚCI (RAW):** ZAKAZ monotonnego duopolu Spostrzegawczość/Perswazja! Aktywnie wywołuj rzadkie umiejętności (Prawo, Księgowość, Medycyna, Ślusarstwo, Urok, Zastraszanie, Gadanina) oraz testy łączone z operatorem LUB (np. \`[TEST: Spostrzegawczość LUB Ślusarstwo | ...]\`, \`[TEST: Perswazja LUB Prawo | ...]\`). BEZWZGLĘDNIE honoruj autorską kontrpropozycję gracza popartą diegetycznie. **TESTY ŁĄCZONE (RAW s. 103):** Gdy sytuacja wymaga sprawdzenia dwóch umiejętności naraz, użyj operatora LUB (dowolny sukces wystarcza, np. \`[TEST: Spostrzegawczość LUB Ślusarstwo | ...]\`) lub operatora I (wymagane oba sukcesy, np. \`[TEST: Elektryka I Mechanika | ...]\`). Pojedynczy rzut k100 rozstrzyga obie umiejętności. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm). Gdy w dyrektywie występuje [ZAWIESZENIE_KULMINACJI], zakończ prozę DOKŁADNIE w punkcie zwrotnym akcji na tym tagu, z BEZWZGLĘDNYM ZAKAZEM opisywania sukcesu ani porażki przed rzutem gracza.**
+- \`[POŚCIG: typ=pieszy/kolowy | cel=ucieczka/schwytanie | dystans=2 | wrog=Nazwa]\` - start gonitwy (Bieg 3 staccato, Oś Pościgu w nagłówku). Emituj przy ucieczce lub pościgu.
+- \`[KONIEC_POŚCIGU: wynik=ucieczka/schwytanie/walka]\` - zakończenie gonitwy i powrót do normalnego tempa sceny.
 - \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
 - \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\` - ZAWSZE gdy badacz rzuca czar lub odprawia rytuał. Nigdy nie rzucaj za magię w prozie: silnik aplikacji (MagicEngine) wyświetli kartę, sprawdzi regułę wiary, pobierze koszty PM/HP/SAN i rozstrzygnie rzut.
 - \`[OBRONA_MAGIA: @Imię: rzucajacy=NazwaWroga | pow=N | czar=identyfikator_lub_nazwa | opis=KrótkiOpis]\` - ZAWSZE gdy wróg (kultysta, czarownik, potwór) rzuca zaklęcie wymierzone w badacza. Nigdy nie narzucaj efektu w prozie: gracz otrzyma OpposedMagicCard, wykona rzut sporny POW i odeśle \`[WYNIK_OBRONY_MAGII: ...]\`.
@@ -128,13 +130,22 @@ export function getGMProtocolPrompt(): string {
   return `
 ## PROTOKÓŁ MISTRZA GRY (GM PROTOCOL)
 
-Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\` (lub w scenie trwa pościg):
-**ZASADY PROWADZENIA POŚCIGU (FICTION FIRST & BIEG 3):**
-1. **Tryb narracji:** Bieg 3 (Przełamanie / Pościg) - zwięzły, filmowy opis (30-70 słów). Zmysłowa presja czasu: dudnienie kroków za plecami, przyspieszony oddech, echo gonitwy, zmieniający się dystans.
-2. **Ukształtowanie terenu i opcje:** Zawsze nakreśl bezpośrednie otoczenie i nadchodzącą przeszkodę lub rozwidlenie dróg (np. śliski bruk, płot z desek, gęsty tłum, sterty skrzyń, brama kamienicy). Podaj graczowi 2-3 przykładowe możliwości taktyczne z otoczenia jako inspirację (np. *"Możesz spróbować przesadzić płot, runąć w wąski zaułek albo przewrócić skrzynie za sobą... chyba że masz inny plan"*).
-3. **Sprawczość gracza (Agency):** ZAWSZE kończ otwartym pytaniem: *"Co robisz?"*. Gracz ma pełną dowolność deklaracji słownej w czacie - nie ograniczaj go do zasugerowanych opcji.
-4. **Testy pod presją:** Gdy deklaracja gracza wymaga sprawdzenia umiejętności (np. Skakanie, Zręczność, Wspinaczka, Nawigacja, Ukrywanie, Siła), wzywaj oficjalny znacznik testu: \`[TEST: Umiejętność | trudność | modyfikatory | uzasadnienie]\`. Stosuj zasadę **Fail-Forward** (porażka nie oznacza "nie udało się", lecz potknięcie, utratę tchu, bolesne obicie lub natychmiastowe skrócenie dystansu przez pościg).
-5. **Dyskrecja mechaniki:** Nie ujawniaj surowego JSON, liczb MOV, punktów akcji ani indeksów lokacji. Całość musi brzmieć jak autentyczna, trzymająca w napięciu scena ucieczki z horroru.
+Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\` (lub w scenie rozpoczyna się ucieczka / gonitwa):
+**ZASADY PROWADZENIA POŚCIGU (FICTION FIRST & BIEG 3 - CoC 7e RAW):**
+1. **Inicjacja i Tag Otwarcia:** Gdy badacze uciekają przed zagrożeniem lub ścigają cel, emituj w odpowiedzi:
+   \`[POŚCIG: typ=pieszy/kolowy | cel=ucieczka/schwytanie | dystans=2 | wrog=NazwaWroga]\`
+   (Domyślny dystans: 2 pola bufora. Aplikacja automatycznie wyświetla dyskretną Oś Pościgu w nagłówku).
+2. **Tryb narracji:** Bieg 3 (Przełamanie / Pościg) - zwięzły, filmowy opis (30-70 słów). Zmysłowa presja czasu: dudnienie kroków lub ryk silnika, przyspieszony oddech, echo gonitwy, zmieniający się dystans.
+3. **Ukształtowanie terenu i opcje:** Zawsze nakreśl bezpośrednie otoczenie i nadchodzącą przeszkodę lub rozwidlenie dróg (np. śliski bruk, płot z desek, gęsty tłum, sterty skrzyń, brama kamienicy, ostry zakręt). Podaj graczowi 2-3 przykładowe możliwości taktyczne z otoczenia jako inspirację (np. *"Możesz spróbować przesadzić płot, runąć w wąski zaułek albo przewrócić skrzynie za sobą... chyba że masz inny plan"*).
+4. **Sprawczość gracza (Agency):** ZAWSZE kończ otwartym pytaniem: *"Co robisz?"*. Gracz ma pełną dowolność deklaracji słownej w czacie - nie ograniczaj go do zasugerowanych opcji.
+5. **Testy pod presją (Fail-Forward):** Gdy deklaracja gracza wymaga sprawdzenia umiejętności (np. Skakanie, Zręczność, Wspinaczka, Nawigacja, Prowadzenie, Ukrywanie, Siła), wzywaj oficjalny znacznik testu: \`[TEST: Umiejętność | trudność | modyfikatory | uzasadnienie]\`. Stosuj zasadę **Fail-Forward**: porażka nie oznacza "nie udało się", lecz potknięcie, utratę tchu, bolesne obicie lub natychmiastowe skrócenie dystansu przez pościg (co silnik odzwierciedla na Osi Pościgu).
+6. **Pościgi kołowe (Pojazdy RAW):**
+   - Zamiast Kondycji kierowca testuje *Prowadzenie samochodu* (Drive Auto).
+   - Akcje pasażerów: Nawigacja (udany test daje kierowcy Kość Premiową), ostrzał w ruchu (1 kość karna za ruch, dodatkowa kość karna przy celowaniu w opony/kierowcę).
+   - Taranowanie i kolizje: obrażenia Budowy (Build) obu pojazdów. W latach 20. brak pasów bezpieczeństwa - zderzenie oznacza gwałtowny test Zręczności/Kondycji przed obrażeniami z potłuczeń (1k6).
+7. **Domknięcie sceny:** Gdy ucieczka się powiodła, doszło do zwarcia lub ścigający został wyeliminowany, zakończ gonitwę tagiem:
+   \`[KONIEC_POŚCIGU: wynik=ucieczka/schwytanie/walka]\`
+8. **Dyskrecja mechaniki:** Nie ujawniaj surowego JSON, liczb MOV, punktów akcji ani indeksów lokacji. Całość musi brzmieć jak autentyczna, trzymająca w napięciu scena z horroru.
 
 Oprócz narracji, MUSISZ używać specjalnych tagów strukturalnych w swoich odpowiedziach.
 Tagi te NIE są widoczne dla gracza - służą aplikacji do automatycznej aktualizacji interfejsu.

@@ -27,6 +27,7 @@ import {
   type CollectedTestResult,
 } from '@/lib/hot-seat/test-groups';
 import { ChatHeader } from './components/chat-header';
+import { ChaseHeaderTracker } from './components/chase-header-tracker';
 import { LoadingIndicator } from './components/loading-indicator';
 import { MessageCard } from './components/message-card';
 import { MessageInput } from './components/message-input';
@@ -390,6 +391,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         currentLocation={currentLocation}
         isLocationExhausted={activeCharacter?.activeScene?.isLocationExhausted}
       />
+      {activeChaseState && activeChaseState.status === 'ongoing' && (
+        <ChaseHeaderTracker chaseState={activeChaseState} />
+      )}
       {!hasStartedGame ? (
         <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">
           <WelcomeScreen

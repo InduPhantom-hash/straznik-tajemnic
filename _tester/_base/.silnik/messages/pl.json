@@ -1282,6 +1282,20 @@
     "locationExhausted": "Przeszukana",
     "locationExhaustedTooltip": "Lokacja została zbadana wyczerpująco. Brak dalszych poszlak w tym miejscu."
   },
+  "ChaseTracker": {
+    "title": "GONITWA",
+    "footChase": "Piesza",
+    "vehicleChase": "Kołowa",
+    "distance": "Dystans: {count} pól bufora",
+    "distanceDanger": "Dystans: 1 pole (ZAGROŻENIE!)",
+    "distanceEscaped": "Ucieczka udana!",
+    "distanceEngaged": "Zwarcie! Bezpośrednie starcie",
+    "investigator": "Ty",
+    "enemy": "Wróg",
+    "goal": "Meta",
+    "hazardOnRoute": "Przeszkoda na trasie:",
+    "testPrefix": "TEST"
+  },
   "PredefinedCharacters": {
     "eyebrow": "Gotowi badacze",
     "title": "Wybierz predefiniowaną postać",

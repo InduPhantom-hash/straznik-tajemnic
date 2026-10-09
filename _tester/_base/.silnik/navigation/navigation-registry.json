@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-10-09T18:20:00.000Z",
+  "updatedAt": "2026-10-09T19:20:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -954,7 +954,16 @@
         "en": "Retry chronicle save after error"
       },
       "component": "src/components/chat/chat-window/components/message-card.tsx"
+    },
+    {
+      "source": "game",
+      "target": "chase-card",
+      "label": {
+        "pl": "Oś Pościgu w nagłówku czatu",
+        "en": "Chase header tracker"
+      },
+      "component": "src/components/chat/chat-window/components/chase-header-tracker.tsx"
     }
   ],
-  "lastUpdated": "2026-10-04T20:36:00.000Z"
+  "lastUpdated": "2026-10-09T19:20:00.000Z"
 }
