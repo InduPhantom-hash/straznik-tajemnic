@@ -4959,7 +4959,8 @@
     "combinedOrBadge": "COMBINED TEST (OR)",
     "combinedAndBadge": "COMBINED TEST (AND)",
     "combinedOrDesc": "Any success is sufficient for overall success",
-    "combinedAndDesc": "Both skill successes required"
+    "combinedAndDesc": "Both skill successes required",
+    "stakeLabel": "Test Stakes"
   },
   "DiceRollCard": {
     "cardTitle": "Dice Roll",
@@ -5661,10 +5662,12 @@
     "schemaHint": "JSON parsed onBlur. The app does not consume structured output yet (power-user feature)."
   },
   "GeminiThinkingSection": {
+    "levelMinimal": "Minimal (instant / live play <10s)",
     "levelAuto": "Auto (adaptive choice)",
     "levelLow": "Low (fast, cheaper)",
     "levelMedium": "Medium (standard)",
     "levelHigh": "High (deeper reasoning)",
+    "hintMinimal": "Minimal reasoning - recommended for fast live play and instant Keeper responses",
     "hintAuto": "Automatically picks the level based on query complexity",
     "hintLow": "Optimal for simple commands and short answers",
     "hintMedium": "Standard reasoning level for most queries",

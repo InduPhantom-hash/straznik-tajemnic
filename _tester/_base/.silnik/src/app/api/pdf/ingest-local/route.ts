@@ -33,6 +33,7 @@ import {
 } from '@/lib/pdf/capabilities-manager';
 import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 import { buildLocalCustomAdventures } from '@/lib/pdf/adventure-local-builder';
+import { validateAdventureQualityGate } from '@/lib/pdf/gold-master-registry';
 import { LOCAL_RAG_NAMESPACES, UpsertVector } from '@/lib/vector-db/vector-types';
 import type { CustomAdventure } from '@/lib/adventures-data';
 import { appendPdfIngestLog } from '@/lib/pdf/pdf-ingest-logger';
@@ -388,6 +389,29 @@ export async function POST(request: NextRequest) {
         pdfPagesCount,
         adventureId
       );
+
+      // Bramka Jakości (Reject Gate - Issue #737): Weryfikacja minimalnej spójności wyekstrahowanych scenariuszy
+      if ((type === 'adventure' || actualColumn === 'optional') && adventures.length > 0) {
+        const qualityChecks = adventures.map((adv) => ({
+          adv,
+          gate: validateAdventureQualityGate(adv, pdfText),
+        }));
+        const failedChecks = qualityChecks.filter((c) => !c.gate.isValid);
+        if (failedChecks.length === adventures.length) {
+          const reason = failedChecks[0].gate.reason || 'Brak spójnej struktury scenariusza.';
+          appendPdfIngestLog(
+            `Odrzucono dokument "${fileName}" w Bramce Jakości (Reject Gate): ${reason}`
+          );
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Plik PDF nie spełnia wymagań jakościowych scenariusza śledczego: ${reason}`,
+              details: failedChecks[0].gate.issues,
+            },
+            { status: 422 }
+          );
+        }
+      }
 
       const dataDir = path.join(getWritableDataDir(), 'adventures');
       if (!fs.existsSync(dataDir)) {

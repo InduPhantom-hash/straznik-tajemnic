@@ -23,7 +23,7 @@ export const QUALITY_PRESETS = {
       temperature: 0.7,
       topP: 0.85,
       topK: 40,
-      thinkingLevel: 'low' as const,
+      thinkingLevel: 'minimal' as const,
       maxOutputTokens: 2048,
       // === GEMINI nested (IND-32a) ===
       safetySettings: {

@@ -316,6 +316,70 @@ function cleanForTtsBuffer(text: string): string {
     .trim();
 }
 
+/**
+ * Systemowe wykrywanie znaku zamykającego wypowiedź postaci (Issue #737).
+ * Obsługuje hierarchię typograficzną: cudzysłowy dialogowe („...”, "...", “...”, «...»)
+ * oraz zagnieżdżone cytaty/tytuły wewnątrz kwestii (»The Boston Globe«, 'cytat'),
+ * zapobiegając ucinaniu głosu NPC i fałszywemu przełączaniu na lektora w połowie zdania.
+ */
+export function findDialogueClosingQuote(
+  text: string,
+  openedWith?: string
+): { index: number; closingChar: string } | null {
+  if (!text) return null;
+
+  // Jeśli brak otwierającego cudzysłowu dla wypowiedzi postaci, nie szukamy sztucznego zamknięcia wewnątrz zdania
+  // (np. tytuł w »The Boston Globe« nie powinien zamykać wypowiedzi)
+  if (!openedWith) {
+    return null;
+  }
+
+  // Określ docelowy znak zamykający na podstawie znaku otwierającego
+  let targetClosingChars: string[];
+  if (openedWith === '„' || openedWith === '“') {
+    targetClosingChars = ['”', '"'];
+  } else if (openedWith === '"') {
+    targetClosingChars = ['"', '”'];
+  } else if (openedWith === '«') {
+    targetClosingChars = ['»'];
+  } else if (openedWith === '»') {
+    targetClosingChars = ['«', '»'];
+  } else {
+    targetClosingChars = ['”', '"', '»'];
+  }
+
+  // Skanujemy tekst ze śledzeniem zagnieżdżonych cudzysłowów (np. »...« wewnątrz „...”)
+  let nestedGuillemetOpen = false;
+  let nestedSingleQuoteOpen = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    // Obsługa zagnieżdżonych ostrokątnych »...« lub «...» wewnątrz cudzysłowu głównego
+    if (openedWith !== '«' && openedWith !== '»') {
+      if (char === '»' || char === '«') {
+        nestedGuillemetOpen = !nestedGuillemetOpen;
+        continue;
+      }
+      if (char === "'" || char === '‘' || char === '’') {
+        nestedSingleQuoteOpen = !nestedSingleQuoteOpen;
+        continue;
+      }
+    }
+
+    // Jeśli jesteśmy wewnątrz zagnieżdżonego cudzysłowu (np. tytuł gazety), ignorujemy
+    if (nestedGuillemetOpen) {
+      continue;
+    }
+
+    if (targetClosingChars.includes(char)) {
+      return { index: i, closingChar: char };
+    }
+  }
+
+  return null;
+}
+
 export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
@@ -405,6 +469,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const dynamicNpcVoiceMapRef = useRef<Map<string, { voiceId: string; audioDirection: string }>>(new Map());
   // Śledzi aktywnego mówcę NPC w obrębie bieżącej linii dialogowej (Issue #172: wielozdaniowe wypowiedzi postaci)
   const activeNpcSpeakerRef = useRef<string | null>(null);
+  // Śledzi znak otwierający aktywny dialog (Issue #737: hierarchia cytatów wewnętrznych)
+  const activeDialogueOpenedQuoteCharRef = useRef<string | null>(null);
   // Pozycja końca ostatnio przetworzonego zdania w stripped dla bieżącej wiadomości (Issue #172)
   const prevSentenceEndRef = useRef(0);
   // demo 2026-06-22: ULTRA scala kolejne zdania o tym SAMYM voiceId w jeden segment TTS
@@ -1251,20 +1317,27 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
                   rawSpokenBody =
                     colonIdx !== -1 ? raw.slice(colonIdx + 1) : raw;
                 }
+                let openedWithQuoteChar: string | undefined;
                 const openQuoteMatch = rawSpokenBody.match(
-                  /^(?:[\s*_-]*\[[^\]]*\][\s*_-]*)*\s*[„"“«]\s*/
+                  /^(?:[\s*_-]*\[[^\]]*\][\s*_-]*)*\s*([„"“«»])\s*/
                 );
                 if (openQuoteMatch) {
                   hasOpeningQuoteInMarker = true;
+                  openedWithQuoteChar = openQuoteMatch[1];
+                  activeDialogueOpenedQuoteCharRef.current = openedWithQuoteChar;
                   rawPrefixBeforeBody += openQuoteMatch[0];
                   rawSpokenBody = rawSpokenBody.slice(openQuoteMatch[0].length);
+                } else if (!markerMatch && activeDialogueOpenedQuoteCharRef.current) {
+                  openedWithQuoteChar = activeDialogueOpenedQuoteCharRef.current;
                 }
               }
-              const closingQuoteRegex =
-                !markerMatch || hasOpeningQuoteInMarker ? /[”"»]/ : /[”»]/;
-              const closingQuoteMatch = rawSpokenBody.match(closingQuoteRegex);
+              const closingQuoteMatch = findDialogueClosingQuote(
+                rawSpokenBody,
+                markerMatch ? (hasOpeningQuoteInMarker ? (activeDialogueOpenedQuoteCharRef.current || '„') : undefined) : (activeDialogueOpenedQuoteCharRef.current || '„')
+              );
               if (closingQuoteMatch && closingQuoteMatch.index !== undefined) {
                 shouldResetNpcAfterSentence = true;
+                activeDialogueOpenedQuoteCharRef.current = null;
                 const rawInsideQuote = rawSpokenBody.slice(
                   0,
                   closingQuoteMatch.index

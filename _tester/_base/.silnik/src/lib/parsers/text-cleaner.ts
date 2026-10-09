@@ -373,8 +373,8 @@ export function sanitizeMechanicalTags(text: string): string {
     .replace(/\[\s*(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\]/gi, '')
     .replace(/\[\s*(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\]/gi, '')
     .replace(/\[\s*\/\s*(?:OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS)[^\]]*\]/gi, '')
-    // Testy kości i wyników
-    .replace(/\[\s*(?:TEST|WYNIK|KOŚĆ|KOSC|DICE|ROLL)\s*:[^\]]*\]/gi, '')
+    // Testy kości i wyników oraz stawki testów (Issue #737)
+    .replace(/\[\s*(?:TEST|WYNIK|KOŚĆ|KOSC|DICE|ROLL|STAWKA|STAKE)\s*:[^\]]*\]/gi, '')
     .replace(/\[🎲[^\]]*\]/gi, '')
     .replace(/test:\s*[^\]]*\]/gi, '')
     .replace(/\[Test:[^\]]*\]/gi, '')
