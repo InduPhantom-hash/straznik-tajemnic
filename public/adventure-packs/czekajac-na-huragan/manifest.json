@@ -1,0 +1,54 @@
+{
+  "caseId": "case-p02-czekajac-na-huragan",
+  "era": "1935-us-pulp",
+  "assets": [
+    {
+      "id": "clue-01-barometr-sztorm-keywest",
+      "category": "item-clue",
+      "file": "clue-01-barometr-sztorm-keywest.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 barometr sztorm keywest"
+      ],
+      "tagsEn": [
+        "clue 01 barometr sztorm keywest"
+      ]
+    },
+    {
+      "id": "clue-02-zlota-tabliczka-dagon",
+      "category": "item-clue",
+      "file": "clue-02-zlota-tabliczka-dagon.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 zlota tabliczka dagon"
+      ],
+      "tagsEn": [
+        "clue 02 zlota tabliczka dagon"
+      ]
+    },
+    {
+      "id": "npc-01-douglas-whiting",
+      "category": "npc-portrait",
+      "file": "npc-01-douglas-whiting.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 douglas whiting"
+      ],
+      "tagsEn": [
+        "npc 01 douglas whiting"
+      ]
+    },
+    {
+      "id": "npc-02-szeryf-turner",
+      "category": "npc-portrait",
+      "file": "npc-02-szeryf-turner.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 szeryf turner"
+      ],
+      "tagsEn": [
+        "npc 02 szeryf turner"
+      ]
+    }
+  ]
+}

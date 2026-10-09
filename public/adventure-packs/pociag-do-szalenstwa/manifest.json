@@ -1,0 +1,54 @@
+{
+  "caseId": "case-t03-pociag-do-szalenstwa",
+  "era": "1970s-pl",
+  "assets": [
+    {
+      "id": "clue-01-mapa-walim-riese",
+      "category": "item-clue",
+      "file": "clue-01-mapa-walim-riese.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 mapa walim riese"
+      ],
+      "tagsEn": [
+        "clue 01 mapa walim riese"
+      ]
+    },
+    {
+      "id": "clue-02-sztolnia-zloty-pociag",
+      "category": "item-clue",
+      "file": "clue-02-sztolnia-zloty-pociag.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 sztolnia zloty pociag"
+      ],
+      "tagsEn": [
+        "clue 02 sztolnia zloty pociag"
+      ]
+    },
+    {
+      "id": "npc-01-profesor-fritz",
+      "category": "npc-portrait",
+      "file": "npc-01-profesor-fritz.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 profesor fritz"
+      ],
+      "tagsEn": [
+        "npc 01 profesor fritz"
+      ]
+    },
+    {
+      "id": "npc-02-rezyser-dokumentu",
+      "category": "npc-portrait",
+      "file": "npc-02-rezyser-dokumentu.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 rezyser dokumentu"
+      ],
+      "tagsEn": [
+        "npc 02 rezyser dokumentu"
+      ]
+    }
+  ]
+}

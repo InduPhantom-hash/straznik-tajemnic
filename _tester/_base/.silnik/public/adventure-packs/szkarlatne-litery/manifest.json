@@ -1,0 +1,142 @@
+{
+  "caseId": "case-m02-szkarlatne-litery",
+  "era": "1920-arkham",
+  "predefinedAdventureId": "szkarlatne-litery",
+  "visualDna": {
+    "styleCore": "1920s authentic Miskatonic University academic interior, heavy desaturated 35mm film realism, natural window lighting, rich dark walnut wood, antique books, authentic period typography",
+    "colorAndLightingScript": "muted sepia and vintage academic warm tones, lamplight chiaroscuro, dusty sunbeams through library windows, deep burgundy parchment accents",
+    "cssFilterOverride": "contrast(1.1) brightness(0.96)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-leiter-parchment",
+      "category": "item-clue",
+      "file": "clue-01-leiter-parchment.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-leiter-parchment",
+      "tagsPl": [
+        "pergamin",
+        "akadyjski",
+        "krew",
+        "runy",
+        "profesor leiter",
+        "arkham",
+        "1920"
+      ],
+      "tagsEn": [
+        "parchment",
+        "akkadian",
+        "blood",
+        "runes",
+        "professor leiter",
+        "arkham",
+        "1920"
+      ]
+    },
+    {
+      "id": "clue-02-dean-fallon-letter",
+      "category": "item-clue",
+      "file": "clue-02-dean-fallon-letter.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-dean-fallon-letter",
+      "tagsPl": [
+        "list",
+        "dziekan fallon",
+        "uniwersytet miskatonic",
+        "maszynopis",
+        "arkham"
+      ],
+      "tagsEn": [
+        "letter",
+        "dean fallon",
+        "miskatonic university",
+        "typewritten",
+        "arkham"
+      ]
+    },
+    {
+      "id": "clue-03-threat-note",
+      "category": "item-clue",
+      "file": "clue-03-threat-note.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-03-threat-note",
+      "tagsPl": [
+        "anonim",
+        "groźba",
+        "wycinki z gazet",
+        "cień",
+        "pokój akademicki"
+      ],
+      "tagsEn": [
+        "threat note",
+        "ransom",
+        "newspaper cutouts",
+        "shadow",
+        "dormitory"
+      ]
+    },
+    {
+      "id": "npc-dean-fallon",
+      "category": "npc-portrait",
+      "file": "npc-dean-fallon.webp",
+      "aspectRatio": "3:4",
+      "npcId": "dean-fallon",
+      "tagsPl": [
+        "dziekan fallon",
+        "portret",
+        "zarządca",
+        "miskatonic",
+        "arkham"
+      ],
+      "tagsEn": [
+        "dean fallon",
+        "portrait",
+        "administrator",
+        "miskatonic",
+        "arkham"
+      ]
+    },
+    {
+      "id": "npc-abner-doane",
+      "category": "npc-portrait",
+      "file": "npc-abner-doane.webp",
+      "aspectRatio": "3:4",
+      "npcId": "abner-doane",
+      "tagsPl": [
+        "abner doane",
+        "antykwarz",
+        "paser",
+        "arkham",
+        "portret"
+      ],
+      "tagsEn": [
+        "abner doane",
+        "antiquarian",
+        "fence",
+        "arkham",
+        "portrait"
+      ]
+    },
+    {
+      "id": "npc-emilia-court",
+      "category": "npc-portrait",
+      "file": "npc-emilia-court.webp",
+      "aspectRatio": "3:4",
+      "npcId": "emilia-court",
+      "tagsPl": [
+        "emilia court",
+        "studentka",
+        "pielęgniarka",
+        "paranoja",
+        "portret"
+      ],
+      "tagsEn": [
+        "emilia court",
+        "student",
+        "nurse",
+        "paranoia",
+        "portrait"
+      ]
+    }
+  ]
+}

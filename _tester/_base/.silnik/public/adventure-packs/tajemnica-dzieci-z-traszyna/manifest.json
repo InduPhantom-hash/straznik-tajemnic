@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q03-tajemnica-dzieci-z-traszyna",
+  "era": "1999-mazury",
+  "predefinedAdventureId": "tajemnica-dzieci-z-traszyna",
+  "visualDna": {
+    "styleCore": "1999 rural Warmia and Mazury, damp twilight, eerie silence of lake reeds and weathered wooden barn planks, folk superstition mixed with cosmic dread, tactile crayon drawings and yellowed clinical notes",
+    "colorAndLightingScript": "murky lake greens, twilight indigo, desaturated wood, pale skin tones",
+    "cssFilterOverride": "contrast(1.08) brightness(0.92)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-krzyz-stodola",
+      "category": "item-clue",
+      "file": "clue-01-krzyz-stodola.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-krzyz-stodola",
+      "tagsPl": ["krzyż na stodole", "drewno", "ryt", "wianek", "traszyn", "mazury"],
+      "tagsEn": ["barn cross", "carved wood", "wreath", "traszyn", "masuria"]
+    },
+    {
+      "id": "clue-02-karta-szpitalna",
+      "category": "item-clue",
+      "file": "clue-02-karta-szpitalna.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-karta-szpitalna",
+      "tagsPl": ["karta szpitalna", "recepta", "badanie krwi", "mutacja", "1999"],
+      "tagsEn": ["medical record", "prescription", "blood test", "mutation", "1999"]
+    },
+    {
+      "id": "clue-03-rysunek-dziecka",
+      "category": "item-clue",
+      "file": "clue-03-rysunek-dziecka.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-03-rysunek-dziecka",
+      "tagsPl": ["rysunek dziecka", "kredki", "czarna postać", "jezioro", "koszmar"],
+      "tagsEn": ["child drawing", "crayons", "black entity", "lake", "nightmare"]
+    },
+    {
+      "id": "npc-soltys-mazury",
+      "category": "npc-portrait",
+      "file": "npc-soltys-mazury.webp",
+      "aspectRatio": "3:4",
+      "npcId": "soltys-mazury",
+      "tagsPl": ["sołtys", "mazurska wieś", "rolnik", "portret"],
+      "tagsEn": ["village head", "masurian village", "farmer", "portrait"]
+    },
+    {
+      "id": "audio-wywiad-dziecko-1983",
+      "category": "audio-handout",
+      "file": "audio/wywiad-dziecko-1983.mp3",
+      "audioId": "audio-wywiad-dziecko-1983",
+      "tagsPl": ["wywiad z dzieckiem", "nagranie kasetowe", "hipnoza", "śpiew"],
+      "tagsEn": ["child interview", "cassette recording", "hypnosis", "chant"]
+    }
+  ]
+}

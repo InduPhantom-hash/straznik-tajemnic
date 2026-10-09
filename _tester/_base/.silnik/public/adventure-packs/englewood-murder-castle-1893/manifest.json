@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q05-englewood-murder-castle-1893",
+  "era": "1894-chicago",
+  "predefinedAdventureId": "englewood-murder-castle-1893",
+  "visualDna": {
+    "styleCore": "1894 Victorian Chicago post-World's Fair dread, cyanotype architectural blueprints, cold industrial steel gas chambers, dark gaslit corridors, tactile Pinkerton casefiles",
+    "colorAndLightingScript": "pale cyanotype Prussian blue, gloomy gaslight sepia, rusted steel and deep soot shadows",
+    "cssFilterOverride": "contrast(1.15) brightness(0.92)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-castle-blueprint",
+      "category": "item-clue",
+      "file": "clue-01-castle-blueprint.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-castle-blueprint",
+      "tagsPl": ["cyjanotypia", "plan hotelu", "zamek holmesa", "chicago", "1893"],
+      "tagsEn": ["cyanotype", "hotel blueprint", "holmes castle", "chicago", "1893"]
+    },
+    {
+      "id": "clue-02-vault-footprint",
+      "category": "item-clue",
+      "file": "clue-02-vault-footprint.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-vault-footprint",
+      "tagsPl": ["skarbiec", "odcisk stopy", "emeline cigrand", "drzwi stalowe"],
+      "tagsEn": ["vault", "footprint", "emeline cigrand", "steel door"]
+    },
+    {
+      "id": "npc-hh-holmes",
+      "category": "npc-portrait",
+      "file": "npc-hh-holmes.webp",
+      "aspectRatio": "3:4",
+      "npcId": "hh-holmes",
+      "tagsPl": ["hh holmes", "herman mudgett", "morderca", "chicago", "portret"],
+      "tagsEn": ["hh holmes", "herman mudgett", "serial killer", "chicago", "portrait"]
+    },
+    {
+      "id": "npc-detective-geyer",
+      "category": "npc-portrait",
+      "file": "npc-detective-geyer.webp",
+      "aspectRatio": "3:4",
+      "npcId": "detective-geyer",
+      "tagsPl": ["detektyw geyer", "pinkerton", "śledczy", "portret"],
+      "tagsEn": ["detective geyer", "pinkerton", "investigator", "portrait"]
+    },
+    {
+      "id": "audio-edison-wax-cylinder-1893",
+      "category": "audio-handout",
+      "file": "audio/edison-wax-cylinder-1893.mp3",
+      "audioId": "audio-edison-wax-cylinder-1893",
+      "tagsPl": ["cylinder edisona", "nagranie woskowe", "holmes", "fonograf"],
+      "tagsEn": ["edison wax cylinder", "audio recording", "holmes", "phonograph"]
+    }
+  ]
+}

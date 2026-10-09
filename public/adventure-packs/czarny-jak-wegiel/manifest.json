@@ -1,0 +1,42 @@
+{
+  "caseId": "case-t04-czarny-jak-wegiel",
+  "era": "1922-pl",
+  "assets": [
+    {
+      "id": "clue-01-odlamek-meteoryt",
+      "category": "item-clue",
+      "file": "clue-01-odlamek-meteoryt.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 odlamek meteoryt"
+      ],
+      "tagsEn": [
+        "clue 01 odlamek meteoryt"
+      ]
+    },
+    {
+      "id": "npc-01-soltys-anapol",
+      "category": "npc-portrait",
+      "file": "npc-01-soltys-anapol.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 soltys anapol"
+      ],
+      "tagsEn": [
+        "npc 01 soltys anapol"
+      ]
+    },
+    {
+      "id": "npc-02-geolog-uj",
+      "category": "npc-portrait",
+      "file": "npc-02-geolog-uj.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 geolog uj"
+      ],
+      "tagsEn": [
+        "npc 02 geolog uj"
+      ]
+    }
+  ]
+}

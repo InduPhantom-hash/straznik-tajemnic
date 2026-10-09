@@ -1,0 +1,55 @@
+{
+  "caseId": "case-s03-czarny-sarkofag",
+  "era": "1919-peru",
+  "predefinedAdventureId": "czarny-sarkofag",
+  "visualDna": {
+    "styleCore": "1919 authentic expedition photography, warm high-altitude Andean sunlight, dry dust, weathered colonial wood and stone, rich tactile alpaca wool and hammered Inca gold, 35mm grain, zero modern elements",
+    "colorAndLightingScript": "warm ochre and terracotta palette, harsh mountain shadows, flickering campfires, colonial veranda ambiance",
+    "cssFilterOverride": "sepia(0.15) contrast(1.1) brightness(0.95)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-jackson-elias-letter",
+      "category": "item-clue",
+      "file": "clue-01-jackson-elias-letter.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-jackson-elias-letter",
+      "tagsPl": ["list", "rękopis", "jackson elias", "gran hotel bolivar", "lima", "peru", "1919"],
+      "tagsEn": ["letter", "manuscript", "jackson elias", "gran hotel bolivar", "lima", "peru", "1919"]
+    },
+    {
+      "id": "clue-02-kharisiri-gold-amulet",
+      "category": "item-clue",
+      "file": "clue-02-kharisiri-gold-amulet.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-kharisiri-gold-amulet",
+      "tagsPl": ["amulet", "złoto", "kharisiri", "inkowie", "tiwanaku", "ssawka", "wąż"],
+      "tagsEn": ["amulet", "gold", "kharisiri", "inca", "tiwanaku", "lamprey mouth", "serpent"]
+    },
+    {
+      "id": "clue-03-puno-mine-map",
+      "category": "item-clue",
+      "file": "clue-03-puno-mine-map.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-03-puno-mine-map",
+      "tagsPl": ["mapa", "szlak", "altiplano", "titicaca", "kopalnia puno", "wyprawa", "larkin"],
+      "tagsEn": ["map", "trail", "altiplano", "titicaca", "puno mine", "expedition", "larkin"]
+    },
+    {
+      "id": "npc-01-jackson-elias",
+      "category": "npc",
+      "file": "npc-jackson-elias-1919.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["jackson elias", "elias", "pisarz", "afroamerykanin", "fedora", "safari", "1919"],
+      "tagsEn": ["jackson elias", "elias", "writer", "african american", "fedora", "safari", "1919"]
+    },
+    {
+      "id": "npc-02-augustus-larkin",
+      "category": "npc",
+      "file": "npc-augustus-larkin.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["augustus larkin", "larkin", "promotor", "gorączka", "kharisiri", "siniaki", "ofiara"],
+      "tagsEn": ["augustus larkin", "larkin", "promoter", "fever", "kharisiri", "bruises", "victim"]
+    }
+  ]
+}

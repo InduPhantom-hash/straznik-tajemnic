@@ -1,0 +1,54 @@
+{
+  "caseId": "case-u02-dawno-temu-w-dusznikach",
+  "era": "1826-pl",
+  "assets": [
+    {
+      "id": "clue-01-mapa-kurortu",
+      "category": "item-clue",
+      "file": "clue-01-mapa-kurortu.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 mapa kurortu"
+      ],
+      "tagsEn": [
+        "clue 01 mapa kurortu"
+      ]
+    },
+    {
+      "id": "clue-02-nuty-zann",
+      "category": "item-clue",
+      "file": "clue-02-nuty-zann.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 nuty zann"
+      ],
+      "tagsEn": [
+        "clue 02 nuty zann"
+      ]
+    },
+    {
+      "id": "npc-01-mlody-pianista",
+      "category": "npc-portrait",
+      "file": "npc-01-mlody-pianista.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 mlody pianista"
+      ],
+      "tagsEn": [
+        "npc 01 mlody pianista"
+      ]
+    },
+    {
+      "id": "npc-02-lekarz-zdrojowy",
+      "category": "npc-portrait",
+      "file": "npc-02-lekarz-zdrojowy.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 lekarz zdrojowy"
+      ],
+      "tagsEn": [
+        "npc 02 lekarz zdrojowy"
+      ]
+    }
+  ]
+}

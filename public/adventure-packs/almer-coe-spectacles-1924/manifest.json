@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q06-almer-coe-spectacles-1924",
+  "era": "1924-chicago",
+  "predefinedAdventureId": "almer-coe-spectacles-1924",
+  "visualDna": {
+    "styleCore": "1924 Jazz Age Chicago crime scene, wet grass and railway culverts at Wolf Lake, Underwood typewriter forensic evidence, arrogant Nietzschean intellectual dread",
+    "colorAndLightingScript": "rainy daylight gray, muddy lake greens, crisp court marble and polished tortoiseshell",
+    "cssFilterOverride": "contrast(1.1) brightness(0.95)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-spectacles-case",
+      "category": "item-clue",
+      "file": "clue-01-spectacles-case.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-spectacles-case",
+      "tagsPl": ["okulary", "almer coe", "zawias szylkretowy", "wolf lake", "1924"],
+      "tagsEn": ["spectacles", "almer coe", "tortoiseshell hinge", "wolf lake", "1924"]
+    },
+    {
+      "id": "clue-02-ransom-note",
+      "category": "item-clue",
+      "file": "clue-02-ransom-note.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-ransom-note",
+      "tagsPl": ["list z żądaniem okupu", "maszyna do pisania", "underwood", "george johnson"],
+      "tagsEn": ["ransom note", "typewriter", "underwood", "george johnson"]
+    },
+    {
+      "id": "npc-nathan-leopold",
+      "category": "npc-portrait",
+      "file": "npc-nathan-leopold.webp",
+      "aspectRatio": "3:4",
+      "npcId": "nathan-leopold",
+      "tagsPl": ["nathan leopold", "ubermensch", "młody student", "portret"],
+      "tagsEn": ["nathan leopold", "ubermensch", "young scholar", "portrait"]
+    },
+    {
+      "id": "npc-prosecutor-crowe",
+      "category": "npc-portrait",
+      "file": "npc-prosecutor-crowe.webp",
+      "aspectRatio": "3:4",
+      "npcId": "prosecutor-crowe",
+      "tagsPl": ["prokurator crowe", "prawnik", "chicago", "portret"],
+      "tagsEn": ["prosecutor crowe", "attorney", "chicago", "portrait"]
+    },
+    {
+      "id": "audio-crowe-interrogation-1924",
+      "category": "audio-handout",
+      "file": "audio/crowe-interrogation-1924.mp3",
+      "audioId": "audio-crowe-interrogation-1924",
+      "tagsPl": ["przesłuchanie", "nagranie", "prokurator crowe", "leopold"],
+      "tagsEn": ["interrogation", "recording", "prosecutor crowe", "leopold"]
+    }
+  ]
+}

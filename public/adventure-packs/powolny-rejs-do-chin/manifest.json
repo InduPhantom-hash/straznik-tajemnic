@@ -1,0 +1,54 @@
+{
+  "caseId": "case-p04-powolny-rejs-do-chin",
+  "era": "1930s-pulp",
+  "assets": [
+    {
+      "id": "clue-01-liniowiec-noc-ocean",
+      "category": "item-clue",
+      "file": "clue-01-liniowiec-noc-ocean.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 liniowiec noc ocean"
+      ],
+      "tagsEn": [
+        "clue 01 liniowiec noc ocean"
+      ]
+    },
+    {
+      "id": "clue-02-steward-kajuta-krew",
+      "category": "item-clue",
+      "file": "clue-02-steward-kajuta-krew.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 steward kajuta krew"
+      ],
+      "tagsEn": [
+        "clue 02 steward kajuta krew"
+      ]
+    },
+    {
+      "id": "npc-01-kapitan-henry-nelson",
+      "category": "npc-portrait",
+      "file": "npc-01-kapitan-henry-nelson.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 kapitan henry nelson"
+      ],
+      "tagsEn": [
+        "npc 01 kapitan henry nelson"
+      ]
+    },
+    {
+      "id": "npc-02-hugo-schramm",
+      "category": "npc-portrait",
+      "file": "npc-02-hugo-schramm.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 hugo schramm"
+      ],
+      "tagsEn": [
+        "npc 02 hugo schramm"
+      ]
+    }
+  ]
+}

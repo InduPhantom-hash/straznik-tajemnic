@@ -1,0 +1,54 @@
+{
+  "caseId": "case-t02-pelzajaca-kontrrewolucja",
+  "era": "1971-pl",
+  "assets": [
+    {
+      "id": "clue-01-falowiec-dlon",
+      "category": "item-clue",
+      "file": "clue-01-falowiec-dlon.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 falowiec dlon"
+      ],
+      "tagsEn": [
+        "clue 01 falowiec dlon"
+      ]
+    },
+    {
+      "id": "clue-02-raport-sb-gdansk",
+      "category": "item-clue",
+      "file": "clue-02-raport-sb-gdansk.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 raport sb gdansk"
+      ],
+      "tagsEn": [
+        "clue 02 raport sb gdansk"
+      ]
+    },
+    {
+      "id": "npc-01-lucjan-wronski",
+      "category": "npc-portrait",
+      "file": "npc-01-lucjan-wronski.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 lucjan wronski"
+      ],
+      "tagsEn": [
+        "npc 01 lucjan wronski"
+      ]
+    },
+    {
+      "id": "npc-02-kapitan-mo-gdansk",
+      "category": "npc-portrait",
+      "file": "npc-02-kapitan-mo-gdansk.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 kapitan mo gdansk"
+      ],
+      "tagsEn": [
+        "npc 02 kapitan mo gdansk"
+      ]
+    }
+  ]
+}

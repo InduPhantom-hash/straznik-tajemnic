@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q01-cien-nad-prabutami",
+  "era": "1973-prl",
+  "predefinedAdventureId": "cien-nad-prabutami",
+  "visualDna": {
+    "styleCore": "1973 authentic Polish People's Republic cold reality, muted autumn light, desaturated Orwo/Kodak 35mm film grain, institutional SB interiors, somber ruined red-brick Gothic church, tactile typewritten papers and herbal bundles",
+    "colorAndLightingScript": "gloomy overcast sky, sepia and drab olive greens, tungsten desk lamp chiaroscuro, faded red bricks",
+    "cssFilterOverride": "contrast(1.1) brightness(0.94)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-teczka-sb",
+      "category": "item-clue",
+      "file": "clue-01-teczka-sb.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-teczka-sb",
+      "tagsPl": ["teczka sb", "tajne", "kryptonim klin", "elbląg", "1973", "prl"],
+      "tagsEn": ["sb file", "secret police", "codename klin", "elbląg", "1973", "communist poland"]
+    },
+    {
+      "id": "clue-02-ruiny-kosciola",
+      "category": "item-clue",
+      "file": "clue-02-ruiny-kosciola.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-ruiny-kosciola",
+      "tagsPl": ["ruiny", "kościół św wojciecha", "prabuty", "gotyk", "cegła"],
+      "tagsEn": ["ruins", "st adalbert church", "prabuty", "gothic", "brick"]
+    },
+    {
+      "id": "npc-ojciec-klimuszko",
+      "category": "npc-portrait",
+      "file": "npc-ojciec-klimuszko.webp",
+      "aspectRatio": "3:4",
+      "npcId": "ojciec-klimuszko",
+      "tagsPl": ["ojciec klimuszko", "franciszkanin", "jasnowidz", "ziołolecznik", "portret"],
+      "tagsEn": ["father klimuszko", "franciscan", "clairvoyant", "herbalist", "portrait"]
+    },
+    {
+      "id": "npc-kapitan-sb",
+      "category": "npc-portrait",
+      "file": "npc-kapitan-sb.webp",
+      "aspectRatio": "3:4",
+      "npcId": "kapitan-sb",
+      "tagsPl": ["kapitan sb", "oficer", "bezpieka", "prl", "portret"],
+      "tagsEn": ["sb captain", "secret police officer", "prl", "portrait"]
+    },
+    {
+      "id": "audio-tasma-sb-elblag",
+      "category": "audio-handout",
+      "file": "audio/tasma-sb-elblag.mp3",
+      "audioId": "audio-tasma-sb-elblag",
+      "tagsPl": ["taśma sb", "podsłuch", "nagranie", "klimuszko"],
+      "tagsEn": ["wiretap tape", "surveillance", "recording", "klimuszko"]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "caseId": "case-h02-koszmar-poznania",
+  "era": "1920-poznan",
+  "predefinedAdventureId": "koszmar-poznania",
+  "visualDna": {
+    "styleCore": "1920s Prussian red-brick fortress casemates, Fort Winiary Citadel Poznan, military staff maps, fresh claw marks and dried blood in damp gunpowder vaults, flashlight beams on wet brick",
+    "colorAndLightingScript": "deep red brick shadow, damp green mold, cold white lantern glare and dark crimson stains",
+    "cssFilterOverride": "contrast(1.15) brightness(0.92)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-plan-cytadeli",
+      "category": "item-clue",
+      "file": "clue-01-plan-cytadeli.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-plan-cytadeli",
+      "tagsPl": ["plan fortu", "cytadela poznańska", "fort winiary", "mapa sztabowa", "wojsko polskie"],
+      "tagsEn": ["fortress blueprint", "poznan citadel", "fort winiary", "staff map", "polish army"]
+    },
+    {
+      "id": "clue-02-kazamaty-krew",
+      "category": "item-clue",
+      "file": "clue-02-kazamaty-krew.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-kazamaty-krew",
+      "tagsPl": ["kazamaty", "cegła", "krew", "rozszarpanie", "lochy", "cytadela"],
+      "tagsEn": ["casemates", "brick", "blood", "claw marks", "dungeon", "citadel"]
+    },
+    {
+      "id": "npc-antoni-zasepa",
+      "category": "npc-portrait",
+      "file": "npc-antoni-zasepa.webp",
+      "aspectRatio": "3:4",
+      "npcId": "antoni-zasepa",
+      "tagsPl": ["porucznik zasępa", "oficer", "rogatywka", "wojsko polskie", "portret"],
+      "tagsEn": ["lieutenant zasepa", "officer", "four cornered hat", "polish army", "portrait"]
+    },
+    {
+      "id": "npc-janina-glowacka",
+      "category": "npc-portrait",
+      "file": "npc-janina-glowacka.webp",
+      "aspectRatio": "3:4",
+      "npcId": "janina-glowacka",
+      "tagsPl": ["janina głowacka", "badaczka", "pielęgniarka", "poznan", "portret"],
+      "tagsEn": ["janina glowacka", "investigator", "nurse", "poznan", "portrait"]
+    }
+  ]
+}

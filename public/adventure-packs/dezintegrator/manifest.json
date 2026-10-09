@@ -1,0 +1,54 @@
+{
+  "caseId": "case-p01-dezintegrator",
+  "era": "1930s-pulp",
+  "assets": [
+    {
+      "id": "clue-01-promien-maszyna",
+      "category": "item-clue",
+      "file": "clue-01-promien-maszyna.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 promien maszyna"
+      ],
+      "tagsEn": [
+        "clue 01 promien maszyna"
+      ]
+    },
+    {
+      "id": "clue-02-katalog-aukcja",
+      "category": "item-clue",
+      "file": "clue-02-katalog-aukcja.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 katalog aukcja"
+      ],
+      "tagsEn": [
+        "clue 02 katalog aukcja"
+      ]
+    },
+    {
+      "id": "npc-01-dr-walter-harden",
+      "category": "npc-portrait",
+      "file": "npc-01-dr-walter-harden.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 dr walter harden"
+      ],
+      "tagsEn": [
+        "npc 01 dr walter harden"
+      ]
+    },
+    {
+      "id": "npc-02-lady-emmeline",
+      "category": "npc-portrait",
+      "file": "npc-02-lady-emmeline.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 lady emmeline"
+      ],
+      "tagsEn": [
+        "npc 02 lady emmeline"
+      ]
+    }
+  ]
+}

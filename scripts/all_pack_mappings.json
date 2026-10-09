@@ -1,0 +1,380 @@
+{
+  "case-u01-cohn": {
+    "folder": "public/adventure-packs/sprawa-malego-cohna",
+    "caseId": "case-u01-sprawa-malego-cohna",
+    "era": "1924-pl",
+    "items": [
+      [
+        "clue-01-zwierzeta-zoo",
+        "clue-01-zwierzeta-zoo.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-da2972db-19c5-4525-a949-af43d2fde47c.png"
+      ],
+      [
+        "clue-02-wycinek-zgon-cohna",
+        "clue-02-wycinek-zgon-cohna.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-45da2eda-5d19-4888-8e00-09793beea67c.png"
+      ],
+      [
+        "npc-01-klemens-choraz",
+        "npc-01-klemens-choraz.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-a559baba-7782-4144-a6ea-2b3f963eefe3.png"
+      ],
+      [
+        "npc-02-poslugacz-tcho-tcho",
+        "npc-02-poslugacz-tcho-tcho.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-0f72d769-61d0-478f-8933-ac7a65ac7913.png"
+      ]
+    ]
+  },
+  "case-u02-duszniki": {
+    "folder": "public/adventure-packs/dawno-temu-w-dusznikach",
+    "caseId": "case-u02-dawno-temu-w-dusznikach",
+    "era": "1826-pl",
+    "items": [
+      [
+        "clue-01-mapa-kurortu",
+        "clue-01-mapa-kurortu.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-438ff680-8e73-46e0-b461-8b5a7bf5c251.png"
+      ],
+      [
+        "clue-02-nuty-zann",
+        "clue-02-nuty-zann.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-e0d7420b-8fc4-4e44-a5ba-4481d463fd66.png"
+      ],
+      [
+        "npc-01-mlody-pianista",
+        "npc-01-mlody-pianista.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-c4fbc592-bbab-4ed6-a22b-4747902c8f55.png"
+      ],
+      [
+        "npc-02-lekarz-zdrojowy",
+        "npc-02-lekarz-zdrojowy.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-54b60ef5-993d-410d-97b0-62305d224c86.png"
+      ]
+    ]
+  },
+  "case-u03-babie-lato": {
+    "folder": "public/adventure-packs/babie-lato",
+    "caseId": "case-u03-babie-lato",
+    "era": "1943-pl",
+    "items": [
+      [
+        "clue-01-raport-netzwaffe",
+        "clue-01-raport-netzwaffe.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-1872641a-7a5d-4fa6-80d1-45f368b11467.png"
+      ],
+      [
+        "clue-02-gryps-partyzancki",
+        "clue-02-gryps-partyzancki.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-bc8a253a-f756-4a6c-a7f2-42a2f9707aae.png"
+      ],
+      [
+        "npc-01-dowodca-partyzantow",
+        "npc-01-dowodca-partyzantow.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-2ff2b23d-6f92-492b-90f2-74ff50d77687.png"
+      ],
+      [
+        "npc-02-radiotelegrafista",
+        "npc-02-radiotelegrafista.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-291b5608-b010-43a4-8bc6-28f9c3012e4b.png"
+      ]
+    ]
+  },
+  "case-t01-tatry": {
+    "folder": "public/adventure-packs/dziedzictwo-tatr",
+    "caseId": "case-t01-dziedzictwo-tatr",
+    "era": "1920s-pl",
+    "items": [
+      [
+        "clue-01-legenda-pergamin",
+        "clue-01-legenda-pergamin.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-b32ee77c-861b-4b15-923c-27a91d512525.png"
+      ],
+      [
+        "clue-02-szczelina-jaskinia",
+        "clue-02-szczelina-jaskinia.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-9fdb4cb2-8304-48d7-b365-b82f6be813cb.png"
+      ],
+      [
+        "npc-01-przewodnik-goralski",
+        "npc-01-przewodnik-goralski.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-f3de9404-f87c-4195-be78-c8776cd414e7.png"
+      ],
+      [
+        "npc-02-taternik-badacz",
+        "npc-02-taternik-badacz.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-36a445e1-651a-4960-9d44-cbbe03ac6c99.png"
+      ]
+    ]
+  },
+  "case-t02-pelzajaca": {
+    "folder": "public/adventure-packs/pelzajaca-kontrrewolucja",
+    "caseId": "case-t02-pelzajaca-kontrrewolucja",
+    "era": "1971-pl",
+    "items": [
+      [
+        "clue-01-falowiec-dlon",
+        "clue-01-falowiec-dlon.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-e77f564d-ae3b-44e3-af35-78623f3f1b97.png"
+      ],
+      [
+        "clue-02-raport-sb-gdansk",
+        "clue-02-raport-sb-gdansk.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-3856d258-5c4a-4b42-a843-abac517bdc75.png"
+      ],
+      [
+        "npc-01-lucjan-wronski",
+        "npc-01-lucjan-wronski.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-e4d8481b-8ae1-4352-a79b-154dbfe4827a.png"
+      ],
+      [
+        "npc-02-kapitan-mo-gdansk",
+        "npc-02-kapitan-mo-gdansk.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-9ec3b00c-a66f-4447-a7e5-644c5b9c4715.png"
+      ]
+    ]
+  },
+  "case-t03-pociag": {
+    "folder": "public/adventure-packs/pociag-do-szalenstwa",
+    "caseId": "case-t03-pociag-do-szalenstwa",
+    "era": "1970s-pl",
+    "items": [
+      [
+        "clue-01-mapa-walim-riese",
+        "clue-01-mapa-walim-riese.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-da51e78b-8ee6-40f2-82fe-7ed2dd98c99e.png"
+      ],
+      [
+        "clue-02-sztolnia-zloty-pociag",
+        "clue-02-sztolnia-zloty-pociag.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-f8cd6cf5-2e59-4977-a7b2-f05c0962e1c0.png"
+      ],
+      [
+        "npc-01-profesor-fritz",
+        "npc-01-profesor-fritz.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-a601b15c-7b35-4694-b11b-7e92e29e18ee.png"
+      ],
+      [
+        "npc-02-rezyser-dokumentu",
+        "npc-02-rezyser-dokumentu.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-fa7f82ea-ad73-445e-a689-0f4799b004c6.png"
+      ]
+    ]
+  },
+  "case-t04-czarny-wegiel": {
+    "folder": "public/adventure-packs/czarny-jak-wegiel",
+    "caseId": "case-t04-czarny-jak-wegiel",
+    "era": "1922-pl",
+    "items": [
+      [
+        "clue-01-odlamek-meteoryt",
+        "clue-01-odlamek-meteoryt.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-e2e3a968-88fe-4b2c-8ad7-bcf359e9a651.png"
+      ],
+      [
+        "npc-01-soltys-anapol",
+        "npc-01-soltys-anapol.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-011bce50-f998-48bd-b421-8a5f1cc39209.png"
+      ],
+      [
+        "npc-02-geolog-uj",
+        "npc-02-geolog-uj.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-f514ff12-1f76-4c0c-8b71-b42ff6af27c5.png"
+      ]
+    ]
+  },
+  "case-p01-dezintegrator": {
+    "folder": "public/adventure-packs/dezintegrator",
+    "caseId": "case-p01-dezintegrator",
+    "era": "1930s-pulp",
+    "items": [
+      [
+        "clue-01-promien-maszyna",
+        "clue-01-promien-maszyna.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-2be17cc6-5ff4-407b-a142-6226720652a0.png"
+      ],
+      [
+        "clue-02-katalog-aukcja",
+        "clue-02-katalog-aukcja.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-3e07f8e2-0401-4c44-bc81-6c722852eb7d.png"
+      ],
+      [
+        "npc-01-dr-walter-harden",
+        "npc-01-dr-walter-harden.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-93eeec00-addd-47b5-84cc-8c79504861dd.png"
+      ],
+      [
+        "npc-02-lady-emmeline",
+        "npc-02-lady-emmeline.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-0c021cae-6eba-4083-ae6a-c71e7210a7f7.png"
+      ]
+    ]
+  },
+  "case-p02-czekajac-na-huragan": {
+    "folder": "public/adventure-packs/czekajac-na-huragan",
+    "caseId": "case-p02-czekajac-na-huragan",
+    "era": "1935-us-pulp",
+    "items": [
+      [
+        "clue-01-barometr-sztorm-keywest",
+        "clue-01-barometr-sztorm-keywest.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-ec64314e-2249-4490-b839-37e4805d7e41.png"
+      ],
+      [
+        "clue-02-zlota-tabliczka-dagon",
+        "clue-02-zlota-tabliczka-dagon.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-26f2588f-647a-432c-921f-6ee0a8dbda9d.png"
+      ],
+      [
+        "npc-01-douglas-whiting",
+        "npc-01-douglas-whiting.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-4f129f9e-4a2b-4996-8469-2a3a17959493.png"
+      ],
+      [
+        "npc-02-szeryf-turner",
+        "npc-02-szeryf-turner.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-6b156399-b157-4c5e-8310-2505bc5679e9.png"
+      ]
+    ]
+  },
+  "case-p03-puszka-pandory": {
+    "folder": "public/adventure-packs/puszka-pandory",
+    "caseId": "case-p03-puszka-pandory",
+    "era": "1930s-us-pulp",
+    "items": [
+      [
+        "clue-01-puszka-artefakt",
+        "clue-01-puszka-artefakt.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-c4f51095-b945-4a7d-845d-4b51ebfc6857.png"
+      ],
+      [
+        "clue-02-zbrodnia-klub-pandora",
+        "clue-02-zbrodnia-klub-pandora.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-660d2b5e-7ab1-4164-97ac-0bb9678c9b4e.png"
+      ],
+      [
+        "npc-01-vern-bailey",
+        "npc-01-vern-bailey.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-fb3a02c2-43ba-40d7-9613-0f474dfb703e.png"
+      ],
+      [
+        "npc-02-lilith-chalmers",
+        "npc-02-lilith-chalmers.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-c1e311ba-5c29-4119-8748-2634ac1c426e.png"
+      ]
+    ]
+  },
+  "case-p04-powolny-rejs-do-chin": {
+    "folder": "public/adventure-packs/powolny-rejs-do-chin",
+    "caseId": "case-p04-powolny-rejs-do-chin",
+    "era": "1930s-pulp",
+    "items": [
+      [
+        "clue-01-liniowiec-noc-ocean",
+        "clue-01-liniowiec-noc-ocean.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-18400ec6-b0f5-47c9-b3b9-0676ad5f5eec.png"
+      ],
+      [
+        "clue-02-steward-kajuta-krew",
+        "clue-02-steward-kajuta-krew.webp",
+        "16:9",
+        "item-clue",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-13cc65d5-55f3-4d1d-ac91-b811dcc2eb5f.png"
+      ],
+      [
+        "npc-01-kapitan-henry-nelson",
+        "npc-01-kapitan-henry-nelson.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-e34818dd-11b9-4df8-bcbf-235efd5ef939.png"
+      ],
+      [
+        "npc-02-hugo-schramm",
+        "npc-02-hugo-schramm.webp",
+        "3:4",
+        "npc-portrait",
+        "/Users/phantom/.codex/generated_images/01a11b91-5c43-7320-946b-42ab75a54abd/exec-384e51d4-bae6-4f0a-aa31-802d6a14502f.png"
+      ]
+    ]
+  }
+}

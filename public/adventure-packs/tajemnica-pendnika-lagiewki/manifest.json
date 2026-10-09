@@ -1,0 +1,114 @@
+{
+  "caseId": "case-q02-tajemnica-pendnika-lagiewki",
+  "era": "1996-pl",
+  "predefinedAdventureId": "tajemnica-pendnika-lagiewki",
+  "visualDna": {
+    "styleCore": "1996 post-communist industrial workshop, VHS aesthetics and authentic 90s Polaroid/35mm tones, heavy machine tools, grease, blueprints with alien geometric annotations, crashed test car with zero rebound",
+    "colorAndLightingScript": "fluorescent garage lighting, dusty steel blue, concrete gray and sparks",
+    "cssFilterOverride": "contrast(1.12) brightness(0.96)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-schemat-wat",
+      "category": "item-clue",
+      "file": "clue-01-schemat-wat.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-schemat-wat",
+      "tagsPl": [
+        "schemat techniczny",
+        "zderzak kinetyczny",
+        "kalka kreślarska",
+        "wat",
+        "łódź",
+        "1996"
+      ],
+      "tagsEn": [
+        "technical blueprint",
+        "kinetic bumper",
+        "tracing paper",
+        "military academy",
+        "lodz",
+        "1996"
+      ]
+    },
+    {
+      "id": "clue-02-rozbity-maluch",
+      "category": "item-clue",
+      "file": "clue-02-rozbity-maluch.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-rozbity-maluch",
+      "tagsPl": [
+        "fiat 126p",
+        "maluch",
+        "test zderzeniowy",
+        "kowary",
+        "zderzak kinetyczny ągiewki",
+        "pochłonięcie energii"
+      ],
+      "tagsEn": [
+        "fiat 126p",
+        "maluch microcar",
+        "crash test",
+        "kowary stadium",
+        "lagiewka bumper",
+        "kinetic absorption"
+      ]
+    },
+    {
+      "id": "npc-inzynier-lagiewka",
+      "category": "npc-portrait",
+      "file": "npc-inzynier-lagiewka.webp",
+      "aspectRatio": "3:4",
+      "npcId": "inzynier-lagiewka",
+      "tagsPl": [
+        "lucjan ągiewka",
+        "wynalazca",
+        "konstruktor",
+        "portret"
+      ],
+      "tagsEn": [
+        "lucjan lagiewka",
+        "inventor",
+        "engineer",
+        "portrait"
+      ]
+    },
+    {
+      "id": "npc-pulkownik-wat",
+      "category": "npc-portrait",
+      "file": "npc-pulkownik-wat.webp",
+      "aspectRatio": "3:4",
+      "npcId": "pulkownik-wat",
+      "tagsPl": [
+        "pułkownik wat",
+        "oficer",
+        "mundur pantera",
+        "tajemnica wojskowa"
+      ],
+      "tagsEn": [
+        "military colonel",
+        "officer",
+        "camo uniform",
+        "military secret"
+      ]
+    },
+    {
+      "id": "audio-proba-zderzeniowa-kowary",
+      "category": "audio-handout",
+      "file": "audio/proba-zderzeniowa-kowary.mp3",
+      "audioId": "audio-proba-zderzeniowa-kowary",
+      "tagsPl": [
+        "próba zderzeniowa",
+        "wywiad radiowy",
+        "nagranie",
+        "kowary"
+      ],
+      "tagsEn": [
+        "crash test audio",
+        "radio interview",
+        "recording",
+        "kowary"
+      ]
+    }
+  ]
+}

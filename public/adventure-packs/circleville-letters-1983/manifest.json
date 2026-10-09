@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q07-circleville-letters-1983",
+  "era": "1983-ohio",
+  "predefinedAdventureId": "circleville-letters-1983",
+  "visualDna": {
+    "styleCore": "1983 small-town Midwest psychological terror, Formica diner tables, crude block-lettered poison pen notes, rural highway signs rigged with booby-trap triggers, paranoia in open fields",
+    "colorAndLightingScript": "harsh midday sun, dried prairie grass yellow, pale yellow stationery paper, dusty asphalt",
+    "cssFilterOverride": "contrast(1.1) brightness(0.96)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-poison-pen-letter",
+      "category": "item-clue",
+      "file": "clue-01-poison-pen-letter.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-poison-pen-letter",
+      "tagsPl": ["anonimowy list", "pogróżki", "mary gillespie", "circleville", "1983"],
+      "tagsEn": ["anonymous letter", "threats", "mary gillespie", "circleville", "1983"]
+    },
+    {
+      "id": "clue-02-booby-trapped-sign",
+      "category": "item-clue",
+      "file": "clue-02-booby-trapped-sign.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-booby-trapped-sign",
+      "tagsPl": ["pułapka pistoletowa", "tablica drogowa", "sznurek", "pickaway county"],
+      "tagsEn": ["gun booby trap", "highway sign", "tripwire", "pickaway county"]
+    },
+    {
+      "id": "npc-mary-gillespie",
+      "category": "npc-portrait",
+      "file": "npc-mary-gillespie.webp",
+      "aspectRatio": "3:4",
+      "npcId": "mary-gillespie",
+      "tagsPl": ["mary gillespie", "kierowca autobusu", "ofiara pogróżek", "portret"],
+      "tagsEn": ["mary gillespie", "bus driver", "target of letters", "portrait"]
+    },
+    {
+      "id": "npc-sheriff-radcliff",
+      "category": "npc-portrait",
+      "file": "npc-sheriff-radcliff.webp",
+      "aspectRatio": "3:4",
+      "npcId": "sheriff-radcliff",
+      "tagsPl": ["szeryf radcliff", "stetson", "pickaway", "portret"],
+      "tagsEn": ["sheriff radcliff", "stetson", "pickaway", "portrait"]
+    },
+    {
+      "id": "audio-gillespie-wiretap-1977",
+      "category": "audio-handout",
+      "file": "audio/gillespie-wiretap-1977.mp3",
+      "audioId": "audio-gillespie-wiretap-1977",
+      "tagsPl": ["podsłuch cb radio", "głos z budki", "nagranie", "circleville"],
+      "tagsEn": ["cb radio wiretap", "phone booth voice", "recording", "circleville"]
+    }
+  ]
+}

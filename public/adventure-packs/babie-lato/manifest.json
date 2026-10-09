@@ -1,0 +1,54 @@
+{
+  "caseId": "case-u03-babie-lato",
+  "era": "1943-pl",
+  "assets": [
+    {
+      "id": "clue-01-raport-netzwaffe",
+      "category": "item-clue",
+      "file": "clue-01-raport-netzwaffe.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 raport netzwaffe"
+      ],
+      "tagsEn": [
+        "clue 01 raport netzwaffe"
+      ]
+    },
+    {
+      "id": "clue-02-gryps-partyzancki",
+      "category": "item-clue",
+      "file": "clue-02-gryps-partyzancki.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 gryps partyzancki"
+      ],
+      "tagsEn": [
+        "clue 02 gryps partyzancki"
+      ]
+    },
+    {
+      "id": "npc-01-dowodca-partyzantow",
+      "category": "npc-portrait",
+      "file": "npc-01-dowodca-partyzantow.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 dowodca partyzantow"
+      ],
+      "tagsEn": [
+        "npc 01 dowodca partyzantow"
+      ]
+    },
+    {
+      "id": "npc-02-radiotelegrafista",
+      "category": "npc-portrait",
+      "file": "npc-02-radiotelegrafista.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 radiotelegrafista"
+      ],
+      "tagsEn": [
+        "npc 02 radiotelegrafista"
+      ]
+    }
+  ]
+}
