@@ -4959,7 +4959,8 @@
     "combinedOrBadge": "TEST ŁĄCZONY (LUB)",
     "combinedAndBadge": "TEST ŁĄCZONY (I)",
     "combinedOrDesc": "Dowolny sukces wystarcza do powodzenia",
-    "combinedAndDesc": "Wymagane sukcesy w obu umiejętnościach"
+    "combinedAndDesc": "Wymagane sukcesy w obu umiejętnościach",
+    "stakeLabel": "Stawka testu"
   },
   "DiceRollCard": {
     "cardTitle": "Rzut kośćmi",
@@ -5661,10 +5662,12 @@
     "schemaHint": "JSON parsowany onBlur. Aplikacja jeszcze nie konsumuje structured output (power-user feature)."
   },
   "GeminiThinkingSection": {
+    "levelMinimal": "Minimal (błyskawiczne / gra na żywo <10s)",
     "levelAuto": "Auto (adaptacyjny wybór)",
     "levelLow": "Low (szybkie, tańsze)",
     "levelMedium": "Medium (standardowe)",
     "levelHigh": "High (głębsze rozumowanie)",
+    "hintMinimal": "Minimalne rozumowanie - rekomendowane dla dynamicznej gry na żywo i natychmiastowych odpowiedzi MG",
     "hintAuto": "Automatycznie wybiera poziom na podstawie złożoności zapytania",
     "hintLow": "Optymalne dla prostych komend i krótkich odpowiedzi",
     "hintMedium": "Standardowy poziom rozumowania dla większości zapytań",

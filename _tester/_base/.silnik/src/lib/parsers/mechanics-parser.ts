@@ -134,6 +134,14 @@ export function detectSanity(text: string): ParsedEvent | null {
 export function extractSkillTests(text: string): SkillTestData[] {
     const tests: SkillTestData[] = [];
 
+    // Ekstrakcja samodzielnych tagów [STAWKA: ...] lub [STAKE: ...] (Issue #737)
+    const standaloneStakes: string[] = [];
+    const stakePattern = /\[(?:STAWKA|STAKE):\s*([^\]]+)\]/gi;
+    let stakeMatch;
+    while ((stakeMatch = stakePattern.exec(text)) !== null) {
+        standaloneStakes.push(stakeMatch[1].trim());
+    }
+
     // Pattern: [TEST: Spostrzegawczość | trudny | Ciemność:-1, Skupienie:+1 | Szukasz ukrytych wskazówek]
     const testPattern = /\[TEST:\s*([^|]+)\|([^|]+)(?:\|([^|]*))?\|([^\]]+)\]/gi;
 
@@ -147,7 +155,15 @@ export function extractSkillTests(text: string): SkillTestData[] {
         const skillName = (addressed?.[2] ?? rawSkill).trim();
         const difficultyRaw = match[2].trim().toLowerCase();
         const modifiersRaw = match[3]?.trim() || '';
-        const justification = match[4].trim();
+        let justification = match[4].trim();
+        let stake: string | undefined = undefined;
+
+        // Sprawdź czy justification zawiera osadzony segment stawki, np. "... | STAWKA: ..." lub "STAWKA: ..."
+        const embeddedStakeMatch = justification.match(/(?:^|\|\s*)(?:STAWKA|STAKE):\s*([^|]+)$/i);
+        if (embeddedStakeMatch) {
+            stake = embeddedStakeMatch[1].trim();
+            justification = justification.replace(/(?:^|\|\s*)(?:STAWKA|STAKE):\s*[^|]+$/i, '').trim();
+        }
 
         // Parse difficulty
         let difficulty: SkillTestData['difficulty'] = 'zwykly';
@@ -202,8 +218,18 @@ export function extractSkillTests(text: string): SkillTestData[] {
             difficulty,
             modifiers,
             justification,
+            stake,
             characterName,
             combined,
+        });
+    }
+
+    // Przypisanie samodzielnych tagów [STAWKA:] gdy nie znaleziono ich wewnątrz tagu testu
+    if (tests.length > 0 && standaloneStakes.length > 0) {
+        tests.forEach((test, idx) => {
+            if (!test.stake) {
+                test.stake = standaloneStakes[idx] ?? standaloneStakes[0];
+            }
         });
     }
 

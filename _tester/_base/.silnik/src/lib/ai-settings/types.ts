@@ -171,7 +171,7 @@ export interface AISettings {
     cacheTTL?: number; // Czas życia cache w milisekundach (domyślnie 2 godziny = 7200000, OPT-C04)
     cachedContent?: string; // Nazwa istniejącego cache (np. cachedContents/abc123)
     // === Thinking ===
-    thinkingLevel?: 'low' | 'medium' | 'high' | 'auto'; // Gemini 3.0+: kontrola głębokości rozumowania
+    thinkingLevel?: 'minimal' | 'low' | 'medium' | 'high' | 'auto'; // Gemini 3.0+: kontrola głębokości rozumowania (Issue #737: minimal dla szybkiej gry <10s)
     // === Tools / Function Calling (eksperymentalne - aplikacja jeszcze nie konsumuje wyników) ===
     tools?: object[]; // Tablica deklaracji funkcji
     toolConfig?: object; // Tryb wyboru narzędzi (auto/none/required/specific)

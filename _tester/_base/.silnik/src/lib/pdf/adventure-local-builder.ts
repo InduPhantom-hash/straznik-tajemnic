@@ -36,6 +36,7 @@ import type {
 } from './semantic-overlay-engine';
 import type { RulebookFingerprintResult } from './rulebook-fingerprint';
 import { generateAtmosphericDossierPattern } from '@/lib/era/setting-trivia';
+import { findGoldMasterMatch } from './gold-master-registry';
 
 export function slugifyText(text: string): string {
   return (
@@ -2414,6 +2415,17 @@ export function buildLocalCustomAdventures(
   const fileSlug = slugifyText(cleanedFileBaseTitle || fingerprint.title || 'custom');
   const hasSpecificFingerprintTitle =
     Boolean(fingerprint.title) && !GENERIC_FINGERPRINT_TITLES.has(fingerprint.title);
+
+  // 0. Gold Master Registry (Issue #737): Certyfikowane pakiety 1:1 (np. Starter ZC / Nawiedzony Dom)
+  const goldMaster = findGoldMasterMatch(
+    pdfText,
+    fileName,
+    fingerprint.profile,
+    existingAdventureId
+  );
+  if (goldMaster) {
+    return [goldMaster];
+  }
 
   // 1. Antologia z wieloma scenariuszami
   const isAnthology =

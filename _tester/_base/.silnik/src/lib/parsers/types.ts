@@ -126,6 +126,8 @@ export interface SkillTestData {
   difficulty: 'zwykly' | 'trudny' | 'ekstremalny';
   modifiers: SkillTestModifier[];
   justification: string;
+  /** Stawka testu (konsekwencje sukcesu/porażki) wyodrębniona z tagu [STAWKA: ...] (Issue #737) */
+  stake?: string;
   /** Adresat testu w duecie, zapisany w tagu jako `@Imię:`. */
   characterName?: string;
   /** Rozwiązane po stronie klienta ID postaci. */

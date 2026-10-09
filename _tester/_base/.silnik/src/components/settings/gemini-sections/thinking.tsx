@@ -35,10 +35,11 @@ export function ThinkingSection({ g, updateGemini }: GeminiSectionProps) {
               />
             </label>
             <select
-              value={g.thinkingLevel ?? 'auto'}
+              value={g.thinkingLevel ?? 'minimal'}
               onChange={(e) =>
                 updateGemini({
                   thinkingLevel: e.target.value as
+                    | 'minimal'
                     | 'low'
                     | 'medium'
                     | 'high'
@@ -47,12 +48,14 @@ export function ThinkingSection({ g, updateGemini }: GeminiSectionProps) {
               }
               className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
             >
+              <option value="minimal">{t('levelMinimal')}</option>
               <option value="auto">{t('levelAuto')}</option>
               <option value="low">{t('levelLow')}</option>
               <option value="medium">{t('levelMedium')}</option>
               <option value="high">{t('levelHigh')}</option>
             </select>
             <p className="text-sm text-muted-foreground font-serif italic mt-1">
+              {g.thinkingLevel === 'minimal' && t('hintMinimal')}
               {g.thinkingLevel === 'auto' && t('hintAuto')}
               {g.thinkingLevel === 'low' && t('hintLow')}
               {g.thinkingLevel === 'medium' && t('hintMedium')}

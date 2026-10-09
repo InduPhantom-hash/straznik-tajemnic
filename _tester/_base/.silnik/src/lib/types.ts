@@ -997,6 +997,7 @@ export interface SkillTestData {
   difficulty: 'zwykly' | 'trudny' | 'ekstremalny';
   modifiers: SkillTestModifier[];
   justification: string; // fabularny opis sytuacji
+  stake?: string; // stawka testu (konsekwencje sukcesu/porażki) wyodrębniona z tagu [STAWKA: ...] (Issue #737)
   characterName?: string; // adresat testu w duecie
   characterId?: string; // ID rozwiązane z rosteru sesji
   groupId?: string; // testy z jednej odpowiedzi MG

@@ -114,6 +114,7 @@ export function SkillTestCard({
   difficulty,
   modifiers,
   justification,
+  stake,
   characterName,
   characterId,
   groupId,
@@ -147,6 +148,7 @@ export function SkillTestCard({
         difficulty,
         modifiers,
         justification,
+        stake,
         characterName,
         characterId,
         groupId,
@@ -308,6 +310,23 @@ export function SkillTestCard({
           <div className="text-xs text-muted-foreground mt-1">
             {t('orTypeInChat')}{' '}
             <span className="font-mono text-foreground/80">{t('resultExample')}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Stawka testu (Issue #737) */}
+      {stake && (
+        <div className="px-4 py-2.5 border-b border-border/60 bg-amber-950/20 border-l-2 border-l-brass">
+          <div className="flex items-start gap-2.5 text-sm">
+            <span className="text-brass mt-0.5 text-base">⚖️</span>
+            <div>
+              <span className="text-[11px] uppercase tracking-wider text-brass font-display font-semibold block mb-0.5">
+                {t('stakeLabel')}
+              </span>
+              <span className="text-foreground/90 font-serif italic text-xs leading-relaxed">
+                {stake}
+              </span>
+            </div>
           </div>
         </div>
       )}
