@@ -24,19 +24,20 @@ describe('equipment catalog', () => {
     expect(findEquipmentTemplate('Zardzewiałe wytrychy')?.id).toBe('tool.lockpicks');
   });
 
-  it('wybiera wariant epoki tylko tam, gdzie istnieje, a wspólny asset poza nią', () => {
+  it('wybiera wariant epoki tylko tam, gdzie istnieje, a poza nią zwraca undefined (brak cichego fallbacku shared)', () => {
     const flashlight = findEquipmentTemplate('Latarka')!;
     const rope = findEquipmentTemplate('Lina')!;
     expect(resolveCatalogAsset(flashlight, '1920s')).toBe(
       '/equipment/catalog/flashlight-1920s.webp'
     );
-    expect(resolveCatalogAsset(flashlight, '1940s')).toBeUndefined();
-    expect(resolveCatalogAsset(rope, 'prl-1970s')).toBe(
-      '/equipment/catalog/rope-shared.webp'
+    expect(resolveCatalogAsset(flashlight, 'prl-1970s')).toBeUndefined();
+    expect(resolveCatalogAsset(rope, '1920s')).toBe(
+      '/equipment/catalog/rope-1920s.webp'
     );
+    expect(resolveCatalogAsset(rope, 'prl-1970s')).toBeUndefined();
   });
 
-  it('migruje stary zapis po nazwie, zachowując stabilne ID egzemplarza', () => {
+  it('migruje stary zapis po nazwie, zachowując stabilne ID egzemplarza i nadając eraVariantId', () => {
     const migrated = applyCatalogTemplate(
       {
         id: 'legacy-item-42',
@@ -50,6 +51,7 @@ describe('equipment catalog', () => {
     expect(migrated).toMatchObject({
       id: 'legacy-item-42',
       templateId: 'light.flashlight',
+      eraVariantId: 'light.flashlight-1920s',
       category: 'tool',
       visualSource: 'catalog',
       imageUrl: '/equipment/catalog/flashlight-1920s.webp',
@@ -74,6 +76,7 @@ describe('equipment catalog', () => {
 
     expect(migrated?.map((item) => item.id)).toEqual(['legacy-1', 'legacy-2']);
     expect(migrated?.[0].templateId).toBe('light.flashlight');
+    expect(migrated?.[0].eraVariantId).toBe('light.flashlight-1920s');
     expect(migrated?.[1].templateId).toBeUndefined();
   });
 
@@ -294,7 +297,7 @@ describe('equipment catalog', () => {
     const kitTemplate = findEquipmentTemplate('Zestaw narzędzi do elektroniki');
     expect(kitTemplate?.id).toBe('tool.electrical-kit');
     expect(resolveCatalogAsset(kitTemplate, '2000s')).toBe(
-      '/equipment/catalog/electrical-kit-shared.webp'
+      '/equipment/catalog/electrical-kit-modern.webp'
     );
     const kitEnriched = applyCatalogTemplate(
       {
@@ -305,7 +308,7 @@ describe('equipment catalog', () => {
       },
       '2000s'
     );
-    expect(kitEnriched.imageUrl).toBe('/equipment/catalog/electrical-kit-shared.webp');
+    expect(kitEnriched.imageUrl).toBe('/equipment/catalog/electrical-kit-modern.webp');
     expect(kitEnriched.visualSource).toBe('catalog');
   });
 
@@ -325,13 +328,17 @@ describe('equipment catalog', () => {
       const template = findEquipmentTemplate(entry.id) || findEquipmentTemplate(entry.name);
       expect(template).toBeDefined();
 
-      // Asset musi być powiązany ze zdefiniowanym szablonem (jako wariant epokowy lub shared)
+      // Asset musi być powiązany ze zdefiniowanym szablonem (jako wariant epokowy lub bezpośredni)
       const assets = Object.values(template?.assetPaths ?? {});
       const matchesDirect = assets.includes(`/equipment/catalog/${entry.filename}`);
+      const stem = entry.filename.replace(/(-shared)?\.webp$/, '');
+      const idStem = entry.id.replace(/^[a-z]+\./, '').replace(/(-shared)?$/, '');
       const matchesStem = assets.some((a) => {
-        const stem = entry.filename.replace(/-shared\.webp$/, '');
-        return a.startsWith(`/equipment/catalog/${stem}-`);
+        return a.startsWith(`/equipment/catalog/${stem}-`) || a.startsWith(`/equipment/catalog/${idStem}-`);
       });
+      if (!matchesDirect && !matchesStem) {
+        console.error('FAILED MANIFEST ENTRY:', entry.id, entry.filename, 'Assets in template:', assets);
+      }
       expect(matchesDirect || matchesStem).toBe(true);
     });
   });
@@ -379,14 +386,14 @@ describe('equipment catalog', () => {
     const tarot = findEquipmentTemplate('Talia kart Tarota');
     expect(tarot?.id).toBe('occult.tarot-deck-vintage');
     expect(resolveCatalogAsset(tarot, '1920s')).toBe(
-      '/equipment/catalog/tarot-deck-vintage.webp'
+      '/equipment/catalog/tarot-deck-vintage-1920s.webp'
     );
 
     // 6. Zasób medyczny (Ampułki z morfiną)
     const morphine = findEquipmentTemplate('Ampułki z morfiną');
     expect(morphine?.id).toBe('medical.morphine-ampoules-shared');
     expect(resolveCatalogAsset(morphine, '1920s')).toBe(
-      '/equipment/catalog/morphine-ampoules-shared.webp'
+      '/equipment/catalog/morphine-ampoules-1920s.webp'
     );
   });
 
@@ -467,7 +474,7 @@ describe('equipment catalog', () => {
     const lantern = findEquipmentTemplate('light.oil-lantern');
     expect(lantern).toBeDefined();
     expect(resolveCatalogAsset(lantern, '1920s')).toBe(
-      '/equipment/catalog/oil-lantern-1890s.webp'
+      '/equipment/catalog/oil-lantern-1920s.webp'
     );
     expect(resolveCatalogAsset(lantern, '1890s')).toBe(
       '/equipment/catalog/oil-lantern-1890s.webp'
