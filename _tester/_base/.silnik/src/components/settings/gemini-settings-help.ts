@@ -94,7 +94,12 @@ export const GEMINI_HELP: Record<string, GeminiHelpEntry> = {
     thinkingLevel: {
         label: 'Poziom rozumowania',
         desc: 'Gemini 3.x: jak głęboko AI ma "pomyśleć" przed odpowiedzią. Wyższe = wolniej i drożej, ale lepsza jakość.',
-        example: 'auto / low / medium / high.',
+        example: 'minimal / auto / low / medium / high.',
+    },
+    thinkingBudget: {
+        label: 'Budżet myślenia (tokeny)',
+        desc: 'Limit tokenów rozumowania. 0 = wyłączone myślenie, wartości wyższe (np. 1024–8192) dają większą precyzję.',
+        example: 'Domyślnie puste (sterowane przez poziom) lub 0-24576 tokenów.',
     },
 
     // === Tools / Function Calling ===

@@ -32,6 +32,7 @@ export function buildGeminiOptions(
       ? { fileAttachments: opts.fileAttachments }
       : {}),
     thinkingLevel: g.thinkingLevel,
+    thinkingBudget: g.thinkingBudget,
     topK: g.topK,
     candidateCount: g.candidateCount,
     stopSequences: g.stopSequences,

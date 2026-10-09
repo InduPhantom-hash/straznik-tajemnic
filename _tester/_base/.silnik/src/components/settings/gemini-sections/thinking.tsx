@@ -62,6 +62,32 @@ export function ThinkingSection({ g, updateGemini }: GeminiSectionProps) {
               {g.thinkingLevel === 'high' && t('hintHigh')}
             </p>
           </div>
+          <div>
+            <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
+              {t('budgetLabel')}
+              <HelpIcon
+                content={`${GEMINI_HELP.thinkingBudget.desc} ${GEMINI_HELP.thinkingBudget.example ?? ''}`}
+              />
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="24576"
+              step="128"
+              value={g.thinkingBudget ?? ''}
+              onChange={(e) => {
+                const val = e.target.value.trim();
+                updateGemini({
+                  thinkingBudget: val === '' ? undefined : Math.max(0, parseInt(val, 10) || 0),
+                });
+              }}
+              placeholder={t('budgetPlaceholder')}
+              className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
+            />
+            <p className="text-sm text-muted-foreground font-serif italic mt-1">
+              {t('hintBudget')}
+            </p>
+          </div>
           <p className="text-sm text-muted-foreground font-serif italic">
             ℹ️ {t('multimodalNote')}
           </p>

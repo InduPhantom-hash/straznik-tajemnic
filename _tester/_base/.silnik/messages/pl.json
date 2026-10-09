@@ -5686,6 +5686,9 @@
     "hintLow": "Optymalne dla prostych komend i krótkich odpowiedzi",
     "hintMedium": "Standardowy poziom rozumowania dla większości zapytań",
     "hintHigh": "Głębsze rozumowanie dla złożonych sytuacji, walki i ważnych decyzji",
+    "budgetLabel": "Budżet myślenia (tokeny)",
+    "budgetPlaceholder": "Auto (wg poziomu)",
+    "hintBudget": "Opcjonalny limit tokenów myślenia (0 = wyłączone / minimal, do 24576). Puste pole = adaptacyjnie.",
     "multimodalNote": "Multimodalność (wejście obrazów) jest aktywna automatycznie dla Gemini 1.5+ i nie wymaga konfiguracji."
   },
   "TTSSettings": {

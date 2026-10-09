@@ -19,9 +19,11 @@ export interface GeminiExtraOptions {
   /** Pliki PDF przez Gemini File API URIs */
   fileAttachments?: Array<{ fileUri: string; mimeType: string }>;
 
-  // === Thinking (Gemini 3.x) ===
+  // === Thinking (Gemini 2.5 i 3.x) ===
   /** Kontrola głębokości rozumowania dla Gemini 3.x */
   thinkingLevel?: 'minimal' | 'low' | 'medium' | 'high' | 'auto';
+  /** Dokładny budżet tokenów myślenia (0 = wyłączone / minimal, do 24576) */
+  thinkingBudget?: number;
 
   // === Sampling ===
   /** Liczba najprawdopodobniejszych tokenów przy każdym kroku (1-100) */

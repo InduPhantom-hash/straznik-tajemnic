@@ -264,5 +264,30 @@ describe('GeminiChatProvider.finishReason', () => {
       // Dla 2.5 thinkingBudget=0 wyłączone
       expect(callConfig.thinkingConfig).toEqual({ thinkingBudget: 0 });
     });
+
+    it('przekazuje jawny thinkingBudget w config.thinkingConfig dla modeli nowoczesnych i legacy', async () => {
+      mockGenerateContent.mockResolvedValueOnce({ text: 'Odpowiedź z budżetem' });
+      const provider38 = new GeminiChatProvider('test-key', 'gemini-3.8-flash');
+      await provider38.chat({
+        ...request,
+        geminiOptions: {
+          thinkingLevel: 'low',
+          thinkingBudget: 2048,
+        },
+      });
+      const callConfig38 = mockGenerateContent.mock.calls[0][0].config;
+      expect(callConfig38.thinkingConfig).toEqual({ thinkingLevel: 'LOW', thinkingBudget: 2048 });
+
+      mockGenerateContent.mockResolvedValueOnce({ text: 'Odpowiedź legacy z budżetem' });
+      const provider25 = new GeminiChatProvider('test-key', 'gemini-2.5-flash');
+      await provider25.chat({
+        ...request,
+        geminiOptions: {
+          thinkingBudget: 1024,
+        },
+      });
+      const callConfig25 = mockGenerateContent.mock.calls[1][0].config;
+      expect(callConfig25.thinkingConfig).toEqual({ thinkingBudget: 1024 });
+    });
   });
 });
