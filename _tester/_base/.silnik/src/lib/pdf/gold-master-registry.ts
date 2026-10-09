@@ -358,26 +358,28 @@ export function validateAdventureQualityGate(
   adventure: CustomAdventure,
   rawPdfText: string
 ): QualityGateResult {
+  // Kompendia regułowe i bestiariusze nie podlegają rygorom śledczym
+  if (adventure.documentType === 'compendium') {
+    return { isValid: true };
+  }
+
   const issues: string[] = [];
 
-  if (!rawPdfText || rawPdfText.trim().length < 200) {
+  if (!rawPdfText || rawPdfText.trim().length < 20) {
     issues.push('Zbyt krótka lub pusta warstwa tekstowa PDF (możliwy skan bez OCR).');
   }
 
   const nodes = adventure.graph?.nodes || [];
-  if (nodes.length < 2) {
-    issues.push('Brak wystarczającej liczby węzłów śledztwa (minimum 2 węzły).');
+  const locations = adventure.graph?.locations || [];
+  if (nodes.length === 0 && locations.length === 0) {
+    issues.push('Brak jakichkolwiek węzłów lub lokalizacji śledztwa.');
   }
 
   const npcs = adventure.graph?.npcs || [];
-  if (npcs.length === 0) {
-    issues.push('Brak rozpoznanych postaci niezależnych (NPC).');
-  }
-
   const clues = adventure.graph?.clues || [];
   const handouts = adventure.handouts || [];
-  if (clues.length === 0 && handouts.length === 0) {
-    issues.push('Brak zidentyfikowanych poszlak lub handoutów.');
+  if (npcs.length === 0 && clues.length === 0 && handouts.length === 0) {
+    issues.push('Brak rozpoznanych postaci (NPC), poszlak ani rekwizytów.');
   }
 
   if (issues.length > 0) {
