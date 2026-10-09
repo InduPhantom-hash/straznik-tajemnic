@@ -92,6 +92,7 @@ export interface AdventurePuzzle {
 export interface AdventureContext {
   id: string;
   title: string;
+  locale?: 'pl' | 'en';
   era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   eraLabel: string;
   yearRange: string;

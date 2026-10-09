@@ -2,10 +2,11 @@
 import { NextIntlClientProvider } from 'next-intl';
 import enMessages from '../../../messages/en.json';
 import { LanguageSelectionContent } from '@/components/onboarding/language-selection-modal';
+import { syncLocaleStorageAndCookie } from '@/lib/i18n/session-locale';
 
 function WelcomeContent() {
   const setLanguage = (locale: 'pl' | 'en', measurementSystem: 'metric' | 'imperial' = 'metric') => {
-    localStorage.setItem('language_selected', locale);
+    syncLocaleStorageAndCookie(locale);
     localStorage.setItem('measurement_system', measurementSystem);
     window.location.href = `/${locale}`;
   };
