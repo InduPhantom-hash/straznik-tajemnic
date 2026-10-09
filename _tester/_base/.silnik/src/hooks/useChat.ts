@@ -16,6 +16,8 @@ import type {
 } from '@/lib/types';
 import {
   createChaseState,
+  createInitialChaseFromTag,
+  advanceChaseOnSkillRoll,
   speedRollOutcomeFromCheck,
   type ChaseState,
 } from '@/lib/chase/chase-engine';
@@ -48,6 +50,8 @@ import {
   extractLatestTagLocation,
   isVisualPromptLeak,
   sanitizeLocationName,
+  extractChaseTag,
+  extractChaseEndTag,
 } from '@/lib/parsers/event-parser';
 import {
   fetchWithApiKeys,
@@ -1330,6 +1334,28 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       }
 
       const currentGameTime = timeManager.getTime();
+
+      // Reducer pościgu CoC 7e RAW: jeśli trwa pościg i gracz przesyła wynik testu kości
+      if (
+        activeChaseStateRef.current?.status === 'ongoing' &&
+        (message.includes('[DICE_ROLL]') || message.includes('🎲') || message.includes('Test:'))
+      ) {
+        const upper = message.toUpperCase();
+        let rollOutcome: 'critical' | 'extreme' | 'hard' | 'regular' | 'fail' | 'fumble' | null = null;
+        if (upper.includes('CRITICAL') || upper.includes('KRYTYCZNY')) rollOutcome = 'critical';
+        else if (upper.includes('EXTREME') || upper.includes('EKSTREMALNY')) rollOutcome = 'extreme';
+        else if (upper.includes('HARD') || upper.includes('TRUDNY')) rollOutcome = 'hard';
+        else if (upper.includes('FUMBLE') || upper.includes('PECH') || upper.includes('FARSA')) rollOutcome = 'fumble';
+        else if (upper.includes('FAIL') || upper.includes('PORAŻKA') || upper.includes('PORAZKA')) rollOutcome = 'fail';
+        else if (upper.includes('REGULAR') || upper.includes('ZWYKŁY') || upper.includes('ZWYKLY') || upper.includes('SUKCES')) rollOutcome = 'regular';
+
+        if (rollOutcome) {
+          const updatedChase = advanceChaseOnSkillRoll(activeChaseStateRef.current, rollOutcome);
+          setActiveChaseState(updatedChase);
+          activeChaseStateRef.current = updatedChase;
+        }
+      }
+
       const effectiveMechanicsContext = {
         ...mechanicsContext,
         ...(activeChaseStateRef.current?.status === 'ongoing' && !mechanicsContext?.chase
@@ -1970,6 +1996,29 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const firearmsAttackEvents = extractFirearmsAttackEvents(fullText);
         const refereeVetoEvents = extractRefereeVetoEvents(fullText);
         const gameOverEvents = extractGameOverEvents(fullText);
+
+        const chaseStartTag = extractChaseTag(fullText);
+        const chaseEndTag = extractChaseEndTag(fullText);
+
+        if (chaseEndTag) {
+          setActiveChaseState(null);
+          activeChaseStateRef.current = null;
+        } else if (
+          chaseStartTag &&
+          (!activeChaseStateRef.current || activeChaseStateRef.current.status !== 'ongoing')
+        ) {
+          const newChase = createInitialChaseFromTag({
+            activeCharacter: finalActiveChar ?? activeCharacter,
+            type: chaseStartTag.type,
+            initialDistance: chaseStartTag.distance,
+            opponentName: chaseStartTag.opponent,
+            opponentMov: chaseStartTag.opponentMov,
+            locale,
+          });
+          setActiveChaseState(newChase);
+          activeChaseStateRef.current = newChase;
+        }
+
         const currentChase = activeChaseStateRef.current;
         if (
           hazardEvents.length > 0 ||

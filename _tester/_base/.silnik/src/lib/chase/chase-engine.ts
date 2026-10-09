@@ -855,3 +855,181 @@ export function formatChaseForSystemContext(state: ChaseState): string {
     fleeingSpeedModifier: fleeing?.speedModifier ?? 0,
   });
 }
+
+/**
+ * Deterministyczny reducer postępu pościgu po wykonaniu testu na Tacce Kości.
+ * Wywoływany w useChat po otrzymaniu wyniku testu umiejętności gracza.
+ */
+export function advanceChaseOnSkillRoll(
+  state: ChaseState,
+  outcome: 'critical' | 'extreme' | 'hard' | 'regular' | 'fail' | 'fumble' | string,
+  _skillName?: string
+): ChaseState {
+  const next = JSON.parse(JSON.stringify(state)) as ChaseState;
+  if (next.status !== 'ongoing') return next;
+
+  const player = next.participants.find((p) => p.isPlayer && p.isFleeing);
+  const pursuer = next.participants.find((p) => !p.isFleeing);
+
+  if (!player || !pursuer) return next;
+
+  const isCritOrExtreme = outcome === 'critical' || outcome === 'extreme';
+  const isRegularOrHard = outcome === 'hard' || outcome === 'regular';
+  const isFail = outcome === 'fail';
+  const isFumble = outcome === 'fumble';
+
+  if (isCritOrExtreme) {
+    // Badacz zyskuje przewagę: pokonuje pole i powiększa dystans o 1
+    player.segmentIndex = Math.min(next.segments.length - 1, player.segmentIndex + 1);
+  } else if (isRegularOrHard) {
+    // Sukces: Badacz utrzymuje tempo i pokonuje segment/przeszkodę
+    player.segmentIndex = Math.min(next.segments.length - 1, player.segmentIndex + 1);
+    pursuer.segmentIndex = Math.min(player.segmentIndex, pursuer.segmentIndex + 1);
+  } else if (isFail) {
+    // Porażka (Fail-Forward): Badacz traci tempo, a ścigający zbliża się o 1 segment
+    pursuer.segmentIndex = Math.min(player.segmentIndex, pursuer.segmentIndex + 1);
+  } else if (isFumble) {
+    // Farsa/Pech: Kraksa lub upadek - ścigający zbliża się o 2 segmenty
+    pursuer.segmentIndex = Math.min(player.segmentIndex, pursuer.segmentIndex + 2);
+  }
+
+  const currentDistance = player.segmentIndex - pursuer.segmentIndex;
+
+  if (currentDistance <= 0) {
+    player.isCaught = true;
+    next.status = 'engaged';
+  } else if (
+    player.segmentIndex >= next.segments.length - 1 ||
+    currentDistance >= (next.escapeDistanceThreshold ?? 4)
+  ) {
+    player.isEscaped = true;
+    next.status = 'escaped';
+  }
+
+  return next;
+}
+
+/**
+ * Fabryka inicjalizacji pościgu z tagu narracyjnego MG [POŚCIG: ...]
+ */
+export function createInitialChaseFromTag(params: {
+  activeCharacter?: {
+    id?: string;
+    name?: string;
+    move?: number;
+    dex?: number;
+    con?: number;
+  } | null;
+  type?: 'pieszy' | 'kolowy';
+  initialDistance?: number;
+  opponentName?: string;
+  opponentMov?: number;
+  locale?: string;
+}): ChaseState {
+  const {
+    activeCharacter,
+    type = 'pieszy',
+    initialDistance = 2,
+    opponentName,
+    opponentMov,
+    locale = 'pl',
+  } = params;
+
+  const isVehicle = type === 'kolowy';
+  const playerMov = isVehicle ? 12 : activeCharacter?.move ?? 8;
+  const pursuerMov = opponentMov ?? (isVehicle ? 12 : 8);
+
+  const defaultOpponentName =
+    opponentName ||
+    (isVehicle
+      ? locale === 'en'
+        ? 'Pursuing Vehicle'
+        : 'Ścigający Pojazd'
+      : locale === 'en'
+      ? 'Pursuer'
+      : 'Ścigający');
+
+  const defaultHazards: Record<number, ChaseHazard> = isVehicle
+    ? {
+        1: {
+          id: 'hazard_tight_turn',
+          name: locale === 'en' ? 'Sharp Alley Turn' : 'Ostry zakręt w zaułku',
+          description:
+            locale === 'en'
+              ? 'Wet cobblestones and narrow brick walls.'
+              : 'Mokry bruk i ciasne ceglane ściany.',
+          requiredSkill: 'Prowadzenie samochodu',
+          difficulty: 'zwykly',
+          hazardType: 'hazard',
+          penaltyActionsOnFail: 1,
+        },
+        3: {
+          id: 'hazard_roadblock',
+          name: locale === 'en' ? 'Wagon Blockade' : 'Barykada z przewróconego wozu',
+          description:
+            locale === 'en'
+              ? 'Overturned freight wagon blocking both lanes.'
+              : 'Przewrócony wóz dostawczy tarasujący całą szerokość ulicy.',
+          requiredSkill: 'Prowadzenie samochodu',
+          difficulty: 'trudny',
+          hazardType: 'barrier',
+          penaltyActionsOnFail: 1,
+        },
+      }
+    : {
+        1: {
+          id: 'hazard_fence',
+          name: locale === 'en' ? 'Wooden Board Fence' : 'Wysoki płot z desek',
+          description:
+            locale === 'en'
+              ? 'Tall rotting wooden fence.'
+              : 'Wysoki parkan z butwiejących desek.',
+          requiredSkill: 'Skakanie',
+          difficulty: 'zwykly',
+          hazardType: 'barrier',
+          penaltyActionsOnFail: 1,
+        },
+        3: {
+          id: 'hazard_rubble',
+          name: locale === 'en' ? 'Slippery Cobblestones' : 'Śliski gruz i błoto',
+          description:
+            locale === 'en'
+              ? 'Slippery fish market waste.'
+              : 'Śliskie odpadki targowe i rozbite skrzynie.',
+          requiredSkill: 'Zręczność',
+          difficulty: 'zwykly',
+          hazardType: 'hazard',
+          penaltyActionsOnFail: 1,
+        },
+      };
+
+  return createChaseState({
+    fleeing: {
+      id: activeCharacter?.id || 'char_player',
+      name: activeCharacter?.name || (locale === 'en' ? 'Investigator' : 'Badacz'),
+      isPlayer: true,
+      mov: playerMov,
+      dex: activeCharacter?.dex ?? 50,
+      segmentIndex: Math.max(1, Math.min(4, initialDistance)),
+    },
+    pursuers: [
+      {
+        id: 'pursuer_primary',
+        name: defaultOpponentName,
+        isPlayer: false,
+        mov: pursuerMov,
+        dex: isVehicle ? 50 : 45,
+        segmentIndex: 0,
+        skillValues: {
+          [isVehicle ? 'Prowadzenie samochodu' : 'Skakanie']: 50,
+          Zręczność: 50,
+        },
+      },
+    ],
+    initialDistance: Math.max(1, Math.min(3, initialDistance)),
+    trackLength: 5,
+    escapeDistanceThreshold: 4,
+    hazardPositions: defaultHazards,
+  });
+}
+

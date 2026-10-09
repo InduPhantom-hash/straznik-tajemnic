@@ -1282,6 +1282,20 @@
     "locationExhausted": "Searched",
     "locationExhaustedTooltip": "Location has been thoroughly searched. No further clues remain here."
   },
+  "ChaseTracker": {
+    "title": "CHASE",
+    "footChase": "On Foot",
+    "vehicleChase": "Vehicular",
+    "distance": "Distance: {count} buffer zones",
+    "distanceDanger": "Distance: 1 zone (DANGER!)",
+    "distanceEscaped": "Escape successful!",
+    "distanceEngaged": "Engaged! Melee combat",
+    "investigator": "You",
+    "enemy": "Pursuer",
+    "goal": "Exit",
+    "hazardOnRoute": "Upcoming Hazard:",
+    "testPrefix": "TEST"
+  },
   "PredefinedCharacters": {
     "eyebrow": "Ready investigators",
     "title": "Choose a predefined character",
