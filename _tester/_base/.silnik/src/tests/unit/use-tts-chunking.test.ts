@@ -805,4 +805,53 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     expect(narratorPayload.text).toContain('Zanim pada odpowiedź, mosiężny dzwonek');
     expect(narratorPayload.audioDirection).not.toContain('whisper');
   });
+
+  it('Issue #735: poprawnie przypisuje żeński głos dla kwestii NPC oddzielonej nową linią od etykiety (np. Rosalia:\\n„...”) i nie czyta samej etykiety', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const text = 'Rosalia:\n„Czego tu po nocy szukacie? Wracajcie do swoich domów!”';
+
+    await act(async () => {
+      result.current.addToQueue(text, 'msg-735-rosalia-newline', true);
+    });
+
+    // Dokładnie 1 wywołanie TTS z kwestią Rosalii - sama etykieta "Rosalia:" nie może być czytana na głos
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+
+    expect(['Aoede', 'Leda', 'Gacrux']).toContain(payload.voice);
+    expect(payload.voice).not.toBe('Kore');
+    expect(payload.voice).not.toBe('Algenib');
+    expect(payload.voice).not.toBe('Puck');
+    expect(payload.text).toBe('Czego tu po nocy szukacie? Wracajcie do swoich domów!');
+    expect(payload.audioDirection).toContain('female');
+  });
+
+  it('Issue #735: poprawnie rozpoznaje żeńską postać przy polskiej atrybucji po myślniku z żeńskim czasownikiem (– rzekła Rosalia)', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const text = '„Kto tam stoi za drzwiami?” – rzekła Rosalia, cofając się w głąb korytarza.';
+
+    await act(async () => {
+      result.current.addToQueue(text, 'msg-735-trailing-rosalia', true);
+    });
+
+    // Powinno zakolejkować kwestię głosem Rosalii
+    expect(global.fetch).toHaveBeenCalled();
+    const payload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+
+    expect(['Aoede', 'Leda', 'Gacrux']).toContain(payload.voice);
+    expect(payload.voice).not.toBe('Puck');
+    expect(payload.voice).not.toBe('Kore');
+  });
 });
