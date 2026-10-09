@@ -1,0 +1,48 @@
+{
+  "caseId": "case-h01-dorosli-we-mgle",
+  "era": "1920-poznan",
+  "predefinedAdventureId": "dorosli-we-mgle",
+  "visualDna": {
+    "styleCore": "1920s authentic Poznan Chwaliszewo river district, heavy autumn fog over Warta river, gaslit cobblestone streets, clinical municipal hospital records, gloomy 35mm monochrome/sepia film grain",
+    "colorAndLightingScript": "murky river gray, pale lantern halo in dense mist, hospital cold white and sepia print",
+    "cssFilterOverride": "contrast(1.1) brightness(0.95)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-kurier-poznanski",
+      "category": "item-clue",
+      "file": "clue-01-kurier-poznanski.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-kurier-poznanski",
+      "tagsPl": ["gazeta", "kurier poznański", "zaginięcia dzieci", "mgła", "warta", "1925"],
+      "tagsEn": ["newspaper", "kurier poznanski", "missing children", "fog", "warta", "1925"]
+    },
+    {
+      "id": "clue-02-szpital-szkolna",
+      "category": "item-clue",
+      "file": "clue-02-szpital-szkolna.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-szpital-szkolna",
+      "tagsPl": ["karta szpitalna", "ulica szkolna", "szpital miejski", "hipotermia", "poznan"],
+      "tagsEn": ["hospital chart", "szkolna street", "municipal hospital", "hypothermia", "poznan"]
+    },
+    {
+      "id": "npc-doktor-szpitala",
+      "category": "npc-portrait",
+      "file": "npc-doktor-szpitala.webp",
+      "aspectRatio": "3:4",
+      "npcId": "doktor-szpitala",
+      "tagsPl": ["lekarz", "doktor medycyny", "szpital miejski", "poznan", "portret"],
+      "tagsEn": ["doctor", "physician", "municipal hospital", "poznan", "portrait"]
+    },
+    {
+      "id": "npc-rybak-chwaliszewo",
+      "category": "npc-portrait",
+      "file": "npc-rybak-chwaliszewo.webp",
+      "aspectRatio": "3:4",
+      "npcId": "rybak-chwaliszewo",
+      "tagsPl": ["rybak", "chwaliszewo", "warta", "świadek", "portret"],
+      "tagsEn": ["fisherman", "chwaliszewo", "warta river", "witness", "portrait"]
+    }
+  ]
+}

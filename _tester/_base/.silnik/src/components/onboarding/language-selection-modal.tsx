@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePathname, useRouter } from '@/i18n/routing';
 import type { MeasurementSystem } from '@/lib/types';
+import { syncLocaleStorageAndCookie } from '@/lib/i18n/session-locale';
 import { Globe, Compass } from 'lucide-react';
 
 export function LanguageSelectionContent({
@@ -205,7 +206,7 @@ export function LanguageSelectionModal({
   if (!open) return null;
 
   const selectLanguage = (locale: 'pl' | 'en', measurementSystem: MeasurementSystem = 'metric') => {
-    localStorage.setItem('language_selected', locale);
+    syncLocaleStorageAndCookie(locale);
     localStorage.setItem('measurement_system', measurementSystem);
     onSelected();
     router.replace(pathname, { locale });

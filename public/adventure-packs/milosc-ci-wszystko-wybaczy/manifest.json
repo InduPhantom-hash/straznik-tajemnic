@@ -1,0 +1,48 @@
+{
+  "caseId": "case-h03-milosc-ci-wszystko-wybaczy",
+  "era": "1926-poznan",
+  "predefinedAdventureId": "milosc-ci-wszystko-wybaczy",
+  "visualDna": {
+    "styleCore": "1926 high-society Poznan opera decadence, velvet dressing rooms at Teatr Wielki, ciphered perfumed love letters on vellum, tragic passion masking occult madness, rich dark mahogany and pearl",
+    "colorAndLightingScript": "warm theatrical amber, velvety burgundy, gold gilt reflections, dried rose petal crimson",
+    "cssFilterOverride": "contrast(1.1) brightness(0.96)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-bilet-teatr",
+      "category": "item-clue",
+      "file": "clue-01-bilet-teatr.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-bilet-teatr",
+      "tagsPl": ["bilet teatralny", "teatr wielki", "opera", "poznan", "dopisek", "krypta"],
+      "tagsEn": ["theater ticket", "grand theater", "opera", "poznan", "note", "crypt"]
+    },
+    {
+      "id": "clue-02-list-milosny-szyfr",
+      "category": "item-clue",
+      "file": "clue-02-list-milosny-szyfr.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-list-milosny-szyfr",
+      "tagsPl": ["list miłosny", "szyfr okultystyczny", "pergamin", "róża", "symbole"],
+      "tagsEn": ["love letter", "occult cipher", "vellum", "rose", "symbols"]
+    },
+    {
+      "id": "npc-primadonna-teatru",
+      "category": "npc-portrait",
+      "file": "npc-primadonna-teatru.webp",
+      "aspectRatio": "3:4",
+      "npcId": "primadonna-teatru",
+      "tagsPl": ["primadonna", "śpiewaczka operowa", "teatr wielki", "poznan", "portret"],
+      "tagsEn": ["primadonna", "opera singer", "grand theater", "poznan", "portrait"]
+    },
+    {
+      "id": "npc-hrabia-okultysta",
+      "category": "npc-portrait",
+      "file": "npc-hrabia-okultysta.webp",
+      "aspectRatio": "3:4",
+      "npcId": "hrabia-okultysta",
+      "tagsPl": ["hrabia", "mecenas sztuki", "okultysta", "monokl", "portret"],
+      "tagsEn": ["count", "patron of arts", "occultist", "monocle", "portrait"]
+    }
+  ]
+}

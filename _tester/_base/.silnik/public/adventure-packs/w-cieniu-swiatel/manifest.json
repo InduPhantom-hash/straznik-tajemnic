@@ -1,0 +1,48 @@
+{
+  "caseId": "case-h04-w-cieniu-swiatel",
+  "era": "1929-poznan",
+  "predefinedAdventureId": "w-cieniu-swiatel",
+  "visualDna": {
+    "styleCore": "1929 modernist Art Deco grandeur of Polish General Exhibition (PeWuKa) in Poznan, electric dynamo halls, blasted high-voltage transformers with crystalline residue, sharp industrial geometry",
+    "colorAndLightingScript": "electric blue and ozone sparks, brilliant arc-lamp glare casting harsh shadows, burnt copper orange",
+    "cssFilterOverride": "contrast(1.12) brightness(0.95)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-plakat-targi",
+      "category": "item-clue",
+      "file": "clue-01-plakat-targi.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-plakat-targi",
+      "tagsPl": ["plakat targowy", "pewuka", "powszechna wystawa krajowa", "poznan", "1929", "art deco"],
+      "tagsEn": ["exhibition poster", "pewuka", "national exhibition", "poznan", "1929", "art deco"]
+    },
+    {
+      "id": "clue-02-transformator-spalony",
+      "category": "item-clue",
+      "file": "clue-02-transformator-spalony.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-transformator-spalony",
+      "tagsPl": ["transformator", "wysokie napięcie", "wyładowanie", "miedź", "kryształy"],
+      "tagsEn": ["transformer", "high voltage", "electrical discharge", "copper", "crystals"]
+    },
+    {
+      "id": "npc-glowny-inzynier",
+      "category": "npc-portrait",
+      "file": "npc-glowny-inzynier.webp",
+      "aspectRatio": "3:4",
+      "npcId": "glowny-inzynier",
+      "tagsPl": ["inżynier elektryk", "pewuka", "konstruktor", "poznan", "portret"],
+      "tagsEn": ["electrical engineer", "pewuka", "builder", "poznan", "portrait"]
+    },
+    {
+      "id": "npc-tajniak-starostwa",
+      "category": "npc-portrait",
+      "file": "npc-tajniak-starostwa.webp",
+      "aspectRatio": "3:4",
+      "npcId": "tajniak-starostwa",
+      "tagsPl": ["inspektor policji", "ochrona targów", "płaszcz skórzany", "portret"],
+      "tagsEn": ["police inspector", "exhibition security", "leather coat", "portrait"]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "caseId": "case-p03-puszka-pandory",
+  "era": "1930s-us-pulp",
+  "assets": [
+    {
+      "id": "clue-01-puszka-artefakt",
+      "category": "item-clue",
+      "file": "clue-01-puszka-artefakt.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 puszka artefakt"
+      ],
+      "tagsEn": [
+        "clue 01 puszka artefakt"
+      ]
+    },
+    {
+      "id": "clue-02-zbrodnia-klub-pandora",
+      "category": "item-clue",
+      "file": "clue-02-zbrodnia-klub-pandora.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 zbrodnia klub pandora"
+      ],
+      "tagsEn": [
+        "clue 02 zbrodnia klub pandora"
+      ]
+    },
+    {
+      "id": "npc-01-vern-bailey",
+      "category": "npc-portrait",
+      "file": "npc-01-vern-bailey.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 vern bailey"
+      ],
+      "tagsEn": [
+        "npc 01 vern bailey"
+      ]
+    },
+    {
+      "id": "npc-02-lilith-chalmers",
+      "category": "npc-portrait",
+      "file": "npc-02-lilith-chalmers.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 lilith chalmers"
+      ],
+      "tagsEn": [
+        "npc 02 lilith chalmers"
+      ]
+    }
+  ]
+}

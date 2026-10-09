@@ -1,0 +1,210 @@
+[
+  {
+    "id": "dice_roll_table_01",
+    "cluster": "dice_roll_table",
+    "filename": "dice_roll_table_01.mp3",
+    "prompt": "two heavy resin dice tumbling across thick green felt tabletop, gentle wooden clatter, close-up room acoustics",
+    "duration_seconds": 1.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "dice_roll_table_02",
+    "cluster": "dice_roll_table",
+    "filename": "dice_roll_table_02.mp3",
+    "prompt": "pair of wooden dice rolling over aged polished mahogany desk and settling, muted hollow bounce",
+    "duration_seconds": 1.6,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "dice_roll_table_03",
+    "cluster": "dice_roll_table",
+    "filename": "dice_roll_table_03.mp3",
+    "prompt": "single heavy metal twenty-sided die spinning and clicking firmly on hard oak table",
+    "duration_seconds": 1.4,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "paper_dossier_turn_01",
+    "cluster": "paper_dossier_turn",
+    "filename": "paper_dossier_turn_01.mp3",
+    "prompt": "stiff Manila case folder opening, paper documents rustling in a quiet 1920s archive office",
+    "duration_seconds": 1.8,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "paper_dossier_turn_02",
+    "cluster": "paper_dossier_turn",
+    "filename": "paper_dossier_turn_02.mp3",
+    "prompt": "brittle aged parchment document page turned slowly, dry paper friction, intimate quiet room",
+    "duration_seconds": 1.6,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "paper_dossier_turn_03",
+    "cluster": "paper_dossier_turn",
+    "filename": "paper_dossier_turn_03.mp3",
+    "prompt": "flipping through thin confidential telegram and court transcript papers on a wooden desk",
+    "duration_seconds": 1.7,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "match_strike_01",
+    "cluster": "match_strike",
+    "filename": "match_strike_01.mp3",
+    "prompt": "dry wooden match scratching sandpaper box surface, striking into sudden gentle flame hiss",
+    "duration_seconds": 1.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "match_strike_02",
+    "cluster": "match_strike",
+    "filename": "match_strike_02.mp3",
+    "prompt": "quick firm match scrape, flare of phosphorus flame with faint smoke exhale in silence",
+    "duration_seconds": 1.4,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "match_strike_03",
+    "cluster": "match_strike",
+    "filename": "match_strike_03.mp3",
+    "prompt": "heavy vintage brass trench lighter flicking open, metallic strike wheel clicking into steady flame",
+    "duration_seconds": 1.6,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "tape_mechanism_01",
+    "cluster": "tape_mechanism",
+    "filename": "tape_mechanism_01.mp3",
+    "prompt": "mechanical heavy clunk of reel-to-reel tape recorder PLAY button pressing down, motor spool hum starts",
+    "duration_seconds": 1.8,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "tape_mechanism_02",
+    "cluster": "tape_mechanism",
+    "filename": "tape_mechanism_02.mp3",
+    "prompt": "cassette tape deck button latching firmly with mechanical click and immediate faint tape hiss",
+    "duration_seconds": 1.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "tape_mechanism_03",
+    "cluster": "tape_mechanism",
+    "filename": "tape_mechanism_03.mp3",
+    "prompt": "audio tape STOP lever clicking back up with distinct mechanical relay release and spindle slowdown",
+    "duration_seconds": 1.4,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "camera_shutter_01",
+    "cluster": "camera_shutter",
+    "filename": "camera_shutter_01.mp3",
+    "prompt": "vintage 1920s folding bellows camera mechanical shutter click with immediate lever advance",
+    "duration_seconds": 1.6,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "camera_shutter_02",
+    "cluster": "camera_shutter",
+    "filename": "camera_shutter_02.mp3",
+    "prompt": "single dry mechanical leaf shutter snapshot of an old 35mm rangefinder camera in a quiet room",
+    "duration_seconds": 1.4,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "camera_shutter_03",
+    "cluster": "camera_shutter",
+    "filename": "camera_shutter_03.mp3",
+    "prompt": "magnesium powder flash flare sizzle and pop followed by heavy camera shutter click",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "sanity_shock_somatics_01",
+    "cluster": "sanity_shock_somatics",
+    "filename": "sanity_shock_somatics_01.mp3",
+    "prompt": "sudden high-pitch ringing tinnitus in ears fading into muffled heartbeat and cold breath",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "sanity_shock_somatics_02",
+    "cluster": "sanity_shock_somatics",
+    "filename": "sanity_shock_somatics_02.mp3",
+    "prompt": "glass mirror hairline fracture cracking violently in dead silence, accompanied by sickening dull thud",
+    "duration_seconds": 2.2,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "sanity_shock_somatics_03",
+    "cluster": "sanity_shock_somatics",
+    "filename": "sanity_shock_somatics_03.mp3",
+    "prompt": "deep visceral disorientation tone, low sub-bass frequency pressure wave in temples with ragged intake of breath",
+    "duration_seconds": 2.4,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "warsaw_tram_bell_1920s_01",
+    "cluster": "warsaw_tram_bell_1920s",
+    "filename": "warsaw_tram_bell_1920s_01.mp3",
+    "prompt": "vintage Warsaw electric streetcar heavy brass foot gong dinging twice, steel wheels screeching slowly on curved cobblestone tracks",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "lucznik_typewriter_01",
+    "cluster": "lucznik_typewriter",
+    "filename": "lucznik_typewriter_01.mp3",
+    "prompt": "vintage mechanical Lucznik typewriter typing five rapid sharp keys followed by metallic carriage bell ding and return glide",
+    "duration_seconds": 2.4,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "prl_milicja_nysa_siren_01",
+    "cluster": "prl_milicja_nysa_siren",
+    "filename": "prl_milicja_nysa_siren_01.mp3",
+    "prompt": "distant analog electro-mechanical two-tone horn siren echoing through wet concrete block housing estate in gray twilight",
+    "duration_seconds": 3.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "morse_polskie_radio_01",
+    "cluster": "morse_polskie_radio",
+    "filename": "morse_polskie_radio_01.mp3",
+    "prompt": "vintage valve radio vacuum tube warm static hum with faint high-pitched Morse code carrier tone tuning in and out",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "weird_void_resonance_01",
+    "cluster": "weird_void_resonance",
+    "filename": "weird_void_resonance_01.mp3",
+    "prompt": "unearthly non-Euclidean metallic spatial groan, geometry distorting with deep unnatural sub-harmonic drone",
+    "duration_seconds": 3.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "slimy_ooze_bubble_01",
+    "cluster": "slimy_ooze_bubble",
+    "filename": "slimy_ooze_bubble_01.mp3",
+    "prompt": "thick amorphous black slime bubbling and wet protoplasm slowly sliding across cold ancient masonry",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "morgue_slab_metal_01",
+    "cluster": "morgue_slab_metal",
+    "filename": "morgue_slab_metal_01.mp3",
+    "prompt": "heavy galvanized zinc autopsy slab scraping slowly along steel runners in a cold echoing basement morgue",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.4
+  },
+  {
+    "id": "gramophone_needle_drop_01",
+    "cluster": "gramophone_needle_drop",
+    "filename": "gramophone_needle_drop_01.mp3",
+    "prompt": "heavy steel gramophone tone arm needle dropping onto revolving shellac 78rpm record with authentic surface crackle and groove hiss",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.4
+  }
+]

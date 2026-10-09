@@ -1,0 +1,54 @@
+{
+  "caseId": "case-t01-dziedzictwo-tatr",
+  "era": "1920s-pl",
+  "assets": [
+    {
+      "id": "clue-01-legenda-pergamin",
+      "category": "item-clue",
+      "file": "clue-01-legenda-pergamin.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 legenda pergamin"
+      ],
+      "tagsEn": [
+        "clue 01 legenda pergamin"
+      ]
+    },
+    {
+      "id": "clue-02-szczelina-jaskinia",
+      "category": "item-clue",
+      "file": "clue-02-szczelina-jaskinia.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 szczelina jaskinia"
+      ],
+      "tagsEn": [
+        "clue 02 szczelina jaskinia"
+      ]
+    },
+    {
+      "id": "npc-01-przewodnik-goralski",
+      "category": "npc-portrait",
+      "file": "npc-01-przewodnik-goralski.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 przewodnik goralski"
+      ],
+      "tagsEn": [
+        "npc 01 przewodnik goralski"
+      ]
+    },
+    {
+      "id": "npc-02-taternik-badacz",
+      "category": "npc-portrait",
+      "file": "npc-02-taternik-badacz.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 taternik badacz"
+      ],
+      "tagsEn": [
+        "npc 02 taternik badacz"
+      ]
+    }
+  ]
+}

@@ -1048,6 +1048,7 @@ export interface AdventureContext {
   id?: string;
   title: string;
   isCustom?: boolean;
+  locale?: 'pl' | 'en';
 
   // Metadata
   era?: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
@@ -1123,6 +1124,10 @@ export interface AdventureContext {
       description: string;
     }>;
   };
+  /** Czy scenariusz należy do serii American Mythos Cold Cases (Quick Setup EN) */
+  isAmericanColdCase?: boolean;
+  /** Czy scenariusz jest częścią autorskiej serii Strefa 11 */
+  isStrefa11?: boolean;
 }
 
 export interface ConflictFaction {

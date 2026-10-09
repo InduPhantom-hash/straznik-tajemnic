@@ -1,0 +1,54 @@
+{
+  "caseId": "case-u01-sprawa-malego-cohna",
+  "era": "1924-pl",
+  "assets": [
+    {
+      "id": "clue-01-zwierzeta-zoo",
+      "category": "item-clue",
+      "file": "clue-01-zwierzeta-zoo.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 01 zwierzeta zoo"
+      ],
+      "tagsEn": [
+        "clue 01 zwierzeta zoo"
+      ]
+    },
+    {
+      "id": "clue-02-wycinek-zgon-cohna",
+      "category": "item-clue",
+      "file": "clue-02-wycinek-zgon-cohna.webp",
+      "aspectRatio": "16:9",
+      "tagsPl": [
+        "clue 02 wycinek zgon cohna"
+      ],
+      "tagsEn": [
+        "clue 02 wycinek zgon cohna"
+      ]
+    },
+    {
+      "id": "npc-01-klemens-choraz",
+      "category": "npc-portrait",
+      "file": "npc-01-klemens-choraz.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 01 klemens choraz"
+      ],
+      "tagsEn": [
+        "npc 01 klemens choraz"
+      ]
+    },
+    {
+      "id": "npc-02-poslugacz-tcho-tcho",
+      "category": "npc-portrait",
+      "file": "npc-02-poslugacz-tcho-tcho.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": [
+        "npc 02 poslugacz tcho tcho"
+      ],
+      "tagsEn": [
+        "npc 02 poslugacz tcho tcho"
+      ]
+    }
+  ]
+}

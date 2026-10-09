@@ -1,0 +1,55 @@
+{
+  "caseId": "case-m01-posrod-pradawnych-drzew",
+  "era": "1927-vermont",
+  "predefinedAdventureId": "posrod-pradawnych-drzew",
+  "visualDna": {
+    "styleCore": "1927 authentic New England historical realism, cold dense mountain fog, damp pine forests, rotting wood, desaturated autumn foliage, glowing emerald phosphorescence, 35mm grain",
+    "colorAndLightingScript": "muted slate, olive green, damp earth and pine bark, cold twilight, emerald green crystalline glow in dark waters",
+    "cssFilterOverride": "contrast(1.1) brightness(0.92) saturate(0.85)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-missing-girl-poster",
+      "category": "item-clue",
+      "file": "clue-01-missing-girl-poster.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-missing-girl-poster",
+      "tagsPl": ["plakat", "list gończy", "jane collins", "nagroda", "bennington", "sosna", "drzewo"],
+      "tagsEn": ["poster", "missing person", "jane collins", "reward", "bennington", "pine tree"]
+    },
+    {
+      "id": "clue-02-crystal-dream-pillar",
+      "category": "item-clue",
+      "file": "clue-02-crystal-dream-pillar.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-crystal-dream-pillar",
+      "tagsPl": ["kryształ", "obelisk", "glaaki", "kamieniołom", "staw", "zielona poświata", "sen"],
+      "tagsEn": ["crystal", "obelisk", "glaaki", "quarry", "pond", "emerald glow", "dream"]
+    },
+    {
+      "id": "clue-03-kidnappers-hasty-note",
+      "category": "item-clue",
+      "file": "clue-03-kidnappers-hasty-note.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-03-kidnappers-hasty-note",
+      "tagsPl": ["notatka", "porywacze", "szałas", "łuska", "winchester", "obłęd", "glaaki"],
+      "tagsEn": ["note", "kidnappers", "shack", "shotgun shell", "winchester", "madness", "glaaki"]
+    },
+    {
+      "id": "npc-01-sheriff-baker",
+      "category": "npc",
+      "file": "npc-sheriff-baker.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["szeryf baker", "stróż prawa", "gwiazda", "bennington", "wąsy", "płaszcz"],
+      "tagsEn": ["sheriff baker", "lawman", "badge", "bennington", "moustache", "coat"]
+    },
+    {
+      "id": "npc-02-otis-wounded-geologist",
+      "category": "npc",
+      "file": "npc-otis-wounded-geologist.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["otis", "geolog", "ranny", "opatrunek", "flanela", "szok", "glaaki"],
+      "tagsEn": ["otis", "geologist", "wounded", "bandage", "flannel", "shock", "glaaki"]
+    }
+  ]
+}

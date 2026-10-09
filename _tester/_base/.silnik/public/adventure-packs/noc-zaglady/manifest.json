@@ -1,0 +1,72 @@
+{
+  "caseId": "case-s02-noc-zaglady",
+  "era": "1940-pl",
+  "predefinedAdventureId": "noc-zaglady",
+  "visualDna": {
+    "styleCore": "1940 authentic wartime documentary photography, dark atmospheric chiaroscuro, heavy analog grain, occupied Poland, damp autumn forest, tactile paper and wood, zero modern elements",
+    "colorAndLightingScript": "monochrome and muted sepia toning, gloomy overcast autumn light, dim monastic library candlelight, deep shadows, authentic 1940 General Government mood",
+    "cssFilterOverride": "sepia(0.2) contrast(1.15) brightness(0.92)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-destroyed-villa",
+      "category": "item-clue",
+      "file": "clue-01-destroyed-villa.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-destroyed-villa",
+      "tagsPl": ["zniszczona willa", "dworek", "wyłom", "krew", "łuski", "partyzanci", "1940"],
+      "tagsEn": ["destroyed villa", "safehouse", "breach", "blood", "casings", "partisans", "1940"]
+    },
+    {
+      "id": "clue-02-hoof-tracks-mud",
+      "category": "item-clue",
+      "file": "clue-02-hoof-tracks-mud.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-hoof-tracks-mud",
+      "tagsPl": ["ślady kopyt", "błoto", "tropy", "mroczny młody", "posoka", "las"],
+      "tagsEn": ["hoof tracks", "mud", "footprint", "dark young", "ichor", "forest"]
+    },
+    {
+      "id": "clue-03-burski-fevered-notes",
+      "category": "item-clue",
+      "file": "clue-03-burski-fevered-notes.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-03-burski-fevered-notes",
+      "tagsPl": ["notatki", "rękopis", "ołówek", "burski", "rytuał", "obłęd", "kozioł"],
+      "tagsEn": ["notes", "handwriting", "pencil", "burski", "ritual", "madness", "shub-niggurath"]
+    },
+    {
+      "id": "clue-04-damaged-latin-grimoire",
+      "category": "item-clue",
+      "file": "clue-04-damaged-latin-grimoire.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-04-damaged-latin-grimoire",
+      "tagsPl": ["grymuar", "księga", "łacina", "pergamin", "wyrwane karty", "klasztor"],
+      "tagsEn": ["grimoire", "tome", "latin", "parchment", "torn pages", "monastery"]
+    },
+    {
+      "id": "npc-01-tomasz-burski",
+      "category": "npc",
+      "file": "npc-tomasz-burski.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["burski", "tomasz burski", "dowódca", "partyzant", "wrzesień 1939", "obłęd"],
+      "tagsEn": ["burski", "tomasz burski", "commander", "partisan", "soldier", "fever"]
+    },
+    {
+      "id": "npc-02-janina-burska",
+      "category": "npc",
+      "file": "npc-janina-burska.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["janina burska", "żona", "ciąża", "chusta", "ofiara", "wieś"],
+      "tagsEn": ["janina burska", "wife", "pregnant", "shawl", "victim", "rural"]
+    },
+    {
+      "id": "npc-03-jaroslaw-mycielski",
+      "category": "npc",
+      "file": "npc-jaroslaw-mycielski.webp",
+      "aspectRatio": "3:4",
+      "tagsPl": ["mycielski", "brat jarosław", "zakonnik", "bibliotekarz", "habit", "okulary"],
+      "tagsEn": ["mycielski", "brother jaroslaw", "monk", "librarian", "cowl", "spectacles"]
+    }
+  ]
+}

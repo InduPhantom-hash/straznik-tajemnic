@@ -62,6 +62,12 @@ import {
   getSessionCharacters,
   findPlayerIndexForCharacter,
 } from '@/lib/hot-seat/session-party';
+import { FullGameSaveManager } from '@/lib/full-game-save-manager';
+import {
+  determineStartupLocale,
+  resolveAdventureLocale,
+  syncLocaleStorageAndCookie,
+} from '@/lib/i18n/session-locale';
 
 
 const ChatWindow = dynamic(
@@ -183,16 +189,25 @@ export default function Home() {
       return null;
     });
 
-  const handleAdventureSelect = useCallback((adv: AdventureContext | null) => {
-    setAdventureContext(adv);
-    if (typeof window !== 'undefined') {
-      if (adv) {
-        localStorage.setItem('adventure_context', JSON.stringify(adv));
-      } else {
-        localStorage.removeItem('adventure_context');
+  const handleAdventureSelect = useCallback(
+    (adv: AdventureContext | null) => {
+      setAdventureContext(adv);
+      if (typeof window !== 'undefined') {
+        if (adv) {
+          localStorage.setItem('adventure_context', JSON.stringify(adv));
+          // Issue #733: Synchronizacja języka UI przy wyborze przygody o innym locale
+          const targetLocale = resolveAdventureLocale(adv);
+          if (targetLocale && targetLocale !== gameLocale) {
+            syncLocaleStorageAndCookie(targetLocale);
+            router.replace(pathname, { locale: targetLocale });
+          }
+        } else {
+          localStorage.removeItem('adventure_context');
+        }
       }
-    }
-  }, []);
+    },
+    [gameLocale, pathname, router]
+  );
 
   const [aiSettings, setAiSettings] = useState<AISettings | null>(null);
 
@@ -870,6 +885,42 @@ export default function Home() {
       window.removeEventListener('open-rulebook-modal', handleOpenRules);
     };
   }, []);
+
+  // Issue #733: Auto-synchronizacja języka UI z przywróconą sesją / przygodą / sejfem po restarcie
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let adv: AdventureContext | null = adventureContext;
+    if (!adv) {
+      try {
+        const rawAdv = localStorage.getItem('adventure_context');
+        if (rawAdv) adv = JSON.parse(rawAdv) as AdventureContext;
+      } catch {}
+    }
+
+    const savedLang = localStorage.getItem('language_selected');
+    let latestSaveLocale: 'pl' | 'en' | null = null;
+    try {
+      const saves = FullGameSaveManager.getSavesList();
+      if (saves && saves.length > 0 && saves[0].locale) {
+        latestSaveLocale = saves[0].locale;
+      }
+    } catch {}
+
+    const expectedLocale = determineStartupLocale({
+      currentLocale: gameLocale,
+      adventure: adv,
+      savedLanguage: savedLang,
+      latestSaveLocale,
+    });
+
+    if (expectedLocale !== gameLocale) {
+      syncLocaleStorageAndCookie(expectedLocale);
+      router.replace(pathname, { locale: expectedLocale });
+    } else {
+      syncLocaleStorageAndCookie(gameLocale);
+    }
+  }, [gameLocale, pathname, router, adventureContext]);
 
   useEffect(() => {
     const handleCustomAdventuresChanged = (event: Event) => {

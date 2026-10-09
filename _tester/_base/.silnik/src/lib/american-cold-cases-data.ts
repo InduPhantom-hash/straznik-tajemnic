@@ -17,6 +17,7 @@ export const AMERICAN_COLD_CASES_ADVENTURES: AdventureContext[] = [
   {
     id: 'englewood-murder-castle-1893',
     title: "The Englewood Labyrinth: Holmes's Castle",
+    locale: 'en',
     era: 'gaslight',
     eraLabel: '1890s (Gaslight)',
     yearRange: '1893-1894',
@@ -624,6 +625,7 @@ export const AMERICAN_COLD_CASES_ADVENTURES: AdventureContext[] = [
   {
     id: 'almer-coe-spectacles-1924',
     title: 'The Almer Coe Spectacles: The Franks Affair',
+    locale: 'en',
     era: 'classic',
     eraLabel: 'Roaring Twenties (1924)',
     yearRange: '1924',
@@ -1236,6 +1238,7 @@ export const AMERICAN_COLD_CASES_ADVENTURES: AdventureContext[] = [
   {
     id: 'circleville-letters-1983',
     title: 'Postmarked Columbus: The Circleville Letters',
+    locale: 'en',
     era: 'noir',
     eraLabel: 'Cold War (1983)',
     yearRange: '1976-1983',
@@ -1836,6 +1839,7 @@ export const AMERICAN_COLD_CASES_ADVENTURES: AdventureContext[] = [
   {
     id: 'ovidhall-lake-anomaly-2005',
     title: 'I’m in a Field: The Ovidhall Lake Anomaly',
+    locale: 'en',
     era: 'modern',
     eraLabel: 'Modern Era (2005)',
     yearRange: '2005',

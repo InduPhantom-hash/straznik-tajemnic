@@ -95,6 +95,18 @@ describe('LanguageSelectionModal', () => {
 
     expect(localStorage.getItem('language_selected')).toBe('pl');
     expect(localStorage.getItem('measurement_system')).toBe('metric');
+    expect(document.cookie).toContain('NEXT_LOCALE=pl');
+    expect(mockOnSelected).toHaveBeenCalledTimes(1);
+  });
+
+  it('synchronizes NEXT_LOCALE cookie and localStorage when English is selected', () => {
+    render(<LanguageSelectionModal open={true} onSelected={mockOnSelected} />);
+
+    const enButton = screen.getByTestId('btn-language-en');
+    fireEvent.click(enButton);
+
+    expect(localStorage.getItem('language_selected')).toBe('en');
+    expect(document.cookie).toContain('NEXT_LOCALE=en');
     expect(mockOnSelected).toHaveBeenCalledTimes(1);
   });
 });

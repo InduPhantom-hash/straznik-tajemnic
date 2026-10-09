@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q04-przybysz-z-matriksa-glogow",
+  "era": "2001-dolny-slask",
+  "predefinedAdventureId": "przybysz-z-matriksa-glogow",
+  "visualDna": {
+    "styleCore": "2001 Y2K / Matrix cyber-dread in Lower Silesia, damp concrete bunkers of Glogow Fortress, cathode ray CRT glare, magnetic VHS scanlines, claustrophobic asylum chambers in Lubiaz Abbey",
+    "colorAndLightingScript": "flickering phosphorescent green and cyan CRT monitor glow, damp grey concrete shadows, institutional hospital lighting",
+    "cssFilterOverride": "contrast(1.15) brightness(0.95)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-kaseta-vhs",
+      "category": "item-clue",
+      "file": "clue-01-kaseta-vhs.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-kaseta-vhs",
+      "tagsPl": ["kaseta vhs", "przesłuchanie", "bunkier", "głogów", "2001", "crt"],
+      "tagsEn": ["vhs tape", "interrogation", "bunker", "glogow", "2001", "crt"]
+    },
+    {
+      "id": "clue-02-karta-lubiaz",
+      "category": "item-clue",
+      "file": "clue-02-karta-lubiaz.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-karta-lubiaz",
+      "tagsPl": ["karta szpitalna", "lubiąż", "psychiatryk", "odra", "retransmisja"],
+      "tagsEn": ["hospital chart", "lubiaz asylum", "psychiatry", "oder river", "signal"]
+    },
+    {
+      "id": "npc-aresztowany-haker",
+      "category": "npc-portrait",
+      "file": "npc-aresztowany-haker.webp",
+      "aspectRatio": "3:4",
+      "npcId": "aresztowany-haker",
+      "tagsPl": ["aresztowany haker", "programista", "paranoja", "portret", "2001"],
+      "tagsEn": ["arrested hacker", "programmer", "paranoia", "portrait", "2001"]
+    },
+    {
+      "id": "npc-psychiatra-lubiaz",
+      "category": "npc-portrait",
+      "file": "npc-psychiatra-lubiaz.webp",
+      "aspectRatio": "3:4",
+      "npcId": "psychiatra-lubiaz",
+      "tagsPl": ["doktor psychiatrii", "lekarka", "lubiąż", "kitel", "portret"],
+      "tagsEn": ["psychiatrist", "doctor", "lubiaz", "coat", "portrait"]
+    },
+    {
+      "id": "audio-sygnal-vhs-glogow",
+      "category": "audio-handout",
+      "file": "audio/sygnal-vhs-glogow.mp3",
+      "audioId": "audio-sygnal-vhs-glogow",
+      "tagsPl": ["sygnał vhs", "transmisja", "bunkier głogów", "nagranie"],
+      "tagsEn": ["vhs signal", "transmission", "glogow bunker", "recording"]
+    }
+  ]
+}

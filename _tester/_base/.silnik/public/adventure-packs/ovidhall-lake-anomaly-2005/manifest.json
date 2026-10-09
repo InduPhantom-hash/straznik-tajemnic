@@ -1,0 +1,56 @@
+{
+  "caseId": "case-q08-ovidhall-lake-anomaly-2005",
+  "era": "2005-michigan",
+  "predefinedAdventureId": "ovidhall-lake-anomaly-2005",
+  "visualDna": {
+    "styleCore": "2005 Lake Michigan anomaly, clamshell phone screens glowing in dark cattails, chilling spraypainted smiley faces on rotten timber docks, cold forensic morgue lights",
+    "colorAndLightingScript": "foggy lake cyan, murky dark water, chilly morning frost, morgue clinical blue",
+    "cssFilterOverride": "contrast(1.12) brightness(0.94)"
+  },
+  "assets": [
+    {
+      "id": "clue-01-cellphone-log",
+      "category": "item-clue",
+      "file": "clue-01-cellphone-log.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-01-cellphone-log",
+      "tagsPl": ["telefon z klapką", "motorola razr", "log bts", "szuwary", "2005"],
+      "tagsEn": ["clamshell phone", "motorola razr", "cell tower log", "reeds", "2005"]
+    },
+    {
+      "id": "clue-02-smiley-face-pier",
+      "category": "item-clue",
+      "file": "clue-02-smiley-face-pier.webp",
+      "aspectRatio": "16:9",
+      "clueId": "clue-02-smiley-face-pier",
+      "tagsPl": ["graffiti", "smiley face", "drewniany pomost", "mgła", "jezioro michigan"],
+      "tagsEn": ["graffiti", "smiley face", "wooden pier", "fog", "lake michigan"]
+    },
+    {
+      "id": "npc-investigator-gannon",
+      "category": "npc-portrait",
+      "file": "npc-investigator-gannon.webp",
+      "aspectRatio": "3:4",
+      "npcId": "investigator-gannon",
+      "tagsPl": ["detektyw gannon", "nypd", "śledczy smiley face", "portret"],
+      "tagsEn": ["detective gannon", "nypd", "smiley face investigator", "portrait"]
+    },
+    {
+      "id": "npc-forensic-pathologist",
+      "category": "npc-portrait",
+      "file": "npc-forensic-pathologist.webp",
+      "aspectRatio": "3:4",
+      "npcId": "forensic-pathologist",
+      "tagsPl": ["patolog sądowy", "lekarz prosektorium", "raport z utonięcia", "portret"],
+      "tagsEn": ["forensic pathologist", "medical examiner", "drowning report", "portrait"]
+    },
+    {
+      "id": "audio-voicemail-in-a-field-2005",
+      "category": "audio-handout",
+      "file": "audio/voicemail-in-a-field-2005.mp3",
+      "audioId": "audio-voicemail-in-a-field-2005",
+      "tagsPl": ["poczta głosowa", "ostatnia wiadomość", "bulgot", "nagranie 2005"],
+      "tagsEn": ["voicemail message", "final call", "gurgle", "recording 2005"]
+    }
+  ]
+}
