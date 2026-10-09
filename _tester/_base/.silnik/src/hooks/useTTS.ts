@@ -947,6 +947,29 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         .replace(/\{[^}]*$/, '')
         .replace(/(?:^|\n)\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\s*:[^\n]*$/gi, '');
 
+      // Issue #735: Połączenie etykiety mówcy NPC z następującą po nowej linii kwestią dialogową
+      // np. "Rosalia:\n„Czego tu...”" -> "Rosalia: „Czego tu...”"
+      stripped = stripped.replace(
+        /(^|\n)\s*[*_]*([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?)[*_]*\s*:\s*\n+\s*([„"«—–-])/g,
+        '$1$2: $3'
+      );
+      stripped = stripped.replace(
+        /(^|\n)\s*[*_]*([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]{2,30})[*_]*\s*\n+\s*([„"«])/g,
+        '$1$2: $3'
+      );
+
+      // Issue #735: Normalizacja polskiego stylu dialogu z atrybucją po myślniku do formatu mówcy:
+      // np. „Kto tam stoi?” – rzekła Rosalia, cofając się... -> Rosalia: „Kto tam stoi?”, cofając się...
+      const SPEECH_VERBS =
+        'mówi|rzekł|rzekła|odparł|odparła|krzyknął|krzyknęła|szepnął|szepnęła|pyta|pytała|zapytał|zapytała|powiedział|powiedziała|zawołał|zawołała|dodał|dodała|warknął|warknęła|syknął|syknęła|jęknął|jęknęła|pisnął|pisnęła|fuknął|fuknęła|westchnął|westchnęła|mruknął|mruknęła';
+      stripped = stripped.replace(
+        new RegExp(
+          `(^|\\n)\\s*([„"«][^"”»\\n]+[”"»])\\s*[—–-]\\s*(?:${SPEECH_VERBS})\\s+([A-ZŁŻŚĆŃÓĄĘ][\\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?)(?=[,.;!?:\\s—–-]|$)`,
+          'gi'
+        ),
+        '$1$3: $2'
+      );
+
       // IND-211: kolejkujemy w JEDNOSTKACH. MID/LOW → cały AKAPIT jednym wywołaniem
       // TTS - model widzi pełny kontekst akapitu, więc prozodia jest spójna.
       // HIGH i ULTRA → per-zdanie z parserem mówców (multi-voice NPC). Marker
@@ -1159,10 +1182,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             );
           let isTrailingSpeakerAttribution = false;
 
-          // Alternatywna detekcja dla polskiego stylu dialogu: „kwestia” – mówi Imię / – kwestia – rzekł Imię
+          // Alternatywna detekcja dla polskiego stylu dialogu: „kwestia” – mówi Imię / – kwestia – rzekł/rzekła Imię
           if (!markerMatch) {
             const trailingSpeakerMatch = raw.match(
-              /(?:^|[\s—–-])[„"«—–-]([^"”»—–-]+)[”"»—–-]?\s*[—–-]\s*(?:mówi|rzekł|odparł|krzyknął|szepnął|pyta|powiedział|zawołał)\s+([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+)/i
+              /(?:^|[\s—–-])[„"«—–-]([^"”»—–-]+)[”"»—–-]?\s*[—–-]\s*(?:mówi|rzekł|rzekła|odparł|odparła|krzyknął|krzyknęła|szepnął|szepnęła|pyta|pytała|zapytał|zapytała|powiedział|powiedziała|zawołał|zawołała|dodał|dodała|warknął|warknęła|syknął|syknęła|jęknął|jęknęła|pisnął|pisnęła|fuknął|fuknęła|westchnął|westchnęła|mruknął|mruknęła)\s+([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+)/i
             );
             if (trailingSpeakerMatch) {
               isTrailingSpeakerAttribution = true;
@@ -1290,7 +1313,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             ));
             textForQueue = hasExplicitInsideQuoteOverride
               ? markerMatch[3].trim()
-              : markerMatch[3].trim() || clean;
+              : (markerMatch[3] !== undefined && markerMatch[3] !== null)
+              ? markerMatch[3].trim()
+              : clean;
           } else if (activeNpcSpeakerRef.current && !isNarratorOnlyMode) {
             // Issue #172: Kontynuacja dialogu tej samej postaci w obrębie tej samej linii/akapitu
             ({ voiceId, audioDirection } = resolveNpcSegmentVoice(
@@ -1336,7 +1361,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             }
           }
           if (!hasSpokenWords && !inlineNarratorTail) {
-            if (shouldResetNpcAfterSentence || raw.includes('\n')) {
+            const isBareSpeakerLabel = !!markerMatch && !markerMatch[3].trim();
+            if (!isBareSpeakerLabel && (shouldResetNpcAfterSentence || raw.includes('\n'))) {
               activeNpcSpeakerRef.current = null;
             }
             prevSentenceEndRef.current = endIndex;

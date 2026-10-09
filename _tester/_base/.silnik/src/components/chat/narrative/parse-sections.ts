@@ -50,9 +50,21 @@ export function parseStickyNote(raw: string): { stickyNote?: StickyNote; cleaned
 
 export function parseIntoSections(content: string): Section[] {
   const sections: Section[] = [];
-  const normalizedContent = content.replace(
+  let normalizedContent = content.replace(
     /\s*(\[(?:HANDOUT|DOWÓD|DOWOD|EVIDENCE):\s*[^\]]*?\])\s*/gi,
     '\n$1\n'
+  );
+  // Issue #735: Łączenie linii mówcy z kwestią dialogową rozdzieloną nową linią:
+  // np. 'Rosalia:\n„Dialog”' lub '**Rosalia:**\n„Dialog”' -> 'Rosalia: „Dialog”'
+  normalizedContent = normalizedContent.replace(
+    /(?:^|\n)\s*[*_]*([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?)[*_]*\s*:\s*\n+\s*([„"«—–-])/g,
+    '\n$1: $2'
+  );
+  // Obsługa formatu bez dwukropka z samym imieniem w osobnej linii:
+  // np. 'Rosalia\n„Dialog”' lub '**Rosalia**\n„Dialog”' -> 'Rosalia: „Dialog”'
+  normalizedContent = normalizedContent.replace(
+    /(?:^|\n)\s*[*_]*([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]{2,30})[*_]*\s*\n+\s*([„"«])/g,
+    '\n$1: $2'
   );
   const lines = normalizedContent.split('\n');
 
@@ -190,10 +202,10 @@ export function parseIntoSections(content: string): Section[] {
       let dialogueText = trimmedLine;
 
       const speakerMatch = trimmedLine.match(
-        /^(.+?):\s*[\u201E\u201C\u201D\u0022](.+)[\u201E\u201C\u201D\u0022]$/
+        /^(?:[*_]*)(.+?)(?:[*_]*):\s*[\u201E\u201C\u201D\u0022](.+)[\u201E\u201C\u201D\u0022]$/
       );
       if (speakerMatch) {
-        speaker = speakerMatch[1];
+        speaker = speakerMatch[1].replace(/[*_]/g, '').trim();
         dialogueText = speakerMatch[2];
       }
 

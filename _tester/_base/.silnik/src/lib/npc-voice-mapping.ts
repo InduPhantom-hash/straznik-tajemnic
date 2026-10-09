@@ -40,7 +40,40 @@ export interface ElevenLabsNpcVoiceConfig {
   };
 }
 
-// Tytuły wskazujące bezpośrednio na płeć postaci
+export const FEMALE_VOICE_IDS = new Set<string>([
+  'Aoede',
+  'Sulafat',
+  'Callirrhoe',
+  'Autonoe',
+  'Despina',
+  'Achernar',
+  'Vindemiatrix',
+  'Leda',
+  'Laomedeia',
+  'Gacrux',
+]);
+
+export const MALE_VOICE_IDS = new Set<string>([
+  'Charon',
+  'Puck',
+  'Fenrir',
+  'Orus',
+  'Umbriel',
+  'Algieba',
+  'Alnilam',
+  'Achird',
+  'Zubenelgenubi',
+  'Pulcherrima',
+  'Sadachbia',
+  'Algenib',
+  'Iapetus',
+  'Rasalgethi',
+  'Schedar',
+  'Sadaltager',
+  'Enceladus',
+]);
+
+// Tytuły i role wskazujące bezpośrednio na płeć postaci
 export const FEMALE_TITLES = [
   'pani',
   'panna',
@@ -55,6 +88,24 @@ export const FEMALE_TITLES = [
   'wdowa',
   'ciotka',
   'babcia',
+  'kobieta',
+  'kobiety',
+  'kobietą',
+  'staruszka',
+  'staruszki',
+  'staruszką',
+  'dziewczyna',
+  'dziewczyny',
+  'dziewczynka',
+  'sąsiadka',
+  'sąsiadki',
+  'lokatorka',
+  'właścicielka',
+  'gospodyni',
+  'pokojówka',
+  'kucharka',
+  'pielęgniarka',
+  'zakonnica',
   'profesorka',
   'doktorka',
   'redaktorka',
@@ -200,6 +251,48 @@ export const KNOWN_FEMALE_NAMES = new Set([
   'lucille',
   'minnie',
   'pearl',
+  'rosalia',
+  'rozalia',
+  'rosa',
+  'rosalie',
+  'carmen',
+  'dolores',
+  'mercedes',
+  'claudia',
+  'lucia',
+  'inés',
+  'ines',
+  'bridget',
+  'harriet',
+  'margot',
+  'janet',
+  'lois',
+  'iris',
+  'phyllis',
+  'bess',
+  'tess',
+  'enid',
+  'muriel',
+  'rachel',
+  'marion',
+  'lilian',
+  'susan',
+  'megan',
+  'ann',
+  'beth',
+  'faith',
+  'joy',
+  'kay',
+  'may',
+  'fay',
+  'june',
+  'carol',
+  'ingrid',
+  'astrid',
+  'karin',
+  'ellen',
+  'jean',
+  'gillian',
 ]);
 
 // PL keywords (occupation/description/personality) wskazujące gender
@@ -354,10 +447,23 @@ function npcSearchText(npc: NpcVoiceInput): string {
 }
 
 /**
+ * Zwraca true jeśli którykolwiek keyword z listy występuje w tekście jako pełne słowo.
+ * Zapobiega fałszywym kolizjom podciągów (np. 'właścicielka' zawierająca 'właściciel').
+ */
+function matchesAnyWord(text: string, keywords: readonly string[]): boolean {
+  return keywords.some((kw) => {
+    const cleanKw = kw.trim();
+    if (!cleanKw) return false;
+    const regex = new RegExp(`(?:^|[^\\p{L}\\p{N}])${cleanKw}(?:$|[^\\p{L}\\p{N}])`, 'iu');
+    return regex.test(text);
+  });
+}
+
+/**
  * Zwraca true jeśli którykolwiek keyword z listy występuje w tekście.
  */
 function matchesAny(text: string, keywords: readonly string[]): boolean {
-  return keywords.some((kw) => text.includes(kw));
+  return matchesAnyWord(text, keywords);
 }
 
 /**
@@ -367,13 +473,20 @@ function matchesAny(text: string, keywords: readonly string[]): boolean {
  */
 export function inferGenderFromName(name: string): 'female' | 'male' | null {
   if (!name) return null;
-  const clean = name.trim().toLowerCase();
+  // Oczyść markdown (**Rosalia**, *Rosalia*, _Rosalia_), cytaty („”, "", «»), nawiasy oraz znaki interpunkcyjne
+  const clean = name
+    .trim()
+    .toLowerCase()
+    .replace(/[*_~`"„”«»()\[\]{}:;]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   const words = clean.split(/[\s,.-]+/).filter(Boolean);
   if (words.length === 0) return null;
 
-  // 1. Sprawdź obecność tytułów w dowolnym segmencie imienia
+  // 1. Sprawdź obecność tytułów lub słownika znanych imion w dowolnym segmencie imienia
   for (const word of words) {
     if (FEMALE_TITLES.includes(word)) return 'female';
+    if (KNOWN_FEMALE_NAMES.has(word)) return 'female';
     if (MALE_TITLES.includes(word)) return 'male';
   }
 
@@ -407,13 +520,45 @@ export function inferGenderFromNPC(npc: NpcVoiceInput): 'female' | 'male' | null
     if (fromName) return fromName;
   }
 
-  // 2. Słowa kluczowe w opisach
+  // 2. Słowa kluczowe w opisach (z uwzględnieniem granic słów)
   const text = npcSearchText(npc);
-  const male = matchesAny(text, MALE_KEYWORDS);
-  const female = matchesAny(text, FEMALE_KEYWORDS);
-  if (male && female) return null;
-  if (female) return 'female';
-  if (male) return 'male';
+  const male = matchesAnyWord(text, MALE_KEYWORDS);
+  const female = matchesAnyWord(text, FEMALE_KEYWORDS);
+  if (female && !male) return 'female';
+  if (male && !female) return 'male';
+  if (male && female) {
+    const primaryFemale = matchesAnyWord(text, [
+      'kobieta',
+      'kobiety',
+      'kobietą',
+      'pani',
+      'panna',
+      'matka',
+      'córka',
+      'żona',
+      'siostra',
+      'staruszka',
+      'dziewczyna',
+      'wdowa',
+      'ona',
+    ]);
+    const primaryMale = matchesAnyWord(text, [
+      'mężczyzna',
+      'mężczyzny',
+      'pan',
+      'ojciec',
+      'syn',
+      'mąż',
+      'brat',
+      'staruszek',
+      'chłopiec',
+      'chłopak',
+      'on',
+    ]);
+    if (primaryFemale && !primaryMale) return 'female';
+    if (primaryMale && !primaryFemale) return 'male';
+    return null;
+  }
   return null;
 }
 
@@ -475,22 +620,39 @@ function hashString(str: string): number {
  * Fallback: DEFAULT_GEMINI_VOICE.
  */
 export function getVoiceForNPC(npc: NpcVoiceInput): string {
+  const gender = inferGenderFromNPC(npc);
+
   // 1. Ręczne nadpisanie (user wybrał w UI)
   if (npc.voiceConfig?.voiceId) {
-    return npc.voiceConfig.voiceId;
+    const configuredVoice = npc.voiceConfig.voiceId;
+    if (gender === 'female' && !FEMALE_VOICE_IDS.has(configuredVoice)) {
+      return 'Aoede';
+    }
+    if (gender === 'male' && FEMALE_VOICE_IDS.has(configuredVoice)) {
+      return 'Puck';
+    }
+    return configuredVoice;
   }
 
   // 2. Heurystyka - dobór głosu z puli danej roli na podstawie hasha imienia/zawodu
   const role = inferRoleFromNPC(npc);
-  const voicesOfRole = GEMINI_VOICES.filter((v) => v.role === role);
+  const voicesOfRole = GEMINI_VOICES.filter((v) => {
+    if (gender === 'female') {
+      return v.role === 'female';
+    }
+    if (gender === 'male') {
+      return v.role === 'male';
+    }
+    return v.role === role;
+  });
   if (voicesOfRole.length > 0) {
     const seed = npc.name || npc.occupation || '';
     const index = seed ? hashString(seed) % voicesOfRole.length : 0;
     return voicesOfRole[index].voiceId;
   }
 
-  // 3. Fallback (nie powinno się zdarzyć - każda rola ma min. 1 voice w catalogu)
-  return DEFAULT_GEMINI_VOICE;
+  // 3. Fallback
+  return gender === 'female' ? 'Aoede' : DEFAULT_GEMINI_VOICE;
 }
 
 // ============================================================================
@@ -687,11 +849,11 @@ export function resolveDynamicNpcVoice(
         voiceId = 'Puck'; // Męski głos postaci
       }
     }
-  } else if (gender === 'female' && (voiceId === 'Charon' || voiceId === 'Puck' || voiceId === 'Fenrir' || voiceId === 'Orus')) {
-    // Bezpiecznik: jeśli w starych danych zapisał się męski głos dla kobiety, nadpisz na kobiecy!
+  } else if (gender === 'female' && !FEMALE_VOICE_IDS.has(voiceId)) {
+    // Twardy bezpiecznik płci: kobieta NIGDY nie może mówić głosem męskim (ani lektorem Algenib/Charon/Kore, ani postacią Puck/Fenrir)
     voiceId = age === 'old' ? 'Gacrux' : age === 'young' ? 'Leda' : 'Aoede';
-  } else if (gender === 'male' && (voiceId === 'Aoede' || voiceId === 'Sulafat' || voiceId === 'Callirrhoe' || voiceId === 'Leda' || voiceId === 'Gacrux')) {
-    // Bezpiecznik: jeśli w starych danych zapisał się żeński głos dla mężczyzny, nadpisz na męski!
+  } else if (gender === 'male' && FEMALE_VOICE_IDS.has(voiceId)) {
+    // Twardy bezpiecznik płci: mężczyzna NIGDY nie może mówić głosem żeńskim
     voiceId = age === 'old' ? 'Algenib' : 'Puck';
   }
 
@@ -777,7 +939,8 @@ export function initializeAdventureNpcVoices(
         voiceConfig: {
           voiceId:
             (existing?.voiceConfig?.voiceId &&
-              !(gender === 'female' && existing.voiceConfig.voiceId === 'Charon'))
+              !(gender === 'female' && !FEMALE_VOICE_IDS.has(existing.voiceConfig.voiceId)) &&
+              !(gender === 'male' && FEMALE_VOICE_IDS.has(existing.voiceConfig.voiceId)))
               ? existing.voiceConfig.voiceId
               : toneResult.voiceId,
           voiceName: toneResult.voiceId,

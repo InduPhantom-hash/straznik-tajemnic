@@ -169,6 +169,31 @@ describe('NPC Voice Mapping & Tone of Voice (Issue #170)', () => {
       expect(['Aoede', 'Leda', 'Gacrux']).toContain(fixed.voiceId);
     });
 
+    it('Issue #735: rozpoznaje Rosalię i postacie w markdownie jako żeńskie i chroni przed męskim głosem lektora Algenib', () => {
+      const voiceMap = new Map<string, string>();
+      const resolved = resolveDynamicNpcVoice('Rosalia', voiceMap);
+      expect(['Aoede', 'Leda', 'Gacrux']).toContain(resolved.voiceId);
+      expect(resolved.audioDirection).toContain('female');
+
+      // Obsługa markdownu **Rosalia**
+      const mdMap = new Map<string, string>();
+      const resolvedMd = resolveDynamicNpcVoice('**Rosalia**', mdMap);
+      expect(['Aoede', 'Leda', 'Gacrux']).toContain(resolvedMd.voiceId);
+
+      // Twardy bezpiecznik: stary lub domyślny męski głos narratora (Algenib) skojarzony z kobietą zostaje skorygowany
+      const corruptMap = new Map<string, string>();
+      corruptMap.set('rosalia', 'Algenib');
+      const fixed = resolveDynamicNpcVoice('Rosalia', corruptMap);
+      expect(fixed.voiceId).not.toBe('Algenib');
+      expect(['Aoede', 'Leda', 'Gacrux']).toContain(fixed.voiceId);
+
+      // Słowo kluczowe właścicielka nie koliduje z właściciel
+      const ownerNpc = resolveDynamicNpcVoice('Pani Dubois', new Map(), undefined, {
+        description: 'Właścicielka kamienicy przy zaułku',
+      });
+      expect(['Aoede', 'Leda', 'Gacrux']).toContain(ownerNpc.voiceId);
+    });
+
     it('zwraca męski głos Puck dla nowo napotkanego mężczyzny', () => {
       const voiceMap = new Map<string, string>();
       const resolved = resolveDynamicNpcVoice('Arthur Pendelton', voiceMap);
