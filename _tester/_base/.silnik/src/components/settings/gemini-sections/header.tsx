@@ -250,10 +250,18 @@ export function HeaderSection({
               {t('model25FlashLite')}
             </option>
             {[
+              'gemini-1.5-pro',
+              'gemini-1.5-flash',
               'gemini-2.0-flash',
               'gemini-2.0-flash-exp',
               'gemini-2.0-flash-lite',
+              'gemini-3.6-flash-preview',
+              'gemini-3.6-flash-lite',
+              'gemini-3.5-flash',
               'gemini-3-pro-preview',
+              'gemini-3-flash',
+              'gemini-3-pro',
+              'gemini-3.1-pro',
             ].includes(g.model) && (
               <option value={g.model} disabled>
                 {g.model} ({t('modelDeprecated')})

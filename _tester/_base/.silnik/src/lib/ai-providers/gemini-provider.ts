@@ -214,21 +214,27 @@ export class GeminiChatProvider implements IChatProvider {
     if (opts?.responseSchema !== undefined)
       config.responseSchema = opts.responseSchema;
 
-    // Thinking level dla modeli nowoczesnych (Gemini 3.x, flash-latest, pro-latest) - IND-203:
+    // Thinking configuration dla modeli nowoczesnych (Gemini 3.x, flash-latest, pro-latest) oraz 2.5:
     // SDK oczekuje go WEWNĄTRZ config.thinkingConfig.
     // 'auto' oznacza "model decyduje", więc thinkingConfig.thinkingLevel nie jest wtedy ustawiany.
+    const explicitBudget = opts?.thinkingBudget;
     if (isModern) {
+      const thinkingConfigObj: Record<string, unknown> = {};
       if (thinkingLevel && thinkingLevel !== 'auto' && thinkingLevel in THINKING_LEVEL_MAP) {
-        config.thinkingConfig = {
-          thinkingLevel: THINKING_LEVEL_MAP[thinkingLevel],
-        };
+        thinkingConfigObj.thinkingLevel = THINKING_LEVEL_MAP[thinkingLevel];
+      }
+      if (explicitBudget !== undefined) {
+        thinkingConfigObj.thinkingBudget = explicitBudget;
+      }
+      if (Object.keys(thinkingConfigObj).length > 0) {
+        config.thinkingConfig = thinkingConfigObj;
       }
     } else {
-      // gemini-2.5-* (flash/pro): myślenie WYŁĄCZONE (budget 0). Powody w JSDoc
-      // THINKING_BUDGET_GEMINI_25: (1) IND-199 pusta odpowiedź, (2) wyciek myślenia
-      // jako pierwszy chunk (thought:false) → duplikacja narracji (pre-flight 06-24).
+      // gemini-2.5-* (flash/pro): myślenie domyślnie wyłączone (budget 0), chyba że jawnie podano inny budżet.
       if (this.modelId.includes('gemini-2.5')) {
-        config.thinkingConfig = { thinkingBudget: THINKING_BUDGET_GEMINI_25 };
+        config.thinkingConfig = {
+          thinkingBudget: explicitBudget !== undefined ? explicitBudget : THINKING_BUDGET_GEMINI_25,
+        };
       }
     }
 

@@ -5686,6 +5686,9 @@
     "hintLow": "Optimal for simple commands and short answers",
     "hintMedium": "Standard reasoning level for most queries",
     "hintHigh": "Deeper reasoning for complex situations, combat and important decisions",
+    "budgetLabel": "Thinking Budget (tokens)",
+    "budgetPlaceholder": "Auto (by level)",
+    "hintBudget": "Optional token limit for reasoning (0 = disabled / minimal, up to 24576). Blank = adaptive.",
     "multimodalNote": "Multimodality (image input) is automatically active for Gemini 1.5+ and requires no configuration."
   },
   "TTSSettings": {
