@@ -63,12 +63,67 @@ describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semant
       expect(res.detectedFeatures.hasInvestigatorCreation).toBe(true);
     });
 
+    it("rozpoznaje oficjalny polski tytuł Księga Badacza (PL)", () => {
+      const text = "Księga Badacza. Tworzenie Badacza, profesje i zawody badacza, cenniki i ekwipunek badacza z lat 20. Organizacje badaczy.";
+      const res = detectRulebookProfile(text, "Zew Cthulhu - Księga Badacza.pdf");
+      expect(res.profile).toBe("investigator_handbook");
+      expect(res.semanticPlan.detectedCategories).toContain("MECHANIKA");
+      expect(res.detectedFeatures.hasInvestigatorCreation).toBe(true);
+    });
+
+    it("rozpoznaje oficjalny angielski tytuł Investigator's Handbook (EN)", () => {
+      const text = "Call of Cthulhu Investigator's Handbook. Creating investigators, occupations, 1920s equipment and gear. Organizations.";
+      const res = detectRulebookProfile(text, "Call of Cthulhu - Investigator's Handbook.pdf");
+      expect(res.profile).toBe("investigator_handbook");
+      expect(res.semanticPlan.detectedCategories).toContain("MECHANIKA");
+    });
+
+    it("rozpoznaje oficjalny polski Zestaw Startowy i angielski Starter Set", () => {
+      const textPl = "Zew Cthulhu: Zestaw Startowy. Zasady wprowadzające do gry fabularnej Zew Cthulhu.";
+      const resPl = detectRulebookProfile(textPl, "Zestaw Startowy.pdf");
+      expect(resPl.profile).toBe("starter-d100");
+
+      const textEn = "Call of Cthulhu Starter Set. Introductory rules and solo adventure.";
+      const resEn = detectRulebookProfile(textEn, "Starter Set.pdf");
+      expect(resEn.profile).toBe("starter-d100");
+    });
+
     it("rozpoznaje Pulp Cthulhu", () => {
       const text = "Pulp Cthulhu. Księga Zasad do pulpowych przygód d100. Pulpowe archetypy, talenty pulpu, pulpomet, podwójne punkty wytrzymałości i wydawanie Szczęścia.";
       const res = detectRulebookProfile(text);
       expect(res.profile).toBe("pulp-d100");
       expect(res.semanticPlan.detectedCategories).toContain("MECHANIKA");
       expect(res.detectedFeatures.hasPulpTalents).toBe(true);
+    });
+
+    it("rozpoznaje oficjalne tytuły Księgi Strażnika (PL) i Keeper's Rulebook (EN)", () => {
+      const textPl = "Zew Cthulhu Księga Strażnika. Podręcznik główny do gry. Tworzenie Badacza, Walka, Pościgi, Poczytalność.";
+      const resPl = detectRulebookProfile(textPl, "Księga Strażnika Tajemnic.pdf");
+      expect(resPl.profile).toBe("core-d100");
+
+      const textEn = "Call of Cthulhu Keeper's Rulebook. 7th Edition Core Rules. Combat, Chases, Sanity, Magic.";
+      const resEn = detectRulebookProfile(textEn, "Keeper's Rulebook 7th Ed.pdf");
+      expect(resEn.profile).toBe("core-d100");
+    });
+
+    it("rozpoznaje oficjalne tytuły Grymuaru (PL i EN)", () => {
+      const textPl = "Wielki Grymuar Magii Mitów Cthulhu. Ponad 550 zaklęć i czarów. Punkty magii, poczytalność, głęboka magia.";
+      const resPl = detectRulebookProfile(textPl, "Wielki Grymuar Magii Mitów Cthulhu.pdf");
+      expect(resPl.profile).toBe("grimoire");
+
+      const textEn = "The Grand Grimoire of Cthulhu Mythos Magic. Over 550 spells. Magic points, sanity loss, deep magic.";
+      const resEn = detectRulebookProfile(textEn, "The Grand Grimoire of Cthulhu Mythos Magic.pdf");
+      expect(resEn.profile).toBe("grimoire");
+    });
+
+    it("rozpoznaje oficjalne tytuły Bestiariusza (PL i EN)", () => {
+      const textPl = "Bestiariusz Mitów Cthulhu. Księga Bestii i Potworów. Siła, Kondycja, Pancerz, Utrata Poczytalności.";
+      const resPl = detectRulebookProfile(textPl, "Bestiariusz Mitów Cthulhu.pdf");
+      expect(resPl.profile).toBe("bestiary");
+
+      const textEn = "Petersen's Field Guide to Lovecraftian Horrors. Monsters and deities of the Cthulhu Mythos.";
+      const resEn = detectRulebookProfile(textEn, "Petersen's Field Guide to Lovecraftian Horrors.pdf");
+      expect(resEn.profile).toBe("bestiary");
     });
 
     it("rozpoznaje Setting / Epokę (Down Darker Trails)", () => {
@@ -171,6 +226,149 @@ describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semant
       `;
       const resGuide = detectRulebookProfile(miniGuide, "Miniporadnik_ONI.pdf");
       expect(resGuide.profile).toBe("setting_expansion");
+    });
+  });
+
+  describe("Zamknięty katalog oficjalnych publikacji Black Monk (PL) i Chaosium (EN)", () => {
+    it("rozpoznaje oficjalne kampanie z katalogu wydawców", () => {
+      const harvest = detectRulebookProfile(
+        "Czas Żniw. Kampania do Zewu Cthulhu w sześciu epizodach. Tajemnice studenckiej ekspedycji w Vermont.",
+        "Zew Cthulhu - Czas Zniw.pdf"
+      );
+      expect(harvest.profile).toBe("mega_campaign");
+      expect(harvest.title).toBe("Czas Żniw");
+
+      const fear = detectRulebookProfile(
+        "The Children of Fear. An epic 1920s campaign across Northern India and Tibet for Call of Cthulhu.",
+        "The Children of Fear.pdf"
+      );
+      expect(fear.profile).toBe("mega_campaign");
+      expect(fear.title).toBe("The Children of Fear");
+
+      const serpent = detectRulebookProfile(
+        "The Two-Headed Serpent. An epic action-packed Pulp Cthulhu campaign spanning Bolivia, New York and Iceland.",
+        "The Two-Headed Serpent.pdf"
+      );
+      expect(serpent.profile).toBe("mega_campaign");
+      expect(serpent.title).toBe("The Two-Headed Serpent");
+
+      const mountains = detectRulebookProfile(
+        "Beyond the Mountains of Madness. The stark-white Antarctic expedition campaign for Call of Cthulhu.",
+        "Beyond the Mountains of Madness.pdf"
+      );
+      expect(mountains.profile).toBe("mega_campaign");
+      expect(mountains.title).toBe("Beyond the Mountains of Madness");
+    });
+
+    it("rozpoznaje oficjalne antologie z katalogu wydawców", () => {
+      const doorsPl = detectRulebookProfile(
+        "Wrota Mroku. Zbiór pięciu scenariuszy śledczych dla początkujących Badaczy do 7. edycji Zewu Cthulhu.",
+        "Wrota Mroku.pdf"
+      );
+      expect(doorsPl.profile).toBe("scenario_anthology");
+      expect(doorsPl.title).toBe("Wrota Mroku");
+
+      const doorsEn = detectRulebookProfile(
+        "Doors to Darkness. Five scenarios for beginning Keepers and investigators of Call of Cthulhu.",
+        "Doors to Darkness.pdf"
+      );
+      expect(doorsEn.profile).toBe("scenario_anthology");
+      expect(doorsEn.title).toBe("Doors to Darkness");
+
+      const mansions = detectRulebookProfile(
+        "Mansions of Madness. Five tales of sinister domiciles and dark secrets for Call of Cthulhu.",
+        "Mansions of Madness Vol 1.pdf"
+      );
+      expect(mansions.profile).toBe("scenario_anthology");
+      expect(mansions.title).toBe("Mansions of Madness");
+
+      const nameless = detectRulebookProfile(
+        "Nameless Horrors. Six deadly standalone adventures set across different eras of Call of Cthulhu.",
+        "Nameless Horrors.pdf"
+      );
+      expect(nameless.profile).toBe("scenario_anthology");
+      expect(nameless.title).toBe("Nameless Horrors");
+
+      const cults = detectRulebookProfile(
+        "Kulty Cthulhu. Przewodnik po mrocznych sektach i trzy gotowe scenariusze do Zewu Cthulhu.",
+        "Kulty Cthulhu.pdf"
+      );
+      expect(cults.profile).toBe("scenario_anthology");
+      expect(cults.title).toBe("Kulty Cthulhu");
+    });
+
+    it("rozpoznaje oficjalne settingi i epoki z katalogu wydawców", () => {
+      const berlinPl = detectRulebookProfile(
+        "Berlin: Miasto Grzechu. Złote lata dwudzieste w Republice Weimarskiej i mroczne sekrety Zewu Cthulhu.",
+        "Berlin - Miasto Grzechu.pdf"
+      );
+      expect(berlinPl.profile).toBe("setting_expansion");
+      expect(berlinPl.title).toBe("Berlin: Miasto Grzechu");
+
+      const berlinEn = detectRulebookProfile(
+        "Berlin: The Wicked City. Unveiling Weimar Berlin during the interwar years for Call of Cthulhu.",
+        "Berlin The Wicked City.pdf"
+      );
+      expect(berlinEn.profile).toBe("setting_expansion");
+      expect(berlinEn.title).toBe("Berlin: The Wicked City");
+
+      const darkAges = detectRulebookProfile(
+        "Cthulhu Dark Ages. 10th century Anglo-Saxon horrors, castles, and pagan mysteries in Call of Cthulhu.",
+        "Cthulhu Dark Ages 3rd Edition.pdf"
+      );
+      expect(darkAges.profile).toBe("setting_expansion");
+      expect(darkAges.title).toBe("Cthulhu Dark Ages");
+
+      const gaslight = detectRulebookProfile(
+        "Cthulhu by Gaslight. Victorian London, smog, and fog-shrouded investigations for Call of Cthulhu.",
+        "Cthulhu by Gaslight.pdf"
+      );
+      expect(gaslight.profile).toBe("setting_expansion");
+      expect(gaslight.title).toBe("Cthulhu by Gaslight");
+
+      const arkham = detectRulebookProfile(
+        "Call of Cthulhu: Arkham. Unveiling the legend-haunted city in Massachusetts and its hidden horrors.",
+        "Call of Cthulhu Arkham.pdf"
+      );
+      expect(arkham.profile).toBe("setting_expansion");
+      expect(arkham.title).toBe("Call of Cthulhu: Arkham");
+    });
+
+    it("rozpoznaje oficjalne scenariusze jednostrzałowe z katalogu wydawców", () => {
+      const haunting = detectRulebookProfile(
+        "Nawiedzony Dom. Badanie ponurej posiadłości Waltera Corbitta w Bostonie dla Zewu Cthulhu.",
+        "Nawiedzony Dom.pdf"
+      );
+      expect(haunting.profile).toBe("one_shot");
+      expect(haunting.title).toBe("Nawiedzony Dom");
+
+      const edge = detectRulebookProfile(
+        "Edge of Darkness. The dying secret of Marion Allen and the locked cottage for Call of Cthulhu.",
+        "Edge of Darkness.pdf"
+      );
+      expect(edge.profile).toBe("one_shot");
+      expect(edge.title).toBe("Edge of Darkness");
+
+      const boarder = detectRulebookProfile(
+        "Nieboszczyk w hotelu. Zbrodnia w pensjonacie Ma i śledztwo w pokoju denata do Zewu Cthulhu.",
+        "Nieboszczyk w hotelu.pdf"
+      );
+      expect(boarder.profile).toBe("one_shot");
+      expect(boarder.title).toBe("Nieboszczyk w hotelu");
+
+      const blackwater = detectRulebookProfile(
+        "Blackwater Creek. A corrupt town in Massachusetts and the cursed spring for Call of Cthulhu.",
+        "Blackwater Creek.pdf"
+      );
+      expect(blackwater.profile).toBe("one_shot");
+      expect(blackwater.title).toBe("Blackwater Creek");
+
+      const derelict = detectRulebookProfile(
+        "The Derelict. An abandoned luxury vessel in the icy North Atlantic for Call of Cthulhu.",
+        "The Derelict.pdf"
+      );
+      expect(derelict.profile).toBe("one_shot");
+      expect(derelict.title).toBe("The Derelict");
     });
   });
 });

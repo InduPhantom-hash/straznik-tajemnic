@@ -62,6 +62,535 @@ function stripDiacritics(str: string): string {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "L");
 }
 
+export interface OfficialPublication {
+  id: string;
+  profile: RulebookProfile;
+  titlePl: string;
+  titleEn: string;
+  patterns: string[];
+  adventureType?: 'one_shot' | 'scenario_anthology' | 'mega_campaign';
+}
+
+/**
+ * Zamknięty katalog oficjalnych publikacji Black Monk Games (PL) oraz Chaosium (EN) dla 7. edycji.
+ */
+export const OFFICIAL_PUBLICATIONS: OfficialPublication[] = [
+  // --- PODRĘCZNIKI GŁÓWNE I ZASADY (CORE & RULES) ---
+  {
+    id: 'keeper-rulebook',
+    profile: 'core-d100',
+    titlePl: 'Księga Zasad Głównych d100 (Core Book)',
+    titleEn: 'Call of Cthulhu: Keeper Rulebook',
+    patterns: [
+      'ksiega straznika',
+      'ksiegastraznika',
+      'podrecznik straznika',
+      'keeper rulebook',
+      "keeper's rulebook",
+      'core rules',
+      'core_rules',
+    ],
+  },
+  {
+    id: 'investigator-handbook',
+    profile: 'investigator_handbook',
+    titlePl: 'Księga Badacza d100 (Investigator Handbook)',
+    titleEn: 'Call of Cthulhu: Investigator Handbook',
+    patterns: [
+      'ksiega badacza',
+      'ksiega badaczy',
+      'podrecznik badacza',
+      'podrecznik badaczy',
+      'investigator handbook',
+      "investigator's handbook",
+      'investigators handbook',
+    ],
+  },
+  {
+    id: 'starter-set',
+    profile: 'starter-d100',
+    titlePl: 'Zestaw Startowy d100 (Starter Set)',
+    titleEn: 'Call of Cthulhu: Starter Set',
+    adventureType: 'one_shot',
+    patterns: [
+      'zestaw startowy',
+      'starter set',
+      'zasady wprowadzajace',
+      'zasady skrocone',
+      'quick-start rules',
+      'quickstart rules',
+    ],
+  },
+  {
+    id: 'pulp-cthulhu',
+    profile: 'pulp-d100',
+    titlePl: 'Pulp d100: Księga Zasad (Pulp Ruleset)',
+    titleEn: 'Pulp d100: Rulebook',
+    patterns: ['pulp cthulhu', 'pulp-cthulhu'],
+  },
+  {
+    id: 'grand-grimoire',
+    profile: 'grimoire',
+    titlePl: 'Wielki Grymuar Magii Mitów Cthulhu',
+    titleEn: 'The Grand Grimoire of Cthulhu Mythos Magic',
+    patterns: ['wielki grymuar', 'grand grimoire', 'grymuar magii mitow'],
+  },
+  {
+    id: 'malleus-monstrorum',
+    profile: 'bestiary',
+    titlePl: 'Malleus Monstrorum: Bestiariusz Mitów Cthulhu',
+    titleEn: 'Malleus Monstrorum: Cthulhu Mythos Bestiary',
+    patterns: [
+      'malleus monstrorum',
+      'bestiariusz mitow cthulhu',
+      'bestiariusz mitow',
+      'ksiega bestii',
+    ],
+  },
+  {
+    id: 'petersen-field-guide',
+    profile: 'bestiary',
+    titlePl: 'Przewodnik Petersena po potworach i bóstwach Mitów Cthulhu',
+    titleEn: "Petersen's Field Guide to Lovecraftian Horrors",
+    patterns: ['field guide to lovecraftian', 'petersen'],
+  },
+
+  // --- WIELKIE KAMPANIE (MEGA-CAMPAIGNS) ---
+  {
+    id: 'masks-of-nyarlathotep',
+    profile: 'mega_campaign',
+    titlePl: 'Maski Nyarlathotepa',
+    titleEn: 'Masks of Nyarlathotep',
+    adventureType: 'mega_campaign',
+    patterns: ['maski nyarlathotepa', 'masks of nyarlathotep', 'nyarlathotep'],
+  },
+  {
+    id: 'horror-on-the-orient-express',
+    profile: 'mega_campaign',
+    titlePl: 'Horror w Orient Expressie',
+    titleEn: 'Horror on the Orient Express',
+    adventureType: 'mega_campaign',
+    patterns: ['horror w orient expressie', 'horror on the orient express', 'orient express'],
+  },
+  {
+    id: 'a-time-to-harvest',
+    profile: 'mega_campaign',
+    titlePl: 'Czas Żniw',
+    titleEn: 'A Time to Harvest',
+    adventureType: 'mega_campaign',
+    patterns: ['czas zniw', 'time to harvest'],
+  },
+  {
+    id: 'the-children-of-fear',
+    profile: 'mega_campaign',
+    titlePl: 'Dzieci Snów',
+    titleEn: 'The Children of Fear',
+    adventureType: 'mega_campaign',
+    patterns: ['dzieci snow', 'children of fear'],
+  },
+  {
+    id: 'two-headed-serpent',
+    profile: 'mega_campaign',
+    titlePl: 'Dwugłowy Wąż',
+    titleEn: 'The Two-Headed Serpent',
+    adventureType: 'mega_campaign',
+    patterns: ['dwuglowy waz', 'dwa weze', 'two-headed serpent', 'two headed serpent'],
+  },
+  {
+    id: 'beyond-mountains-of-madness',
+    profile: 'mega_campaign',
+    titlePl: 'W Górach Szaleństwa',
+    titleEn: 'Beyond the Mountains of Madness',
+    adventureType: 'mega_campaign',
+    patterns: ['beyond the mountains of madness', 'w gorach szalenstwa'],
+  },
+  {
+    id: 'shadows-of-yog-sothoth',
+    profile: 'mega_campaign',
+    titlePl: 'Cienie Yog-Sothotha',
+    titleEn: 'Shadows of Yog-Sothoth',
+    adventureType: 'mega_campaign',
+    patterns: ['cienie yog-sothotha', 'shadows of yog-sothoth', 'cienie yog sothotha'],
+  },
+
+  // --- ANTOLOGIE I ZBIORY SCENARIUSZY (SCENARIO ANTHOLOGIES) ---
+  {
+    id: 'cienie-tatr',
+    profile: 'scenario_anthology',
+    titlePl: 'Cienie Tatr',
+    titleEn: 'Shadows over Tatras (Cienie Tatr)',
+    adventureType: 'scenario_anthology',
+    patterns: ['cienie tatr'],
+  },
+  {
+    id: 'horror-nad-warta',
+    profile: 'scenario_anthology',
+    titlePl: 'Horror nad Wartą',
+    titleEn: 'Horror on the Warta River',
+    adventureType: 'scenario_anthology',
+    patterns: ['horror nad warta'],
+  },
+  {
+    id: 'doors-to-darkness',
+    profile: 'scenario_anthology',
+    titlePl: 'Wrota Mroku',
+    titleEn: 'Doors to Darkness',
+    adventureType: 'scenario_anthology',
+    patterns: ['wrota mroku', 'doors to darkness'],
+  },
+  {
+    id: 'mansions-of-madness',
+    profile: 'scenario_anthology',
+    titlePl: 'Posiadłości Szaleństwa',
+    titleEn: 'Mansions of Madness',
+    adventureType: 'scenario_anthology',
+    patterns: ['posiadlosci szalenstwa', 'mansions of madness'],
+  },
+  {
+    id: 'nameless-horrors',
+    profile: 'scenario_anthology',
+    titlePl: 'Nienazwane Zgrozy',
+    titleEn: 'Nameless Horrors',
+    adventureType: 'scenario_anthology',
+    patterns: ['nienazwane zgrozy', 'nameless horrors'],
+  },
+  {
+    id: 'gateways-to-terror',
+    profile: 'scenario_anthology',
+    titlePl: 'Wrota Grozy',
+    titleEn: 'Gateways to Terror',
+    adventureType: 'scenario_anthology',
+    patterns: ['wrota grozy', 'gateways to terror'],
+  },
+  {
+    id: 'dead-light',
+    profile: 'scenario_anthology',
+    titlePl: 'Zimne Światło',
+    titleEn: 'Dead Light and Other Dark Turns',
+    adventureType: 'scenario_anthology',
+    patterns: ['zimne swiatlo', 'dead light'],
+  },
+  {
+    id: 'cults-of-cthulhu',
+    profile: 'scenario_anthology',
+    titlePl: 'Kulty Cthulhu',
+    titleEn: 'Cults of Cthulhu',
+    adventureType: 'scenario_anthology',
+    patterns: ['kulty cthulhu', 'cults of cthulhu'],
+  },
+  {
+    id: 'uslysz-zew-cthulhu',
+    profile: 'scenario_anthology',
+    titlePl: 'Usłysz Zew Cthulhu',
+    titleEn: 'Hear the Call of Cthulhu',
+    adventureType: 'scenario_anthology',
+    patterns: ['uslysz zew cthulhu'],
+  },
+  {
+    id: 'kwiat-paproci',
+    profile: 'scenario_anthology',
+    titlePl: 'Kwiat Paproci',
+    titleEn: 'The Fern Flower',
+    adventureType: 'scenario_anthology',
+    patterns: ['kwiat paproci', 'kwiatpaproci'],
+  },
+  {
+    id: 'does-love-forgive',
+    profile: 'scenario_anthology',
+    titlePl: 'Miłość ci wszystko wybaczy?',
+    titleEn: 'Does Love Forgive?',
+    adventureType: 'scenario_anthology',
+    patterns: ['milosc ci wszystko wybaczy', 'does love forgive'],
+  },
+  {
+    id: 'pisk-wizg-odlamek',
+    profile: 'scenario_anthology',
+    titlePl: 'Pisk, wizg i Odłamek',
+    titleEn: 'Squeak, Screech and Shard',
+    adventureType: 'scenario_anthology',
+    patterns: ['pisk, wizg', 'pisk wizg'],
+  },
+  {
+    id: 'uwierz-w-duchy',
+    profile: 'scenario_anthology',
+    titlePl: 'Uwierz w duchy',
+    titleEn: 'Believe in Ghosts',
+    adventureType: 'scenario_anthology',
+    patterns: ['uwierz w duchy'],
+  },
+  {
+    id: 'no-time-to-scream',
+    profile: 'scenario_anthology',
+    titlePl: 'Nie czas na krzyk',
+    titleEn: 'No Time to Scream',
+    adventureType: 'scenario_anthology',
+    patterns: ['nie czas na krzyk', 'no time to scream'],
+  },
+
+  // --- SETTINGI, EPOKI I ALMANACHY (SETTING EXPANSIONS) ---
+  {
+    id: 'berlin-wicked-city',
+    profile: 'setting_expansion',
+    titlePl: 'Berlin: Miasto Grzechu',
+    titleEn: 'Berlin: The Wicked City',
+    patterns: ['berlin: the wicked city', 'berlin the wicked city', 'berlin: miasto grzechu', 'berlin miasto grzechu'],
+  },
+  {
+    id: 'down-darker-trails',
+    profile: 'setting_expansion',
+    titlePl: 'Down Darker Trails - Dziki Zachód',
+    titleEn: 'Down Darker Trails',
+    patterns: ['down darker trails'],
+  },
+  {
+    id: 'cthulhu-dark-ages',
+    profile: 'setting_expansion',
+    titlePl: 'Cthulhu: Mroczne Wieki',
+    titleEn: 'Cthulhu Dark Ages',
+    patterns: ['dark ages', 'mroczne wieki'],
+  },
+  {
+    id: 'cthulhu-by-gaslight',
+    profile: 'setting_expansion',
+    titlePl: 'Cthulhu by Gaslight',
+    titleEn: 'Cthulhu by Gaslight',
+    patterns: ['by gaslight', 'gaslight', 'swiatlo gazowych latarni'],
+  },
+  {
+    id: 'regency-cthulhu',
+    profile: 'setting_expansion',
+    titlePl: 'Regency Cthulhu',
+    titleEn: 'Regency Cthulhu',
+    patterns: ['regency cthulhu'],
+  },
+  {
+    id: 'harlem-unbound',
+    profile: 'setting_expansion',
+    titlePl: 'Harlem Unbound',
+    titleEn: 'Harlem Unbound',
+    patterns: ['harlem unbound'],
+  },
+  {
+    id: 'reign-of-terror',
+    profile: 'setting_expansion',
+    titlePl: 'Rządy Terroru',
+    titleEn: 'Reign of Terror',
+    patterns: ['reign of terror', 'rzady terroru'],
+  },
+  {
+    id: 'arkham-unveiled',
+    profile: 'setting_expansion',
+    titlePl: 'Arkham: Miasto Legend',
+    titleEn: 'Call of Cthulhu: Arkham',
+    patterns: ['call of cthulhu arkham', 'secrets of arkham', 'arkham unveiled'],
+  },
+  {
+    id: 'powrot-do-rlyeh',
+    profile: 'setting_expansion',
+    titlePl: "Powrót do R'lyeh - Almanach Strażnika",
+    titleEn: "Return to R'lyeh - Keeper Almanac",
+    patterns: ['powrot do rlyeh', 'powrotdorlyeh', 'almanach straznika'],
+  },
+  {
+    id: 'postaci-historyczne',
+    profile: 'setting_expansion',
+    titlePl: 'Postaci Historyczne',
+    titleEn: 'Historical Characters',
+    patterns: ['postaci historyczne', 'postaci_historyczne', 'postaci-historyczne'],
+  },
+  {
+    id: 'miniporadnik-oni',
+    profile: 'setting_expansion',
+    titlePl: 'Miniporadnik: ONI',
+    titleEn: 'Keeper Guide: THEM',
+    patterns: ['miniporadnik_oni', 'miniporadnik: oni', 'miniporadnik oni'],
+  },
+  {
+    id: 'miniporadnik-martwy-punkt',
+    profile: 'setting_expansion',
+    titlePl: 'Miniporadnik: W martwym punkcie',
+    titleEn: 'Keeper Guide: Dead Point',
+    patterns: ['w_martwym_punkcie', 'w martwym punkcie'],
+  },
+  {
+    id: 'miniporadnik-wrak',
+    profile: 'setting_expansion',
+    titlePl: 'Miniporadnik: Wrak',
+    titleEn: 'Keeper Guide: The Wreck',
+    patterns: ['miniporadnik_wrak', 'miniporadnik: wrak', 'miniporadnik wrak'],
+  },
+
+  // --- OFICJALNE JEDNOSTRZAŁY (ONE-SHOTS) ---
+  {
+    id: 'trzeba-karmic-ogien',
+    profile: 'one_shot',
+    titlePl: 'Trzeba karmić ogień',
+    titleEn: 'Feed the Fire',
+    adventureType: 'one_shot',
+    patterns: ['trzeba karmic ogien', 'trzeba_karmic'],
+  },
+  {
+    id: 'lightless-beacon',
+    profile: 'one_shot',
+    titlePl: 'Mroczna Latarnia',
+    titleEn: 'The Lightless Beacon',
+    adventureType: 'one_shot',
+    patterns: ['mroczna latarnia', 'mrocznalatarnia', 'mroczna_latarnia', 'lightless beacon'],
+  },
+  {
+    id: 'w-czelusciach-sklepow',
+    profile: 'one_shot',
+    titlePl: 'W czeluściach sklepów',
+    titleEn: 'In the Depths of the Stores',
+    adventureType: 'one_shot',
+    patterns: ['w czelusciach sklepow', 'w_czelusciach_sklepow', 'w-czelusciach-sklepow'],
+  },
+  {
+    id: 'krakowska-enigma',
+    profile: 'one_shot',
+    titlePl: 'Krakowska Enigma',
+    titleEn: 'The Krakow Enigma',
+    adventureType: 'one_shot',
+    patterns: ['krakowska enigma', 'krakowska_enigma', 'krakowska-enigma'],
+  },
+  {
+    id: 'noc-zaglady',
+    profile: 'one_shot',
+    titlePl: 'World War Cthulhu: Noc Zagłady',
+    titleEn: 'World War Cthulhu: The Night of Doom',
+    adventureType: 'one_shot',
+    patterns: ['noc zaglady', 'noc_zaglady', 'noc-zaglady'],
+  },
+  {
+    id: 'pelzajaca-kontrrewolucja',
+    profile: 'one_shot',
+    titlePl: 'Pełzająca kontrrewolucja',
+    titleEn: 'The Creeping Counter-Revolution',
+    adventureType: 'one_shot',
+    patterns: ['pelzajaca kontrrewolucja', 'kontrrewolucja'],
+  },
+  {
+    id: 'the-haunting',
+    profile: 'one_shot',
+    titlePl: 'Nawiedzony Dom',
+    titleEn: 'The Haunting',
+    adventureType: 'one_shot',
+    patterns: ['nawiedzony dom', 'the haunting', 'dom corbitta'],
+  },
+  {
+    id: 'edge-of-darkness',
+    profile: 'one_shot',
+    titlePl: 'Na Krawędzi Ciemności',
+    titleEn: 'Edge of Darkness',
+    adventureType: 'one_shot',
+    patterns: ['na krawedzi ciemnosci', 'edge of darkness'],
+  },
+  {
+    id: 'dead-boarder',
+    profile: 'one_shot',
+    titlePl: 'Nieboszczyk w hotelu',
+    titleEn: 'The Dead Boarder',
+    adventureType: 'one_shot',
+    patterns: ['nieboszczyk w hotelu', 'dead boarder'],
+  },
+  {
+    id: 'blackwater-creek',
+    profile: 'one_shot',
+    titlePl: 'Czarne Wody',
+    titleEn: 'Blackwater Creek',
+    adventureType: 'one_shot',
+    patterns: ['blackwater creek', 'czarne wody'],
+  },
+  {
+    id: 'crimson-letters',
+    profile: 'one_shot',
+    titlePl: 'Szkarłatne Litery',
+    titleEn: 'Crimson Letters',
+    adventureType: 'one_shot',
+    patterns: ['szkarlatne litery', 'crimson letters'],
+  },
+  {
+    id: 'among-ancient-trees',
+    profile: 'one_shot',
+    titlePl: 'Pośród Pradawnych Drzew',
+    titleEn: 'Among the Ancient Trees',
+    adventureType: 'one_shot',
+    patterns: ['posrod pradawnych drzew', 'among the ancient trees'],
+  },
+  {
+    id: 'missed-dues',
+    profile: 'one_shot',
+    titlePl: 'Zaległe Należności',
+    titleEn: 'Missed Dues',
+    adventureType: 'one_shot',
+    patterns: ['zalegle naleznosci', 'missed dues'],
+  },
+  {
+    id: 'scritch-scratch',
+    profile: 'one_shot',
+    titlePl: 'Drap Drap',
+    titleEn: 'Scritch Scratch',
+    adventureType: 'one_shot',
+    patterns: ['drap drap', 'scritch scratch'],
+  },
+  {
+    id: 'the-derelict',
+    profile: 'one_shot',
+    titlePl: 'Wrak',
+    titleEn: 'The Derelict',
+    adventureType: 'one_shot',
+    patterns: ['the derelict'],
+  },
+  {
+    id: 'dead-man-stomp',
+    profile: 'one_shot',
+    titlePl: 'Trupia Sambita',
+    titleEn: 'Dead Man Stomp',
+    adventureType: 'one_shot',
+    patterns: ['dead man stomp', 'trupia sambita'],
+  },
+];
+
+/**
+ * Szuka dopasowania do zamkniętego katalogu oficjalnych publikacji.
+ */
+export function matchOfficialPublication(
+  cleanFileName: string,
+  titleHeaderSample: string,
+  profileFilter?: RulebookProfile
+): OfficialPublication | null {
+  if (cleanFileName) {
+    for (const pub of OFFICIAL_PUBLICATIONS) {
+      if (profileFilter && pub.profile !== profileFilter) continue;
+      for (const pattern of pub.patterns) {
+        if (cleanFileName.includes(pattern)) {
+          return pub;
+        }
+      }
+    }
+  }
+
+  if (titleHeaderSample) {
+    let earliestMatch: { pub: OfficialPublication; pos: number } | null = null;
+    for (const pub of OFFICIAL_PUBLICATIONS) {
+      if (profileFilter && pub.profile !== profileFilter) continue;
+      for (const pattern of pub.patterns) {
+        const pos = titleHeaderSample.indexOf(pattern);
+        if (pos !== -1) {
+          if (!earliestMatch || pos < earliestMatch.pos) {
+            earliestMatch = { pub, pos };
+          }
+        }
+      }
+    }
+    if (earliestMatch) {
+      return earliestMatch.pub;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Analizuje tekst podręcznika PDF i wykrywa jego profil systemowy oraz plan ekstrakcji semantycznej.
  */
@@ -107,25 +636,43 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
   const titleHeaderSample = normalizedHeaderSample.slice(0, 4500);
 
   // 1. Detekcja języka dokumentu
+  const hasPolishDiacritics = /[ąćęłńóśźż]/i.test(fileName) || /[ąćęłńóśźż]/i.test(rawSample);
+
   const plMarkers = [
     'poczytalnosc',
     'badacz',
+    'badacze',
+    'badaczy',
     'straznik tajemnic',
+    'straznik',
     'kosc',
+    'kosci',
     'k100',
     'wspolczynniki',
     'sila',
     'kondycja',
     'zrecznosc',
     'przygoda',
+    'przygody',
     'scenariusz',
+    'scenariusze',
     'poszlaki',
     'rekwizyt',
+    'rekwizyty',
+    'kampania',
+    'edycja',
+    'rozdzial',
+    'tajemnice',
+    'mitow',
+    'zew cthulhu',
+    'postaci',
   ];
   const enMarkers = [
     'sanity',
     'investigator',
+    'investigators',
     'keeper of arcane lore',
+    'keeper',
     'dice',
     'd100',
     'characteristics',
@@ -133,9 +680,16 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     'constitution',
     'dexterity',
     'adventure',
+    'adventures',
     'scenario',
+    'scenarios',
     'clues',
     'handout',
+    'handouts',
+    'campaign',
+    'edition',
+    'chapter',
+    'call of cthulhu',
   ];
 
   let plHits = 0;
@@ -148,7 +702,11 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
   }
 
   const detectedLanguage: 'pl' | 'en' | 'unknown' =
-    plHits > enHits && plHits >= 2 ? 'pl' : enHits > plHits && enHits >= 2 ? 'en' : 'unknown';
+    hasPolishDiacritics || (plHits > enHits && plHits >= 1)
+      ? 'pl'
+      : enHits > plHits && enHits >= 1
+      ? 'en'
+      : 'unknown';
 
   // 2. Detekcja podsystemów regułowych i cech
   const hasSanityRules =
@@ -311,14 +869,29 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
       cleanFileName.includes('postaci_historyczne') ||
       normalizedHeaderSample.includes('postaci historyczne'));
 
-  // H. Starter (Zasady Skrócone / Quick-Start)
+  // H. Starter (Zasady Skrócone / Quick-Start / Zestaw Startowy)
   const isStarterIndicator =
     !isScenarioHeader &&
     !isAnthologyHeader &&
     !isKeeperGuideHeader &&
     (cleanFileName.includes('starter') ||
       cleanFileName.includes('quick-start') ||
+      cleanFileName.includes('quick_start') ||
       cleanFileName.includes('quickstart') ||
+      cleanFileName.includes('zestaw startowy') ||
+      cleanFileName.includes('zestaw_startowy') ||
+      cleanFileName.includes('zasady_wprowadzajace') ||
+      cleanFileName.includes('zasady-wprowadzajace') ||
+      cleanFileName.includes('zasady wprowadzajace') ||
+      cleanFileName.includes('zasady skrocone') ||
+      cleanFileName.includes('zasady_skrocone') ||
+      normalizedHeaderSample.includes('zestaw startowy') ||
+      normalizedHeaderSample.includes('starter set') ||
+      normalizedHeaderSample.includes('quick-start rules') ||
+      normalizedHeaderSample.includes('zasady wprowadzajace') ||
+      normalizedHeaderSample.includes('zasady skrocone') ||
+      sample.includes('zestaw startowy') ||
+      sample.includes('starter set') ||
       sample.includes('zasady skrocone') ||
       sample.includes('skrocone zasady') ||
       sample.includes('quick-start') ||
@@ -335,12 +908,17 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     (cleanFileName.includes('ksiega straznika') ||
       cleanFileName.includes('ksiegastraznika') ||
       cleanFileName.includes('ksiega_straznika') ||
+      cleanFileName.includes('podrecznik straznika') ||
+      cleanFileName.includes('podrecznik_straznika') ||
       cleanFileName.includes('keeper rulebook') ||
       cleanFileName.includes('keeper_rulebook') ||
+      cleanFileName.includes("keeper's rulebook") ||
       cleanFileName.includes('core_rules') ||
       cleanFileName.includes('core-rules') ||
       titleHeaderSample.includes('ksiega straznika') ||
+      titleHeaderSample.includes('podrecznik straznika') ||
       titleHeaderSample.includes('keeper rulebook') ||
+      titleHeaderSample.includes("keeper's rulebook") ||
       (normalizedHeaderSample.includes('rozdzial 3 tworzenie badaczy') &&
         normalizedHeaderSample.includes('rozdzial 7 poscigi') &&
         normalizedHeaderSample.includes('rozdzial 8 poczytalnosc')));
@@ -357,6 +935,10 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
       cleanFileName.includes('grimoire') ||
       normalizedHeaderSample.includes('wielki grymuar') ||
       normalizedHeaderSample.includes('grand grimoire') ||
+      titleHeaderSample.includes('wielki grymuar') ||
+      titleHeaderSample.includes('grand grimoire') ||
+      titleHeaderSample.includes('grimoire') ||
+      titleHeaderSample.includes('grymuar') ||
       (hasSpells &&
         (sample.includes('gleboka magia') ||
           sample.includes('deep magic') ||
@@ -371,10 +953,17 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     !isGrimoireIndicator &&
     (cleanFileName.includes('malleus') ||
       cleanFileName.includes('bestiariusz') ||
+      cleanFileName.includes('ksiega bestii') ||
+      cleanFileName.includes('ksiega_bestii') ||
       cleanFileName.includes('field guide') ||
+      cleanFileName.includes('field_guide') ||
       normalizedHeaderSample.includes('malleus monstrorum') ||
       normalizedHeaderSample.includes('field guide to lovecraftian') ||
       normalizedHeaderSample.includes('bestiariusz mitow') ||
+      normalizedHeaderSample.includes('ksiega bestii') ||
+      titleHeaderSample.includes('malleus monstrorum') ||
+      titleHeaderSample.includes('bestiariusz') ||
+      titleHeaderSample.includes('field guide') ||
       (hasCreatures &&
         (sample.includes('bostwa') || sample.includes('deities')) &&
         !hasSpells &&
@@ -383,7 +972,7 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     !hasChaseRules &&
     !hasInvestigatorCreation;
 
-  // C. Podręcznik Badacza (Investigator Handbook)
+  // C. Podręcznik Badacza / Księga Badacza (Investigator Handbook)
   const isInvestigatorHandbookIndicator =
     !isExplicitCoreBook &&
     !isScenarioHeader &&
@@ -391,10 +980,28 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     !isKeeperGuideHeader &&
     (cleanFileName.includes('podrecznik badacza') ||
       cleanFileName.includes('podrecznik_badacza') ||
+      cleanFileName.includes('podrecznik badaczy') ||
+      cleanFileName.includes('podrecznik_badaczy') ||
+      cleanFileName.includes('ksiega badacza') ||
+      cleanFileName.includes('ksiega_badacza') ||
+      cleanFileName.includes('ksiega badaczy') ||
+      cleanFileName.includes('ksiega_badaczy') ||
       cleanFileName.includes('investigator handbook') ||
       cleanFileName.includes('investigator_handbook') ||
+      cleanFileName.includes("investigator's handbook") ||
+      cleanFileName.includes('investigators handbook') ||
+      cleanFileName.includes('investigators_handbook') ||
       normalizedHeaderSample.includes('podrecznik badacza') ||
-      normalizedHeaderSample.includes('investigator handbook')) &&
+      normalizedHeaderSample.includes('podrecznik badaczy') ||
+      normalizedHeaderSample.includes('ksiega badacza') ||
+      normalizedHeaderSample.includes('ksiega badaczy') ||
+      normalizedHeaderSample.includes('investigator handbook') ||
+      normalizedHeaderSample.includes("investigator's handbook") ||
+      normalizedHeaderSample.includes('investigators handbook') ||
+      titleHeaderSample.includes('ksiega badacza') ||
+      titleHeaderSample.includes('podrecznik badacza') ||
+      titleHeaderSample.includes('investigator handbook') ||
+      titleHeaderSample.includes("investigator's handbook")) &&
     !sample.includes('ksiega straznika') &&
     !sample.includes('keeper rulebook');
 
@@ -540,7 +1147,30 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
         ? 'Księga Zasad Głównych d100 (Core Book)'
         : 'Core Rulebook d100 (Core Book)';
     confidence = 0.96;
-  } else if (isGrimoireIndicator) {
+  } else {
+    const officialPub = matchOfficialPublication(cleanFileName, titleHeaderSample);
+    if (officialPub && (!isScenarioHeader || officialPub.profile === 'one_shot')) {
+      profile = officialPub.profile;
+      const pubTitlePlClean = stripDiacritics(officialPub.titlePl.toLowerCase());
+      const pubTitleEnClean = stripDiacritics(officialPub.titleEn.toLowerCase());
+      const matchesPlTitle =
+        cleanFileName.includes(pubTitlePlClean) ||
+        titleHeaderSample.includes(pubTitlePlClean);
+      const matchesEnTitle =
+        cleanFileName.includes(pubTitleEnClean) ||
+        titleHeaderSample.includes(pubTitleEnClean);
+
+      const isPolishPublication =
+        detectedLanguage === 'pl' ||
+        (detectedLanguage !== 'en' && matchesPlTitle) ||
+        (matchesPlTitle && !matchesEnTitle);
+
+      title = isPolishPublication ? officialPub.titlePl : officialPub.titleEn;
+      if (officialPub.adventureType) {
+        adventureType = officialPub.adventureType;
+      }
+      confidence = 0.98;
+    } else if (isGrimoireIndicator) {
     profile = 'grimoire';
     title =
       cleanFileName.includes('wielki') || sample.includes('wielki grymuar')
@@ -594,7 +1224,9 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     profile = 'investigator_handbook';
     title =
       detectedLanguage === 'pl'
-        ? 'Podręcznik Badacza d100 (Investigator Handbook)'
+        ? (cleanFileName.includes('ksiega') || normalizedHeaderSample.includes('ksiega badacz')
+          ? 'Księga Badacza d100 (Investigator Handbook)'
+          : 'Podręcznik Badacza d100 (Investigator Handbook)')
         : 'd100 Investigator Handbook';
     confidence = 0.95;
   } else if (isPulpIndicator) {
@@ -632,8 +1264,12 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     profile = 'starter-d100';
     title =
       detectedLanguage === 'pl'
-        ? 'Zasady Skrócone d100 (Quick-Start Rules)'
-        : 'Quick-Start Rules d100';
+        ? (cleanFileName.includes('zestaw') || normalizedHeaderSample.includes('zestaw startowy')
+          ? 'Zestaw Startowy d100 (Starter Set)'
+          : 'Zasady Skrócone d100 (Quick-Start Rules)')
+        : (cleanFileName.includes('starter set') || normalizedHeaderSample.includes('starter set')
+          ? 'Starter Set d100'
+          : 'Quick-Start Rules d100');
     confidence = 0.9;
     adventureType = 'one_shot';
   } else if (isOneShotIndicator) {
@@ -674,6 +1310,7 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     confidence = 0.75;
     adventureType = 'one_shot';
   }
+}
 
   // 4. Budowanie planu ekstrakcji semantycznej (Semantic Extraction Plan)
   const detectedCategories: SemanticTag[] = [];
@@ -687,15 +1324,15 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
     rules: false,
   };
 
-  if (hasCombatRules || hasChaseRules || hasSanityRules || isPulpIndicator || isInvestigatorHandbookIndicator) {
+  if (hasCombatRules || hasChaseRules || hasSanityRules || isPulpIndicator || isInvestigatorHandbookIndicator || profile === 'investigator_handbook' || profile === 'pulp-d100') {
     detectedCategories.push('MECHANIKA');
     estimatedEntities.rules = true;
   }
-  if (hasCreatures || isBestiaryIndicator || isCoreIndicator) {
+  if (hasCreatures || isBestiaryIndicator || isCoreIndicator || profile === 'bestiary') {
     detectedCategories.push('BESTIARIUSZ');
     estimatedEntities.creatures = true;
   }
-  if (hasSpells || hasMagicRules || isGrimoireIndicator || isCoreIndicator) {
+  if (hasSpells || hasMagicRules || isGrimoireIndicator || isCoreIndicator || profile === 'grimoire') {
     detectedCategories.push('CZARY');
     estimatedEntities.spells = true;
   }
