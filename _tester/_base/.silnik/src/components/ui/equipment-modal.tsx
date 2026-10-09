@@ -49,7 +49,6 @@ import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { useMessages, useTranslations, useLocale } from 'next-intl';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
-import { getEraImageFilter } from '@/lib/era-visual-style';
 import { migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
 import { resolveGameEraContext, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
 
@@ -647,7 +646,6 @@ function ItemThumbnail({
             src={item.imageUrl}
             alt={item.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            style={{ filter: getEraImageFilter(era) }}
           />
           {canGenerate && (
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
