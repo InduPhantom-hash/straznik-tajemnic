@@ -142,23 +142,13 @@ export function useEquipmentThumbnails({
         let catalogUpdated = false;
         const enrichedEquipment = (character.equipment ?? []).map((item) => {
           if (item.visualSource === 'generated') return item;
-          const hasValidImage =
-            item.imageUrl &&
-            !item.imageUrl.endsWith('.svg') &&
-            !item.imageUrl.includes('/predefined/') &&
-            !item.imageUrl.includes('/equipment/predefined/');
-          if (hasValidImage && item.visualSource === 'catalog') {
+
+          const enriched = applyCatalogTemplate(item, era);
+          if (item.visualSource === 'catalog' && item.imageUrl === enriched.imageUrl) {
             return item;
           }
 
-          const enriched = applyCatalogTemplate(item, era);
-          const hasEnrichedValidImage =
-            enriched.imageUrl &&
-            !enriched.imageUrl.endsWith('.svg') &&
-            !enriched.imageUrl.includes('/predefined/') &&
-            !enriched.imageUrl.includes('/equipment/predefined/');
-
-          if (hasEnrichedValidImage && enriched.imageUrl !== item.imageUrl) {
+          if (enriched.imageUrl && enriched.imageUrl !== item.imageUrl) {
             catalogUpdated = true;
             return enriched;
           }

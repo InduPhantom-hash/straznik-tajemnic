@@ -2100,6 +2100,12 @@ export function applyCatalogTemplate(
   }
 
   const catalogAsset = resolveCatalogAsset(template, visualEra);
+  const isCustomDataImage = Boolean(item.imageUrl && item.imageUrl.startsWith('data:'));
+
+  const isCatalogManaged =
+    item.visualSource === 'catalog' ||
+    Boolean(item.imageUrl && item.imageUrl.startsWith('/equipment/catalog/'));
+
   const isSvgOrFallback =
     !item.imageUrl ||
     item.imageUrl.endsWith('.svg') ||
@@ -2112,6 +2118,13 @@ export function applyCatalogTemplate(
       ? template.category
       : item.category;
 
+  let resolvedImageUrl = item.imageUrl;
+  if (!isCustomDataImage) {
+    if (isCatalogManaged || isSvgOrFallback) {
+      resolvedImageUrl = catalogAsset ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory];
+    }
+  }
+
   const defaultCapacity = template.modifiers?.capacity ? Number(template.modifiers.capacity) : 6;
   const isFirearm = resolvedCategory === 'weapon' && Boolean(template.modifiers?.range || template.modifiers?.capacity);
 
@@ -2123,9 +2136,9 @@ export function applyCatalogTemplate(
     description: item.description || template.description,
     modifiers: item.modifiers ?? template.modifiers,
     value: item.value ?? template.value,
-    visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'fallback'),
+    visualSource: isCustomDataImage ? (item.visualSource ?? 'fallback') : (catalogAsset ? 'catalog' : 'fallback'),
     visualTreatment: template.visualTreatment,
-    imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory]),
+    imageUrl: resolvedImageUrl ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory],
     currentAmmo: item.currentAmmo ?? (isFirearm ? (item.maxAmmo ?? defaultCapacity) : undefined),
     maxAmmo: item.maxAmmo ?? (isFirearm ? defaultCapacity : undefined),
     charges: item.charges ?? (resolvedCategory === 'medical' ? (item.quantity ?? 3) : undefined),
