@@ -339,7 +339,10 @@ export async function POST(request: NextRequest) {
     // Podręcznik lub dodatek gracza jest analizowany wyłącznie lokalnie na urządzeniu w RAM.
     const rulebookProfile = detectRulebookProfile(pdfText, fileName);
 
-    if (rulebookProfile.profile === 'unknown' && (targetColumn || type === 'rules')) {
+    if (rulebookProfile.profile === 'unknown') {
+      appendPdfIngestLog(
+        `Odrzucono plik "${fileName}": profil "unknown" (nie rozpoznano kompatybilnego podręcznika ani dodatku d100 / CoC 7e).`
+      );
       return NextResponse.json(
         {
           success: false,
@@ -357,12 +360,9 @@ export async function POST(request: NextRequest) {
     // Jeśli wywołano bezpośrednio z AdventureSelector (type === 'adventure' bez targetColumn),
     // zachowaj ścieżkę przygody dla nieznanych/homebrew PDF, ale dla rozpoznanych podręczników zastosuj auto-routing.
     const isDetectedRulebook = isRulebookColumnProfile(rulebookProfile.profile);
-    const actualColumn: 'rules' | 'optional' =
-      rulebookProfile.profile === 'unknown'
-        ? requestedColumn
-        : isDetectedRulebook
-          ? 'rules'
-          : 'optional';
+    const actualColumn: 'rules' | 'optional' = isDetectedRulebook
+      ? 'rules'
+      : 'optional';
 
     const autoRouted = requestedColumn !== actualColumn;
     const routingKind: 'moved_to_optional' | 'moved_to_rules' | 'none' = !autoRouted
