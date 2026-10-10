@@ -262,7 +262,7 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     let journal = page.locator('[data-testid="session-journal"]');
     await expect(journal).toBeVisible({ timeout: 10000 });
     await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
-    await expect(journal.getByTestId('scene-chronicle-summary')).toContainText(
+    await expect(journal.getByTestId('journal-entry').filter({ has: page.getByRole('heading', { name: 'Archiwum', exact: true }) }).getByTestId('scene-chronicle-summary')).toContainText(
       'Stanisław twierdził, że list wysłano z doków.'
     );
     await page.screenshot({ path: 'test-results/player-journal-pl.png' });
@@ -291,7 +291,7 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     await page.locator('[data-testid="btn-open-journal"]').click();
     journal = page.locator('[data-testid="session-journal"]');
     await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
-    await expect(journal.getByTestId('scene-chronicle-summary')).toContainText(
+    await expect(journal.getByTestId('journal-entry').filter({ has: page.getByRole('heading', { name: 'Archiwum', exact: true }) }).getByTestId('scene-chronicle-summary')).toContainText(
       'Stanisław twierdził, że list wysłano z doków.'
     );
     await journal.getByRole('button', { name: 'Zamknij dziennik' }).click();
@@ -328,8 +328,8 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     await expect(page).toHaveURL(/\/en/);
     await page.locator('[data-testid="btn-open-journal"]').click();
     journal = page.locator('[data-testid="session-journal"]');
-    await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
-    await expect(journal.getByTestId('scene-chronicle-summary')).toContainText(
+    await journal.getByRole('button', { name: /Scene #1 Archiwum/i }).click();
+    await expect(journal.getByTestId('journal-entry').filter({ has: page.getByRole('heading', { name: 'Archiwum', exact: true }) }).getByTestId('scene-chronicle-summary')).toContainText(
       'Stanisław claimed the letter had been sent from the docks.'
     );
 
