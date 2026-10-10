@@ -33,6 +33,8 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
 
     // Inicjalizacja localStorage (PL, pominięcie onboardingów, odblokowanie zasad i kluczy API)
     await page.addInitScript(() => {
+      if (sessionStorage.getItem('journal-simulation-initialized')) return;
+      sessionStorage.setItem('journal-simulation-initialized', 'true');
       localStorage.clear();
       localStorage.setItem('language_selected', 'pl');
       localStorage.setItem('onboarding_completed', 'true');
@@ -47,7 +49,20 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
       localStorage.setItem('health_check_last_run', String(Date.now()));
     });
 
-    const gmNarration = 'Rozglądasz się po gabinecie. Na biurku leży stary list. [Co robisz?]';
+    const gmNarrations = [
+      'W archiwum Stanisław twierdzi, że list wysłano z doków. [LOKACJA: Archiwum: Regały pełne akt] [NPC: Stanisław: Archiwista]',
+      'Kończycie rozmowę i wychodzicie na korytarz. [ZMIANA_SCENY: Korytarz] Stanisław twierdził, że list wysłano z doków.',
+    ];
+    let chatTurn = 0;
+    let savedGame: Record<string, unknown> | undefined;
+    await page.route('**/api/memory/restore', async (route) => {
+      const payload = route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ success: true, scope: payload.scope ?? {
+          schemaVersion: 1, campaignDefinitionId: 'scenario:test',
+          playthroughId: 'run-test', adventureId: 'test', kind: 'scenario',
+        } }) });
+    });
 
     // Mock tras sieciowych Playwright (żelazny warunek: bramka zasad BYOB i strumień czatu MG)
     await page.route('**/api/desktop/update/status', async (route) => {
@@ -77,6 +92,83 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
       });
     });
 
+    let summaryAttempts = 0;
+    await page.route('**/api/summarize-scene', async (route) => {
+      const payload = route.request().postDataJSON() as { locale?: string; sceneLocation?: string; messages: Array<{ content: string }> };
+      summaryAttempts += 1;
+      if (payload.sceneLocation === 'Archiwum') {
+        expect(payload.messages.map((message) => message.content).join(' ')).toContain('W archiwum Stanisław twierdzi');
+      }
+      if (summaryAttempts === 1) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: false, error: 'Temporary model failure' }) });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          entry: {
+            content:
+              payload.locale === 'en'
+                ? 'Stanisław claimed the letter had been sent from the docks.'
+                : 'Stanisław twierdził, że list wysłano z doków.',
+          },
+          summaries: {
+            pl: 'Stanisław twierdził, że list wysłano z doków.',
+            en: 'Stanisław claimed the letter had been sent from the docks.',
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/game-save*', async (route) => {
+      const request = route.request();
+      if (request.method() === 'POST') {
+        savedGame = request.postDataJSON() as Record<string, unknown>;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            saveId: savedGame.id,
+            formattedSize: '1 KB',
+            messageCount: 3,
+            imageCount: 0,
+          }),
+        });
+        return;
+      }
+
+      if (request.url().includes('list=true')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            saves: savedGame
+              ? [
+                  {
+                    id: savedGame.id,
+                    userId: 'local',
+                    name: 'Kronika testowa',
+                    createdAt: '2026-10-10T10:00:00.000Z',
+                    formattedSize: '1 KB',
+                    messageCount: 3,
+                    imageCount: 0,
+                  },
+                ]
+              : [],
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ save: savedGame }),
+      });
+    });
+
     await page.route('**/api/chat**', async (route) => {
       if (route.request().url().includes('/api/chat-test')) {
         await route.fulfill({
@@ -87,6 +179,8 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
         return;
       }
 
+      const gmNarration = gmNarrations[Math.min(chatTurn, gmNarrations.length - 1)];
+      chatTurn += 1;
       const sseBody = [
         `data: ${JSON.stringify({ text: gmNarration })}\n\n`,
         `data: ${JSON.stringify({
@@ -154,8 +248,53 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     await chatInput.fill('Rozglądam się uważnie po pokoju i badam biurko.');
     await chatInput.press('Enter');
 
-    // Odebranie narracji MG
-    await expect(page.locator('body')).toContainText('Rozglądasz się po gabinecie', { timeout: 15000 });
+    // Odebranie narracji i otwarcie sceny w archiwum.
+    await expect(page.locator('body')).toContainText('Stanisław twierdzi', { timeout: 15000 });
+    const summaryResponse = page.waitForResponse('**/api/summarize-scene');
+    await chatInput.fill('Pytam Stanisława o źródło tej informacji.');
+    await chatInput.press('Enter');
+    await expect(page.locator('body')).toContainText('wychodzicie na korytarz', { timeout: 15000 });
+    await summaryResponse;
+    expect(summaryAttempts).toBeGreaterThanOrEqual(2);
+
+    // Zakończona scena trafia do Dziennika z zachowaną atrybucją plotki.
+    await page.locator('[data-testid="btn-open-journal"]').click();
+    let journal = page.locator('[data-testid="session-journal"]');
+    await expect(journal).toBeVisible({ timeout: 10000 });
+    await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
+    await expect(journal.getByTestId('scene-chronicle-summary')).toContainText(
+      'Stanisław twierdził, że list wysłano z doków.'
+    );
+    await page.screenshot({ path: 'test-results/player-journal-pl.png' });
+    await journal.getByRole('button', { name: 'Zamknij dziennik' }).click();
+
+    // Zapis i wczytanie pełnej gry zachowuje obie wersje językowe wpisu.
+    await page.getByRole('button', { name: 'Zapisz', exact: true }).click();
+    await page
+      .getByPlaceholder(/Rozdział 1|Chapter 1/i)
+      .fill('Kronika testowa');
+    await page.getByRole('button', { name: /Zapisz grę/i }).click();
+    await expect.poll(() => savedGame !== undefined).toBe(true);
+    const savedCharacters = savedGame?.characters as Array<{
+      sceneCards?: Array<{
+        chronicleSummaryByLocale?: { pl?: string; en?: string };
+      }>;
+    }>;
+    expect(savedCharacters[0]?.sceneCards?.[0]?.chronicleSummaryByLocale).toEqual({
+      pl: 'Stanisław twierdził, że list wysłano z doków.',
+      en: 'Stanisław claimed the letter had been sent from the docks.',
+    });
+
+    await page.getByRole('button', { name: 'Wczytaj', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Kronika testowa', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Wczytaj', exact: true }).last().click();
+    await page.locator('[data-testid="btn-open-journal"]').click();
+    journal = page.locator('[data-testid="session-journal"]');
+    await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
+    await expect(journal.getByTestId('scene-chronicle-summary')).toContainText(
+      'Stanisław twierdził, że list wysłano z doków.'
+    );
+    await journal.getByRole('button', { name: 'Zamknij dziennik' }).click();
 
     // 6. Otwarcie panelu bocznego (Ekwipunek)
     const eqBtn = page.locator('[data-testid="btn-open-equipment"]');
@@ -166,7 +305,7 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     await expect(eqModal).toBeVisible({ timeout: 10000 });
 
     // Przełączenie na zakładkę Wyposażenie (żeby pokazać listę przedmiotów badacza)
-    const gearTab = eqModal.getByRole('button', { name: /WYPOSAŻENIE/i });
+    const gearTab = eqModal.getByRole('button', { name: /WYPOSAŻENIE|EQUIPMENT/i });
     if (await gearTab.isVisible({ timeout: 2000 }).catch(() => false)) {
       await gearTab.click();
     }
@@ -175,6 +314,24 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     const financeBar = page.locator('[data-testid="equipment-finance-bar"]');
     await expect(financeBar).toBeVisible({ timeout: 5000 });
     await expect(eqModal.locator('.font-serif').first()).toBeVisible({ timeout: 5000 });
+
+    // Startup locale follows the active adventure and latest save metadata.
+    await page.evaluate(() => {
+      localStorage.setItem('language_selected', 'en');
+      const adventure = JSON.parse(localStorage.getItem('adventure_context') ?? 'null');
+      if (adventure) localStorage.setItem('adventure_context', JSON.stringify({ ...adventure, locale: 'en' }));
+      const saves = JSON.parse(localStorage.getItem('zew-game-saves-list') ?? '[]');
+      localStorage.setItem('zew-game-saves-list', JSON.stringify(saves.map((save: Record<string, unknown>) => ({ ...save, locale: 'en' }))));
+      document.cookie = 'NEXT_LOCALE=en;path=/';
+    });
+    await page.goto('/en');
+    await expect(page).toHaveURL(/\/en/);
+    await page.locator('[data-testid="btn-open-journal"]').click();
+    journal = page.locator('[data-testid="session-journal"]');
+    await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
+    await expect(journal.getByTestId('scene-chronicle-summary')).toContainText(
+      'Stanisław claimed the letter had been sent from the docks.'
+    );
 
     // 7. Zapisanie zrzutu ekranu jako dowodu (Screenshot Evidence)
     const resultsDir = path.resolve(process.cwd(), 'test-results');

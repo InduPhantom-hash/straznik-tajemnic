@@ -248,6 +248,10 @@ export interface SceneCaseCard {
   people: string[]; // 👥 Osoby (Kogo spotkano)
   findings: string[]; // 🔍 Co zdobyto (poszlaki/przedmioty z miniaturami)
   keyTakeaways: string[]; // 📜 Kluczowe ustalenia (1-2 zdania syntezy)
+  /** Neutralna kronika sceny dla obu języków interfejsu. */
+  chronicleSummaryByLocale?: Partial<Record<'pl' | 'en', string>>;
+  startMessageId?: string;
+  endMessageId?: string;
   nextStep?: string; // 🎯 Cel i kolejny krok śledztwa
   isSealed: boolean;
   isLocationExhausted?: boolean; // Czy lokacja została wyczerpana z poszlak (bramkowanie)
@@ -260,6 +264,7 @@ export interface ActiveSceneState {
   title?: string;
   inGameDate?: string;
   startedAt: string;
+  startMessageId?: string;
   people: string[];
   findings: string[];
   notes: string[];

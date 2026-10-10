@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   BookOpen,
   X,
@@ -74,6 +74,8 @@ export interface SealedScene {
   people: string[];
   findings: string[];
   keyTakeaways: string[];
+  chronicleSummary?: string;
+  chroniclePending?: boolean;
   nextStep?: string;
 }
 
@@ -87,6 +89,7 @@ export function SessionJournal({
   totalCluesEstimated,
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
+  const locale = useLocale() === 'en' ? 'en' : 'pl';
 
   // Obsługa klawisza Escape do zamykania Dziennika
   useEffect(() => {
@@ -125,6 +128,8 @@ export function SessionJournal({
           people: Array.isArray(sc.people) ? sc.people : [],
           findings: Array.isArray(sc.findings) ? sc.findings : [],
           keyTakeaways: Array.isArray(sc.keyTakeaways) ? sc.keyTakeaways : [],
+          chronicleSummary: sc.chronicleSummaryByLocale?.[locale],
+          chroniclePending: Boolean(sc.endMessageId),
           nextStep: sc.nextStep,
         });
       });
@@ -151,6 +156,8 @@ export function SessionJournal({
               : entry.content
                 ? [entry.content]
                 : [],
+            chronicleSummary: sd.chronicleSummaryByLocale?.[locale],
+            chroniclePending: Boolean(sd.endMessageId),
             nextStep: sd.nextStep,
           });
         }
@@ -170,6 +177,7 @@ export function SessionJournal({
             people: entry.metadata?.npcName ? [entry.metadata.npcName] : [],
             findings: [],
             keyTakeaways: takeaways,
+            chronicleSummary: undefined,
             nextStep: undefined,
           });
         }
@@ -188,7 +196,7 @@ export function SessionJournal({
     });
 
     return list;
-  }, [character.sceneCards, entries]);
+  }, [character.sceneCards, entries, locale]);
 
   // Ekstrakcja i synteza trwającej sceny w toku (Issue #471)
   const ongoingSceneCard = useMemo<SealedScene | null>(() => {
@@ -784,7 +792,16 @@ export function SessionJournal({
                     <Scroll className="h-4 w-4" />
                     <span>{t('blockEventsAndFindings')}</span>
                   </div>
-                  {activeSceneCard.keyTakeaways.length > 0 ? (
+                  {activeSceneCard.chronicleSummary ? (
+                    <p
+                      data-testid="scene-chronicle-summary"
+                      className="font-serif text-sm text-[#e8dfcf] leading-relaxed whitespace-pre-line"
+                    >
+                      {activeSceneCard.chronicleSummary}
+                    </p>
+                  ) : activeSceneCard.chroniclePending ? (
+                    <p className="text-sm font-serif italic text-muted-foreground">{t('chroniclePending')}</p>
+                  ) : activeSceneCard.keyTakeaways.length > 0 ? (
                     <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
                       {activeSceneCard.keyTakeaways.map((item, idx) => (
                         <li key={idx} className="leading-relaxed">
@@ -825,8 +842,8 @@ export function SessionJournal({
                   )}
                 </div>
 
-                {/* BLOK 3: Zdobyte kluczowe przedmioty i poszlaki (filtrowane przez item-filter) */}
-                {(() => {
+                {/* Legacy scene cards retain their structured findings until migrated. */}
+                {!activeSceneCard.chronicleSummary && (() => {
                   const filteredFindings = filterPlotItems(activeSceneCard.findings);
                   return (
                     <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
@@ -854,33 +871,6 @@ export function SessionJournal({
                   );
                 })()}
 
-                {/* BLOK 4: Cel / Następny krok śledztwa */}
-                <div className="bg-gradient-to-r from-brass/15 via-brass/10 to-transparent border border-brass/40 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-2">
-                    <span>🎯</span>
-                    <span>{t('blockNextStep')}</span>
-                  </div>
-                  {activeSceneCard.nextStep ? (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
-                      <p className="font-serif italic text-sm text-[#f4ebd0] leading-relaxed flex-1">
-                        {activeSceneCard.nextStep}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => handleQuoteToInput(activeSceneCard.nextStep!)}
-                        className="bg-[#241a10] hover:bg-brass hover:text-black text-brass border border-brass/50 font-special-elite text-xs uppercase tracking-wider px-3.5 py-2 rounded-sm flex items-center gap-2 shrink-0 transition-all shadow-sm"
-                        title={t('quoteToChatTitle')}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        <span>{t('quoteToChatButton')}</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {t('noNextStep')}
-                    </p>
-                  )}
-                </div>
               </section>
             )}
 

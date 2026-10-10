@@ -7664,6 +7664,7 @@
     "mania_mythomania_description": "Nieodparta potrzeba opowiadania wymyślonych historii"
   },
   "SessionJournal": {
+    "chroniclePending": "Podsumowanie tej sceny nie jest jeszcze dostępne.",
     "titleEyebrow": "DOKUMENTY ŚLEDZTWA",
     "title": "DZIENNIK SESJI",
     "titleFull": "DZIENNIK SESJI / KRONIKA ŚLEDZTWA",
