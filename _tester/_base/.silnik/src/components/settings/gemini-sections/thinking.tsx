@@ -35,7 +35,7 @@ export function ThinkingSection({ g, updateGemini }: GeminiSectionProps) {
               />
             </label>
             <select
-              value={g.thinkingLevel ?? 'minimal'}
+              value={g.thinkingLevel ?? 'low'}
               onChange={(e) =>
                 updateGemini({
                   thinkingLevel: e.target.value as

@@ -59,7 +59,7 @@ export const QUALITY_PRESETS = {
       temperature: 0.7,
       topP: 0.85,
       topK: 40,
-      thinkingLevel: 'medium' as const,
+      thinkingLevel: 'low' as const,
       maxOutputTokens: 2048,
       // === GEMINI nested (IND-32a) ===
       safetySettings: {
@@ -91,14 +91,14 @@ export const QUALITY_PRESETS = {
   high: {
     name: 'HIGH COST',
     description:
-      'Gemini 3.8 Flash (High) + lektor Algenib (słuchowisko) + obrazy Imagen (~$0.50/sesja)',
+      'Gemini 3.8 Flash + lektor Algenib (słuchowisko) + obrazy Imagen (~$0.50/sesja)',
     settings: {
       // === GEMINI SETTINGS ===
-      model: 'gemini-3.8-flash' as const, // Gemini 3.8 Flash z Thinking Level High
+      model: 'gemini-3.8-flash' as const, // Gemini 3.8 Flash
       temperature: 0.8,
       topP: 0.9,
       topK: 50,
-      thinkingLevel: 'high' as const,
+      thinkingLevel: 'low' as const,
       maxOutputTokens: 8192,
 
       // === GEMINI nested (IND-32a) - Horror authentic safety ===
@@ -148,7 +148,7 @@ export const QUALITY_PRESETS = {
       temperature: 0.9,
       topP: 0.95,
       topK: 60,
-      thinkingLevel: 'high' as const,
+      thinkingLevel: 'low' as const,
       maxOutputTokens: 8192,
       // === GEMINI nested (IND-32a) ===
       safetySettings: {
