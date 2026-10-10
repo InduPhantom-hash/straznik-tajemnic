@@ -86,7 +86,7 @@ graph TD
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
     game -->|Dziennik / Journal| journal
-    journal -->|Cytuj cel ze sceny do pola wiadomości / Quote scene objective to message input| game
+    journal -->|Zamknij dziennik / Close journal| game
     game -->|Rzuć kośćmi / Roll dice| dice
     game -->|Narzędzia MG / GM tools| gm_tools
     game -->|Faza rozwoju (po sesji) / Development phase (after session)| development
@@ -165,7 +165,7 @@ graph TD
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek (Broń, Wyposażenie, Fabularne) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek (Broń, Wyposażenie, Fabularne) | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji i kronika śledztwa | `src/components/sidebar/CthulhuSidebar.tsx` |
-| Dziennik sesji i kronika śledztwa | Cytuj cel ze sceny do pola wiadomości / Quote scene objective to message input | Aktywna sesja | `src/components/ui/session-journal.tsx` |
+| Dziennik sesji i kronika śledztwa | Zamknij dziennik / Close journal | Aktywna sesja | `src/components/ui/session-journal.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |

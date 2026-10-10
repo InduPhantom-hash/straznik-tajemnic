@@ -689,8 +689,8 @@
       "source": "journal",
       "target": "game",
       "label": {
-        "pl": "Cytuj cel ze sceny do pola wiadomości",
-        "en": "Quote scene objective to message input"
+        "pl": "Zamknij dziennik",
+        "en": "Close journal"
       },
       "component": "src/components/ui/session-journal.tsx"
     },
