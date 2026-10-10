@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { getWritableDataDir } from '@/lib/paths';
+import { isSameOriginOrLoopback } from '@/lib/desktop/origin-validator';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,8 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const requestOrigin = new URL(request.url).origin;
-  if (request.headers.get('origin') !== requestOrigin) {
+  if (!isSameOriginOrLoopback(request.headers.get('origin'), request.url)) {
     return NextResponse.json(
       { message: 'Polecenie zimnego startu zostało odrzucone.' },
       { status: 403 }
