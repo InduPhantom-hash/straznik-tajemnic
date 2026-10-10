@@ -7,7 +7,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { JournalEntry, JournalEventType, Character, SceneCaseCard } from '@/lib/types';
+import type { JournalEntry, JournalEventType, Character, SceneCaseCard, ChronicleChapter } from '@/lib/types';
 
 export type JournalEntryType =
   | 'case'
@@ -74,6 +74,7 @@ export interface SealedScene {
 }
 
 interface ReadingEntry {
+  chapter?: ChronicleChapter;
   id: string;
   title: string;
   sceneNumber?: number;
@@ -117,8 +118,9 @@ export function SessionJournal({
           if (!Number.isFinite(candidateTime) || !Number.isFinite(existingTime) || candidateTime <= existingTime) return;
         }
       }
-      const pending = Boolean(scene.endMessageId) && !content;
+      const pending = Boolean(scene.endMessageId) && scene.chronicleBoundaryKnown !== false && !content;
       map.set(scene.id, {
+        chapter: scene.chronicleChapter,
         id: scene.id,
         title: scene.title || scene.location || t('sceneNumber', { number: scene.sceneNumber }),
         sceneNumber: scene.sceneNumber,
@@ -140,6 +142,7 @@ export function SessionJournal({
       if (entry.sceneData || entry.type === 'act_report' || map.has(entry.id)) return;
       if (!entry.content?.trim()) return;
       map.set(entry.id, {
+        chapter: entry.chronicleChapter,
         id: entry.id, title: entry.title, inGameDate: entry.inGameDate,
         timestamp: entry.timestamp,
         location: entry.metadata?.locationName,
@@ -154,6 +157,18 @@ export function SessionJournal({
       return (a.sceneNumber ?? 0) - (b.sceneNumber ?? 0);
     });
   }, [character.sceneCards, character.journal, sharedJournal, locale, t]);
+
+  const sections = useMemo(() => {
+    const result: Array<{ key: string; chapter?: ChronicleChapter; entries: ReadingEntry[] }> = [];
+    for (const entry of entries) {
+      const chapter = entry.chapter;
+      const key = chapter ? `${chapter.playthroughId}:${chapter.adventureId}:${chapter.sessionId}` : 'legacy';
+      const last = result[result.length - 1];
+      if (last?.key === key) last.entries.push(entry);
+      else result.push({ key, chapter, entries: [entry] });
+    }
+    return result;
+  }, [entries]);
 
   const latestId = entries[entries.length - 1]?.id;
   useEffect(() => {
@@ -231,7 +246,12 @@ export function SessionJournal({
             className="min-w-0 shrink-0 border-b border-brass/20 bg-[#11100d] md:w-64 md:overflow-y-auto md:border-b-0 md:border-r lg:w-72">
             <h2 className="px-5 pt-4 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">{t('readerContents')}</h2>
             <ol className="flex gap-2 overflow-x-auto p-3 md:flex-col md:gap-1">
-              {entries.map((entry) => (
+              {sections.map((section, sectionIndex) => (
+                <li key={`${section.key}-${sectionIndex}`} className="shrink-0 md:shrink">
+                  <p className="px-3 pt-3 font-serif text-sm text-brass">{section.chapter?.adventureTitle || (section.chapter ? t('readerAdventure') : t('readerEarlierEntry'))}</p>
+                  {section.chapter && <p className="px-3 pb-2 pt-1 text-xs text-[#bbb09d]">{t('readerSession', { number: section.chapter.sessionNumber })}</p>}
+                  <ol className="flex md:flex-col">
+              {section.entries.map((entry) => (
                 <li key={entry.id} className="shrink-0 md:shrink">
                   <button type="button" onClick={() => navigate(entry.id)}
                     aria-current={(selectedId ?? latestId) === entry.id ? 'location' : undefined}
@@ -243,6 +263,9 @@ export function SessionJournal({
                   </button>
                 </li>
               ))}
+                  </ol>
+                </li>
+              ))}
             </ol>
           </nav>
 
@@ -250,7 +273,12 @@ export function SessionJournal({
             className="min-h-0 min-w-0 flex-1 overflow-y-auto scroll-smooth">
             <div className="mx-auto max-w-3xl px-5 py-8 md:px-10 md:py-12">
               <p className="mb-10 border-l border-brass/40 pl-4 font-serif text-sm italic leading-relaxed text-[#bbb09d]">{t('readerIntroduction')}</p>
-              {entries.map((entry) => (
+              {sections.map((section, sectionIndex) => (
+                <section key={`${section.key}-${sectionIndex}`} data-testid="journal-chapter" className="mb-12">
+                  {(sectionIndex === 0 || section.chapter?.adventureId !== sections[sectionIndex - 1].chapter?.adventureId || section.chapter?.playthroughId !== sections[sectionIndex - 1].chapter?.playthroughId) &&
+                    <h2 className="mb-3 font-display text-2xl text-brass md:text-3xl">{section.chapter?.adventureTitle || (section.chapter ? t('readerAdventure') : t('readerEarlierEntry'))}</h2>}
+                  {section.chapter && <h3 data-testid="journal-session-header" className="mb-8 border-b border-brass/30 pb-4 font-special-elite text-sm uppercase tracking-wider text-brass">{t('readerSession', { number: section.chapter.sessionNumber })}</h3>}
+              {section.entries.map((entry) => (
                 <article key={entry.id} tabIndex={-1} data-testid="journal-entry"
                   ref={(element) => { if (element) articleRefs.current.set(entry.id, element); else articleRefs.current.delete(entry.id); }}
                   aria-labelledby={`journal-entry-${encodeURIComponent(entry.id)}`}
@@ -259,7 +287,7 @@ export function SessionJournal({
                     {entry.sceneNumber !== undefined ? t('sceneNumber', { number: entry.sceneNumber }) : t('readerEarlierEntry')}
                     {entry.inGameDate && <span className="ml-3 normal-case tracking-normal text-[#bbb09d]">{entry.inGameDate}</span>}
                   </p>
-                  <h2 id={`journal-entry-${encodeURIComponent(entry.id)}`} className="font-display text-2xl leading-snug md:text-3xl">{entry.title}</h2>
+                  <h4 id={`journal-entry-${encodeURIComponent(entry.id)}`} className="font-display text-2xl leading-snug md:text-3xl">{entry.title}</h4>
                   {entry.location && entry.location !== entry.title && <p className="mt-2 font-serif text-sm text-[#bbb09d]">{entry.location}</p>}
                   {entry.people.length > 0 && <p className="mt-3 font-serif text-sm leading-relaxed text-[#bbb09d]">
                     <span className="text-brass">{t('readerPeople')}: </span>{entry.people.join(', ')}
@@ -272,6 +300,8 @@ export function SessionJournal({
                     <span className="text-brass">{t('readerFindings')}: </span>{entry.findings.join(', ')}
                   </p>}
                 </article>
+              ))}
+                </section>
               ))}
               {character.activeScene?.location && <section data-testid="journal-current-scene" className="mt-10 font-serif text-sm leading-relaxed text-[#bbb09d]">
                 <h2 className="mb-2 font-special-elite text-xs uppercase tracking-wider text-brass">{t('readerCurrentLocation', { location: character.activeScene.location })}</h2>

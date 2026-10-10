@@ -249,8 +249,8 @@
       "id": "journal",
       "kind": "modal",
       "label": {
-        "pl": "Kronika",
-        "en": "Chronicle"
+        "pl": "Kronika przygód i sesji",
+        "en": "Chronicle of adventures and sessions"
       }
     },
     {

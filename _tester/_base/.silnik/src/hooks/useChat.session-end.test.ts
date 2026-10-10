@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { TextEncoder, TextDecoder } from 'util';
 import type { Character } from '@/lib/types';
+import { storeCampaignMemoryScope } from '@/core/memory/campaign-scope';
 import { useChat } from './useChat';
 
 if (typeof global.TextEncoder === 'undefined') {
@@ -211,6 +212,31 @@ describe('useChat - sessionEndStatus (LOG-01)', () => {
     });
 
     expect(result.current.sessionSaveStatus).toBe('saved');
+  });
+
+  it('zapisuje domkniętą scenę i trwałą granicę sesji przed autozapisem', async () => {
+    storeCampaignMemoryScope({ schemaVersion: 1, campaignDefinitionId: 'scenario:archive', playthroughId: 'run-chapters', adventureId: 'archive', kind: 'scenario' });
+    const anna = { ...defaultOptions.activeCharacter, journal: [], sceneCards: [] };
+    const outsider = { ...anna, id: 'outsider', name: 'Jan' };
+    const setCharacters = jest.fn();
+    global.fetch = jest.fn((url: string | URL | Request) => {
+      const path = String(url);
+      if (path.includes('/api/chat')) return Promise.resolve(createMockStreamResponse('Stanisław twierdził, że list wysłano z doków. [ZMIANA_SCENY: Doki] [KONIEC_SESJI:POTWIERDZENIE]'));
+      if (path.includes('/api/summarize-scene')) return Promise.resolve({ ok: true, json: async () => ({ success: true, summaries: { pl: 'Stanisław twierdził, że list wysłano z doków.', en: 'Stanisław claimed the letter came from the docks.' } }) } as Response);
+      if (path.includes('/api/game-save')) return Promise.resolve({ ok: true, json: async () => ({ success: true, saveId: 'chapter-save' }) } as Response);
+      return Promise.reject(new Error(`Unhandled URL: ${path}`));
+    });
+    const { result } = renderHook(() => useChat({ ...defaultOptions, activeCharacter: anna, characters: [anna, outsider], setCharacters, adventureContext: { title: 'Archiwum', location: 'Archiwum' } }));
+    await act(async () => { await result.current.handleSendMessage('Kończymy rozmowę.'); });
+    const call = (global.fetch as jest.Mock).mock.calls.find((entry) => String(entry[0]).includes('/api/game-save'));
+    const saved = JSON.parse(call[1].body);
+    expect(saved.characters[0].chronicleSession).toMatchObject({ sessionNumber: 1, playthroughId: 'run-chapters', closedByMessageId: expect.any(String) });
+    expect(saved.characters[0].sceneCards[0]).toMatchObject({ chronicleChapter: { adventureTitle: 'Archiwum', sessionNumber: 1 }, chronicleSummaryByLocale: { pl: 'Stanisław twierdził, że list wysłano z doków.' } });
+    expect(saved.characters[0].activeScene).toBeUndefined();
+    expect(saved.characters[0].sceneCards).toHaveLength(1);
+    expect(saved.characters[1]).toMatchObject(outsider);
+    expect(setCharacters.mock.calls.at(-1)[0][1]).toBe(outsider);
+    expect(setCharacters).toHaveBeenCalled();
   });
 
   it('blokuje współbieżne ponawianie zapisu (mutex / lock zapobiega duplikatom)', async () => {

@@ -26,6 +26,11 @@ for (const locale of ['pl', 'en'] as const) {
             id: `scene-${index + 1}`, sceneNumber: index + 1, title: `Archiwum ${index + 1}`, location: 'Archiwum',
             timestamp: new Date(Date.UTC(2026, 0, index + 1)).toISOString(), isSealed: true,
             people: ['Stanisław'], findings: [], keyTakeaways: [],
+            chronicleChapter: {
+              playthroughId: 'run', campaignDefinitionId: 'campaign',
+              adventureId: index < 40 ? 'archive' : 'docks', adventureTitle: index < 40 ? 'Archiwum miejskie' : 'Doki',
+              sessionId: `session-${Math.floor(index / 20) + 1}`, sessionNumber: Math.floor(index / 20) + 1,
+            },
             chronicleSummaryByLocale: {
               pl: `Wpis ${index + 1}. Stanisław twierdził, że list wysłano z doków. Obejrzeliśmy księgę i wróciliśmy do miasta.`,
               en: `Entry ${index + 1}. Stanisław claimed the letter had been sent from the docks. We examined the ledger and returned to town.`,
@@ -45,12 +50,15 @@ for (const locale of ['pl', 'en'] as const) {
       const dialog = page.getByTestId('session-journal');
       await expect(dialog).toHaveAccessibleName(locale === 'pl' ? 'Kronika' : 'Chronicle');
       await expect(dialog.getByTestId('journal-entry')).toHaveCount(60);
+      await expect(dialog.getByTestId('journal-session-header')).toHaveText(locale === 'pl' ? ['Sesja 1', 'Sesja 2', 'Sesja 3'] : ['Session 1', 'Session 2', 'Session 3']);
+      await expect(dialog.getByRole('heading', { name: 'Archiwum miejskie', exact: true })).toHaveCount(1);
+      await expect(dialog.getByRole('heading', { name: 'Doki', exact: true })).toHaveCount(1);
       await expect.poll(() => dialog.getByTestId('journal-reader').evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
       await dialog.getByTestId('journal-contents').getByRole('button', { name: /(?:Scena|Scene) #1 Archiwum 1$/ }).click();
       const first = dialog.getByTestId('journal-entry').first();
       await expect(first).toBeFocused();
       await expect(first).toContainText(locale === 'pl' ? 'Stanisław twierdził' : 'Stanisław claimed');
-      await expect.poll(() => dialog.getByTestId('journal-reader').evaluate((element) => element.scrollTop)).toBeLessThan(200);
+      await expect.poll(() => dialog.getByTestId('journal-reader').evaluate((element) => element.scrollTop)).toBeLessThan(400);
       expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
       await expect(dialog.getByRole('textbox')).toHaveCount(0);
       await page.screenshot({ path: `test-results/journal-reader-${locale}-${mobile ? 'mobile' : 'desktop'}.png` });

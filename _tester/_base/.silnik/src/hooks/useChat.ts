@@ -1,5 +1,6 @@
 'use client';
 import { notifyMemoryCommit } from '@/core/memory/commit-client';
+import { beginChronicleTurn, closeChronicleSession, stampChronicleEntries } from '@/lib/journal/chronicle-chapters';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type {
@@ -1879,12 +1880,39 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           // wskazanej prefiksem @Imię w tagu (fallback: aktywna postać). Najpierw
           // dziennik, potem staty - oba na tej samej liście postaci, jeden persist.
           // No-op (changed=false) gdy brak tagów → tani skip zapisu.
-          const j = appendJournalToParty(
-            characters,
-            activeCharacter,
+          const scope = loadCampaignMemoryScope();
+          const participantIds = hotSeatConfig?.enabled
+            ? hotSeatConfig.players.map((player) => player.characterId).filter((id): id is string => Boolean(id))
+            : [activeCharacter.id];
+          const prepared = scope ? beginChronicleTurn(characters, activeCharacter, {
+            scope,
+            adventureTitle: adventureContext?.title,
+            participantIds,
+            startMessageId: userMessage.id,
+            location: currentLocationRef.current || adventureContext?.location,
+          }) : { characters, activeCharacter, changed: false };
+          const partyCharacters = scope ? prepared.characters.filter((character) => character.id === activeCharacter.id || participantIds.includes(character.id)) : prepared.characters;
+          if (scope && !partyCharacters.some((character) => character.id === activeCharacter.id)) partyCharacters.push(prepared.activeCharacter);
+          let j = appendJournalToParty(
+            partyCharacters,
+            prepared.activeCharacter,
             fullText,
             assistantMessageId
           );
+          const sessionEnded = hasSessionEndConfirmation || fullText.includes('[KONIEC_SESJI:POTWIERDZENIE]');
+          const updateChronicle = (character: Character): Character => {
+            if (!scope || (character.id !== activeCharacter.id && !participantIds.includes(character.id))) return character;
+            const previous = characters.find((candidate) => candidate.id === character.id) ?? activeCharacter;
+            const stamped = stampChronicleEntries(character, previous);
+            return sessionEnded && stamped.chronicleSession?.sessionId === prepared.activeCharacter.chronicleSession?.sessionId
+              ? closeChronicleSession(stamped, assistantMessageId, fullText) : stamped;
+          };
+          const chapterCharacters = j.characters.map(updateChronicle);
+          j = {
+            characters: chapterCharacters,
+            activeCharacter: chapterCharacters.find((character) => character.id === activeCharacter.id) ?? updateChronicle(j.activeCharacter),
+            changed: j.changed || prepared.changed || (sessionEnded && Boolean(prepared.activeCharacter.chronicleSession)),
+          };
           if (j.activeCharacter.investigatorDossier?.npcs) {
             for (const npc of j.activeCharacter.investigatorDossier.npcs) {
               visualBeliefGraphRef.current.registerNPC(npc, currentEra);
@@ -1968,7 +1996,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           let updatedCharacters = eq.characters;
           // A missing recap remains eligible on the next turn after a transient error.
           const pendingScenes = (j.activeCharacter.sceneCards ?? []).filter(
-            (scene) => scene.isSealed && scene.endMessageId &&
+            (scene) => scene.isSealed && scene.endMessageId && scene.chronicleBoundaryKnown !== false &&
               !(scene.chronicleSummaryByLocale?.pl && scene.chronicleSummaryByLocale.en)
           );
 
@@ -2020,6 +2048,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           }
 
           if (j.changed || s.changed || eq.changed || pendingScenes.length > 0) {
+            if (scope) {
+              const updates = new Map(updatedCharacters.map((character) => [character.id, character]));
+              updatedCharacters = prepared.characters.map((character) => updates.get(character.id) ?? character);
+              if (!updatedCharacters.some((character) => character.id === activeCharacter.id)) updatedCharacters.push(updatedActiveCharacter);
+            }
             setActiveCharacter(updatedActiveCharacter);
             setCharacters(updatedCharacters);
             finalActiveChar = updatedActiveCharacter;

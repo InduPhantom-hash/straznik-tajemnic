@@ -142,6 +142,7 @@ describe('useFullSave - status urwanej narracji', () => {
     const character: Partial<Character> = {
       id: 'char-legacy',
       name: 'Dr Harvey',
+      chronicleSession: { playthroughId: 'run-restored', campaignDefinitionId: 'scenario:test', adventureId: 'test', sessionId: 'session-2', sessionNumber: 2, closedByMessageId: 'end' },
       journal: [
         {
           id: 'note-1',
@@ -184,6 +185,7 @@ describe('useFullSave - status urwanej narracji', () => {
     expect(setCharacters).toHaveBeenCalledTimes(1);
     const loadedChars = setCharacters.mock.calls[0][0] as Character[];
     expect(loadedChars[0].investigatorDossier).toBeDefined();
+    expect(loadedChars[0].chronicleSession).toEqual(character.chronicleSession);
     expect(loadedChars[0].investigatorDossier?.clues).toHaveLength(1);
     expect(loadedChars[0].investigatorDossier?.clues[0].title).toBe('Notatka o rytuale');
 

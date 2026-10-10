@@ -238,7 +238,21 @@ export interface ActReport {
 }
 
 // Karta Akt Śledczych po zamknięciu sceny (Issue #402)
+export interface ChronicleChapter {
+  playthroughId: string;
+  campaignDefinitionId: string;
+  adventureId: string;
+  adventureTitle?: string;
+  sessionId: string;
+  sessionNumber: number;
+}
+
+export interface ChronicleSession extends ChronicleChapter {
+  closedByMessageId?: string;
+}
+
 export interface SceneCaseCard {
+  chronicleChapter?: ChronicleChapter;
   id: string;
   sceneNumber: number;
   location: string;
@@ -250,6 +264,8 @@ export interface SceneCaseCard {
   keyTakeaways: string[]; // 📜 Kluczowe ustalenia (1-2 zdania syntezy)
   /** Neutralna kronika sceny dla obu języków interfejsu. */
   chronicleSummaryByLocale?: Partial<Record<'pl' | 'en', string>>;
+  /** False only when a legacy scene has no recoverable transcript boundary. */
+  chronicleBoundaryKnown?: boolean;
   startMessageId?: string;
   endMessageId?: string;
   nextStep?: string; // 🎯 Cel i kolejny krok śledztwa
@@ -259,6 +275,8 @@ export interface SceneCaseCard {
 
 // Stan aktywnej, niezamkniętej sceny (zbierany na żywo w trakcie rozgrywki)
 export interface ActiveSceneState {
+  chronicleChapter?: ChronicleChapter;
+  chronicleBoundaryKnown?: boolean;
   sceneNumber: number;
   location: string;
   title?: string;
@@ -273,6 +291,7 @@ export interface ActiveSceneState {
 
 // Wpis dziennika sesji
 export interface JournalEntry {
+  chronicleChapter?: ChronicleChapter;
   id: string;
   timestamp: Date; // Rzeczywisty czas
   date?: string; // Opcjonalna strunowa data (ISO / formatted) dla kompatybilności
@@ -636,6 +655,7 @@ export interface Character {
 
   journal?: JournalEntry[];
   sceneCards?: SceneCaseCard[]; // Karty Akt Śledczych zamkniętych scen (Issue #402)
+  chronicleSession?: ChronicleSession;
   actReports?: ActReport[]; // Mini-podsumowania etapowe i raporty aktów (Mechanika 8 / Issue #481)
   activeScene?: ActiveSceneState; // Stan bieżącej, trwającej sceny (Issue #402)
   investigatorBoard?: InvestigatorBoardState;

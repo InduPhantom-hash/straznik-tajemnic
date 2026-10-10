@@ -128,6 +128,13 @@ describe('SessionJournal reader', () => {
     expect(screen.queryByText(/Zbadano lokację|Sekretny trop/)).toBeNull();
   });
 
+  it('zachowuje zapis starej sceny o nieznanym początku bez podsumowania całego czatu', () => {
+    render(<SessionJournal character={character([scene(1, { endMessageId: 'end', chronicleBoundaryKnown: false, chronicleSummaryByLocale: undefined, findings: ['Baterie'], keyTakeaways: ['Portier twierdził, że widział Jana.'] })])} />);
+    expect(screen.getByTestId('journal-legacy-record')).toHaveTextContent('Portier twierdził');
+    expect(screen.getByTestId('journal-entry')).toHaveTextContent('Baterie');
+    expect(screen.queryByText('Podsumowanie tej sceny nie jest jeszcze dostępne.')).toBeNull();
+  });
+
   it('scala wspólne karty bez duplikatu i preferuje wspólny nowszy zapis', () => {
     const updated = scene(1, { chronicleSummaryByLocale: { pl: 'Drużyna rozmawiała ze Stanisławem.' } });
     const shared: JournalEntry[] = [{ id: 'journal-1', timestamp: new Date(), type: 'scene', title: updated.title, content: 'fallback', tags: [], isBookmarked: false, sceneData: updated }];
@@ -193,5 +200,21 @@ describe('SessionJournal reader', () => {
     render(<SessionJournal character={character(Array.from({ length: 60 }, (_, i) => scene(i + 1)))} />);
     expect(screen.getAllByTestId('journal-entry')).toHaveLength(60);
     expect(within(screen.getByTestId('journal-contents')).getAllByRole('button')).toHaveLength(60);
+  });
+
+  it.each(['pl', 'en'])('pokazuje przygody i trwałe granice sesji w %s, bez zgadywania starych wpisów', (locale) => {
+    process.env.NEXT_INTL_TEST_LOCALE = locale;
+    const chapter = { playthroughId: 'run', campaignDefinitionId: 'campaign', adventureId: 'archive', adventureTitle: 'Archiwum', sessionId: 's1', sessionNumber: 1 };
+    render(<SessionJournal character={character([
+      scene(1),
+      scene(2, { chronicleChapter: chapter }),
+      scene(3, { chronicleChapter: { ...chapter, sessionId: 's2', sessionNumber: 2 } }),
+      scene(4, { chronicleChapter: { ...chapter, adventureId: 'docks', adventureTitle: 'Doki', sessionId: 's3', sessionNumber: 3 } }),
+    ])} />);
+    expect(screen.getAllByTestId('journal-entry')).toHaveLength(4);
+    expect(screen.getByRole('heading', { name: locale === 'pl' ? 'Wcześniejszy zapis' : 'Earlier record' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Archiwum' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Doki' })).toBeInTheDocument();
+    expect(screen.getAllByTestId('journal-session-header').map((header) => header.textContent)).toEqual(locale === 'pl' ? ['Sesja 1', 'Sesja 2', 'Sesja 3'] : ['Session 1', 'Session 2', 'Session 3']);
   });
 });
