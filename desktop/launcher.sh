@@ -158,6 +158,7 @@ if [ -x "$CHROME" ]; then
   open -na "Google Chrome" --args \
     --app="$URL" \
     --start-fullscreen \
+    --autoplay-policy=no-user-gesture-required \
     --user-data-dir="$PROFILE_DIR" \
     --no-first-run --no-default-browser-check >>"$LOG" 2>&1
 else

@@ -1452,6 +1452,17 @@ export default function Home() {
           hasSessionZero={sessionZeroCompleted}
           hasStartedGame={hasStartedGame}
           onOpenApiKeys={() => setShowApiKeysModal(true)}
+          quoteActive={
+            languageSelectionRequired === false &&
+            !showApiKeysModal &&
+            !showRulebookModal &&
+            !showBetaWelcomeModal &&
+            !showHelpModal &&
+            !showBetaFeedbackModal &&
+            !showHotSeatSetup &&
+            !showPredefinedSelector &&
+            !save.showFullSaveModal
+          }
           hotSeatConfig={hotSeat.config}
           isSessionEnded={chat.isSessionEnded}
           sessionEndStatus={chat.sessionEndStatus}

@@ -464,6 +464,7 @@ export function launchAppWindow(paths, url, log = () => {}) {
         [
           `--app=${url}`,
           '--start-fullscreen',
+          '--autoplay-policy=no-user-gesture-required',
           `--user-data-dir=${paths.profileDir}`,
           '--no-first-run',
           '--no-default-browser-check'
@@ -487,6 +488,7 @@ export function launchAppWindow(paths, url, log = () => {}) {
         [
           `--app=${url}`,
           '--start-maximized',
+          '--autoplay-policy=no-user-gesture-required',
           `--user-data-dir=${paths.profileDir}`,
           '--no-first-run',
           '--no-default-browser-check'

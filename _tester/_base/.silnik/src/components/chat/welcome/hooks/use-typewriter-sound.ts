@@ -85,6 +85,7 @@ export function useTypewriterSound(
 
     // Ref do aktywnego audio dla cleanup
     let activeAudio: HTMLAudioElement | null = null;
+    let resumeOnInteraction: (() => void) | null = null;
 
     // Uruchom ciągły dźwięk maszyny do pisania
     const startTypewriterSound = () => {
@@ -102,12 +103,37 @@ export function useTypewriterSound(
         // jeśli krótszy niż animation → akceptowalna cisza po końcu mp3.
         // Bez `loop`: gdy `pause()` w cleanup rzuci DOMException, audio i tak
         // skończy się samo (vs `loop=true` które leciałoby nieskończoność).
-        activeAudio.play().catch(() => {});
+        const playPromise = activeAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Jeśli przeglądarka zablokowała autoplay bez gestu, uruchom audio
+            // przy pierwszej interakcji użytkownika (jeśli animacja wciąż trwa).
+            if (typeof window !== 'undefined') {
+              resumeOnInteraction = () => {
+                if (activeAudio && !activeAudio.ended) {
+                  activeAudio.play().catch(() => {});
+                }
+                if (resumeOnInteraction) {
+                  window.removeEventListener('pointerdown', resumeOnInteraction);
+                  window.removeEventListener('keydown', resumeOnInteraction);
+                  resumeOnInteraction = null;
+                }
+              };
+              window.addEventListener('pointerdown', resumeOnInteraction, { once: true });
+              window.addEventListener('keydown', resumeOnInteraction, { once: true });
+            }
+          });
+        }
       } catch {}
     };
 
     // Zatrzymaj dźwięk z płynnym fade-out
     const stopTypewriterSound = () => {
+      if (resumeOnInteraction && typeof window !== 'undefined') {
+        window.removeEventListener('pointerdown', resumeOnInteraction);
+        window.removeEventListener('keydown', resumeOnInteraction);
+        resumeOnInteraction = null;
+      }
       if (!activeAudio) return;
 
       const audio = activeAudio;
@@ -155,6 +181,11 @@ export function useTypewriterSound(
 
     return () => {
       clearInterval(timer);
+      if (resumeOnInteraction && typeof window !== 'undefined') {
+        window.removeEventListener('pointerdown', resumeOnInteraction);
+        window.removeEventListener('keydown', resumeOnInteraction);
+        resumeOnInteraction = null;
+      }
       // IND-149: clear fade-out interval jeśli wciąż leci - bez tego setInterval
       // żyje poza React lifecycle (pre-existing memory leak gdy user kliknie
       // "Rozpocznij" PODCZAS fade-out animacji).
