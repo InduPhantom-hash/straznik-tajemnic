@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../ui/tooltip';
 import { Button } from '../../ui/button';
 import {
@@ -19,6 +20,8 @@ import {
 
 /** Sekcja Safety - 4 selecty + presety Horror authentic / Reset, color-coded badges. */
 export function SafetySection({ g, updateGemini }: GeminiSectionProps) {
+  const t = useTranslations('GeminiSafetySection');
+
   return (
     <AccordionItem value="safety">
       <AccordionTrigger>
@@ -30,12 +33,12 @@ export function SafetySection({ g, updateGemini }: GeminiSectionProps) {
             {Object.values(g.safetySettings).every(
               (v) => v === 'BLOCK_MEDIUM_AND_ABOVE'
             )
-              ? 'Wszystkie BLOCK_MEDIUM (default)'
+              ? t('defaultBadge')
               : Object.values(g.safetySettings).every(
                     (v) => v === 'BLOCK_ONLY_HIGH'
                   )
-                ? 'Horror authentic (BLOCK_ONLY_HIGH)'
-                : 'Custom'}
+                ? t('horrorBadge')
+                : t('customBadge')}
           </span>
         </span>
       </AccordionTrigger>
@@ -46,17 +49,17 @@ export function SafetySection({ g, updateGemini }: GeminiSectionProps) {
             size="sm"
             variant="outline"
             onClick={() => updateGemini({ safetySettings: HORROR_PRESET })}
-            title="Dla autentycznego Lovecrafta - pozwala na gore, kult, śmierć"
+            title={t('horrorPresetTooltip')}
           >
-            🩸 Horror authentic
+            {t('horrorPreset')}
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => updateGemini({ safetySettings: SAFETY_DEFAULT })}
-            title="Domyślne wartości Google (BLOCK_MEDIUM_AND_ABOVE)"
+            title={t('resetPresetTooltip')}
           >
-            ↺ Reset
+            {t('resetPreset')}
           </Button>
           <HelpIcon
             content={`${GEMINI_HELP.safetySettings.desc} ${GEMINI_HELP.safetySettings.example ?? ''}`}

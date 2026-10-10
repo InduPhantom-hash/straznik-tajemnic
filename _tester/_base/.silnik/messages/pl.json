@@ -104,8 +104,8 @@
     "legalDisclaimerNotice": "Strażnik Tajemnic AI jest oprogramowaniem open-source i nie zawiera w sobie zastrzeżonych treści ani tabel Call of Cthulhu / Chaosium Inc. Wszelkie reguły są przetwarzane wyłącznie lokalnie z pliku użytkownika (BYOB)."
   },
   "CostControl": {
-    "title": "Kontrola Kosztów",
-    "tooltip": "Monitoruj wydatki na API. Dane z licznika konta (gemini + obrazy + TTS), nie z przeglądarki.",
+    "title": "Monitor Wydatków i Tokenów",
+    "tooltip": "Monitoruj wydatki na API. Dane z licznika konta (Gemini LLM + obrazy Imagen + lektor TTS).",
     "updated": "Aktualizacja:",
     "gemini": "Gemini",
     "tts": "TTS",
@@ -117,7 +117,9 @@
     "totalCost": "Łączny koszt konta",
     "apiRequests": "{count} żądań API",
     "reset": "Wyzeruj",
-    "resetConfirm": "Czy na pewno chcesz wyzerować licznik kosztów konta?"
+    "resetConfirm": "Czy na pewno chcesz wyzerować licznik kosztów konta?",
+    "infoTitle": "Informacja o zużyciu API",
+    "infoNote": "Licznik zlicza rzeczywiste zużycie zasobów API dla Twojego konta. Twarde limity budżetowe oraz alerty możesz skonfigurować bezpośrednio w Google Cloud Console / AI Studio."
   },
   "InspectionLightbox": {
     "confirmed": "Potwierdzone",
@@ -5457,6 +5459,16 @@
     "sectionTitle": "Narzędzia Debugowania",
     "debugPageLink": "Otwórz stronę debug →"
   },
+  "DebugApiStatus": {
+    "title": "Status Usług",
+    "tooltip": "Sprawdź status połączenia z aktywnymi usługami gry (LLM, TTS, Grafika, Oświetlenie).",
+    "testing": "⏳ Testowanie...",
+    "testAll": "🧪 Testuj Wszystkie",
+    "serviceGemini": "Gemini LLM",
+    "serviceTts": "Gemini TTS",
+    "serviceImage": "Gemini Imagen",
+    "serviceHue": "Philips Hue"
+  },
   "GeminiSettingsPanel": {
     "eyebrow": "Dla wtajemniczonych",
     "title": "Gemini · zaawansowane",
@@ -5594,31 +5606,17 @@
     "stateEnabled": "Włączone",
     "stateDisabled": "Wyłączone",
     "enableHelp": "Włącza generowanie ilustracji dla scen, postaci i lokacji przy użyciu Gemini Imagen.",
-    "frequencySectionTitle": "Częstotliwość i Styl Kadrów",
+    "frequencySectionTitle": "Częstotliwość i Limity Kadrów",
     "frequencyLabel": "Częstotliwość ilustracji scen",
     "frequencyHelp": "Steruje tym, jak często AI generuje obrazy w trakcie sesji. Łączy się z trybem narracji (Sesja Zero): tryb ustala bazę, ten suwak ją przesuwa. Rzadko = maksymalna płynność narracji i niższy koszt. Często = bogatsze ilustrowanie wydarzeń.",
     "frequencyRare": "Rzadko (płynność narracji)",
     "frequencyNormal": "Normalnie",
     "frequencyOften": "Często (więcej obrazów)",
-    "styleLabel": "Styl obrazów",
-    "styleHelp": "Realistyczny: Fotorealistyczne obrazy • Artystyczny: Malarski styl • Horror: Mroczny i przerażający • Vintage: Styl retro",
-    "styleRealistic": "Realistyczny",
-    "styleArtistic": "Artystyczny",
-    "styleHorror": "Horror",
-    "styleVintage": "Vintage",
-    "qualityLabel": "Jakość",
-    "qualityHelp": "Niska: Szybkie, tanie • Średnia: Zbalansowana • Wysoka: Lepsza jakość • Ultra: Najlepsza jakość",
-    "qualityLow": "Niska (szybkie)",
-    "qualityMedium": "Średnia",
-    "qualityHigh": "Wysoka",
-    "qualityUltra": "Ultra",
     "maxImagesLabel": "Maksymalna liczba obrazów na wiadomość",
     "maxImagesHelp": "Ile obrazów może wygenerować AI w jednej wiadomości (1-5).",
     "consistencySectionTitle": "Tożsamość Postaci i Automatyzacja",
     "keepPortraitLabel": "Zachowuj wygląd NPC przy regeneracji portretu",
     "keepPortraitHelp": "Gdy włączone, regeneracja portretu zachowuje dotychczasowy wygląd i rysy twarzy postaci.",
-    "autoPortraitsLabel": "Automatyczne portrety postaci",
-    "autoPortraitsHelp": "Automatycznie generuj portrety dla nowych postaci graczy.",
     "autoNpcsLabel": "Automatyczne ilustracje NPC",
     "autoNpcsHelp": "Automatycznie generuj ilustracje dla postaci niezależnych (NPC) spotykanych w grze.",
     "autoLocationsLabel": "Automatyczne ilustracje lokacji",
@@ -5660,11 +5658,20 @@
   "GeminiCacheSection": {
     "stateOn": "✓ włączony",
     "stateOff": "○ wyłączony",
-    "warningStrong": "Pełna integracja w IND-13.",
-    "warningPrefix": "UI ustawień jest gotowe, ale wartości są zapisywane do",
-    "warningSuffix": "placeholder w providerze i nie zmieniają jeszcze faktycznego zachowania API. Po IND-13: oszczędność do 90% input tokens.",
-    "ttlHint": "W milisekundach. 3 600 000 = 1h. 86 400 000 = 24h.",
+    "infoStrong": "Buforowanie kontekstu aktywne.",
+    "infoPrefix": "Gemini Context Caching automatycznie buforuje stałe instrukcje Mistrza Gry i historię sesji.",
+    "infoSuffix": "Pozwala zaoszczędzić do 75-90% tokenów wejściowych przy długich kronikach.",
+    "ttlHint": "Czas życia bufora w milisekundach. 3 600 000 = 1h. 86 400 000 = 24h.",
     "cachedContentPlaceholder": "cachedContents/abc123 (zaawansowane - zostaw puste)"
+  },
+  "GeminiSafetySection": {
+    "defaultBadge": "Wszystkie BLOCK_MEDIUM (domyślne)",
+    "horrorBadge": "Horror authentic (BLOCK_ONLY_HIGH)",
+    "customBadge": "Niestandardowe",
+    "horrorPreset": "🩸 Horror authentic",
+    "horrorPresetTooltip": "Dla autentycznego klimatu weird fiction i Lovecrafta (zezwala na gore, kult, śmierć)",
+    "resetPreset": "↺ Reset",
+    "resetPresetTooltip": "Domyślne wartości Google (BLOCK_MEDIUM_AND_ABOVE)"
   },
   "GeminiOutputSection": {
     "invalidJson": "Niepoprawny JSON",
