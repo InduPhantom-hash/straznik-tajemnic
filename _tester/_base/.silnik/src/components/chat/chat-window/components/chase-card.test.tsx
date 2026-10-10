@@ -193,4 +193,107 @@ describe('ChaseCard - tor pościgu w czacie', () => {
     expect(screen.getByText(/Ścigający są w tej samej lokacji/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Sprint naprzód/i })).not.toBeInTheDocument();
   });
+
+  it('poprawnie renderuje rolę ścigającego i akcję pochwycenia/skoku do nóg', () => {
+    const pursuerState: ChaseState = {
+      ...baseChaseState,
+      turnOrder: ['char-alice', 'mob-1'],
+      activeActorId: 'char-alice',
+      participants: [
+        {
+          id: 'char-alice',
+          name: 'Alice',
+          isPlayer: true,
+          isFleeing: false,
+          mov: 8,
+          actionsTotal: 2,
+          actionsRemaining: 2,
+          segmentIndex: 0,
+        },
+        {
+          id: 'mob-1',
+          name: 'Adam Dąbrowski',
+          isPlayer: false,
+          isFleeing: true,
+          mov: 7,
+          actionsTotal: 1,
+          actionsRemaining: 1,
+          segmentIndex: 2,
+        },
+      ],
+    };
+
+    const onManeuverSelect = jest.fn();
+    render(
+      <ChaseCard
+        chaseState={pursuerState}
+        activeCharacter={alice}
+        canAct={true}
+        completed={false}
+        onManeuverSelect={onManeuverSelect}
+      />
+    );
+
+    expect(screen.getByText(/Ścigasz: Adam Dąbrowski/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Dopadnij cel/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Odcięcie drogi skrótem/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Skok do nóg \(Pochwycenie\)/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Dopadnij cel/i }));
+    expect(onManeuverSelect).toHaveBeenCalledWith(
+      'sprint',
+      expect.anything(),
+      expect.stringContaining('Alice: Dopadnij cel')
+    );
+  });
+
+  it('otwiera Tackę Kości gracza (onRollTest) przy manewrach wymagających rzutu', () => {
+    const onRollTest = jest.fn();
+    const stateWithHazard: ChaseState = {
+      ...baseChaseState,
+      segments: [
+        { index: 0, name: 'Targ' },
+        { index: 1, name: 'Zaułek' },
+        { index: 2, name: 'Brama' },
+        {
+          index: 3,
+          name: 'Dachy',
+          hazard: {
+            id: 'hazard_stairs',
+            name: 'Strome, zniszczone schody',
+            description: 'Strome stopnie',
+            requiredSkill: 'Skakanie',
+            difficulty: 'zwykly',
+            hazardType: 'hazard',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ChaseCard
+        chaseState={stateWithHazard}
+        activeCharacter={alice}
+        canAct={true}
+        completed={false}
+        onRollTest={onRollTest}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Forsuj przeszkodę/i }));
+    expect(onRollTest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillName: 'Skakanie',
+        characterName: 'Alice',
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Brawurowy skrót/i }));
+    expect(onRollTest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillName: 'Nawigacja',
+        characterName: 'Alice',
+      })
+    );
+  });
 });

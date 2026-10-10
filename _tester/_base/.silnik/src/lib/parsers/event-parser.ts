@@ -196,6 +196,8 @@ export interface ParsedChaseTag {
   distance: number;
   opponent?: string;
   opponentMov?: number;
+  role?: 'fleeing' | 'pursuer';
+  isShort?: boolean;
 }
 
 /**
@@ -221,7 +223,7 @@ export function extractChaseTag(text: string): ParsedChaseTag | null {
   }
 
   let opponent: string | undefined;
-  const oppMatch = content.match(/\b(?:wrog|wróg|enemy|przeciwnik)\s*=\s*([^|;\]]+)/i);
+  const oppMatch = content.match(/\b(?:wrog|wróg|enemy|przeciwnik|cel_poscigu|cel_pościgu)\s*=\s*([^|;\]]+)/i);
   if (oppMatch) {
     opponent = oppMatch[1].trim();
   }
@@ -235,11 +237,27 @@ export function extractChaseTag(text: string): ParsedChaseTag | null {
     }
   }
 
+  let role: 'fleeing' | 'pursuer' | undefined;
+  const roleMatch = content.match(/\b(?:cel|rola|role|mode)\s*=\s*([^|;\]]+)/i);
+  if (roleMatch) {
+    const val = roleMatch[1].trim().toLowerCase();
+    if (/\b(schwytanie|z[lł]apanie|dogonienie|pursuer|[sś]cigaj[aą]cy|capture|catch)\b/i.test(val)) {
+      role = 'pursuer';
+    } else if (/\b(ucieczka|escape|fleeing|uciekaj[aą]cy)\b/i.test(val)) {
+      role = 'fleeing';
+    }
+  }
+
+  const isShort = /\b(kr[oó]tki|short|ograniczony|podw[oó]rze|korytarz|dom)\s*=\s*(?:true|1|tak|yes)\b/i.test(content) ||
+    /\b(kr[oó]tki|short)\b/i.test(content);
+
   return {
     type: isVehicle ? 'kolowy' : 'pieszy',
     distance,
     opponent,
     opponentMov,
+    role,
+    isShort,
   };
 }
 

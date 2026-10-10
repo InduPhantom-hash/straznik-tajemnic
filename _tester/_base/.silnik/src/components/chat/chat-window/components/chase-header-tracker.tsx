@@ -26,12 +26,13 @@ export function ChaseHeaderTracker({
     return null;
   }
 
-  const player = chaseState.participants.find((p) => p.isPlayer && p.isFleeing);
-  const pursuer = chaseState.participants.find((p) => !p.isFleeing);
+  const player = chaseState.participants.find((p) => p.isPlayer);
+  const opponent = chaseState.participants.find((p) => !p.isPlayer);
+  const isPlayerPursuer = Boolean(player && !player.isFleeing);
 
-  const playerSegment = player?.segmentIndex ?? 2;
-  const pursuerSegment = pursuer?.segmentIndex ?? 0;
-  const distance = Math.max(0, playerSegment - pursuerSegment);
+  const playerSegment = player?.segmentIndex ?? 0;
+  const opponentSegment = opponent?.segmentIndex ?? 0;
+  const distance = Math.abs(playerSegment - opponentSegment);
 
   const segments: ChaseSegment[] = chaseState.segments && chaseState.segments.length > 0
     ? chaseState.segments
@@ -42,13 +43,15 @@ export function ChaseHeaderTracker({
 
   // Sprawdź czy to pościg kołowy czy pieszy
   const isVehicle =
-    pursuer?.name.toLowerCase().includes('pojazd') ||
-    pursuer?.name.toLowerCase().includes('vehicle') ||
-    pursuer?.name.toLowerCase().includes('auto') ||
-    pursuer?.name.toLowerCase().includes('samochód');
+    opponent?.name.toLowerCase().includes('pojazd') ||
+    opponent?.name.toLowerCase().includes('vehicle') ||
+    opponent?.name.toLowerCase().includes('auto') ||
+    opponent?.name.toLowerCase().includes('samochód');
 
   const distanceText = isDanger
     ? t('distanceDanger')
+    : isPlayerPursuer
+    ? (t('distancePursuing', { count: distance }) || `Dystans do celu: ${distance}`)
     : t('distance', { count: distance });
 
   return (
@@ -84,9 +87,9 @@ export function ChaseHeaderTracker({
                 {isVehicle ? t('vehicleChase') : t('footChase')}
               </span>
             </div>
-            {pursuer?.name && (
+            {opponent?.name && (
               <div className="text-[12px] text-zinc-400 font-sans truncate max-w-[180px] sm:max-w-[220px]">
-                {pursuer.name}
+                {isPlayerPursuer ? `${t('pursuingPrefix') || 'Cel:'} ${opponent.name}` : opponent.name}
               </div>
             )}
           </div>
@@ -110,7 +113,7 @@ export function ChaseHeaderTracker({
           <div className="grid grid-cols-5 gap-1.5 h-6 bg-zinc-950/90 rounded p-1 border border-brass/20 relative">
             {segments.map((seg, idx) => {
               const isPlayerHere = playerSegment === idx;
-              const isPursuerHere = pursuerSegment === idx;
+              const isOpponentHere = opponentSegment === idx;
               const isHazardHere = seg.hazard !== null && seg.hazard !== undefined;
               const isGoal = idx === segments.length - 1;
 
@@ -120,7 +123,7 @@ export function ChaseHeaderTracker({
                   className={`rounded flex items-center justify-center text-[12px] font-mono transition-all ${
                     isPlayerHere
                       ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/60 font-bold shadow-sm'
-                      : isPursuerHere
+                      : isOpponentHere
                       ? 'bg-red-950/80 text-red-300 border border-red-600/50 font-bold'
                       : isHazardHere
                       ? 'bg-amber-950/30 text-amber-400 border border-dashed border-amber-600/40'
@@ -130,12 +133,12 @@ export function ChaseHeaderTracker({
                   }`}
                   title={seg.name}
                 >
-                  {isPlayerHere && isPursuerHere ? (
+                  {isPlayerHere && isOpponentHere ? (
                     <span className="text-red-400 font-bold">⚔️</span>
                   ) : isPlayerHere ? (
                     <span>🕵️ {t('investigator')}</span>
-                  ) : isPursuerHere ? (
-                    <span>👹 {t('enemy')}</span>
+                  ) : isOpponentHere ? (
+                    <span>{isPlayerPursuer ? '🎯' : '👹'} {isPlayerPursuer ? t('target') || 'Cel' : t('enemy')}</span>
                   ) : isHazardHere ? (
                     <span>🚧</span>
                   ) : isGoal ? (
