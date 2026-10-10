@@ -2,13 +2,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { DebugApiStatus } from './debug-api-status';
 import { DebugToolsGrid } from './debug-tools-grid';
-
-interface TestResults {
-  gemini: boolean | null;
-  googleTTS: boolean | null;
-  replicate: boolean | null;
-  cloudSessions: boolean | null;
-}
+import type { TestResults } from '@/hooks/useApiTester';
 
 interface DebugSettingsProps {
   testResults: TestResults;

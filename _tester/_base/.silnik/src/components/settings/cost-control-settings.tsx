@@ -144,51 +144,16 @@ export function CostControlSettings({
         </div>
       </div>
 
-      {/* Ustawienia kontroli kosztów */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-            Włącz kontrolę kosztów
-            <HelpIcon content="Monitoruje i ogranicza wydatki na API. Automatycznie wyłączy funkcje gdy przekroczysz budżet." />
-          </label>
-          <input
-            type="checkbox"
-            checked={settings.costControl.enabled}
-            onChange={(e) =>
-              setSettings({
-                ...settings,
-                costControl: {
-                  ...settings.costControl,
-                  enabled: e.target.checked,
-                },
-              })
-            }
-            className="w-4 h-4 accent-primary bg-[#1f1a14] border-brass/30 rounded focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-            Miesięczny budżet ($)
-            <HelpIcon content="Maksymalny miesięczny budżet na API w dolarach. Zalecane: $5-10 dla regularnego użycia." />
-          </label>
-          <input
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            value={settings.costControl.monthlyBudget}
-            onChange={(e) =>
-              setSettings({
-                ...settings,
-                costControl: {
-                  ...settings.costControl,
-                  monthlyBudget: parseFloat(e.target.value) || 10.0,
-                },
-              })
-            }
-            className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-md font-special-elite text-foreground focus:border-brass focus:outline-none"
-          />
+      {/* Informacja o monitorze kosztów i limitach API */}
+      <div className="border border-brass/25 bg-[#16130f] p-4 flex items-start gap-3">
+        <span className="text-brass text-lg shrink-0">ℹ️</span>
+        <div className="space-y-1">
+          <div className="font-display text-xs uppercase tracking-[0.14em] text-brass">
+            {t('infoTitle')}
+          </div>
+          <p className="font-serif italic text-xs leading-relaxed text-muted-foreground m-0">
+            {t('infoNote')}
+          </p>
         </div>
       </div>
     </div>
