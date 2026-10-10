@@ -371,4 +371,92 @@ describe("rulebook-fingerprint - Rozszerzone szablony schematyczne i plan semant
       expect(derelict.title).toBe("The Derelict");
     });
   });
+
+  describe("Issue #748 - Uszczelnienie identyfikacji podręczników, Startera i Reject Gate", () => {
+    it("rozpoznaje Starter Zewu Cthulhu (ZC_Starter.pdf) ze wzmianką o Sandy Petersenie w stopce jako starter-d100, a NIE bestiary", () => {
+      const text = `
+        Zew Cthulhu. Gra fabularna.
+        Zasady Wprowadzające. Zestaw Startowy.
+        Autorzy: Sandy Petersen, Mike Mason, Paul Fricker.
+        Zew Cthulhu został stworzony przez Sandy'ego Petersena.
+        Chaosium Inc. Black Monk Games.
+        Spis treści:
+        Wprowadzenie ... 3
+        Zasady gry d100 ... 5
+        Tworzenie Badacza ... 12
+        Walka i rany ... 18
+        Poczytalność ... 22
+        Scenariusz: Nawiedzony Dom ... 26
+      `;
+      const res = detectRulebookProfile(text, "ZC_Starter.pdf");
+      expect(res.profile).toBe("starter-d100");
+      expect(res.title).toContain("Zestaw Startowy");
+      expect(res.profile).not.toBe("bestiary");
+    });
+
+    it("rozpoznaje realny plik ZC_Starter.pdf gdzie Sandy Petersen pojawia się na początku creditsów przed treścią", () => {
+      const text = `
+        Call of Cthulhu 7th Edition.
+        Autor: Sandy Petersen. Opracowanie: Mike Mason.
+        Chaosium Inc. Wydanie polskie: Black Monk Games.
+        
+        ZASADY WPROWADZAJĄCE DO GRY FABULARNEJ
+        Broszura zawiera skrócone zasady d100 oraz przygodę.
+        Tworzenie Badacza, Cechy, Rzuty kośćmi d100, Poczytalność.
+      `;
+      const res = detectRulebookProfile(text, "ZC_Starter.pdf");
+      expect(res.profile).toBe("starter-d100");
+      expect(res.title).toContain("Zestaw Startowy");
+      expect(res.profile).not.toBe("bestiary");
+    });
+
+    it("nie myli wzmianki o Sandy Petersenie w stopce licencyjnej z Przewodnikiem Petersena", () => {
+      const text = `
+        Księga Zasad Zew Cthulhu 7 edycja.
+        Gra fabularna oparta na twórczości Sandy'ego Petersena.
+        Spis treści:
+        Rozdział 3: Tworzenie Badacza ... 28
+        Rozdział 6: Walka ... 101
+        Rozdział 7: Pościgi ... 132
+        Rozdział 8: Poczytalność ... 152
+      `;
+      const res = detectRulebookProfile(text, "Zasady_Glowne.pdf");
+      expect(res.profile).not.toBe("bestiary");
+    });
+
+    it("poprawnie rozpoznaje autentyczny Przewodnik Petersena po potworach i bóstwach", () => {
+      const text = `
+        Przewodnik Petersena po potworach i bóstwach Mitów Cthulhu.
+        Petersen's Field Guide to Lovecraftian Horrors.
+        Atlas istot nadnaturalnych, potwory, bóstwa Mitów.
+      `;
+      const res = detectRulebookProfile(text, "Przewodnik_Petersena.pdf");
+      expect(res.profile).toBe("bestiary");
+      expect(res.title).toContain("Przewodnik Petersena");
+    });
+
+    it("odrzuca niekompatybilny dokument PDF jako unknown (Reject Gate)", () => {
+      const unrelatedText = `
+        Faktura VAT nr 123/2026.
+        Sprzedawca: Jan Kowalski Usługi Remontowe.
+        Nabywca: Firma Handlowa ABC.
+        Pozycje: Malowanie ścian, tynkowanie, układanie paneli.
+        Kwota do zapłaty: 4500 PLN.
+        Termin płatności: 14 dni.
+      `;
+      const res = detectRulebookProfile(unrelatedText, "Faktura_VAT_123.pdf");
+      expect(res.profile).toBe("unknown");
+    });
+
+    it("odrzuca książkę kulinarną bez elementów d100 / Call of Cthulhu jako unknown", () => {
+      const cookbookText = `
+        Włoska sztuka gotowania. Przepisy na makarony i pizzę.
+        Rozdział 1: Ciasto drożdżowe, mąka typ 00, oliwa z oliwek.
+        Rozdział 2: Sos pomidorowy, bazylia, oregano, parmezan.
+        Pieczenie w temperaturze 250 stopni przez 15 minut.
+      `;
+      const res = detectRulebookProfile(cookbookText, "Przepisy_Wloskie.pdf");
+      expect(res.profile).toBe("unknown");
+    });
+  });
 });
