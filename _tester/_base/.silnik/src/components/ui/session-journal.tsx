@@ -1,19 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   BookOpen,
   X,
-  MessageSquare,
-  Users,
-  Scroll,
-  Search,
-  Compass,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { filterPlotItems, isPlotRelevantItem } from '@/lib/journal/item-filter';
-import type { JournalEntry, JournalEventType, Character, SceneCaseCard, ActReport } from '@/lib/types';
+import type { JournalEntry, JournalEventType, Character, SceneCaseCard } from '@/lib/types';
 
 export type JournalEntryType =
   | 'case'
@@ -79,944 +73,214 @@ export interface SealedScene {
   nextStep?: string;
 }
 
+interface ReadingEntry {
+  id: string;
+  title: string;
+  sceneNumber?: number;
+  location?: string;
+  inGameDate?: string;
+  timestamp?: string | Date;
+  people: string[];
+  findings: string[];
+  content: string;
+  pending: boolean;
+  legacy: boolean;
+}
+
 export function SessionJournal({
   character,
   onClose,
   currentInGameDate,
   sharedJournal,
   participantNames = [],
-  onQuoteToInput,
-  totalCluesEstimated,
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
   const locale = useLocale() === 'en' ? 'en' : 'pl';
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  const articleRefs = useRef(new Map<string, HTMLElement>());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Obsługa klawisza Escape do zamykania Dziennika
+  const entries = useMemo<ReadingEntry[]>(() => {
+    const map = new Map<string, ReadingEntry>();
+    const addScene = (scene: SceneCaseCard) => {
+      if (scene.isSealed === false) return;
+      const summary = scene.chronicleSummaryByLocale?.[locale];
+      const content = typeof summary === 'string' ? summary.trim() : '';
+      const existing = map.get(scene.id);
+      if (existing) {
+        if (!content) return;
+        if (!existing.pending && !existing.legacy) {
+          const existingTime = existing.timestamp ? new Date(existing.timestamp).getTime() : NaN;
+          const candidateTime = new Date(scene.timestamp).getTime();
+          if (!Number.isFinite(candidateTime) || !Number.isFinite(existingTime) || candidateTime <= existingTime) return;
+        }
+      }
+      const pending = Boolean(scene.endMessageId) && !content;
+      map.set(scene.id, {
+        id: scene.id,
+        title: scene.title || scene.location || t('sceneNumber', { number: scene.sceneNumber }),
+        sceneNumber: scene.sceneNumber,
+        location: scene.location,
+        inGameDate: scene.inGameDate,
+        timestamp: scene.timestamp,
+        people: Array.isArray(scene.people) ? scene.people : [],
+        findings: !pending && !content && Array.isArray(scene.findings) ? scene.findings : [],
+        content: content || (!pending && Array.isArray(scene.keyTakeaways) ? scene.keyTakeaways.join('\n') : ''),
+        pending,
+        legacy: !content && !pending,
+      });
+    };
+    // Shared entries may contain a later recap than a character's snapshot.
+    const journal = sharedJournal ?? character.journal ?? [];
+    journal.forEach((entry) => { if (entry.sceneData) addScene(entry.sceneData); });
+    (character.sceneCards ?? []).forEach(addScene);
+    journal.forEach((entry) => {
+      if (entry.sceneData || entry.type === 'act_report' || map.has(entry.id)) return;
+      if (!entry.content?.trim()) return;
+      map.set(entry.id, {
+        id: entry.id, title: entry.title, inGameDate: entry.inGameDate,
+        timestamp: entry.timestamp,
+        location: entry.metadata?.locationName,
+        people: entry.metadata?.npcName ? [entry.metadata.npcName] : [],
+        findings: [], content: entry.content, pending: false, legacy: true,
+      });
+    });
+    return Array.from(map.values()).sort((a, b) => {
+      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : NaN;
+      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : NaN;
+      if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) return timeA - timeB;
+      return (a.sceneNumber ?? 0) - (b.sceneNumber ?? 0);
+    });
+  }, [character.sceneCards, character.journal, sharedJournal, locale, t]);
+
+  const latestId = entries[entries.length - 1]?.id;
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose?.();
+    if (latestId) articleRefs.current.get(latestId)?.scrollIntoView?.({ block: 'start' });
+  }, [latestId]);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    dialogRef.current?.focus({ preventScroll: true });
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeRef.current?.();
+      if (event.key !== 'Tab') return;
+      const buttons = dialogRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])');
+      if (!buttons?.length) return;
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || active === dialogRef.current || active?.tagName === 'ARTICLE')) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || active?.tagName === 'ARTICLE')) {
+        event.preventDefault();
+        first.focus();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
-  const isShared = sharedJournal !== undefined;
-
-  // Pobranie wpisów dziennika (duet lub solo)
-  const entries = useMemo(() => {
-    return (sharedJournal ?? character.journal ?? []) as unknown as ExtendedJournalEntry[];
-  }, [character.journal, sharedJournal]);
-
-  // Ekstrakcja i deduplikacja zapieczętowanych kart scen
-  const sealedScenes = useMemo<SealedScene[]>(() => {
-    const map = new Map<string, SealedScene>();
-
-    // 1. Karty scen z character.sceneCards
-    if (Array.isArray(character.sceneCards)) {
-      character.sceneCards.forEach((sc: SceneCaseCard, idx: number) => {
-        if (sc.isSealed === false) return;
-        const id = sc.id || `sc-card-${sc.sceneNumber ?? idx + 1}`;
-        map.set(id, {
-          id,
-          sceneNumber: sc.sceneNumber ?? idx + 1,
-          location: sc.location || 'Nieznana lokacja',
-          title: sc.title || `Scena #${sc.sceneNumber ?? idx + 1}`,
-          inGameDate: sc.inGameDate,
-          timestamp: sc.timestamp,
-          people: Array.isArray(sc.people) ? sc.people : [],
-          findings: Array.isArray(sc.findings) ? sc.findings : [],
-          keyTakeaways: Array.isArray(sc.keyTakeaways) ? sc.keyTakeaways : [],
-          chronicleSummary: sc.chronicleSummaryByLocale?.[locale],
-          chroniclePending: Boolean(sc.endMessageId),
-          nextStep: sc.nextStep,
-        });
-      });
-    }
-
-    // 2. Karty ze scalonego dziennika przygody
-    entries.forEach((entry, idx) => {
-      if (entry.sceneData) {
-        if (entry.sceneData.isSealed === false) return;
-        const sd = entry.sceneData;
-        const id = sd.id || entry.id;
-        if (!map.has(id)) {
-          map.set(id, {
-            id,
-            sceneNumber: sd.sceneNumber ?? idx + 1,
-            location: sd.location || 'Nieznana lokacja',
-            title: sd.title || entry.title || `Scena #${sd.sceneNumber ?? idx + 1}`,
-            inGameDate: sd.inGameDate || entry.inGameDate,
-            timestamp: sd.timestamp || entry.timestamp,
-            people: Array.isArray(sd.people) ? sd.people : [],
-            findings: Array.isArray(sd.findings) ? sd.findings : [],
-            keyTakeaways: Array.isArray(sd.keyTakeaways)
-              ? sd.keyTakeaways
-              : entry.content
-                ? [entry.content]
-                : [],
-            chronicleSummary: sd.chronicleSummaryByLocale?.[locale],
-            chroniclePending: Boolean(sd.endMessageId),
-            nextStep: sd.nextStep,
-          });
-        }
-      } else if (entry.type === 'scene') {
-        const id = entry.id;
-        if (!map.has(id)) {
-          const takeaways = entry.content
-            ? entry.content.split('\n').map((s) => s.trim()).filter(Boolean)
-            : [];
-          map.set(id, {
-            id,
-            sceneNumber: map.size + 1,
-            location: entry.metadata?.locationName || entry.title || 'Nieznana lokacja',
-            title: entry.title,
-            inGameDate: entry.inGameDate,
-            timestamp: entry.timestamp,
-            people: entry.metadata?.npcName ? [entry.metadata.npcName] : [],
-            findings: [],
-            keyTakeaways: takeaways,
-            chronicleSummary: undefined,
-            nextStep: undefined,
-          });
-        }
-      }
-    });
-
-    const list = Array.from(map.values());
-    // Chronologicznie od najnowszej na samej górze
-    list.sort((a, b) => {
-      if (b.sceneNumber !== a.sceneNumber) {
-        return b.sceneNumber - a.sceneNumber;
-      }
-      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return timeB - timeA;
-    });
-
-    return list;
-  }, [character.sceneCards, entries, locale]);
-
-  // Ekstrakcja i synteza trwającej sceny w toku (Issue #471)
-  const ongoingSceneCard = useMemo<SealedScene | null>(() => {
-    const as = character.activeScene;
-    if (!as) {
-      return null;
-    }
-
-    const keyTakeaways: string[] = [];
-    const seenTakeaways = new Set<string>();
-
-    const addTakeaway = (text?: string | null) => {
-      if (!text) return;
-      const clean = text.trim();
-      if (!clean || seenTakeaways.has(clean.toLowerCase())) return;
-      seenTakeaways.add(clean.toLowerCase());
-      keyTakeaways.push(clean);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) previouslyFocused.focus({ preventScroll: true });
     };
+  }, []);
 
-    if (Array.isArray(as.notes)) {
-      as.notes.forEach(addTakeaway);
-    }
-    if (Array.isArray(as.findings)) {
-      as.findings.forEach((f) => {
-        if (isPlotRelevantItem(f)) {
-          addTakeaway(f);
-        }
-      });
-    }
-
-    entries.forEach((e) => {
-      if (e.type === 'scene') return;
-      const isRelatedLocation = Boolean(
-        as.location &&
-        as.location !== 'Aktualna lokacja' &&
-        (
-          e.metadata?.locationName?.toLowerCase() === as.location.toLowerCase() ||
-          e.title?.toLowerCase().includes(as.location.toLowerCase())
-        )
-      );
-
-      if (isRelatedLocation || e.type === 'clue' || e.type === 'discovery' || e.type === 'note') {
-        const text = e.content || e.title;
-        addTakeaway(text);
-      }
-    });
-
-    let nextStep: string | undefined;
-    if (Array.isArray(as.notes)) {
-      const explicitNext = as.notes.find((n) =>
-        /^(?:cel|zadanie|kolejny krok|następny krok|next step):/i.test(n)
-      );
-      if (explicitNext) {
-        nextStep = explicitNext
-          .replace(/^(?:cel|zadanie|kolejny krok|następny krok|next step):\s*/i, '')
-          .trim();
-      }
-    }
-    if (!nextStep) {
-      nextStep =
-        as.location && as.location !== 'Aktualna lokacja'
-          ? `Kontynuuj badanie lokacji: ${as.location}`
-          : t('ongoingNextStepDefault');
-    }
-
-    const allFindings = [...(Array.isArray(as.findings) ? as.findings : [])];
-    entries.forEach((e) => {
-      if (e.type === 'item' && e.title && !allFindings.includes(e.title)) {
-        allFindings.push(e.title);
-      }
-    });
-
-    return {
-      id: 'active-ongoing-scene',
-      sceneNumber: as.sceneNumber || sealedScenes.length + 1,
-      location: as.location || 'Aktualna lokacja',
-      title: as.title || t('activeSceneHeader'),
-      inGameDate: as.inGameDate || currentInGameDate,
-      timestamp: as.startedAt || new Date().toISOString(),
-      people: Array.isArray(as.people) ? as.people : [],
-      findings: allFindings,
-      keyTakeaways,
-      nextStep,
-    };
-  }, [character.activeScene, currentInGameDate, entries, sealedScenes.length, t]);
-
-  // Pusty stan ("Dziennik śledztwa milczy") pojawia się TYLKO wtedy, gdy nie ma ani zapieczętowanych scen, ani żadnych wpisów/ustaleń w aktywnej scenie
-  const hasActiveSceneContent = Boolean(
-    ongoingSceneCard &&
-    (
-      ongoingSceneCard.findings.length > 0 ||
-      ongoingSceneCard.people.length > 0 ||
-      ongoingSceneCard.keyTakeaways.length > 0 ||
-      (ongoingSceneCard.location &&
-        ongoingSceneCard.location.trim() !== '' &&
-        ongoingSceneCard.location !== 'Aktualna lokacja')
-    )
-  );
-
-  const isEmpty = sealedScenes.length === 0 && !hasActiveSceneContent;
-
-  // Zakładka widoku: Sceny lub Raporty Aktów (Mechanika 8)
-  const [activeTab, setActiveTab] = useState<'scenes' | 'acts'>('scenes');
-
-  // Obliczenie unikalnych odkrytych wskazówek (Mechanika 1)
-  const discoveredClues = useMemo<string[]>(() => {
-    const set = new Set<string>();
-
-    if (character.investigatorDossier?.clues) {
-      character.investigatorDossier.clues.forEach((c) => {
-        if (c.title) {
-          set.add(c.title.trim().toLowerCase());
-        }
-      });
-    }
-
-    entries.forEach((e) => {
-      if (e.type === 'clue' || e.type === 'discovery') {
-        const title = e.title?.trim() || e.content?.trim();
-        if (title) {
-          set.add(title.toLowerCase());
-        }
-      }
-    });
-
-    sealedScenes.forEach((s) => {
-      s.findings.forEach((f) => {
-        if (f) set.add(f.trim().toLowerCase());
-      });
-    });
-    if (ongoingSceneCard) {
-      ongoingSceneCard.findings.forEach((f) => {
-        if (f) set.add(f.trim().toLowerCase());
-      });
-    }
-
-    return Array.from(set);
-  }, [character.investigatorDossier?.clues, entries, ongoingSceneCard, sealedScenes]);
-
-  // Ekstrakcja i deduplikacja Raportów Aktu (Mechanika 8)
-  const actReports = useMemo<ActReport[]>(() => {
-    const map = new Map<number, ActReport>();
-
-    if (Array.isArray(character.actReports)) {
-      character.actReports.forEach((r) => {
-        if (r && typeof r.actNumber === 'number') {
-          map.set(r.actNumber, r);
-        }
-      });
-    }
-
-    entries.forEach((e) => {
-      if (e.type === 'act_report' && e.actReportData) {
-        const ad = e.actReportData;
-        if (ad && typeof ad.actNumber === 'number' && !map.has(ad.actNumber)) {
-          map.set(ad.actNumber, ad);
-        }
-      }
-    });
-
-    const list = Array.from(map.values());
-    list.sort((a, b) => b.actNumber - a.actNumber);
-    return list;
-  }, [character.actReports, entries]);
-
-  const [selectedActReportId, setSelectedActReportId] = useState<string | null>(null);
-
-  const activeActReport = useMemo<ActReport | null>(() => {
-    if (actReports.length === 0) return null;
-    if (selectedActReportId) {
-      const found = actReports.find((r) => r.id === selectedActReportId);
-      if (found) return found;
-    }
-    return actReports[0];
-  }, [actReports, selectedActReportId]);
-
-  // Domyślnie wybrana jest bieżąca scena (lub najnowsza zapieczętowana, jeśli brak aktywnej)
-  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
-
-  const activeSceneCard = useMemo(() => {
-    if (selectedSceneId) {
-      if (ongoingSceneCard && selectedSceneId === ongoingSceneCard.id) {
-        return ongoingSceneCard;
-      }
-      const found = sealedScenes.find((s) => s.id === selectedSceneId);
-      if (found) return found;
-    }
-    if (ongoingSceneCard) {
-      return ongoingSceneCard;
-    }
-    return sealedScenes[0] || null;
-  }, [ongoingSceneCard, sealedScenes, selectedSceneId]);
-
-  // Cytowanie do czatu
-  const handleQuoteToInput = (text: string) => {
-    if (onQuoteToInput) {
-      onQuoteToInput(text);
-    } else {
-      window.dispatchEvent(
-        new CustomEvent('straznik:quote-to-input', {
-          detail: { text },
-        })
-      );
-    }
-    onClose?.();
+  const navigate = (id: string) => {
+    setSelectedId(id);
+    const article = articleRefs.current.get(id);
+    article?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+    article?.focus({ preventScroll: true });
   };
 
-  // Trwająca aktywna scena do paska statusu
-  const ongoingLocation =
-    character.activeScene?.location ||
-    (sealedScenes.length > 0 ? sealedScenes[0].location : null);
-
   return (
-    <div
+    <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="journal-reader-title"
       data-testid="session-journal"
-      className="fixed inset-0 w-full h-full z-50 flex flex-col bg-[#0b0805] text-[#e8dfcf] select-none overflow-hidden"
-    >
-      {/* Narożniki ozdobne Dark Art Déco */}
-      <span className="pointer-events-none absolute left-3 top-3 h-5 w-5 border-l-2 border-t-2 border-brass/60 z-30" />
-      <span className="pointer-events-none absolute right-3 top-3 h-5 w-5 border-r-2 border-t-2 border-brass/60 z-30" />
-      <span className="pointer-events-none absolute bottom-3 left-3 h-5 w-5 border-l-2 border-b-2 border-brass/60 z-30" />
-      <span className="pointer-events-none absolute bottom-3 right-3 h-5 w-5 border-r-2 border-b-2 border-brass/60 z-30" />
-
-      {/* 1. Czysty Nagłówek (Header) */}
-      <header className="bg-gradient-to-r from-[#140e09] via-[#1a130c] to-[#140e09] border-b border-brass/30 px-6 py-3 flex items-center justify-between gap-4 shrink-0 shadow-md relative z-10">
-        <div className="flex items-center gap-3">
-          <BookOpen className="h-6 w-6 text-brass shrink-0" />
-          <div>
-            <div className="font-special-elite text-xs uppercase tracking-[0.22em] text-brass font-semibold">
-              {t('titleEyebrow')}
-            </div>
-            <div className="flex items-center gap-3">
-              <h1 className="font-display uppercase tracking-[0.14em] text-lg lg:text-xl text-foreground drop-shadow-sm whitespace-nowrap">
-                {t('titleFull')}
-              </h1>
-              {/* Licznik wskazówek (Clue Counter - Mechanika 1) */}
-              <div
-                data-testid="clue-counter-badge"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brass/15 border border-brass/40 text-brass text-xs sm:text-sm font-mono font-semibold shadow-sm"
-                title={t('clueCounterTooltip')}
-              >
-                <span>🔍</span>
-                <span>{t('clueCounterLabel')}:</span>
-                <span className="font-bold text-[#f4ebd0]">
-                  {totalCluesEstimated && totalCluesEstimated > 0
-                    ? `${discoveredClues.length} / ${totalCluesEstimated}`
-                    : t('clueCountDiscovered', { count: discoveredClues.length })}
-                </span>
-              </div>
-            </div>
-            <div className="text-sm font-serif text-foreground/80 flex items-center gap-2 mt-0.5">
-              <span>{t('investigatorLabel', { name: character.name })}</span>
-              {(currentInGameDate || character.activeScene?.inGameDate) && (
-                <>
-                  <span className="text-brass/40">•</span>
-                  <span className="text-brass/90 font-medium">
-                    {currentInGameDate || character.activeScene?.inGameDate}
-                  </span>
-                </>
-              )}
-              {isShared && participantNames.length > 0 && (
-                <>
-                  <span className="text-brass/40">•</span>
-                  <span className="text-emerald-400 font-mono text-xs font-semibold">
-                    {t('sharedWith', { names: participantNames.join(' i ') })}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
+      className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#0c0b09] text-[#e8dfcf]">
+      <header className="flex shrink-0 items-start justify-between gap-4 border-b border-brass/25 px-5 py-4 md:px-8 md:py-5">
+        <div className="min-w-0">
+          <p className="mb-2 font-special-elite text-[10px] uppercase tracking-[0.24em] text-brass">{t('readerEyebrow')}</p>
+          <h1 id="journal-reader-title" className="flex items-center gap-3 font-display text-xl md:text-2xl">
+            <BookOpen aria-hidden="true" className="h-5 w-5 shrink-0 text-brass" />{t('readerTitle')}
+          </h1>
+          <p className="mt-2 font-serif text-sm text-[#bbb09d]">
+            {sharedJournal !== undefined && participantNames.length > 0
+              ? t('readerParty', { names: participantNames.join(', ') })
+              : t('readerInvestigator', { name: character.name })}
+            {currentInGameDate ? <span className="ml-3">{currentInGameDate}</span> : null}
+          </p>
         </div>
-
-        {/* Przycisk zamknięcia X (z obsługą Esc) */}
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-brass/40 bg-[#120f0c] text-muted-foreground transition-all hover:border-brass/80 hover:text-brass hover:scale-105 shrink-0"
-            title={t('closeTooltip')}
-            aria-label={t('closeAriaLabel')}
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
+        {onClose && <button type="button" onClick={onClose} aria-label={t('closeAriaLabel')}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brass/30 text-brass hover:bg-brass/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brass">
+          <X aria-hidden="true" className="h-5 w-5" />
+        </button>}
       </header>
 
-      {/* 2. Dyskretny pasek statusu trwającej sceny */}
-      <div className="bg-[#0e0a07] border-b border-brass/20 px-6 py-2.5 flex items-center justify-between gap-4 text-sm shrink-0">
-        <div className="flex items-center gap-2.5">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <span className="font-mono uppercase tracking-wider text-brass font-medium">
-            {ongoingLocation
-              ? t('currentLocationStatus', { location: ongoingLocation })
-              : t('statusInvestigationOngoing')}
-          </span>
-          {character.activeScene?.isLocationExhausted && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm shrink-0">
-              <span>✓</span>
-              <span>{t('locationExhaustedBadge')}</span>
-            </span>
-          )}
-        </div>
-        {character.activeScene && (
-          <span className="text-xs font-mono text-brass/80 font-medium hidden sm:inline">
-            Scena #{character.activeScene.sceneNumber} {t('activeSceneBadge')}
-          </span>
-        )}
-      </div>
-
-      {/* 3. Główna przestrzeń: Układ Kroniki Scen i Raportów Aktów (100% wysokości i szerokości) */}
-      <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {activeTab === 'scenes' && isEmpty ? (
-          /* Empty State - Dziennik milczy */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
-            <div className="w-16 h-16 rounded-full border border-brass/40 bg-brass/10 flex items-center justify-center mb-4 text-brass shadow-[0_0_20px_rgba(191,161,95,0.15)]">
-              <Compass className="h-8 w-8" />
-            </div>
-            <h2 className="font-display text-xl uppercase tracking-[0.16em] text-foreground mb-2">
-              {t('emptyScenesTitle')}
-            </h2>
-            <p className="font-serif italic text-muted-foreground max-w-lg leading-relaxed text-sm">
-              {t('emptyScenesDescription')}
-            </p>
-            {actReports.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('acts')}
-                className="mt-6 px-4 py-2 bg-brass/20 hover:bg-brass/30 text-brass border border-brass/50 rounded text-xs font-mono uppercase tracking-wider transition-colors"
-              >
-                {t('tabActReports')} ({actReports.length}) &rarr;
-              </button>
-            )}
+      {entries.length === 0 ? (
+        <main className="flex flex-1 items-center justify-center overflow-auto p-8">
+          <div className="max-w-lg text-center">
+            <BookOpen aria-hidden="true" className="mx-auto mb-5 h-10 w-10 text-brass/60" />
+            <h2 className="font-display text-xl">{t('readerEmptyTitle')}</h2>
+            <p className="mt-4 font-serif leading-relaxed text-[#bbb09d]">{t('readerEmptyDescription')}</p>
+            {character.activeScene?.location && <p className="mt-6 font-serif text-sm">{t('readerCurrentLocation', { location: character.activeScene.location })}</p>}
           </div>
-        ) : activeTab === 'acts' && actReports.length === 0 ? (
-          /* Empty State - Brak raportów aktu */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
-            <div className="w-16 h-16 rounded-full border border-brass/40 bg-brass/10 flex items-center justify-center mb-4 text-brass shadow-[0_0_20px_rgba(191,161,95,0.15)]">
-              <BookOpen className="h-8 w-8" />
-            </div>
-            <h2 className="font-display text-xl uppercase tracking-[0.16em] text-foreground mb-2">
-              {t('emptyActReportsTitle')}
-            </h2>
-            <p className="font-serif italic text-muted-foreground max-w-lg leading-relaxed text-sm mb-6">
-              {t('emptyActReportsDescription')}
-            </p>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleQuoteToInput(t('requestActSynthesisPrompt'))}
-                className="px-4 py-2.5 bg-gradient-to-r from-brass/25 via-brass/20 to-brass/15 hover:bg-brass hover:text-black text-brass border border-brass/60 rounded font-special-elite text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm"
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span>{t('requestActSynthesisButton')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('scenes')}
-                className="px-3.5 py-2.5 bg-transparent hover:bg-brass/10 text-muted-foreground hover:text-brass border border-brass/30 rounded text-xs font-mono uppercase tracking-wider transition-colors"
-              >
-                &larr; {t('tabScenes')}
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Dwukolumnowy układ Kroniki Scen lub Raportów Aktów */
-          <>
-            {/* Lewa kolumna: Zakładki (Sceny / Raporty) + Lista */}
-            <aside className="w-full md:w-80 lg:w-96 shrink-0 border-b md:border-b-0 md:border-r border-brass/25 bg-[#0e0a07] flex flex-col max-h-48 md:max-h-none overflow-hidden">
-              <div className="p-2 border-b border-brass/15 bg-[#140f0a] flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('scenes')}
-                  className={cn(
-                    'flex-1 py-1.5 px-2 rounded text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border',
-                    activeTab === 'scenes'
-                      ? 'bg-brass/25 border-brass/70 text-[#f4ebd0] font-bold shadow-sm'
-                      : 'bg-transparent border-transparent text-muted-foreground hover:text-brass hover:bg-brass/10'
-                  )}
-                >
-                  <Scroll className="h-3.5 w-3.5 text-brass" />
-                  <span>{t('tabScenes')} ({sealedScenes.length + (ongoingSceneCard ? 1 : 0)})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('acts')}
-                  className={cn(
-                    'flex-1 py-1.5 px-2 rounded text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border',
-                    activeTab === 'acts'
-                      ? 'bg-brass/25 border-brass/70 text-[#f4ebd0] font-bold shadow-sm'
-                      : 'bg-transparent border-transparent text-muted-foreground hover:text-brass hover:bg-brass/10'
-                  )}
-                >
-                  <BookOpen className="h-3.5 w-3.5 text-brass" />
-                  <span>{t('tabActReports')} ({actReports.length})</span>
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto journal-scroll p-3 space-y-2">
-                {activeTab === 'scenes' ? (
-                  <>
-                    {/* 1. Bieżąca scena (W toku) na samej górze listy scen */}
-                    {ongoingSceneCard && (
-                      <div
-                        key={ongoingSceneCard.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedSceneId(ongoingSceneCard.id)}
-                        onMouseEnter={() => setSelectedSceneId(ongoingSceneCard.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            setSelectedSceneId(ongoingSceneCard.id);
-                          }
-                        }}
-                        className={cn(
-                          'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
-                          activeSceneCard?.id === ongoingSceneCard.id
-                            ? 'bg-gradient-to-r from-emerald-950/40 via-brass/15 to-transparent border-emerald-500/80 shadow-[inset_0_0_12px_rgba(16,185,129,0.15),0_0_10px_rgba(16,185,129,0.1)] text-[#f4ebd0]'
-                            : 'bg-[#140f0b]/70 border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-950/20 hover:shadow-[0_0_12px_rgba(16,185,129,0.15)] text-[#d4c8b8]'
-                        )}
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="relative flex h-2.5 w-2.5 shrink-0">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                            </span>
-                            <span className="text-xs bg-emerald-950/60 text-emerald-400 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/40 shrink-0 font-bold">
-                              Scena #{ongoingSceneCard.sceneNumber}
-                            </span>
-                          </div>
-                          <span className="text-xs bg-emerald-500/20 text-emerald-300 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/30 shrink-0 tracking-wider font-bold">
-                            {t('ongoingBadge')}
-                          </span>
-                        </div>
-
-                        <h3 className="font-serif font-bold text-base leading-snug line-clamp-2 text-foreground group-hover:text-emerald-300 transition-colors">
-                          {ongoingSceneCard.title}
-                        </h3>
-
-                        <div className="text-sm text-foreground/80 mt-1 flex items-center gap-1.5">
-                          <span className="shrink-0">📍</span>
-                          <span className="truncate text-brass font-medium">{ongoingSceneCard.location}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 2. Zapieczętowane sceny chronologicznie */}
-                    {sealedScenes.map((scene) => {
-                      const isSelected = activeSceneCard?.id === scene.id;
-                      return (
-                        <div
-                          key={scene.id}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setSelectedSceneId(scene.id)}
-                          onMouseEnter={() => setSelectedSceneId(scene.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              setSelectedSceneId(scene.id);
-                            }
-                          }}
-                          className={cn(
-                            'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
-                            isSelected
-                              ? 'bg-gradient-to-r from-brass/20 via-brass/15 to-transparent border-brass/80 shadow-[inset_0_0_12px_rgba(191,161,95,0.15),0_0_10px_rgba(191,161,95,0.1)] text-[#f4ebd0]'
-                              : 'bg-[#140f0b]/70 border-brass/15 hover:border-brass/50 hover:bg-brass/10 hover:shadow-[0_0_12px_rgba(191,161,95,0.15)] text-[#d4c8b8]'
-                          )}
-                        >
-                          <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className="text-xs bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0 font-bold">
-                              Scena #{scene.sceneNumber}
-                            </span>
-                            {scene.inGameDate && (
-                              <span className="text-xs text-brass/80 font-mono font-medium shrink-0">
-                                📅 {scene.inGameDate}
-                              </span>
-                            )}
-                          </div>
-
-                          <h3 className="font-serif font-bold text-base leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
-                            {scene.title}
-                          </h3>
-
-                          <div className="text-sm text-foreground/80 mt-1 flex items-center gap-1.5">
-                            <span className="shrink-0">📍</span>
-                            <span className="truncate">{scene.location}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                ) : (
-                  /* Lista Raportów Aktów */
-                  actReports.map((report) => {
-                    const isSelected = activeActReport?.id === report.id;
-                    return (
-                      <div
-                        key={report.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedActReportId(report.id)}
-                        onMouseEnter={() => setSelectedActReportId(report.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            setSelectedActReportId(report.id);
-                          }
-                        }}
-                        className={cn(
-                          'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
-                          isSelected
-                            ? 'bg-gradient-to-r from-brass/20 via-brass/15 to-transparent border-brass/80 shadow-[inset_0_0_12px_rgba(191,161,95,0.15),0_0_10px_rgba(191,161,95,0.1)] text-[#f4ebd0]'
-                            : 'bg-[#140f0b]/70 border-brass/15 hover:border-brass/50 hover:bg-brass/10 hover:shadow-[0_0_12px_rgba(191,161,95,0.15)] text-[#d4c8b8]'
-                        )}
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <span className="text-xs bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0 font-bold">
-                            Akt #{report.actNumber}
-                          </span>
-                          <span
-                            className={cn(
-                              'text-xs font-mono uppercase px-2 py-0.5 rounded border shrink-0 tracking-wider font-bold',
-                              report.status === 'completed'
-                                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
-                                : 'bg-amber-950/60 text-amber-300 border-amber-500/40'
-                            )}
-                          >
-                            {report.status === 'completed' ? t('actStatusCompleted') : t('actStatusInProgress')}
-                          </span>
-                        </div>
-
-                        <h3 className="font-serif font-bold text-base leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
-                          {report.title}
-                        </h3>
-
-                        <div className="text-xs text-foreground/80 mt-1.5 flex items-center justify-between font-medium">
-                          <span>{t('entriesCount', { count: report.confirmedFacts.length })}</span>
-                          {report.inGameDate && (
-                            <span className="text-brass font-mono">📅 {report.inGameDate}</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </aside>
-
-            {/* Prawa strona: Karta Sceny LUB Karta Raportu Aktu */}
-            {activeTab === 'scenes' && activeSceneCard && (
-              <section className="flex-1 overflow-y-auto journal-scroll p-6 lg:p-8 bg-[#110d09] flex flex-col space-y-6">
-                {/* Nagłówek wybranej karty */}
-                <div className="border-b border-brass/25 pb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    {activeSceneCard.id === ongoingSceneCard?.id ? (
-                      <span className="text-xs bg-emerald-950/60 text-emerald-300 font-mono uppercase px-2.5 py-0.5 rounded border border-emerald-500/50 font-bold flex items-center gap-1.5">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        Scena #{activeSceneCard.sceneNumber} • {t('ongoingBadge')}
-                      </span>
-                    ) : (
-                      <span className="text-xs bg-brass/25 text-brass font-mono uppercase px-2.5 py-0.5 rounded border border-brass/50 font-bold">
-                        Scena #{activeSceneCard.sceneNumber}
-                      </span>
-                    )}
-                    <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
-                      <span>📍</span> {activeSceneCard.location}
-                      {activeSceneCard.id === ongoingSceneCard?.id && character.activeScene?.isLocationExhausted && (
-                        <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm">
-                          <span>✓</span>
-                          <span>{t('locationExhaustedBadge')}</span>
-                        </span>
-                      )}
-                    </span>
-                    {activeSceneCard.inGameDate && (
-                      <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
-                        <span>📅</span> {activeSceneCard.inGameDate}
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="font-display text-xl lg:text-2xl text-foreground uppercase tracking-wide">
-                    {activeSceneCard.title}
-                  </h2>
-                </div>
-
-                {/* BLOK 1: Przebieg i kluczowe ustalenia */}
-                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
-                    <Scroll className="h-4 w-4" />
-                    <span>{t('blockEventsAndFindings')}</span>
-                  </div>
-                  {activeSceneCard.chronicleSummary ? (
-                    <p
-                      data-testid="scene-chronicle-summary"
-                      className="font-serif text-sm text-[#e8dfcf] leading-relaxed whitespace-pre-line"
-                    >
-                      {activeSceneCard.chronicleSummary}
-                    </p>
-                  ) : activeSceneCard.chroniclePending ? (
-                    <p className="text-sm font-serif italic text-muted-foreground">{t('chroniclePending')}</p>
-                  ) : activeSceneCard.keyTakeaways.length > 0 ? (
-                    <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
-                      {activeSceneCard.keyTakeaways.map((item, idx) => (
-                        <li key={idx} className="leading-relaxed">
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {activeSceneCard.id === ongoingSceneCard?.id
-                        ? t('ongoingEmptyFindings')
-                        : 'Brak szczegółowych ustaleń dla tej sceny.'}
-                    </p>
-                  )}
-                </div>
-
-                {/* BLOK 2: Spotkane osoby */}
-                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
-                    <Users className="h-4 w-4" />
-                    <span>{t('blockPeople')}</span>
-                  </div>
-                  {activeSceneCard.people.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {activeSceneCard.people.map((person, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-black/50 border border-brass/30 text-brass/90 text-xs px-2.5 py-1 rounded-sm font-serif"
-                        >
-                          {person}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {t('sceneCardEmptyPeople')}
-                    </p>
-                  )}
-                </div>
-
-                {/* Legacy scene cards retain their structured findings until migrated. */}
-                {!activeSceneCard.chronicleSummary && (() => {
-                  const filteredFindings = filterPlotItems(activeSceneCard.findings);
-                  return (
-                    <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
-                      <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
-                        <Search className="h-4 w-4" />
-                        <span>{t('blockKeyItemsAndClues')}</span>
-                      </div>
-                      {filteredFindings.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {filteredFindings.map((item, idx) => (
-                            <span
-                              key={idx}
-                              className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs px-2.5 py-1 rounded-sm font-mono tracking-wide"
-                            >
-                              🔍 {item}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm font-serif italic text-muted-foreground">
-                          {t('sceneCardEmptyFindings')}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })()}
-
-              </section>
-            )}
-
-            {/* Prawa strona: Karta Raportu Aktu */}
-            {activeTab === 'acts' && activeActReport && (
-              <section className="flex-1 overflow-y-auto journal-scroll p-6 lg:p-8 bg-[#110d09] flex flex-col space-y-6">
-                {/* Nagłówek Raportu Aktu */}
-                <div className="border-b border-brass/25 pb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs bg-brass/25 text-brass font-mono uppercase px-2.5 py-0.5 rounded border border-brass/50 font-bold">
-                      Akt #{activeActReport.actNumber}
-                    </span>
-                    <span
-                      className={cn(
-                        'text-xs font-mono uppercase px-2 py-0.5 rounded border font-semibold',
-                        activeActReport.status === 'completed'
-                          ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
-                          : 'bg-amber-950/60 text-amber-300 border-amber-500/40'
-                      )}
-                    >
-                      {activeActReport.status === 'completed'
-                        ? t('actStatusCompleted')
-                        : t('actStatusInProgress')}
-                    </span>
-                    {activeActReport.inGameDate && (
-                      <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
-                        <span>📅</span> {activeActReport.inGameDate}
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="font-display text-xl lg:text-2xl text-foreground uppercase tracking-wide">
-                    {activeActReport.title}
-                  </h2>
-                </div>
-
-                {/* BLOK 1: Co wiemy na pewno (Fakty bezsprzeczne) */}
-                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
-                    <Scroll className="h-4 w-4" />
-                    <span>{t('blockConfirmedFacts')}</span>
-                  </div>
-                  {activeActReport.confirmedFacts.length > 0 ? (
-                    <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
-                      {activeActReport.confirmedFacts.map((item, idx) => (
-                        <li key={idx} className="leading-relaxed">
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {t('emptyConfirmedFacts')}
-                    </p>
-                  )}
-                </div>
-
-                {/* BLOK 2: Podejrzani i motywy */}
-                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
-                    <Users className="h-4 w-4" />
-                    <span>{t('blockSuspects')}</span>
-                  </div>
-                  {activeActReport.suspects.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {activeActReport.suspects.map((person, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-black/50 border border-brass/30 text-brass/90 text-xs px-2.5 py-1 rounded-sm font-serif flex items-center gap-1"
-                        >
-                          <span>👤</span>
-                          <span>{person}</span>
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {t('emptySuspects')}
-                    </p>
-                  )}
-                </div>
-
-                {/* BLOK 3: Białe plamy i luki w śledztwie */}
-                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
-                    <Search className="h-4 w-4" />
-                    <span>{t('blockUnresolvedQuestions')}</span>
-                  </div>
-                  {activeActReport.unresolvedQuestions.length > 0 ? (
-                    <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
-                      {activeActReport.unresolvedQuestions.map((q, idx) => (
-                        <li key={idx} className="leading-relaxed">
-                          ❓ {q}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {t('emptyUnresolvedQuestions')}
-                    </p>
-                  )}
-                </div>
-
-                {/* BLOK 4: Wiodąca hipoteza robocza */}
-                <div className="bg-gradient-to-r from-brass/15 via-brass/10 to-transparent border border-brass/40 rounded-sm p-4 lg:p-5 shadow-sm">
-                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-2">
-                    <span>💡</span>
-                    <span>{t('blockLeadHypothesis')}</span>
-                  </div>
-                  {activeActReport.leadHypothesis ? (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
-                      <p className="font-serif italic text-sm text-[#f4ebd0] leading-relaxed flex-1">
-                        {activeActReport.leadHypothesis}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => handleQuoteToInput(activeActReport.leadHypothesis!)}
-                        className="bg-[#241a10] hover:bg-brass hover:text-black text-brass border border-brass/50 font-special-elite text-xs uppercase tracking-wider px-3.5 py-2 rounded-sm flex items-center gap-2 shrink-0 transition-all shadow-sm"
-                        title={t('quoteToChatTitle')}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        <span>{t('quoteHypothesisButton')}</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-sm font-serif italic text-muted-foreground">
-                      {t('noLeadHypothesis')}
-                    </p>
-                  )}
-                </div>
-
-                {/* Dolny przycisk: prośba o aktualizację syntezy */}
-                <div className="pt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => handleQuoteToInput(t('requestActSynthesisPrompt'))}
-                    className="bg-[#1a130c] hover:bg-brass/20 text-brass/90 hover:text-brass border border-brass/40 font-mono text-xs px-3.5 py-2 rounded-sm flex items-center gap-2 transition-all shadow-sm"
-                  >
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    <span>{t('requestActSynthesisButton')}</span>
+        </main>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          <nav aria-label={t('readerContents')} data-testid="journal-contents"
+            className="min-w-0 shrink-0 border-b border-brass/20 bg-[#11100d] md:w-64 md:overflow-y-auto md:border-b-0 md:border-r lg:w-72">
+            <h2 className="px-5 pt-4 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">{t('readerContents')}</h2>
+            <ol className="flex gap-2 overflow-x-auto p-3 md:flex-col md:gap-1">
+              {entries.map((entry) => (
+                <li key={entry.id} className="shrink-0 md:shrink">
+                  <button type="button" onClick={() => navigate(entry.id)}
+                    aria-current={(selectedId ?? latestId) === entry.id ? 'location' : undefined}
+                    className={cn('w-full max-w-56 rounded-sm border border-transparent px-3 py-3 text-left hover:bg-brass/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brass md:max-w-none',
+                      (selectedId ?? latestId) === entry.id && 'border-brass/30 bg-brass/10')}>
+                    <span className="block font-special-elite text-[10px] uppercase tracking-wider text-brass">{entry.sceneNumber !== undefined ? t('sceneNumber', { number: entry.sceneNumber }) : t('readerEarlierEntry')}</span>
+                    <span className="mt-1 block truncate font-serif text-sm">{entry.title}</span>
+                    {entry.inGameDate && <span className="mt-1 block text-xs text-[#aaa08e]">{entry.inGameDate}</span>}
                   </button>
-                </div>
-              </section>
-            )}
-          </>
-        )}
-      </main>
+                </li>
+              ))}
+            </ol>
+          </nav>
+
+          <main data-testid="journal-reader" aria-label={t('readerTitle')}
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto scroll-smooth">
+            <div className="mx-auto max-w-3xl px-5 py-8 md:px-10 md:py-12">
+              <p className="mb-10 border-l border-brass/40 pl-4 font-serif text-sm italic leading-relaxed text-[#bbb09d]">{t('readerIntroduction')}</p>
+              {entries.map((entry) => (
+                <article key={entry.id} tabIndex={-1} data-testid="journal-entry"
+                  ref={(element) => { if (element) articleRefs.current.set(entry.id, element); else articleRefs.current.delete(entry.id); }}
+                  aria-labelledby={`journal-entry-${encodeURIComponent(entry.id)}`}
+                  className="mb-10 scroll-mt-8 border-b border-brass/20 pb-10 outline-none last:mb-0 focus-visible:ring-1 focus-visible:ring-brass/40">
+                  <p className="mb-3 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                    {entry.sceneNumber !== undefined ? t('sceneNumber', { number: entry.sceneNumber }) : t('readerEarlierEntry')}
+                    {entry.inGameDate && <span className="ml-3 normal-case tracking-normal text-[#bbb09d]">{entry.inGameDate}</span>}
+                  </p>
+                  <h2 id={`journal-entry-${encodeURIComponent(entry.id)}`} className="font-display text-2xl leading-snug md:text-3xl">{entry.title}</h2>
+                  {entry.location && entry.location !== entry.title && <p className="mt-2 font-serif text-sm text-[#bbb09d]">{entry.location}</p>}
+                  {entry.people.length > 0 && <p className="mt-3 font-serif text-sm leading-relaxed text-[#bbb09d]">
+                    <span className="text-brass">{t('readerPeople')}: </span>{entry.people.join(', ')}
+                  </p>}
+                  {entry.pending ? <p className="mt-6 font-serif italic leading-relaxed text-[#bbb09d]">{t('chroniclePending')}</p>
+                    : <div data-testid={entry.legacy ? 'journal-legacy-record' : 'scene-chronicle-summary'} className="mt-6 whitespace-pre-line font-serif text-base leading-8 text-[#e8dfcf]">
+                      {entry.content || t('readerNoRecord')}
+                    </div>}
+                  {entry.findings.length > 0 && <p className="mt-5 font-serif text-sm leading-relaxed text-[#bbb09d]">
+                    <span className="text-brass">{t('readerFindings')}: </span>{entry.findings.join(', ')}
+                  </p>}
+                </article>
+              ))}
+              {character.activeScene?.location && <section data-testid="journal-current-scene" className="mt-10 font-serif text-sm leading-relaxed text-[#bbb09d]">
+                <h2 className="mb-2 font-special-elite text-xs uppercase tracking-wider text-brass">{t('readerCurrentLocation', { location: character.activeScene.location })}</h2>
+                <p>{t('readerCurrentDescription')}</p>
+              </section>}
+            </div>
+          </main>
+        </div>
+      )}
     </div>
   );
 }
