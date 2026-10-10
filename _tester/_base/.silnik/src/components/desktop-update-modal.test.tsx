@@ -99,4 +99,26 @@ describe('DesktopUpdateModal & DesktopUpdateNotifier Dark Art Deco', () => {
       expect(screen.getByTestId('desktop-update-modal')).toBeInTheDocument();
     });
   });
+
+  it('wyświetla stan błędu gdy startDesktopUpdate zgłasza błąd', async () => {
+    (updateClient.startDesktopUpdate as jest.Mock).mockRejectedValueOnce(new Error('Update request rejected.'));
+
+    render(
+      <DesktopUpdateModal
+        open={true}
+        onOpenChange={jest.fn()}
+        update={mockUpdate}
+        onDismissLater={jest.fn()}
+      />
+    );
+
+    const updateBtn = screen.getByRole('button', { name: /Aktualizuj teraz/i });
+    fireEvent.click(updateBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Aktualizacja nie powiodła się/i)).toBeInTheDocument();
+      expect(screen.getByText(/Update request rejected./i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Spróbuj ponownie/i })).toBeInTheDocument();
+    });
+  });
 });
