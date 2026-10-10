@@ -40,7 +40,8 @@ export function applyPreset(
       temperature: s.temperature,
       topP: s.topP,
       topK: s.topK,
-      thinkingLevel: s.thinkingLevel,
+      thinkingLevel:
+        currentSettings.geminiSettings.thinkingLevel ?? s.thinkingLevel,
       maxOutputTokens: s.maxOutputTokens,
       safetySettings: s.safetySettings,
       enableCache: s.enableCache,
