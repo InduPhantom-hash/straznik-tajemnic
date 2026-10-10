@@ -110,7 +110,8 @@ describe('createSseStream', () => {
       const stream = createSseStream({
         providerStream: streamChunks('Urwany ', 'fragment'),
         getUsage: async () => ({
-          totalTokens: 42,
+          totalTokens: 62,
+          thinkingTokens: 20,
           promptTokens: 12,
           completionTokens: 30,
           model: 'gemini-test',
@@ -151,7 +152,8 @@ describe('createSseStream', () => {
       expect(getFinishReason).toHaveBeenCalledTimes(1);
       expect(logApiEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          meta: expect.objectContaining({ finishReason: finishReason ?? null }),
+          costUsd: expect.closeTo(0.0000318, 10),
+          meta: expect.objectContaining({ finishReason: finishReason ?? null, thinkingTokens: 20 }),
         })
       );
     }

@@ -123,7 +123,8 @@ describe('GeminiChatProvider.finishReason', () => {
     mockGenerateContent.mockResolvedValue({
       text: '{"name":"John Doe","birthplace":"Boston"}',
       usageMetadata: {
-        totalTokenCount: 150,
+        totalTokenCount: 170,
+        thoughtsTokenCount: 20,
         promptTokenCount: 100,
         candidatesTokenCount: 50,
       },
@@ -134,7 +135,8 @@ describe('GeminiChatProvider.finishReason', () => {
 
     expect(result.text).toBe('{"name":"John Doe","birthplace":"Boston"}');
     expect(result.usage).toMatchObject({
-      totalTokens: 150,
+      totalTokens: 170,
+      thinkingTokens: 20,
       promptTokens: 100,
       completionTokens: 50,
     });

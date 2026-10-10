@@ -529,6 +529,7 @@ export class GeminiChatProvider implements IChatProvider {
           totalTokens: lastUsage.totalTokenCount || 0,
           promptTokens: lastUsage.promptTokenCount,
           completionTokens: lastUsage.candidatesTokenCount,
+          thinkingTokens: lastUsage.thoughtsTokenCount ?? 0,
           // OPT-26: tokeny obsłużone z cache promptu (mapowanie gubiło to pole →
           // telemetria/koszt pokazywały cached=0 mimo działającego cache).
           cachedTokens: lastUsage.cachedContentTokenCount ?? 0,
@@ -626,6 +627,7 @@ export class GeminiChatProvider implements IChatProvider {
           totalTokens: lastUsage.totalTokenCount || 0,
           promptTokens: lastUsage.promptTokenCount,
           completionTokens: lastUsage.candidatesTokenCount,
+          thinkingTokens: lastUsage.thoughtsTokenCount ?? 0,
           cachedTokens: lastUsage.cachedContentTokenCount ?? 0,
           model: activeModel,
         }
