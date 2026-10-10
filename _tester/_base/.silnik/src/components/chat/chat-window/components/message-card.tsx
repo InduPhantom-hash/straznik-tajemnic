@@ -525,6 +525,7 @@ export function MessageCard({
                   characters={characters}
                   completed={!isLastMessage || message.chaseState.status !== 'ongoing'}
                   onManeuverSelect={onChaseManeuver}
+                  onRollTest={onRollTest}
                 />
               </div>
             )}

@@ -707,6 +707,15 @@ export function evaluateChaseTermination(state: ChaseState): void {
       return;
     }
   }
+
+  // W przypadku limitu rund (np. krótki pościg o ograniczonej przestrzeni)
+  // gdy runda przekroczyła limit, pościg rozstrzyga się ucieczką celu
+  if (state.maxRounds && state.round > state.maxRounds) {
+    state.status = 'escaped';
+    for (const f of fleeingList) {
+      f.isEscaped = true;
+    }
+  }
 }
 
 /**
@@ -924,6 +933,8 @@ export function createInitialChaseFromTag(params: {
   initialDistance?: number;
   opponentName?: string;
   opponentMov?: number;
+  role?: 'fleeing' | 'pursuer';
+  isShort?: boolean;
   locale?: string;
 }): ChaseState {
   const {
@@ -932,6 +943,8 @@ export function createInitialChaseFromTag(params: {
     initialDistance = 2,
     opponentName,
     opponentMov,
+    role = 'fleeing',
+    isShort = false,
     locale = 'pl',
   } = params;
 
@@ -946,7 +959,11 @@ export function createInitialChaseFromTag(params: {
         ? 'Pursuing Vehicle'
         : 'Ścigający Pojazd'
       : locale === 'en'
-      ? 'Pursuer'
+      ? role === 'pursuer'
+        ? 'Fleeing Target'
+        : 'Pursuer'
+      : role === 'pursuer'
+      ? 'Uciekający Cel'
       : 'Ścigający');
 
   const defaultHazards: Record<number, ChaseHazard> = isVehicle
@@ -973,6 +990,21 @@ export function createInitialChaseFromTag(params: {
           requiredSkill: 'Prowadzenie samochodu',
           difficulty: 'trudny',
           hazardType: 'barrier',
+          penaltyActionsOnFail: 1,
+        },
+      }
+    : isShort
+    ? {
+        1: {
+          id: 'hazard_crates',
+          name: locale === 'en' ? 'Piled Crates & Mud' : 'Sterta skrzyń i grząskie błoto',
+          description:
+            locale === 'en'
+              ? 'Slippery yard mud and discarded wooden crates.'
+              : 'Rozmokłe podwórze, porozrzucany sprzęt gospodarski i błoto.',
+          requiredSkill: 'Zręczność',
+          difficulty: 'zwykly',
+          hazardType: 'hazard',
           penaltyActionsOnFail: 1,
         },
       }
@@ -1003,6 +1035,42 @@ export function createInitialChaseFromTag(params: {
         },
       };
 
+  const trackLength = isShort ? 4 : 5;
+  const maxRounds = isShort ? 2 : 6;
+  const clampedDistance = Math.max(1, Math.min(trackLength - 1, initialDistance));
+
+  if (role === 'pursuer') {
+    return createChaseState({
+      fleeing: {
+        id: 'fleeing_target',
+        name: defaultOpponentName,
+        isPlayer: false,
+        mov: pursuerMov,
+        dex: isVehicle ? 50 : 45,
+        segmentIndex: clampedDistance,
+        skillValues: {
+          [isVehicle ? 'Prowadzenie samochodu' : 'Skakanie']: 50,
+          Zręczność: 50,
+        },
+      },
+      pursuers: [
+        {
+          id: activeCharacter?.id || 'char_player',
+          name: activeCharacter?.name || (locale === 'en' ? 'Investigator' : 'Badacz'),
+          isPlayer: true,
+          mov: playerMov,
+          dex: activeCharacter?.dex ?? 50,
+          segmentIndex: 0,
+        },
+      ],
+      initialDistance: clampedDistance,
+      trackLength,
+      escapeDistanceThreshold: isShort ? 3 : 4,
+      maxRounds,
+      hazardPositions: defaultHazards,
+    });
+  }
+
   return createChaseState({
     fleeing: {
       id: activeCharacter?.id || 'char_player',
@@ -1010,7 +1078,7 @@ export function createInitialChaseFromTag(params: {
       isPlayer: true,
       mov: playerMov,
       dex: activeCharacter?.dex ?? 50,
-      segmentIndex: Math.max(1, Math.min(4, initialDistance)),
+      segmentIndex: clampedDistance,
     },
     pursuers: [
       {
@@ -1026,9 +1094,10 @@ export function createInitialChaseFromTag(params: {
         },
       },
     ],
-    initialDistance: Math.max(1, Math.min(3, initialDistance)),
-    trackLength: 5,
-    escapeDistanceThreshold: 4,
+    initialDistance: clampedDistance,
+    trackLength,
+    escapeDistanceThreshold: isShort ? 3 : 4,
+    maxRounds,
     hazardPositions: defaultHazards,
   });
 }

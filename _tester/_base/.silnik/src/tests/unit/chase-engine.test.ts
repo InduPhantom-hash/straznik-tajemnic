@@ -780,6 +780,36 @@ describe('chase-engine (CoC 7e RAW)', () => {
         expect(player?.segmentIndex).toBe(3);
         expect(chase.segments[1]?.hazard?.requiredSkill).toBe('Prowadzenie samochodu');
       });
+
+      it('tworzy pościg w którym gracz jest ścigającym (cel=schwytanie / rola=scigajacy)', () => {
+        const text = '[POŚCIG: typ=pieszy | cel=schwytanie | dystans=2 | wrog=Adam Dąbrowski | krotki=true] Złap go!';
+        const parsed = extractChaseTag(text);
+        expect(parsed?.role).toBe('pursuer');
+        expect(parsed?.isShort).toBe(true);
+
+        const chase = createInitialChaseFromTag({
+          activeCharacter: {
+            id: 'char_andrzej',
+            name: 'Andrzej',
+            move: 8,
+            dex: 55,
+          },
+          role: parsed?.role,
+          isShort: parsed?.isShort,
+          initialDistance: parsed?.distance,
+          opponentName: parsed?.opponent,
+        });
+
+        const player = chase.participants.find((p) => p.isPlayer);
+        const target = chase.participants.find((p) => !p.isPlayer);
+
+        expect(player?.isFleeing).toBe(false);
+        expect(target?.isFleeing).toBe(true);
+        expect(player?.segmentIndex).toBe(0);
+        expect(target?.segmentIndex).toBe(2);
+        expect(chase.maxRounds).toBe(2);
+        expect(chase.segments.length).toBe(4);
+      });
     });
 
     describe('advanceChaseOnSkillRoll (Deterministyczny reducer)', () => {

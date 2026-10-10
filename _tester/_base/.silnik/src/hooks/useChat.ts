@@ -2013,6 +2013,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             initialDistance: chaseStartTag.distance,
             opponentName: chaseStartTag.opponent,
             opponentMov: chaseStartTag.opponentMov,
+            role: chaseStartTag.role,
+            isShort: chaseStartTag.isShort,
             locale,
           });
           setActiveChaseState(newChase);
