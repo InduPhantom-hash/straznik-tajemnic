@@ -267,7 +267,8 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
             usage.model || modelId,
             usage.promptTokens ?? 0,
             usage.completionTokens ?? 0,
-            usage.cachedTokens ?? 0
+            usage.cachedTokens ?? 0,
+            usage.thinkingTokens ?? 0
           );
           logApiEvent({
             traceId,
@@ -283,6 +284,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
             sessionId: sessionId ?? undefined,
             meta: {
               cachedTokens: usage.cachedTokens ?? 0,
+              thinkingTokens: usage.thinkingTokens ?? 0,
               totalTokens: usage.totalTokens ?? 0,
               ragHits: ragMeta?.hits ?? 0,
               ragSource: ragMeta?.source ?? 'none',

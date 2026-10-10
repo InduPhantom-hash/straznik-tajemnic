@@ -119,6 +119,12 @@ export const OFFICIAL_PUBLICATIONS: OfficialPublication[] = [
       'zasady skrocone',
       'quick-start rules',
       'quickstart rules',
+      'zc_starter',
+      'zc-starter',
+      'zc starter',
+      'quick-start',
+      'quickstart',
+      'starter',
     ],
   },
   {
@@ -152,7 +158,14 @@ export const OFFICIAL_PUBLICATIONS: OfficialPublication[] = [
     profile: 'bestiary',
     titlePl: 'Przewodnik Petersena po potworach i bóstwach Mitów Cthulhu',
     titleEn: "Petersen's Field Guide to Lovecraftian Horrors",
-    patterns: ['field guide to lovecraftian', 'petersen'],
+    patterns: [
+      'przewodnik petersena',
+      'przewodnik_petersena',
+      'field guide to lovecraftian',
+      "petersen's field guide",
+      'petersens field guide',
+      'petersen field guide',
+    ],
   },
 
   // --- WIELKIE KAMPANIE (MEGA-CAMPAIGNS) ---
@@ -162,7 +175,7 @@ export const OFFICIAL_PUBLICATIONS: OfficialPublication[] = [
     titlePl: 'Maski Nyarlathotepa',
     titleEn: 'Masks of Nyarlathotep',
     adventureType: 'mega_campaign',
-    patterns: ['maski nyarlathotepa', 'masks of nyarlathotep', 'nyarlathotep'],
+    patterns: ['maski nyarlathotepa', 'masks of nyarlathotep', 'maski nyarlathotep'],
   },
   {
     id: 'horror-on-the-orient-express',
@@ -1147,6 +1160,18 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
         ? 'Księga Zasad Głównych d100 (Core Book)'
         : 'Core Rulebook d100 (Core Book)';
     confidence = 0.96;
+  } else if (isStarterIndicator) {
+    profile = 'starter-d100';
+    title =
+      detectedLanguage === 'pl'
+        ? (cleanFileName.includes('zestaw') || normalizedHeaderSample.includes('zestaw startowy') || cleanFileName.includes('starter')
+          ? 'Zestaw Startowy d100 (Starter Set)'
+          : 'Zasady Skrócone d100 (Quick-Start Rules)')
+        : (cleanFileName.includes('starter') || normalizedHeaderSample.includes('starter set')
+          ? 'Starter Set d100'
+          : 'Quick-Start Rules d100');
+    confidence = 0.95;
+    adventureType = 'one_shot';
   } else {
     const officialPub = matchOfficialPublication(cleanFileName, titleHeaderSample);
     if (officialPub && (!isScenarioHeader || officialPub.profile === 'one_shot')) {
@@ -1253,25 +1278,13 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
           : 'd100 Era & Setting Expansion';
     }
     confidence = 0.9;
-  } else if (isCoreIndicator && !isStarterIndicator) {
+  } else if (isCoreIndicator) {
     profile = 'core-d100';
     title =
       detectedLanguage === 'pl'
         ? 'Księga Zasad Głównych d100 (Core Book)'
         : 'Core Rulebook d100 (Core Book)';
     confidence = 0.95;
-  } else if (isStarterIndicator) {
-    profile = 'starter-d100';
-    title =
-      detectedLanguage === 'pl'
-        ? (cleanFileName.includes('zestaw') || normalizedHeaderSample.includes('zestaw startowy')
-          ? 'Zestaw Startowy d100 (Starter Set)'
-          : 'Zasady Skrócone d100 (Quick-Start Rules)')
-        : (cleanFileName.includes('starter set') || normalizedHeaderSample.includes('starter set')
-          ? 'Starter Set d100'
-          : 'Quick-Start Rules d100');
-    confidence = 0.9;
-    adventureType = 'one_shot';
   } else if (isOneShotIndicator) {
     profile = 'one_shot';
     if (cleanFileName.includes('trzeba_karmic') || normalizedHeaderSample.includes('trzeba karmic ogien')) {
@@ -1302,15 +1315,39 @@ export function detectRulebookProfile(text: string, fileName: string = ''): Rule
         : 'Custom d100 / BRP Rulebook';
     confidence = 0.75;
   } else {
-    profile = 'one_shot';
+    profile = 'unknown';
     title =
       detectedLanguage === 'pl'
-        ? 'Scenariusz Jednorazowy d100 (One-Shot Adventure)'
-        : 'd100 One-Shot Scenario';
-    confidence = 0.75;
-    adventureType = 'one_shot';
+        ? 'Nierozpoznany dokument PDF'
+        : 'Unrecognized PDF Document';
+    confidence = 0.1;
   }
 }
+
+  if (profile === 'unknown') {
+    return {
+      profile: 'unknown',
+      title:
+        detectedLanguage === 'en'
+          ? 'Unrecognized PDF Document'
+          : 'Nierozpoznany dokument PDF',
+      confidence: 0.1,
+      detectedFeatures: {
+        hasCombatRules,
+        hasSanityRules,
+        hasChaseRules,
+        hasMagicRules,
+        hasCreatures,
+        hasSpells,
+        hasHandouts,
+        hasScenarios: false,
+        hasPulpTalents,
+        hasInvestigatorCreation,
+      },
+      detectedLanguage,
+      semanticPlan: emptyPlan,
+    };
+  }
 
   // 4. Budowanie planu ekstrakcji semantycznej (Semantic Extraction Plan)
   const detectedCategories: SemanticTag[] = [];

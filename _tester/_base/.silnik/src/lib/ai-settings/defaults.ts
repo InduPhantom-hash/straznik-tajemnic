@@ -5,12 +5,12 @@ export const defaultAISettings: AISettings = {
   geminiEnabled: false,
   geminiApiKey: undefined,
   geminiSettings: {
-    model: 'gemini-3.8-flash', // Domyślny model Mistrza Gry z poziomem myślenia HIGH (HIGH preset baseline)
+    model: 'gemini-3.8-flash', // Domyślny model Mistrza Gry z poziomem myślenia LOW (szybki start OOTB <5s)
     // === Sampling (HIGH) ===
     temperature: 0.8,
     topP: 0.9,
     topK: 50,
-    maxOutputTokens: 8192, // HIGH preset (definitions.ts); thinkingLevel high wymaga większego budżetu tokenów wyjściowych
+    maxOutputTokens: 8192, // HIGH preset (definitions.ts)
     candidateCount: 1, // Jedna odpowiedź na request - wystarcza
     seed: undefined, // Losowy; user może ustawić dla powtarzalności (testy)
     presencePenalty: 0, // Neutralne
@@ -24,7 +24,7 @@ export const defaultAISettings: AISettings = {
     cacheTTL: 2 * 60 * 60 * 1000, // 2h (HIGH preset, OPT-C04)
     cachedContent: undefined, // Brak cache (placeholder dla IND-13)
     // === Thinking ===
-    thinkingLevel: 'high', // Preset HIGH - głębokie rozumowanie (w 3.1 wspiera low/medium/high)
+    thinkingLevel: 'low', // Domyślnie szybki poziom myślenia (błyskawiczny start OOTB bez zbędnego reasoning)
     // === Tools / Function Calling (eksperymentalne) ===
     tools: undefined,
     toolConfig: undefined,

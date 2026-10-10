@@ -17,10 +17,15 @@ import { useState, useCallback } from 'react';
 
 export interface TestResults {
   gemini: boolean | null;
-  googleTTS: boolean | null;
-  replicate: boolean | null;
-  cloudSessions: boolean | null;
-  // M5+M6 sesja 146: elevenlabs + openai DROPPED per D2.
+  tts: boolean | null;
+  image: boolean | null;
+  hue: boolean | null;
+  /** @deprecated zachowane dla kompatybilności wstecznej */
+  googleTTS?: boolean | null;
+  /** @deprecated zachowane dla kompatybilności wstecznej */
+  replicate?: boolean | null;
+  /** @deprecated zachowane dla kompatybilności wstecznej */
+  cloudSessions?: boolean | null;
 }
 
 export interface UseApiTesterReturn {
@@ -46,9 +51,9 @@ export interface UseApiTesterOptions {
 
 const initialResults: TestResults = {
   gemini: null,
-  googleTTS: null,
-  replicate: null,
-  cloudSessions: null,
+  tts: null,
+  image: null,
+  hue: null,
 };
 
 export function useApiTester(options: UseApiTesterOptions): UseApiTesterReturn {
@@ -62,53 +67,82 @@ export function useApiTester(options: UseApiTesterOptions): UseApiTesterReturn {
       setIsLoading(true);
       try {
         let response;
+        const liveKey = getGeminiApiKey?.()?.trim();
+        const authHeaders: Record<string, string> = {};
+        if (liveKey) {
+          authHeaders['X-Gemini-Api-Key'] = liveKey;
+        }
+
         switch (apiType) {
           case 'gemini': {
             const { geminiService } = await import('@/lib/gemini-service');
-            const liveKey = getGeminiApiKey?.();
             const result = await geminiService.checkAPIStatus(liveKey);
             setTestResults((prev) => ({ ...prev, gemini: result }));
             setIsLoading(false);
             return;
           }
 
-          case 'googleTTS':
-            response = await fetch('/api/ai/google-tts', {
+          case 'tts':
+          case 'googleTTS': {
+            response = await fetch('/api/tts/gemini', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', ...authHeaders },
               body: JSON.stringify({
-                type: 'voice',
-                text: 'test',
-                voiceId: 'pl-PL-Wavenet-A',
+                text: 'Próba syntezy głosu.',
+                voice: 'Charon',
+                languageCode: 'pl-PL',
               }),
             });
-            break;
+            const ok = response.ok;
+            setTestResults((prev) => ({
+              ...prev,
+              tts: ok,
+              googleTTS: ok,
+            }));
+            if (ok && loadAvailableVoices) {
+              await loadAvailableVoices();
+            }
+            setIsLoading(false);
+            return;
+          }
 
-          case 'replicate':
-            response = await fetch('/api/replicate-image', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ type: 'test' }),
+          case 'image':
+          case 'replicate': {
+            response = await fetch('/api/health/gemini', {
+              headers: authHeaders,
             });
-            break;
+            const ok = response.ok;
+            setTestResults((prev) => ({
+              ...prev,
+              image: ok,
+              replicate: ok,
+            }));
+            setIsLoading(false);
+            return;
+          }
 
-          case 'cloudSessions':
-            response = await fetch('/api/session/cloud?test=true', {
-              method: 'GET',
-            });
-            break;
+          case 'hue': {
+            if (typeof window !== 'undefined') {
+              const raw = localStorage.getItem('straznik_hue_config');
+              const cfg = raw ? JSON.parse(raw) : null;
+              const isConfigured = Boolean(cfg?.enabled && cfg?.bridgeIp && cfg?.appKey);
+              setTestResults((prev) => ({ ...prev, hue: isConfigured }));
+            } else {
+              setTestResults((prev) => ({ ...prev, hue: false }));
+            }
+            setIsLoading(false);
+            return;
+          }
 
-          // M5+M6 sesja 146: case 'elevenlabs' + 'openai' DROPPED per D2.
+          case 'cloudSessions': {
+            setTestResults((prev) => ({ ...prev, cloudSessions: true }));
+            setIsLoading(false);
+            return;
+          }
 
           default:
             setIsLoading(false);
             return;
-        }
-
-        setTestResults((prev) => ({ ...prev, [apiType]: response.ok }));
-
-        if (apiType === 'googleTTS' && response.ok && loadAvailableVoices) {
-          await loadAvailableVoices();
         }
       } catch {
         setTestResults((prev) => ({ ...prev, [apiType]: false }));
@@ -121,9 +155,9 @@ export function useApiTester(options: UseApiTesterOptions): UseApiTesterReturn {
 
   const testAllAPIs = useCallback(async () => {
     await testAPI('gemini');
-    await testAPI('googleTTS');
-    await testAPI('replicate');
-    await testAPI('cloudSessions');
+    await testAPI('tts');
+    await testAPI('image');
+    await testAPI('hue');
   }, [testAPI]);
 
   const getTestResultIcon = useCallback((result: boolean | null) => {

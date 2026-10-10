@@ -44,4 +44,27 @@ describe('POST /api/desktop/update/start', () => {
     expect(response.status).toBe(202);
     expect(startDetachedUpdate).toHaveBeenCalledWith(manifest);
   });
+
+  it('accepts loopback request from 127.0.0.1 when server url is localhost:4050', async () => {
+    const manifest = { version: '0.9.4' };
+    jest.mocked(checkForDesktopUpdate).mockResolvedValue({ available: true, configured: true, currentVersion: '0.9.3', manifest, canSelfUpdate: true } as never);
+    jest.mocked(startDetachedUpdate).mockResolvedValue(123);
+    const response = await POST(request('http://127.0.0.1:4050'));
+    expect(response.status).toBe(202);
+    expect(startDetachedUpdate).toHaveBeenCalledWith(manifest);
+  });
+
+  it('rejects cross-origin requests from external origins with 403', async () => {
+    const response = await POST(request('https://evil.com'));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ message: 'Update request rejected.' });
+    expect(startDetachedUpdate).not.toHaveBeenCalled();
+  });
+
+  it('rejects loopback requests with mismatched ports with 403', async () => {
+    const response = await POST(request('http://127.0.0.1:4051'));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ message: 'Update request rejected.' });
+    expect(startDetachedUpdate).not.toHaveBeenCalled();
+  });
 });

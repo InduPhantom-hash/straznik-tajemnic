@@ -75,4 +75,27 @@ describe('useTypewriterSound (Pętla Czerwona / Issue #669)', () => {
 
     expect(result.current.displayedText.length).toBeGreaterThan(0);
   });
+
+  it('wznawia odtwarzanie po odrzuceniu autoplay przez przeglądarkę przy pierwszej interakcji użytkownika', async () => {
+    // Symulacja blokady autoplay
+    playMock.mockRejectedValueOnce(new Error('Autoplay policy'));
+
+    renderHook(() =>
+      useTypewriterSound('Nie jest martwe to, co może wiecznie drzemać...', true)
+    );
+
+    // Pierwsze wywołanie play zostało odrzucone
+    expect(playMock).toHaveBeenCalledTimes(1);
+
+    // Czekaj na microtask (rejestrację catch na playPromise)
+    await Promise.resolve();
+
+    // Następuje gest użytkownika (np. kliknięcie)
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'));
+    });
+
+    // Powinno ponowić próbę odtworzenia po interakcji
+    expect(playMock).toHaveBeenCalledTimes(2);
+  });
 });

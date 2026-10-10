@@ -86,4 +86,15 @@ describe('POST /api/desktop/cold-start', () => {
       'utf8'
     );
   });
+
+  it('akceptuje żądanie z pętli zwrotnej 127.0.0.1 gdy serwer działa na localhost:4040', async () => {
+    process.env.STRAZNIK_DESKTOP_COLD_START = '1';
+    mockedMkdir.mockResolvedValue(undefined);
+    mockedWriteFile.mockResolvedValue(undefined);
+
+    const response = await POST(request('http://127.0.0.1:4040'));
+
+    expect(response.status).toBe(202);
+    expect(mockedWriteFile).toHaveBeenCalled();
+  });
 });

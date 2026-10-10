@@ -71,6 +71,11 @@ straznik-tajemnic/ (Git Root / Wrapper)
 - Jeśli po 2. próbie kompilacja lub testy nie przechodzą: natychmiastowy STOP.
 - Zakaz halucynacji naprawczych: zakaz `any`, zakaz wyciszania linterów (`eslint-disable`) i modyfikacji niepowiązanych plików. W razie impasu następuje rollback (`git checkout -- .`) i konsultacja architektoniczna z Product Ownerem.
 
+### 7. Aktualizacja Raportu Wersji Beta (`BetaWelcomeModal`)
+- Przy każdym PR dodającym, zmieniającym status lub finalizującym moduł gry należy zaktualizować zawartość raportu gotowości w oknie Wersji Beta (`BetaWelcomeModal.tsx`, `messages/pl.json` i `messages/en.json`).
+- Moduły gotowe w kodzie, ale wymagające dalszych testów przy stole/w grze, oznaczamy precyzyjnie: `moduł gotowy w kodzie (w trakcie testów rozgrywki)`.
+- Weryfikacja: `npx jest src/tests/unit/beta-welcome-modal.test.tsx`.
+
 ---
 
 ## ⚡ 3. Developer Cheat Sheet
@@ -186,6 +191,11 @@ straznik-tajemnic/ (Git Root / Wrapper)
 ### 6. CPI Circuit Breaker (2-Repair Limit)
 - If a build or test suite fails after 2 repair attempts: STOP immediately.
 - Never use `any` casting, linter silencing (`eslint-disable`), or unrelated edits to force builds to pass. Perform `git checkout -- .` and review architecture with the Product Owner.
+
+### 7. Beta Welcome Modal Report Synchronization (`BetaWelcomeModal`)
+- Every PR that introduces, updates, or finalizes a game module must synchronize the readiness report in the Beta Welcome modal (`BetaWelcomeModal.tsx`, `messages/pl.json`, and `messages/en.json`).
+- Modules completed in code that are still undergoing gameplay playtesting must be explicitly labeled: `feature implemented in engine (currently in gameplay testing)`.
+- Verification: `npx jest src/tests/unit/beta-welcome-modal.test.tsx`.
 
 ---
 

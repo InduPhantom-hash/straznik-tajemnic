@@ -1,3 +1,5 @@
+jest.mock('./telemetry', () => ({ generateTraceId: () => 'test', logApiEvent: jest.fn().mockResolvedValue(undefined) }));
+import { logApiEvent } from './telemetry';
 import {
   CACHE_TTL_SECONDS,
   DEFAULT_CACHE_TTL_SECONDS,
@@ -41,9 +43,45 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     stopGeminiCacheCleanup();
   });
 
-  it('OPT-C04: konfiguracja domyślnego TTL wynosi 2 godziny (7200 sekund)', () => {
-    expect(CACHE_TTL_SECONDS).toBe(7200);
-    expect(DEFAULT_CACHE_TTL_SECONDS).toBe(7200);
+  it('OPT-C04: konfiguracja domyślnego TTL wynosi 15 minut (900 sekund)', () => {
+    expect(CACHE_TTL_SECONDS).toBe(900);
+    expect(DEFAULT_CACHE_TTL_SECONDS).toBe(900);
+  });
+
+  it('caps legacy two-hour settings at fifteen minutes', async () => {
+    mockCreate.mockResolvedValueOnce({ name: 'cachedContents/capped' });
+    await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions, 7200);
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ config: expect.objectContaining({ ttl: '900s' }) }));
+  });
+
+  it('isolates keys that share the same last eight characters', async () => {
+    mockCreate.mockResolvedValue({ name: 'cachedContents/owner' });
+    await getOrCreateGeminiCache('owner-one-12345678', modelName, systemPrompt, stableInstructions);
+    await getOrCreateGeminiCache('owner-two-12345678', modelName, systemPrompt, stableInstructions);
+    expect(mockCreate).toHaveBeenCalledTimes(2);
+  });
+
+  it('foreign owner touch cannot evict an existing owner cache', async () => {
+    mockCreate.mockResolvedValue({ name: 'cachedContents/isolated-touch', model: modelName });
+    await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
+    mockUpdate.mockRejectedValueOnce(new Error('404 NOT_FOUND'));
+    await touchGeminiCache('different-owner', 'cachedContents/isolated-touch', 7200);
+    expect(getGeminiCacheStatus().entries).toBe(1);
+    await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('records initial storage reservation and only renewal extension', async () => {
+    const now = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(now);
+    mockCreate.mockResolvedValue({ name: 'cachedContents/storage-cost', usageMetadata: { totalTokenCount: 10000 } });
+    await getOrCreateGeminiCache(apiKey, 'gemini-3.8-flash', 'x'.repeat(20000), 'y'.repeat(20000), 7200);
+    expect(logApiEvent).toHaveBeenCalledWith(expect.objectContaining({ endpoint: '/api/cache/create', costUsd: expect.closeTo(0.00875, 10), meta: expect.objectContaining({ leaseSeconds: 900, estimated: true }) }));
+    clock.mockReturnValue(now + 500000);
+    mockUpdate.mockResolvedValue({ name: 'cachedContents/storage-cost' });
+    await getOrCreateGeminiCache(apiKey, 'gemini-3.8-flash', 'x'.repeat(20000), 'y'.repeat(20000));
+    expect(logApiEvent).toHaveBeenCalledWith(expect.objectContaining({ endpoint: '/api/cache/extend', meta: expect.objectContaining({ leaseSeconds: 500 }) }));
+    clock.mockRestore();
   });
 
   it('pomija cache gdy model nie wspiera kontekstowego cache (not in CACHEABLE_MODELS)', async () => {
@@ -68,7 +106,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('tworzy nowy cache z domyślnym TTL 7200s (2h) i poprawnymi parametrami', async () => {
+  it('tworzy nowy cache z domyślnym TTL 900s (15 min) i poprawnymi parametrami', async () => {
     const mockCachedContent = {
       name: 'cachedContents/zew-cache-001',
       model: modelName,
@@ -90,7 +128,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
         model: modelName,
         config: expect.objectContaining({
           systemInstruction: systemPrompt,
-          ttl: '7200s',
+          ttl: '900s',
           displayName: expect.stringContaining(`zew-gm-${modelName}-`),
           contents: expect.arrayContaining([
             expect.objectContaining({ role: 'user' }),
@@ -103,8 +141,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     const status = getGeminiCacheStatus();
     expect(status.entries).toBe(1);
     expect(status.caches[0].name).toBe('cachedContents/zew-cache-001');
-    expect(status.caches[0].ttlSeconds).toBe(7200);
-    expect(status.caches[0].remainingSeconds).toBeGreaterThan(7100);
+    expect(status.caches[0].ttlSeconds).toBe(900);
+    expect(status.caches[0].remainingSeconds).toBeGreaterThan(890);
   });
 
   it('respektuje niestandardowy parametr ttlSeconds przy tworzeniu cache', async () => {
@@ -127,7 +165,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          ttl: '10800s',
+          ttl: '900s',
         }),
       })
     );
@@ -150,7 +188,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(first).toEqual(mockCachedContent);
     expect(mockCreate).toHaveBeenCalledTimes(1);
 
-    // Drugie wywołanie natychmiast: Cache Hit (pozostało ~7200s > 3600s, brak potrzeby refresh)
+    // Drugie wywołanie natychmiast: Cache Hit (pozostało ~900s > 3600s, brak potrzeby refresh)
     const second = await getOrCreateGeminiCache(
       apiKey,
       modelName,
@@ -187,8 +225,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     );
     expect(mockCreate).toHaveBeenCalledTimes(1);
 
-    // Przesuń czas o 4000 sekund (pozostało 3200s z 7200s, czyli < 3600s = < half TTL)
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4000 * 1000);
+    // Przesuń czas o 500 sekund (pozostało 3200s z 900s, czyli < 3600s = < half TTL)
+    jest.spyOn(Date, 'now').mockReturnValue(now + 500 * 1000);
 
     const hit = await getOrCreateGeminiCache(
       apiKey,
@@ -200,11 +238,11 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(hit).toEqual(updatedContent);
     expect(mockUpdate).toHaveBeenCalledWith({
       name: 'cachedContents/sliding-001',
-      config: { ttl: '7200s' },
+      config: { ttl: '900s' },
     });
     // Nowy TTL został zresetowany w lokalnym rekordzie
     const status = getGeminiCacheStatus();
-    expect(status.caches[0].remainingSeconds).toBe(7200);
+    expect(status.caches[0].remainingSeconds).toBe(900);
 
     jest.spyOn(Date, 'now').mockRestore();
   });
@@ -227,8 +265,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
       stableInstructions
     );
 
-    // Przesuń czas tak, by odpalił sliding window (4000s)
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4000 * 1000);
+    // Przesuń czas tak, by odpalił sliding window (500s)
+    jest.spyOn(Date, 'now').mockReturnValue(now + 500 * 1000);
 
     const hit = await getOrCreateGeminiCache(
       apiKey,
@@ -267,8 +305,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
       stableInstructions
     );
 
-    // Przesuń czas o 4000s
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4000 * 1000);
+    // Przesuń czas o 500s
+    jest.spyOn(Date, 'now').mockReturnValue(now + 500 * 1000);
 
     const result = await getOrCreateGeminiCache(
       apiKey,
@@ -306,8 +344,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
       stableInstructions
     );
 
-    // Przesuń czas o 7160 sekund (pozostało 40s < 60s safety margin)
-    jest.spyOn(Date, 'now').mockReturnValue(now + 7160 * 1000);
+    // Przesuń czas o 860 sekund (pozostało 40s < 60s safety margin)
+    jest.spyOn(Date, 'now').mockReturnValue(now + 860 * 1000);
 
     const result = await getOrCreateGeminiCache(
       apiKey,
@@ -344,8 +382,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(pruneExpiredGeminiCache(now)).toBe(0);
     expect(getGeminiCacheStatus().entries).toBe(1);
 
-    // Przesuń czas o 7150 sekund (pozostało 50s <= 60s)
-    const pruned = pruneExpiredGeminiCache(now + 7150 * 1000);
+    // Przesuń czas o 850 sekund (pozostało 50s <= 60s)
+    const pruned = pruneExpiredGeminiCache(now + 850 * 1000);
     expect(pruned).toBe(1);
     expect(getGeminiCacheStatus().entries).toBe(0);
 
@@ -375,13 +413,13 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     const res = await touchGeminiCache(
       apiKey,
       'cachedContents/touch-001',
-      7200
+      900
     );
 
     expect(res).toEqual(touchedContent);
     expect(mockUpdate).toHaveBeenCalledWith({
       name: 'cachedContents/touch-001',
-      config: { ttl: '7200s' },
+      config: { ttl: '900s' },
     });
   });
 
@@ -401,7 +439,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     );
     expect(getGeminiCacheStatus().entries).toBe(1);
 
-    const res = await touchGeminiCache(apiKey, 'cachedContents/touch-404', 7200);
+    const res = await touchGeminiCache(apiKey, 'cachedContents/touch-404', 900);
     expect(res).toBeNull();
     expect(getGeminiCacheStatus().entries).toBe(0);
   });
@@ -437,7 +475,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
   });
 
   it('touchGeminiCache zwraca null gdy klucz nie istnieje w RAM i nie jest zasobem Google (cachedContents/)', async () => {
-    const res = await touchGeminiCache(apiKey, 'unknown_local_key_123', 7200);
+    const res = await touchGeminiCache(apiKey, 'unknown_local_key_123', 900);
     expect(res).toBeNull();
     expect(mockUpdate).not.toHaveBeenCalled();
   });
@@ -457,7 +495,7 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(result).toEqual(mockCached);
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        config: expect.objectContaining({ ttl: '7200s' }),
+        config: expect.objectContaining({ ttl: '900s' }),
       })
     );
   });
@@ -494,8 +532,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
     expect(mockCreate).toHaveBeenCalledTimes(1);
 
-    // Przesuń czas o 4000s (> half TTL)
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4000 * 1000);
+    // Przesuń czas o 500s (> half TTL)
+    jest.spyOn(Date, 'now').mockReturnValue(now + 500 * 1000);
 
     const [res1, res2] = await Promise.all([
       getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions),
@@ -520,8 +558,8 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
 
     await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
 
-    // Przesuń czas o 4000s
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4000 * 1000);
+    // Przesuń czas o 500s
+    jest.spyOn(Date, 'now').mockReturnValue(now + 500 * 1000);
 
     // Pierwsze odświeżenie - rzuca błąd 429
     const res1 = await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
@@ -529,14 +567,14 @@ describe('gemini-cache-service (OPT-26 & OPT-C04)', () => {
     expect(mockUpdate).toHaveBeenCalledTimes(1);
 
     // Drugie wywołanie 5 sekund później - cooldown 30s aktywny, mockUpdate NIE jest wołane ponownie
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4005 * 1000);
+    jest.spyOn(Date, 'now').mockReturnValue(now + 505 * 1000);
     const res2 = await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
     expect(res2).toEqual(mockCached);
     expect(mockUpdate).toHaveBeenCalledTimes(1);
 
     // Trzecie wywołanie 35 sekund później - cooldown minął, następuje kolejna próba
     mockUpdate.mockResolvedValueOnce({ name: 'cachedContents/cooldown-test', model: modelName });
-    jest.spyOn(Date, 'now').mockReturnValue(now + 4035 * 1000);
+    jest.spyOn(Date, 'now').mockReturnValue(now + 535 * 1000);
     const res3 = await getOrCreateGeminiCache(apiKey, modelName, systemPrompt, stableInstructions);
     expect(res3).toEqual(expect.objectContaining({ name: 'cachedContents/cooldown-test' }));
     expect(mockUpdate).toHaveBeenCalledTimes(2);

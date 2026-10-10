@@ -360,5 +360,58 @@ describe('useEquipmentThumbnails', () => {
     expect(characters[0].equipment?.[0].visualSource).toBe('fallback');
     expect(activeCharacter?.equipment?.[0].visualSource).toBe('fallback');
   });
+
+  it('izoluje miniatury per epoka i podmienia anachronistyczny asset na właściwy wariant lub fallback SVG (Issue #503)', async () => {
+    const characterWithAnachronisticItem = {
+      ...character,
+      equipment: [
+        {
+          id: 'test-lantern',
+          name: 'Lampa naftowa',
+          category: 'tool',
+          source: 'starting',
+          templateId: 'light.oil-lantern',
+          eraVariantId: 'light.oil-lantern-1920s',
+          visualSource: 'catalog',
+          imageUrl: '/equipment/catalog/oil-lantern-1920s.webp',
+        },
+      ],
+    } as Character;
+
+    let characters = [characterWithAnachronisticItem];
+    let activeCharacter: Character | null = characterWithAnachronisticItem;
+    const setCharacters = jest.fn((update) => {
+      characters = update(characters);
+    });
+    const setActiveCharacter = jest.fn((update) => {
+      activeCharacter = update(activeCharacter);
+    });
+
+    // Przenosimy postać do 1890s (Gaslight), gdzie lampa naftowa ma dedykowany wariant 1890s
+    const { result } = renderHook(() =>
+      useEquipmentThumbnails({
+        activeCharacter: characterWithAnachronisticItem,
+        adventureContext: { yearRange: '1890s' } as unknown as AdventureContext,
+        imageGenerationEnabled: false,
+        setActiveCharacter,
+        setCharacters,
+      })
+    );
+
+    await act(async () => {
+      await result.current.generateThumbnailsInBackground();
+    });
+
+    expect(characters[0].equipment?.[0]).toMatchObject({
+      imageUrl: '/equipment/catalog/oil-lantern-1890s.webp',
+      eraVariantId: 'light.oil-lantern-1890s',
+      visualSource: 'catalog',
+    });
+    expect(activeCharacter?.equipment?.[0]).toMatchObject({
+      imageUrl: '/equipment/catalog/oil-lantern-1890s.webp',
+      eraVariantId: 'light.oil-lantern-1890s',
+      visualSource: 'catalog',
+    });
+  });
 });
 

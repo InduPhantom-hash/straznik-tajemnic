@@ -384,6 +384,25 @@ export interface EquipmentTemplate {
   weight?: number;
 }
 
+/**
+ * Wzorzec przedmiotu w konkretnej epoce historycznej z izolowanym ID i dedykowanym assetem (Issue #503).
+ */
+export interface EraEquipmentTemplate {
+  id: string; // np. 'light.flashlight-1920s'
+  baseTemplateId: string; // np. 'light.flashlight'
+  era: EquipmentVisualEra;
+  name: string;
+  aliases: string[];
+  category: EquipmentCategory;
+  description?: string;
+  visualTreatment: EquipmentVisualTreatment;
+  assetPath?: string; // Konkretna ścieżka WebP danej epoki lub undefined
+  modifiers?: EquipmentModifiers;
+  combatProfile?: EquipmentCombatProfile;
+  value?: number;
+  weight?: number;
+}
+
 export type CombatDamageClass = 'impaling' | 'non_impaling';
 
 export type EquipmentCombatProfile =
@@ -429,6 +448,8 @@ export interface EquipmentItem {
   id: string;
   /** Stabilny identyfikator wzorca katalogowego, jeśli ten egzemplarz go ma. */
   templateId?: string;
+  /** Opcjonalny wariant epokowy wzorca (np. light.flashlight-1920s) dla izolacji grafik epoki (Issue #503). */
+  eraVariantId?: string;
   name: string;
   category: EquipmentCategory;
   description?: string;

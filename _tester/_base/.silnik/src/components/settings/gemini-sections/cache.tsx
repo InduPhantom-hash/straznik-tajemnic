@@ -21,19 +21,19 @@ export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
             💾 Cache
           </span>
           <span className="text-xs text-muted-foreground font-special-elite uppercase tracking-[0.1em]">
-            {g.enableCache ? t('stateOn') : t('stateOff')} · 🚧 IND-13
+            {g.enableCache ? t('stateOn') : t('stateOff')}
           </span>
         </span>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="border-l-2 border-brass/50 bg-brass/[0.06] p-3 mb-4">
+        <div className="border-l-2 border-primary/60 bg-primary/[0.06] p-3 mb-4">
           <p className="text-sm text-muted-foreground font-serif italic">
-            🚧{' '}
-            <strong className="text-brass not-italic">
-              {t('warningStrong')}
+            ⚡{' '}
+            <strong className="text-primary not-italic">
+              {t('infoStrong')}
             </strong>{' '}
-            {t('warningPrefix')} <code>cachedContent</code>{' '}
-            {t('warningSuffix')}
+            {t('infoPrefix')}{' '}
+            {t('infoSuffix')}
           </p>
         </div>
 

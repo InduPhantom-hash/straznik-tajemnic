@@ -1,5 +1,6 @@
 import type {
   EquipmentCategory,
+  EraEquipmentTemplate,
   EquipmentItem,
   EquipmentTemplate,
   EquipmentVisualEra,
@@ -82,7 +83,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s', 'prl-1970s', 'modern'],
-    assetPaths: { '1920s': '/equipment/catalog/flashlight-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/flashlight-1920s.webp', '1940s': '/equipment/catalog/flashlight-1940s.webp', 'modern': '/equipment/catalog/flashlight-modern.webp', },
     value: 3,
   },
   {
@@ -92,7 +93,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { '1890s': '/equipment/catalog/oil-lantern-1890s.webp', shared: '/equipment/catalog/oil-lantern-1890s.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/oil-lantern-1890s.webp', '1920s': '/equipment/catalog/oil-lantern-1920s.webp', '1930s': '/equipment/catalog/oil-lantern-1930s.webp', '1940s': '/equipment/catalog/oil-lantern-1940s.webp', '1980s': '/equipment/catalog/oil-lantern-1980s.webp', },
     value: 2,
   },
   {
@@ -102,7 +103,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/matches-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/matches-1890s.webp', '1920s': '/equipment/catalog/matches-1920s.webp', '1930s': '/equipment/catalog/matches-1930s.webp', '1940s': '/equipment/catalog/matches-1940s.webp', '1980s': '/equipment/catalog/matches-1980s.webp', 'modern': '/equipment/catalog/matches-modern.webp', },
     value: 1,
   },
   {
@@ -112,7 +113,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/rope-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/rope-1890s.webp', '1920s': '/equipment/catalog/rope-1920s.webp', '1930s': '/equipment/catalog/rope-1930s.webp', '1940s': '/equipment/catalog/rope-1940s.webp', '1980s': '/equipment/catalog/rope-1980s.webp', 'modern': '/equipment/catalog/rope-modern.webp', },
     value: 2,
   },
   {
@@ -122,7 +123,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/lockpicks-shared.webp' },
+    assetPaths: { '1930s': '/equipment/catalog/lockpicks-1930s.webp', '1940s': '/equipment/catalog/lockpicks-1940s.webp', '1980s': '/equipment/catalog/lockpicks-1980s.webp', 'modern': '/equipment/catalog/lockpicks-modern.webp', },
     modifiers: { skill: 'Ślusarstwo', bonus: 10 },
     value: 10,
   },
@@ -133,7 +134,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/magnifier-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/magnifier-1890s.webp', '1920s': '/equipment/catalog/magnifier-1920s.webp', '1930s': '/equipment/catalog/magnifier-1930s.webp', '1940s': '/equipment/catalog/magnifier-1940s.webp', '1980s': '/equipment/catalog/magnifier-1980s.webp', 'modern': '/equipment/catalog/magnifier-modern.webp', },
     modifiers: { skill: 'Spostrzegawczość', bonus: 5 },
     value: 3,
   },
@@ -144,11 +145,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: {
-      '1920s': '/equipment/catalog/camera-1920s.webp',
-      'modern': '/equipment/catalog/dslr-camera-modern.webp',
-      // W epoce PRL i 1890s brak dedykowanego renderu -> czysty fallback do ikony kategorii SVG
-    },
+    assetPaths: { '1890s': '/equipment/catalog/camera-1890s.webp', '1920s': '/equipment/catalog/camera-1920s.webp', '1930s': '/equipment/catalog/camera-1930s.webp', '1940s': '/equipment/catalog/camera-1940s.webp', '1980s': '/equipment/catalog/camera-1980s.webp', 'modern': '/equipment/catalog/dslr-camera-modern.webp', },
     value: 30,
   },
   {
@@ -158,7 +155,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/binoculars-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/binoculars-1890s.webp', '1920s': '/equipment/catalog/binoculars-1920s.webp', '1930s': '/equipment/catalog/binoculars-1930s.webp', '1940s': '/equipment/catalog/binoculars-1940s.webp', '1980s': '/equipment/catalog/binoculars-1980s.webp', 'modern': '/equipment/catalog/binoculars-modern.webp', },
     modifiers: { skill: 'Spostrzegawczość', bonus: 10 },
     value: 15,
   },
@@ -169,7 +166,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/compass-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/compass-1890s.webp', '1920s': '/equipment/catalog/compass-1920s.webp', '1930s': '/equipment/catalog/compass-1930s.webp', '1940s': '/equipment/catalog/compass-1940s.webp', '1980s': '/equipment/catalog/compass-1980s.webp', 'modern': '/equipment/catalog/compass-modern.webp', },
     modifiers: { skill: 'Nawigacja', bonus: 10 },
     value: 5,
   },
@@ -180,7 +177,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/mechanical-kit-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/mechanical-kit-1890s.webp', '1920s': '/equipment/catalog/mechanical-kit-1920s.webp', '1930s': '/equipment/catalog/mechanical-kit-1930s.webp', '1940s': '/equipment/catalog/mechanical-kit-1940s.webp', '1980s': '/equipment/catalog/mechanical-kit-1980s.webp', 'modern': '/equipment/catalog/mechanical-kit-modern.webp', },
     modifiers: { skill: 'Naprawa mechaniczna', bonus: 10 },
     value: 15,
   },
@@ -199,7 +196,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/electrical-kit-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/electrical-kit-1890s.webp', '1920s': '/equipment/catalog/electrical-kit-1920s.webp', '1930s': '/equipment/catalog/electrical-kit-1930s.webp', '1940s': '/equipment/catalog/electrical-kit-1940s.webp', '1980s': '/equipment/catalog/electrical-kit-1980s.webp', '2000s': '/equipment/catalog/electrical-kit-modern.webp', 'modern': '/equipment/catalog/electrical-kit-modern.webp', },
     modifiers: { skill: 'Naprawa elektryczna', bonus: 10 },
     value: 15,
   },
@@ -210,7 +207,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { 'prl-1970s': '/equipment/catalog/first-aid-prl-1970s.webp', shared: '/equipment/catalog/first-aid-prl-1970s.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/first-aid-1890s.webp', '1920s': '/equipment/catalog/first-aid-1920s.webp', '1930s': '/equipment/catalog/first-aid-1930s.webp', '1940s': '/equipment/catalog/first-aid-1940s.webp', 'prl-1970s': '/equipment/catalog/first-aid-prl-1970s.webp', '1980s': '/equipment/catalog/first-aid-1980s.webp', 'modern': '/equipment/catalog/first-aid-modern.webp', },
     modifiers: { skill: 'Pierwsza pomoc', bonus: 10 },
     value: 5,
   },
@@ -221,7 +218,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/medical-bag-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/bag-1890s.webp', '1920s': '/equipment/catalog/medical-bag-1920s.webp', '1930s': '/equipment/catalog/bag-1930s.webp', '1940s': '/equipment/catalog/bag-1940s.webp', '1980s': '/equipment/catalog/bag-1980s.webp', 'modern': '/equipment/catalog/bag-modern.webp', },
     modifiers: { skill: 'Medycyna', bonus: 10 },
     value: 15,
   },
@@ -232,7 +229,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/bandages-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/bandages-1890s.webp', '1920s': '/equipment/catalog/bandages-1920s.webp', '1930s': '/equipment/catalog/bandages-1930s.webp', '1940s': '/equipment/catalog/bandages-1940s.webp', '1980s': '/equipment/catalog/bandages-1980s.webp', 'modern': '/equipment/catalog/bandages-modern.webp', },
     modifiers: { skill: 'Pierwsza pomoc', bonus: 5 },
     value: 1,
   },
@@ -243,7 +240,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pocket-watch-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/pocket-watch-1890s.webp', '1920s': '/equipment/catalog/pocket-watch-1920s.webp', '1930s': '/equipment/catalog/pocket-watch-1930s.webp', '1940s': '/equipment/catalog/pocket-watch-1940s.webp', '1980s': '/equipment/catalog/pocket-watch-1980s.webp', },
     value: 10,
   },
   {
@@ -253,7 +250,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/cigarette-case-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/cigarette-case-1890s.webp', '1920s': '/equipment/catalog/cigarette-case-1920s.webp', '1930s': '/equipment/catalog/cigarette-case-1930s.webp', '1940s': '/equipment/catalog/cigarette-case-1940s.webp', '1980s': '/equipment/catalog/cigarette-case-1980s.webp', },
     value: 5,
   },
   {
@@ -263,7 +260,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/flask-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/flask-1890s.webp', '1920s': '/equipment/catalog/flask-1920s.webp', '1930s': '/equipment/catalog/flask-1930s.webp', '1940s': '/equipment/catalog/flask-1940s.webp', '1980s': '/equipment/catalog/flask-1980s.webp', 'modern': '/equipment/catalog/flask-modern.webp', },
     value: 2,
   },
   {
@@ -273,7 +270,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/wallet-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/wallet-1890s.webp', '1920s': '/equipment/catalog/wallet-1920s.webp', '1930s': '/equipment/catalog/wallet-1930s.webp', '1940s': '/equipment/catalog/wallet-1940s.webp', '1980s': '/equipment/catalog/wallet-1980s.webp', 'modern': '/equipment/catalog/wallet-modern.webp', },
     value: 2,
   },
   {
@@ -283,7 +280,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/notebook-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/notebook-shared.webp' },
     value: 1,
   },
   {
@@ -293,7 +290,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/letter-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/letter-shared.webp' },
     value: 1,
   },
   {
@@ -315,10 +312,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: {
-      // Dedykowane rendery w kolejce Herdr OpenAI (id-card-prl, id-card-1920s, id-card-modern).
-      // Brak 'shared' gwarantuje, że dopóki render nie istnieje, używana jest bezpieczna ikona kategorii SVG.
-    },
+    assetPaths: {},
     value: 1,
   },
   {
@@ -328,7 +322,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/map-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/map-shared.webp' },
     value: 2,
   },
   {
@@ -338,7 +332,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/photo-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/photo-shared.webp' },
     value: 1,
   },
   {
@@ -348,7 +342,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/diary-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/diary-shared.webp' },
     value: 3,
   },
   {
@@ -358,7 +352,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/wallet-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/wallet-1890s.webp', '1920s': '/equipment/catalog/wallet-1920s.webp', '1930s': '/equipment/catalog/wallet-1930s.webp', '1940s': '/equipment/catalog/wallet-1940s.webp', '1980s': '/equipment/catalog/wallet-1980s.webp', 'modern': '/equipment/catalog/wallet-modern.webp', },
     value: 5,
   },
   {
@@ -368,7 +362,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/flare-gun-1890s.webp', '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/flare-gun-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/flare-gun-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: { damage: '1d10+1d3 burn', range: '10 yards', malfunction: 100 },
     value: 15,
   },
@@ -379,7 +373,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/revolver-32-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/revolver-32-1890s.webp', '1920s': '/equipment/catalog/revolver-32-1920s.webp', '1930s': '/equipment/catalog/revolver-32-1930s.webp', '1940s': '/equipment/catalog/revolver-32-1940s.webp', '1980s': '/equipment/catalog/revolver-32-1980s.webp', },
     modifiers: { damage: '1d8', range: '15 yards', malfunction: 100 },
     value: 15,
   },
@@ -390,11 +384,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s', 'prl-1970s'],
-    assetPaths: {
-      '1920s': '/equipment/catalog/revolver-colt38-1920s.webp',
-      '1940s': '/equipment/catalog/revolver-1940s.webp',
-      shared: '/equipment/catalog/revolver-colt38-1920s.webp',
-    },
+    assetPaths: { '1920s': '/equipment/catalog/revolver-colt38-1920s.webp', '1940s': '/equipment/catalog/revolver-1940s.webp', },
     modifiers: { damage: '1d10', range: '15 yards', malfunction: 100 },
     value: 25,
   },
@@ -405,7 +395,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s', 'modern'],
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: { damage: '1d10+2', range: '15 yards', malfunction: 100 },
     value: 35,
   },
@@ -416,7 +406,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/shotgun-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/shotgun-1890s.webp', '1920s': '/equipment/catalog/shotgun-1920s.webp', '1930s': '/equipment/catalog/shotgun-1930s.webp', '1940s': '/equipment/catalog/shotgun-1940s.webp', '1980s': '/equipment/catalog/shotgun-1980s.webp', 'modern': '/equipment/catalog/shotgun-modern.webp', },
     modifiers: { damage: '4d6/2d6/1d6', range: '10/20/50 yards', malfunction: 100 },
     value: 40,
   },
@@ -427,7 +417,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 75,
   },
@@ -438,7 +428,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/revolver-32-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/revolver-32-1890s.webp', '1920s': '/equipment/catalog/revolver-32-1920s.webp', '1930s': '/equipment/catalog/revolver-32-1930s.webp', '1940s': '/equipment/catalog/revolver-32-1940s.webp', '1980s': '/equipment/catalog/revolver-32-1980s.webp', },
     modifiers: {
       damage: '1d8',
       range: '15 m',
@@ -458,7 +448,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/revolver-32-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/revolver-32-1890s.webp', '1920s': '/equipment/catalog/revolver-32-1920s.webp', '1930s': '/equipment/catalog/revolver-32-1930s.webp', '1940s': '/equipment/catalog/revolver-32-1940s.webp', '1980s': '/equipment/catalog/revolver-32-1980s.webp', },
     modifiers: {
       damage: '1d10+2',
       range: '15 m',
@@ -478,7 +468,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/browning-fn1900-1890s.webp', '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/browning-fn1900-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/browning-fn1900-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d8',
       range: '15 m',
@@ -498,7 +488,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/browning-fn1905-1890s.webp', '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/browning-fn1905-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/browning-fn1905-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d6',
       range: '15 m',
@@ -518,7 +508,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/browning-m1910-1890s.webp', '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/browning-m1910-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/browning-m1910-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d8',
       range: '15 m',
@@ -538,7 +528,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/p08-parabellum-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/p08-parabellum-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d10',
       range: '15 m',
@@ -558,7 +548,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/mauser-c96-1890s.webp', '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/mauser-c96-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/mauser-c96-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d8',
       range: '25 m',
@@ -578,7 +568,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/colt-m1911-1890s.webp', '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/colt-m1911-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', '1980s': '/equipment/catalog/colt-m1911-1980s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d10+2',
       range: '15 m',
@@ -598,7 +588,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1930s', '1940s', 'modern'],
-    assetPaths: { shared: '/equipment/catalog/pistol-45-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/pistol-45-1920s.webp', '1930s': '/equipment/catalog/vis-wz35-1930s.webp', '1940s': '/equipment/catalog/pistol-45-1940s.webp', 'modern': '/equipment/catalog/pistol-45-modern.webp', },
     modifiers: {
       damage: '1d10',
       range: '15 m',
@@ -618,7 +608,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: {
       damage: '2d6+4',
       range: '100 m',
@@ -638,7 +628,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: {
       damage: '2d6+4',
       range: '90 m',
@@ -658,7 +648,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1930s', '1940s'],
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: {
       damage: '2d10+4',
       range: '150 m',
@@ -678,7 +668,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1930s', '1940s'],
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: {
       damage: '1d10',
       range: '30 m',
@@ -698,7 +688,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/shotgun-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/shotgun-1890s.webp', '1920s': '/equipment/catalog/shotgun-1920s.webp', '1930s': '/equipment/catalog/shotgun-1930s.webp', '1940s': '/equipment/catalog/shotgun-1940s.webp', '1980s': '/equipment/catalog/shotgun-1980s.webp', 'modern': '/equipment/catalog/shotgun-modern.webp', },
     modifiers: {
       damage: '4d6/2d6/1d6',
       range: '10/20/50 m',
@@ -718,7 +708,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: {
       damage: '2d6+4',
       range: '100 m',
@@ -738,7 +728,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/hunting-rifle-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/hunting-rifle-1890s.webp', '1920s': '/equipment/catalog/hunting-rifle-1920s.webp', '1930s': '/equipment/catalog/hunting-rifle-1930s.webp', '1940s': '/equipment/catalog/hunting-rifle-1940s.webp', '1980s': '/equipment/catalog/hunting-rifle-1980s.webp', 'modern': '/equipment/catalog/hunting-rifle-modern.webp', },
     modifiers: {
       damage: '2d6+4',
       range: '80 m',
@@ -758,7 +748,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { '1890s': '/equipment/catalog/knife-1890s.webp', '1920s': '/equipment/catalog/knife-1920s.webp', '1930s': '/equipment/catalog/knife-1930s.webp', '1940s': '/equipment/catalog/knife-1940s.webp', '1980s': '/equipment/catalog/knife-1980s.webp', 'modern': '/equipment/catalog/knife-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/knife-1890s.webp', '1920s': '/equipment/catalog/knife-1920s.webp', '1930s': '/equipment/catalog/knife-1930s.webp', '1940s': '/equipment/catalog/knife-1940s.webp', '1980s': '/equipment/catalog/knife-1980s.webp', 'modern': '/equipment/catalog/knife-modern.webp', },
     modifiers: { damage: '1d4+2' },
     combatProfile: {
       schemaVersion: 1,
@@ -776,7 +766,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { '1890s': '/equipment/catalog/machete-1890s.webp', '1920s': '/equipment/catalog/machete-1920s.webp', '1930s': '/equipment/catalog/machete-1930s.webp', '1940s': '/equipment/catalog/machete-1940s.webp', '1980s': '/equipment/catalog/machete-1980s.webp', 'modern': '/equipment/catalog/machete-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/machete-1890s.webp', '1920s': '/equipment/catalog/machete-1920s.webp', '1930s': '/equipment/catalog/machete-1930s.webp', '1940s': '/equipment/catalog/machete-1940s.webp', '1980s': '/equipment/catalog/machete-1980s.webp', 'modern': '/equipment/catalog/machete-modern.webp', },
     modifiers: { damage: '1d8+1' },
     combatProfile: {
       schemaVersion: 1,
@@ -794,7 +784,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/candles-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/candles-1890s.webp', '1920s': '/equipment/catalog/candles-1920s.webp', '1930s': '/equipment/catalog/candles-1930s.webp', '1940s': '/equipment/catalog/candles-1940s.webp', '1980s': '/equipment/catalog/candles-1980s.webp', 'modern': '/equipment/catalog/candles-modern.webp', },
     value: 1,
   },
   {
@@ -804,7 +794,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/chalk-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/chalk-1890s.webp', '1920s': '/equipment/catalog/chalk-1920s.webp', '1930s': '/equipment/catalog/chalk-1930s.webp', '1940s': '/equipment/catalog/chalk-1940s.webp', '1980s': '/equipment/catalog/chalk-1980s.webp', 'modern': '/equipment/catalog/chalk-modern.webp', },
     value: 1,
   },
   {
@@ -814,7 +804,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/incense-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/incense-1890s.webp', '1920s': '/equipment/catalog/incense-1920s.webp', '1930s': '/equipment/catalog/incense-1930s.webp', '1940s': '/equipment/catalog/incense-1940s.webp', '1980s': '/equipment/catalog/incense-1980s.webp', 'modern': '/equipment/catalog/incense-modern.webp', },
     value: 3,
   },
   {
@@ -834,11 +824,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['2000s', 'modern'],
-    assetPaths: {
-      '2000s': '/equipment/catalog/phone-modern.webp',
-      modern: '/equipment/catalog/phone-modern.webp',
-      shared: '/equipment/catalog/phone-modern.webp',
-    },
+    assetPaths: { '2000s': '/equipment/catalog/phone-modern.webp', 'modern': '/equipment/catalog/phone-modern.webp', },
     value: 300,
   },
   {
@@ -857,11 +843,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['2000s', 'modern'],
-    assetPaths: {
-      '2000s': '/equipment/catalog/power-bank-modern.webp',
-      modern: '/equipment/catalog/power-bank-modern.webp',
-      shared: '/equipment/catalog/power-bank-modern.webp',
-    },
+    assetPaths: { '2000s': '/equipment/catalog/power-bank-modern.webp', 'modern': '/equipment/catalog/power-bank-modern.webp', },
     value: 25,
   },
   {
@@ -871,7 +853,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/revolver-colt38-1920s.webp', shared: '/equipment/catalog/revolver-colt38-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/revolver-colt38-1920s.webp', },
     modifiers: { damage: '1d10', range: '15 yards', malfunction: 100 },
     value: 25,
   },
@@ -882,11 +864,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1890s', '1920s', '1940s'],
-    assetPaths: {
-      '1890s': '/equipment/catalog/revolver-webley-1920s.webp',
-      '1920s': '/equipment/catalog/revolver-webley-1920s.webp',
-      shared: '/equipment/catalog/revolver-webley-1920s.webp',
-    },
+    assetPaths: { '1890s': '/equipment/catalog/revolver-webley-1920s.webp', '1920s': '/equipment/catalog/revolver-webley-1920s.webp', },
     modifiers: { damage: '1d10+2', range: '15 yards', malfunction: 100 },
     value: 30,
   },
@@ -897,7 +875,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
-    assetPaths: { '1890s': '/equipment/catalog/derringer-1890s.webp', shared: '/equipment/catalog/derringer-1890s.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/derringer-1890s.webp', },
     modifiers: { damage: '1d6', range: '3 yards', malfunction: 100 },
     value: 8,
   },
@@ -908,7 +886,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/pistol-p64-prl.webp', shared: '/equipment/catalog/pistol-p64-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/pistol-p64-prl.webp', },
     modifiers: { damage: '1d8', range: '15 yards', malfunction: 99 },
     value: 40,
   },
@@ -919,7 +897,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/pistol-glock-modern.webp', shared: '/equipment/catalog/pistol-glock-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/pistol-glock-modern.webp', },
     modifiers: { damage: '1d10', range: '15 yards', malfunction: 99 },
     value: 500,
   },
@@ -930,7 +908,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/shotgun-sawed-off-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/shotgun-sawed-off-1890s.webp', '1920s': '/equipment/catalog/shotgun-sawed-off-1920s.webp', '1930s': '/equipment/catalog/shotgun-sawed-off-1930s.webp', '1940s': '/equipment/catalog/shotgun-sawed-off-1940s.webp', '1980s': '/equipment/catalog/shotgun-sawed-off-1980s.webp', 'modern': '/equipment/catalog/shotgun-sawed-off-modern.webp', },
     modifiers: { damage: '4d6/1d6', range: '5/10 yards', malfunction: 100 },
     value: 35,
   },
@@ -941,7 +919,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/submachine-tommy-1920s.webp', shared: '/equipment/catalog/submachine-tommy-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/submachine-tommy-1920s.webp', },
     modifiers: { damage: '1d10+2', range: '20 yards', malfunction: 96 },
     value: 200,
   },
@@ -952,7 +930,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1940s'],
-    assetPaths: { '1940s': '/equipment/catalog/gasoline-lighter-1940s.webp', shared: '/equipment/catalog/gasoline-lighter-1940s.webp' },
+    assetPaths: { '1940s': '/equipment/catalog/gasoline-lighter-1940s.webp', },
     value: 2,
   },
   {
@@ -962,7 +940,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { '1890s': '/equipment/catalog/crowbar-1890s.webp', '1920s': '/equipment/catalog/crowbar-1920s.webp', '1930s': '/equipment/catalog/crowbar-1930s.webp', '1940s': '/equipment/catalog/crowbar-1940s.webp', '1980s': '/equipment/catalog/crowbar-1980s.webp', 'modern': '/equipment/catalog/crowbar-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/crowbar-1890s.webp', '1920s': '/equipment/catalog/crowbar-1920s.webp', '1930s': '/equipment/catalog/crowbar-1930s.webp', '1940s': '/equipment/catalog/crowbar-1940s.webp', '1980s': '/equipment/catalog/crowbar-1980s.webp', 'modern': '/equipment/catalog/crowbar-modern.webp', },
     modifiers: { damage: '1d6', skill: 'Walka wręcz' },
     value: 2,
   },
@@ -973,7 +951,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/pilot-goggles-1920s.webp', shared: '/equipment/catalog/pilot-goggles-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/pilot-goggles-1920s.webp', },
     value: 15,
   },
   {
@@ -983,7 +961,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/french-wrench-tool.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/french-wrench-tool-1890s.webp', '1920s': '/equipment/catalog/french-wrench-tool-1920s.webp', '1930s': '/equipment/catalog/french-wrench-tool-1930s.webp', '1940s': '/equipment/catalog/french-wrench-tool-1940s.webp', '1980s': '/equipment/catalog/french-wrench-tool-1980s.webp', 'modern': '/equipment/catalog/french-wrench-tool-modern.webp', },
     modifiers: { damage: '1d6', skill: 'Walka wręcz' },
     value: 3,
   },
@@ -994,7 +972,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/leather-briefcase-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/leather-briefcase-1890s.webp', '1920s': '/equipment/catalog/leather-briefcase-1920s.webp', '1930s': '/equipment/catalog/leather-briefcase-1930s.webp', '1940s': '/equipment/catalog/leather-briefcase-1940s.webp', '1980s': '/equipment/catalog/leather-briefcase-1980s.webp', 'modern': '/equipment/catalog/leather-briefcase-modern.webp', },
     value: 10,
   },
   {
@@ -1004,7 +982,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/tape-recorder-prl-1970s.webp', shared: '/equipment/catalog/tape-recorder-prl-1970s.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/tape-recorder-prl-1970s.webp', },
     value: 60,
   },
   {
@@ -1014,7 +992,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/morphine-ampoules-shared.webp', shared: '/equipment/catalog/morphine-ampoules-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/morphine-ampoules-1920s.webp', '1940s': '/equipment/catalog/morphine-ampoules-1940s.webp', },
     value: 5,
   },
   {
@@ -1024,7 +1002,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/silver-cross-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/silver-cross-1890s.webp', '1920s': '/equipment/catalog/silver-cross-1920s.webp', '1930s': '/equipment/catalog/silver-cross-1930s.webp', '1940s': '/equipment/catalog/silver-cross-1940s.webp', '1980s': '/equipment/catalog/silver-cross-1980s.webp', 'modern': '/equipment/catalog/silver-cross-modern.webp', },
     value: 15,
   },
   {
@@ -1034,7 +1012,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/pocket-revolver-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/revolver-pocket-unlicensed-1890s.webp', '1920s': '/equipment/catalog/revolver-pocket-unlicensed-1920s.webp', '1930s': '/equipment/catalog/revolver-pocket-unlicensed-1930s.webp', '1940s': '/equipment/catalog/revolver-pocket-unlicensed-1940s.webp', '1980s': '/equipment/catalog/revolver-pocket-unlicensed-1980s.webp', 'modern': '/equipment/catalog/revolver-pocket-unlicensed-modern.webp', },
     modifiers: { damage: '1d6', range: '10 yards', malfunction: 100 },
     value: 10,
   },
@@ -1045,7 +1023,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/leather-whip-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/leather-whip-1890s.webp', '1920s': '/equipment/catalog/leather-whip-1920s.webp', '1930s': '/equipment/catalog/leather-whip-1930s.webp', '1940s': '/equipment/catalog/leather-whip-1940s.webp', '1980s': '/equipment/catalog/leather-whip-1980s.webp', 'modern': '/equipment/catalog/leather-whip-modern.webp', },
     modifiers: { damage: '1d3' },
     value: 5,
   },
@@ -1056,7 +1034,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/handcuffs-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/handcuffs-1890s.webp', '1920s': '/equipment/catalog/handcuffs-1920s.webp', '1930s': '/equipment/catalog/handcuffs-1930s.webp', '1940s': '/equipment/catalog/handcuffs-1940s.webp', '1980s': '/equipment/catalog/handcuffs-1980s.webp', 'modern': '/equipment/catalog/handcuffs-modern.webp', },
     value: 10,
   },
   {
@@ -1066,7 +1044,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/canteen-flask-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/canteen-military-1890s.webp', '1920s': '/equipment/catalog/canteen-military-1920s.webp', '1930s': '/equipment/catalog/canteen-military-1930s.webp', '1940s': '/equipment/catalog/canteen-military-1940s.webp', '1980s': '/equipment/catalog/canteen-military-1980s.webp', 'modern': '/equipment/catalog/canteen-military-modern.webp', },
     value: 2,
   },
   {
@@ -1076,7 +1054,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/geology-hammer-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/geological-hammer-1890s.webp', '1920s': '/equipment/catalog/geological-hammer-1920s.webp', '1930s': '/equipment/catalog/geological-hammer-1930s.webp', '1940s': '/equipment/catalog/geological-hammer-1940s.webp', '1980s': '/equipment/catalog/geological-hammer-1980s.webp', 'modern': '/equipment/catalog/geological-hammer-modern.webp', },
     modifiers: { damage: '1d4', skill: 'Walka wręcz' },
     value: 2,
   },
@@ -1087,7 +1065,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/police-flashlight-prl.webp', shared: '/equipment/catalog/police-flashlight-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/police-flashlight-prl.webp', },
     value: 5,
   },
   {
@@ -1097,7 +1075,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/tactical-flashlight-modern.webp', shared: '/equipment/catalog/tactical-flashlight-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/tactical-flashlight-modern.webp', },
     value: 35,
   },
   {
@@ -1107,7 +1085,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/multitool-modern.webp', shared: '/equipment/catalog/multitool-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/multitool-modern.webp', },
     modifiers: { skill: 'Naprawa mechaniczna', bonus: 5 },
     value: 60,
   },
@@ -1118,7 +1096,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/sketchbook-pencil-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/sketchbook-pencil-shared.webp', },
     value: 2,
   },
   {
@@ -1128,7 +1106,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
-    assetPaths: { '1890s': '/equipment/catalog/laudanum-phial-shared.webp', shared: '/equipment/catalog/laudanum-phial-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/laudanum-bottle-vintage-1890s.webp', },
     value: 3,
   },
   {
@@ -1138,7 +1116,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/smelling-salts-vial.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/smelling-salts-vial-1890s.webp', '1920s': '/equipment/catalog/smelling-salts-vial-1920s.webp', '1930s': '/equipment/catalog/smelling-salts-vial-1930s.webp', '1940s': '/equipment/catalog/smelling-salts-vial-1940s.webp', '1980s': '/equipment/catalog/smelling-salts-vial-1980s.webp', 'modern': '/equipment/catalog/smelling-salts-vial-modern.webp', },
     value: 1,
   },
   {
@@ -1148,7 +1126,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/tarot-deck-vintage.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/tarot-deck-vintage-1890s.webp', '1920s': '/equipment/catalog/tarot-deck-vintage-1920s.webp', '1930s': '/equipment/catalog/tarot-deck-vintage-1930s.webp', '1940s': '/equipment/catalog/tarot-deck-vintage-1940s.webp', '1980s': '/equipment/catalog/tarot-deck-vintage-1980s.webp', 'modern': '/equipment/catalog/tarot-deck-vintage-modern.webp', },
     value: 5,
   },
   {
@@ -1158,7 +1136,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/crystal-ball-stand.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/crystal-ball-stand-1890s.webp', '1920s': '/equipment/catalog/crystal-ball-stand-1920s.webp', '1930s': '/equipment/catalog/crystal-ball-stand-1930s.webp', '1940s': '/equipment/catalog/crystal-ball-stand-1940s.webp', '1980s': '/equipment/catalog/crystal-ball-stand-1980s.webp', 'modern': '/equipment/catalog/crystal-ball-stand-modern.webp', },
     value: 25,
   },
   {
@@ -1168,7 +1146,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/leather-grimoire-book.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/leather-grimoire-book-1890s.webp', '1920s': '/equipment/catalog/leather-grimoire-book-1920s.webp', '1930s': '/equipment/catalog/leather-grimoire-book-1930s.webp', '1940s': '/equipment/catalog/leather-grimoire-book-1940s.webp', '1980s': '/equipment/catalog/leather-grimoire-book-1980s.webp', 'modern': '/equipment/catalog/leather-grimoire-book-modern.webp', },
     value: 50,
   },
   {
@@ -1178,7 +1156,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/latin-scroll-vellum.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/latin-scroll-vellum-1890s.webp', '1920s': '/equipment/catalog/latin-scroll-vellum-1920s.webp', '1930s': '/equipment/catalog/latin-scroll-vellum-1930s.webp', '1940s': '/equipment/catalog/latin-scroll-vellum-1940s.webp', '1980s': '/equipment/catalog/latin-scroll-vellum-1980s.webp', 'modern': '/equipment/catalog/latin-scroll-vellum-modern.webp', },
     value: 40,
   },
   {
@@ -1188,7 +1166,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/ancient-runes-stones.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/ancient-runes-stones-1890s.webp', '1920s': '/equipment/catalog/ancient-runes-stones-1920s.webp', '1930s': '/equipment/catalog/ancient-runes-stones-1930s.webp', '1940s': '/equipment/catalog/ancient-runes-stones-1940s.webp', '1980s': '/equipment/catalog/ancient-runes-stones-1980s.webp', 'modern': '/equipment/catalog/ancient-runes-stones-modern.webp', },
     value: 15,
   },
   {
@@ -1198,7 +1176,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/silver-amulet-sigil.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/silver-amulet-sigil-1890s.webp', '1920s': '/equipment/catalog/silver-amulet-sigil-1920s.webp', '1930s': '/equipment/catalog/silver-amulet-sigil-1930s.webp', '1940s': '/equipment/catalog/silver-amulet-sigil-1940s.webp', '1980s': '/equipment/catalog/silver-amulet-sigil-1980s.webp', 'modern': '/equipment/catalog/silver-amulet-sigil-modern.webp', },
     value: 20,
   },
   {
@@ -1208,7 +1186,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/crystal-pendulum-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/crystal-pendulum-1890s.webp', '1920s': '/equipment/catalog/crystal-pendulum-1920s.webp', '1930s': '/equipment/catalog/crystal-pendulum-1930s.webp', '1940s': '/equipment/catalog/crystal-pendulum-1940s.webp', '1980s': '/equipment/catalog/crystal-pendulum-1980s.webp', 'modern': '/equipment/catalog/crystal-pendulum-modern.webp', },
     value: 8,
   },
   {
@@ -1225,7 +1203,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { 'prl-1970s': '/equipment/catalog/emf-meter-vintage.webp', shared: '/equipment/catalog/emf-meter-vintage.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/emf-meter-vintage-1890s.webp', '1920s': '/equipment/catalog/emf-meter-vintage-1920s.webp', '1930s': '/equipment/catalog/emf-meter-vintage-1930s.webp', '1940s': '/equipment/catalog/emf-meter-vintage-1940s.webp', 'prl-1970s': '/equipment/catalog/emf-meter-vintage.webp', '1980s': '/equipment/catalog/emf-meter-vintage-1980s.webp', 'modern': '/equipment/catalog/emf-meter-vintage-modern.webp', },
     modifiers: { skill: 'Nauka' },
     value: 50,
   },
@@ -1236,11 +1214,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s', '1990s'],
-    assetPaths: {
-      'prl-1970s': '/equipment/catalog/microcassette-dictaphone.webp',
-      '1980s': '/equipment/catalog/microcassette-dictaphone.webp',
-      shared: '/equipment/catalog/microcassette-dictaphone.webp',
-    },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/microcassette-dictaphone.webp', '1980s': '/equipment/catalog/microcassette-dictaphone.webp', },
     value: 35,
   },
   {
@@ -1250,7 +1224,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/digital-dictaphone-modern.webp', shared: '/equipment/catalog/digital-dictaphone-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/digital-dictaphone-modern.webp', },
     value: 80,
   },
   {
@@ -1260,7 +1234,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s', '1990s', '2000s', 'modern'],
-    assetPaths: { 'modern': '/equipment/catalog/nightvision-camera-modern.webp', shared: '/equipment/catalog/nightvision-camera-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/nightvision-camera-modern.webp', },
     value: 400,
   },
   {
@@ -1270,7 +1244,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/dslr-camera-modern.webp', shared: '/equipment/catalog/dslr-camera-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/dslr-camera-modern.webp', },
     value: 600,
   },
   {
@@ -1280,7 +1254,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/satellite-gps-modern.webp', shared: '/equipment/catalog/satellite-gps-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/satellite-gps-modern.webp', },
     modifiers: { skill: 'Nawigacja', bonus: 20 },
     value: 150,
   },
@@ -1291,7 +1265,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/satellite-radio-modern.webp', shared: '/equipment/catalog/satellite-radio-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/satellite-radio-modern.webp', },
     value: 300,
   },
   {
@@ -1301,7 +1275,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/rugged-ultrabook-modern.webp', shared: '/equipment/catalog/rugged-ultrabook-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/rugged-ultrabook-modern.webp', },
     modifiers: { skill: 'Korzystanie z komputerów', bonus: 10 },
     value: 1500,
   },
@@ -1312,12 +1286,12 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/rugged-tablet-lidar.webp', shared: '/equipment/catalog/rugged-tablet-lidar.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/rugged-tablet-lidar.webp', },
     value: 1200,
   },
   {
     id: 'tool.batteries-aa',
-    assetPaths: { '1890s': '/equipment/catalog/batteries-aa-1890s.webp', '1920s': '/equipment/catalog/batteries-aa-1920s.webp', '1930s': '/equipment/catalog/batteries-aa-1930s.webp', '1940s': '/equipment/catalog/batteries-aa-1940s.webp', '1980s': '/equipment/catalog/batteries-aa-1980s.webp', 'modern': '/equipment/catalog/batteries-aa-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/batteries-aa-1890s.webp', '1920s': '/equipment/catalog/batteries-aa-1920s.webp', '1930s': '/equipment/catalog/batteries-aa-1930s.webp', '1940s': '/equipment/catalog/batteries-aa-1940s.webp', '1980s': '/equipment/catalog/batteries-aa-1980s.webp', 'modern': '/equipment/catalog/batteries-aa-modern.webp', },
     name: "Zapasowe baterie (R6/AA)",
     aliases: [
       "Zapasowe baterie",
@@ -1347,7 +1321,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s', '1990s', '2000s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/brick-cellphone-prl.webp', shared: '/equipment/catalog/brick-cellphone-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/brick-cellphone-prl.webp', },
     value: 500,
   },
   {
@@ -1357,7 +1331,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/audio-cassette-shared.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/audio-cassette-shared.webp', '1980s': '/equipment/catalog/audio-cassette-shared.webp', },
     value: 2,
   },
   {
@@ -1367,7 +1341,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/film-reel-shared.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/film-reel-shared.webp', '1940s': '/equipment/catalog/film-reel-shared.webp', },
     value: 10,
   },
   {
@@ -1377,7 +1351,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/encrypted-usb-modern.webp', shared: '/equipment/catalog/encrypted-usb-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/encrypted-usb-modern.webp', },
     value: 40,
   },
   {
@@ -1387,7 +1361,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/archive-keys-bundle.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/archive-keys-bundle-1890s.webp', '1920s': '/equipment/catalog/archive-keys-bundle-1920s.webp', '1930s': '/equipment/catalog/archive-keys-bundle-1930s.webp', '1940s': '/equipment/catalog/archive-keys-bundle-1940s.webp', '1980s': '/equipment/catalog/archive-keys-bundle-1980s.webp', 'modern': '/equipment/catalog/archive-keys-bundle-modern.webp', },
     value: 5,
   },
   {
@@ -1397,7 +1371,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/reading-glasses-case.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/reading-glasses-case-1890s.webp', '1920s': '/equipment/catalog/reading-glasses-case-1920s.webp', '1930s': '/equipment/catalog/reading-glasses-case-1930s.webp', '1940s': '/equipment/catalog/reading-glasses-case-1940s.webp', '1980s': '/equipment/catalog/reading-glasses-case-1980s.webp', 'modern': '/equipment/catalog/reading-glasses-case-modern.webp', },
     value: 5,
   },
   {
@@ -1407,7 +1381,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/tactical-vest-black.webp', shared: '/equipment/catalog/tactical-vest-black.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/tactical-vest-black.webp', },
     modifiers: { bonus: 6 },
     value: 250,
   },
@@ -1418,7 +1392,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/rugged-hiking-backpack.webp', shared: '/equipment/catalog/rugged-hiking-backpack.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/rugged-hiking-backpack-1890s.webp', '1920s': '/equipment/catalog/rugged-hiking-backpack-1920s.webp', '1930s': '/equipment/catalog/rugged-hiking-backpack-1930s.webp', '1940s': '/equipment/catalog/rugged-hiking-backpack-1940s.webp', '1980s': '/equipment/catalog/rugged-hiking-backpack-1980s.webp', 'modern': '/equipment/catalog/rugged-hiking-backpack.webp', },
     value: 15,
   },
   {
@@ -1428,7 +1402,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
-    assetPaths: { '1890s': '/equipment/catalog/rifle-lee-metford-1890s.webp', shared: '/equipment/catalog/rifle-lee-metford-1890s.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/rifle-lee-metford-1890s.webp', },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 60,
   },
@@ -1439,7 +1413,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/rifle-springfield-1920s.webp', shared: '/equipment/catalog/rifle-springfield-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/rifle-springfield-1920s.webp', },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 75,
   },
@@ -1450,7 +1424,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/rifle-hk416-modern.webp', shared: '/equipment/catalog/rifle-hk416-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/rifle-hk416-modern.webp', },
     modifiers: { damage: '2d6', range: '90 yards', malfunction: 98 },
     value: 1200,
   },
@@ -1461,7 +1435,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/adrenaline-syringes-modern.webp', shared: '/equipment/catalog/adrenaline-syringes-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/adrenaline-syringes-modern.webp', },
     value: 20,
   },
   {
@@ -1471,7 +1445,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/psychotropics-kit-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/psychotropics-kit-1890s.webp', '1920s': '/equipment/catalog/psychotropics-kit-1920s.webp', '1930s': '/equipment/catalog/psychotropics-kit-1930s.webp', '1940s': '/equipment/catalog/psychotropics-kit-1940s.webp', '1980s': '/equipment/catalog/psychotropics-kit-1980s.webp', 'modern': '/equipment/catalog/psychotropics-kit-modern.webp', },
     value: 5,
   },
   {
@@ -1481,7 +1455,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/patient-records-folder.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/patient-records-folder.webp', },
     value: 2,
   },
   {
@@ -1491,7 +1465,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/medical-id-badge.webp', shared: '/equipment/catalog/medical-id-badge.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/medical-id-badge.webp', },
     value: 5,
   },
   {
@@ -1501,7 +1475,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/climbing-carabiners-modern.webp', shared: '/equipment/catalog/climbing-carabiners-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/climbing-carabiners-modern.webp', },
     value: 40,
   },
   {
@@ -1511,7 +1485,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/night-photo-kit-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/night-photo-kit-1890s.webp', '1920s': '/equipment/catalog/night-photo-kit-1920s.webp', '1930s': '/equipment/catalog/night-photo-kit-1930s.webp', '1940s': '/equipment/catalog/night-photo-kit-1940s.webp', '1980s': '/equipment/catalog/night-photo-kit-1980s.webp', 'modern': '/equipment/catalog/night-photo-kit-modern.webp', },
     value: 50,
   },
   {
@@ -1521,7 +1495,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s', '1990s', '2000s', 'modern'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/diy-emf-detector-prl.webp', shared: '/equipment/catalog/diy-emf-detector-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/diy-emf-detector-prl.webp', '2000s': '/equipment/catalog/diy-emf-detector-prl.webp', 'modern': '/equipment/catalog/diy-emf-detector-prl.webp' },
     value: 10,
   },
   {
@@ -1531,7 +1505,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s', '1990s', '2000s', 'modern'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/electronics-case-prl.webp', shared: '/equipment/catalog/electronics-case-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/electronics-case-prl.webp', '2000s': '/equipment/catalog/electronics-case-prl.webp', 'modern': '/equipment/catalog/electronics-case-prl.webp' },
     modifiers: { skill: 'Elektronika', bonus: 10 },
     value: 25,
   },
@@ -1549,7 +1523,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1990s', '2000s', 'modern'],
-    assetPaths: { shared: '/equipment/catalog/heavy-laptop-wifi-1990s.webp' },
+    assetPaths: { '1990s': '/equipment/catalog/heavy-laptop-wifi-1990s.webp', '2000s': '/equipment/catalog/heavy-laptop-wifi-1990s.webp', 'modern': '/equipment/catalog/heavy-laptop-wifi-1990s.webp' },
     value: 800,
   },
   {
@@ -1559,7 +1533,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s', '1990s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/scientific-calc-prl.webp', shared: '/equipment/catalog/scientific-calc-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/scientific-calc-prl.webp', },
     value: 20,
   },
   {
@@ -1569,7 +1543,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/safety-helmet-industrial.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/safety-helmet-industrial-1890s.webp', '1920s': '/equipment/catalog/safety-helmet-industrial-1920s.webp', '1930s': '/equipment/catalog/safety-helmet-industrial-1930s.webp', '1940s': '/equipment/catalog/safety-helmet-industrial-1940s.webp', '1980s': '/equipment/catalog/safety-helmet-industrial-1980s.webp', 'modern': '/equipment/catalog/safety-helmet-industrial-modern.webp', },
     modifiers: { bonus: 2 },
     value: 10,
   },
@@ -1580,7 +1554,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/fireproof-gloves-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/fireproof-gloves-1890s.webp', '1920s': '/equipment/catalog/fireproof-gloves-1920s.webp', '1930s': '/equipment/catalog/fireproof-gloves-1930s.webp', '1940s': '/equipment/catalog/fireproof-gloves-1940s.webp', '1980s': '/equipment/catalog/fireproof-gloves-1980s.webp', 'modern': '/equipment/catalog/fireproof-gloves-modern.webp', },
     modifiers: { bonus: 1 },
     value: 10,
   },
@@ -1591,7 +1565,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/contacts-notebook-prl.webp', shared: '/equipment/catalog/contacts-notebook-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/contacts-notebook-prl.webp', },
     value: 2,
   },
   {
@@ -1601,7 +1575,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/embroidered-shawl.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/embroidered-shawl-1890s.webp', '1920s': '/equipment/catalog/embroidered-shawl-1920s.webp', '1930s': '/equipment/catalog/embroidered-shawl-1930s.webp', '1940s': '/equipment/catalog/embroidered-shawl-1940s.webp', '1980s': '/equipment/catalog/embroidered-shawl-1980s.webp', 'modern': '/equipment/catalog/embroidered-shawl-modern.webp', },
     value: 8,
   },
   {
@@ -1611,7 +1585,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
-    assetPaths: { '1890s': '/equipment/catalog/black-veil-hat.webp', shared: '/equipment/catalog/black-veil-hat.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/black-veil-hat.webp', },
     value: 12,
   },
   {
@@ -1621,7 +1595,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/trenchcoat-hat-noir.webp', '1940s': '/equipment/catalog/trenchcoat-hat-noir.webp', shared: '/equipment/catalog/trenchcoat-hat-noir.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/trenchcoat-hat-noir-1920s.webp', '1940s': '/equipment/catalog/trenchcoat-hat-noir.webp', },
     value: 25,
   },
   {
@@ -1631,11 +1605,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1890s', '1920s', '1940s'],
-    assetPaths: {
-      '1890s': '/equipment/catalog/nurse-cross-silver.webp',
-      '1920s': '/equipment/catalog/nurse-cross-silver.webp',
-      shared: '/equipment/catalog/nurse-cross-silver.webp',
-    },
+    assetPaths: { '1890s': '/equipment/catalog/nurse-cross-silver-1890s.webp', '1920s': '/equipment/catalog/nurse-cross-silver-1920s.webp', '1940s': '/equipment/catalog/nurse-cross-silver-1940s.webp', },
     value: 10,
   },
   {
@@ -1645,7 +1615,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/holy-water-phial.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/holy-water-phial-1890s.webp', '1920s': '/equipment/catalog/holy-water-phial-1920s.webp', '1930s': '/equipment/catalog/holy-water-phial-1930s.webp', '1940s': '/equipment/catalog/holy-water-phial-1940s.webp', '1980s': '/equipment/catalog/holy-water-phial-1980s.webp', 'modern': '/equipment/catalog/holy-water-phial-modern.webp', },
     value: 5,
   },
   {
@@ -1655,7 +1625,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/sage-incense-bundle.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/sage-incense-bundle-1890s.webp', '1920s': '/equipment/catalog/sage-incense-bundle-1920s.webp', '1930s': '/equipment/catalog/sage-incense-bundle-1930s.webp', '1940s': '/equipment/catalog/sage-incense-bundle-1940s.webp', '1980s': '/equipment/catalog/sage-incense-bundle-1980s.webp', 'modern': '/equipment/catalog/sage-incense-bundle-modern.webp', },
     value: 3,
   },
   {
@@ -1665,7 +1635,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/protective-herbs-pouch.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/protective-herbs-pouch-1890s.webp', '1920s': '/equipment/catalog/protective-herbs-pouch-1920s.webp', '1930s': '/equipment/catalog/protective-herbs-pouch-1930s.webp', '1940s': '/equipment/catalog/protective-herbs-pouch-1940s.webp', '1980s': '/equipment/catalog/protective-herbs-pouch-1980s.webp', 'modern': '/equipment/catalog/protective-herbs-pouch-modern.webp', },
     value: 3,
   },
   {
@@ -1675,7 +1645,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/silver-talisman-shared.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/silver-talisman-1890s.webp', '1920s': '/equipment/catalog/silver-talisman-1920s.webp', '1930s': '/equipment/catalog/silver-talisman-1930s.webp', '1940s': '/equipment/catalog/silver-talisman-1940s.webp', '1980s': '/equipment/catalog/silver-talisman-1980s.webp', 'modern': '/equipment/catalog/silver-talisman-modern.webp', },
     value: 25,
   },
   {
@@ -1685,12 +1655,12 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/ancient-translations-book.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/ancient-translations-book.webp', },
     value: 15,
   },
   {
     id: 'tool.thermometer',
-    assetPaths: { '1890s': '/equipment/catalog/thermometer-1890s.webp', '1920s': '/equipment/catalog/thermometer-1920s.webp', '1930s': '/equipment/catalog/thermometer-1930s.webp', '1940s': '/equipment/catalog/thermometer-1940s.webp', '1980s': '/equipment/catalog/thermometer-1980s.webp', 'modern': '/equipment/catalog/thermometer-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/thermometer-1890s.webp', '1920s': '/equipment/catalog/thermometer-1920s.webp', '1930s': '/equipment/catalog/thermometer-1930s.webp', '1940s': '/equipment/catalog/thermometer-1940s.webp', '1980s': '/equipment/catalog/thermometer-1980s.webp', 'modern': '/equipment/catalog/thermometer-modern.webp', },
     name: "Termometr",
     aliases: ["Thermometer", "Termometr laboratoryjny", "Termometr lekarski", "Termometr rtęciowy"],
     category: 'tool',
@@ -1701,7 +1671,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.photo-tripod',
-    assetPaths: { '1890s': '/equipment/catalog/photo-tripod-1890s.webp', '1920s': '/equipment/catalog/photo-tripod-1920s.webp', '1930s': '/equipment/catalog/photo-tripod-1930s.webp', '1940s': '/equipment/catalog/photo-tripod-1940s.webp', '1980s': '/equipment/catalog/photo-tripod-1980s.webp', 'modern': '/equipment/catalog/photo-tripod-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/photo-tripod-1890s.webp', '1920s': '/equipment/catalog/photo-tripod-1920s.webp', '1930s': '/equipment/catalog/photo-tripod-1930s.webp', '1940s': '/equipment/catalog/photo-tripod-1940s.webp', '1980s': '/equipment/catalog/photo-tripod-1980s.webp', 'modern': '/equipment/catalog/photo-tripod-modern.webp', },
     name: "Statyw fotograficzny",
     aliases: ["Statyw", "Tripod", "Statyw drewniany", "Mosiężny statyw fotograficzny"],
     category: 'tool',
@@ -1711,7 +1681,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.photo-plates',
-    assetPaths: { '1890s': '/equipment/catalog/photo-plates-1890s.webp', '1920s': '/equipment/catalog/photo-plates-1920s.webp', '1930s': '/equipment/catalog/photo-plates-1930s.webp', '1940s': '/equipment/catalog/photo-plates-1940s.webp', '1980s': '/equipment/catalog/photo-plates-1980s.webp', 'modern': '/equipment/catalog/photo-plates-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/photo-plates-1890s.webp', '1920s': '/equipment/catalog/photo-plates-1920s.webp', '1930s': '/equipment/catalog/photo-plates-1930s.webp', '1940s': '/equipment/catalog/photo-plates-1940s.webp', '1980s': '/equipment/catalog/photo-plates-1980s.webp', 'modern': '/equipment/catalog/photo-plates-modern.webp', },
     name: "Klisza fotograficzna",
     aliases: ["Klisza", "Klisze", "Klisze szklane", "Błona fotograficzna", "Film roll", "Photo plates"],
     category: 'tool',
@@ -1721,7 +1691,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.trowel-brush',
-    assetPaths: { '1890s': '/equipment/catalog/trowel-brush-1890s.webp', '1920s': '/equipment/catalog/trowel-brush-1920s.webp', '1930s': '/equipment/catalog/trowel-brush-1930s.webp', '1940s': '/equipment/catalog/trowel-brush-1940s.webp', '1980s': '/equipment/catalog/trowel-brush-1980s.webp', 'modern': '/equipment/catalog/trowel-brush-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/trowel-brush-1890s.webp', '1920s': '/equipment/catalog/trowel-brush-1920s.webp', '1930s': '/equipment/catalog/trowel-brush-1930s.webp', '1940s': '/equipment/catalog/trowel-brush-1940s.webp', '1980s': '/equipment/catalog/trowel-brush-1980s.webp', 'modern': '/equipment/catalog/trowel-brush-modern.webp', },
     name: "Pędzel i kielnia archeologiczna",
     aliases: ["Pędzel i kielnia", "Kielnia i pędzel", "Narzędzia archeologiczne", "Archaeological Trowel & Brush"],
     category: 'tool',
@@ -1732,7 +1702,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.lab-equipment',
-    assetPaths: { '1890s': '/equipment/catalog/lab-equipment-1890s.webp', '1920s': '/equipment/catalog/lab-equipment-1920s.webp', '1930s': '/equipment/catalog/lab-equipment-1930s.webp', '1940s': '/equipment/catalog/lab-equipment-1940s.webp', '1980s': '/equipment/catalog/lab-equipment-1980s.webp', 'modern': '/equipment/catalog/lab-equipment-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/lab-equipment-1890s.webp', '1920s': '/equipment/catalog/lab-equipment-1920s.webp', '1930s': '/equipment/catalog/lab-equipment-1930s.webp', '1940s': '/equipment/catalog/lab-equipment-1940s.webp', '1980s': '/equipment/catalog/lab-equipment-1980s.webp', 'modern': '/equipment/catalog/lab-equipment-modern.webp', },
     name: "Sprzęt laboratoryjny",
     aliases: [
       "Sprzęt laboratoryjny (w laboratorium)",
@@ -1748,7 +1718,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'tool.typewriter',
-    assetPaths: { '1890s': '/equipment/catalog/typewriter-1890s.webp', '1920s': '/equipment/catalog/typewriter-1920s.webp', '1930s': '/equipment/catalog/typewriter-1930s.webp', '1940s': '/equipment/catalog/typewriter-1940s.webp', '1980s': '/equipment/catalog/typewriter-1980s.webp', 'modern': '/equipment/catalog/typewriter-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/typewriter-1890s.webp', '1920s': '/equipment/catalog/typewriter-1920s.webp', '1930s': '/equipment/catalog/typewriter-1930s.webp', '1940s': '/equipment/catalog/typewriter-1940s.webp', '1980s': '/equipment/catalog/typewriter-1980s.webp', 'modern': '/equipment/catalog/typewriter-modern.webp', },
     name: "Maszyna do pisania",
     aliases: [
       "Maszyna do pisania (w domu)",
@@ -1810,7 +1780,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'weapon.police-baton',
-    assetPaths: { '1890s': '/equipment/catalog/police-baton-1890s.webp', '1920s': '/equipment/catalog/police-baton-1920s.webp', '1930s': '/equipment/catalog/police-baton-1930s.webp', '1940s': '/equipment/catalog/police-baton-1940s.webp', '1980s': '/equipment/catalog/police-baton-1980s.webp', 'modern': '/equipment/catalog/police-baton-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/police-baton-1890s.webp', '1920s': '/equipment/catalog/police-baton-1920s.webp', '1930s': '/equipment/catalog/police-baton-1930s.webp', '1940s': '/equipment/catalog/police-baton-1940s.webp', '1980s': '/equipment/catalog/police-baton-1980s.webp', 'modern': '/equipment/catalog/police-baton-modern.webp', },
     name: "Pałka policyjna",
     aliases: ["Pałka", "Pałka drewniana", "Police Baton", "Club/Baton"],
     category: 'weapon',
@@ -1828,7 +1798,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.car-keys',
-    assetPaths: { '1890s': '/equipment/catalog/car-keys-1890s.webp', '1920s': '/equipment/catalog/car-keys-1920s.webp', '1930s': '/equipment/catalog/car-keys-1930s.webp', '1940s': '/equipment/catalog/car-keys-1940s.webp', '1980s': '/equipment/catalog/car-keys-1980s.webp', 'modern': '/equipment/catalog/car-keys-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/car-keys-1890s.webp', '1920s': '/equipment/catalog/car-keys-1920s.webp', '1930s': '/equipment/catalog/car-keys-1930s.webp', '1940s': '/equipment/catalog/car-keys-1940s.webp', '1980s': '/equipment/catalog/car-keys-1980s.webp', 'modern': '/equipment/catalog/car-keys-modern.webp', },
     name: "Kluczyki do samochodu",
     aliases: ["Car Keys", "Kluczyki samochodowe", "Kluczyki do auta"],
     category: 'personal',
@@ -1838,7 +1808,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.art-pencils',
-    assetPaths: { '1890s': '/equipment/catalog/art-pencils-1890s.webp', '1920s': '/equipment/catalog/art-pencils-1920s.webp', '1930s': '/equipment/catalog/art-pencils-1930s.webp', '1940s': '/equipment/catalog/art-pencils-1940s.webp', '1980s': '/equipment/catalog/art-pencils-1980s.webp', 'modern': '/equipment/catalog/art-pencils-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/art-pencils-1890s.webp', '1920s': '/equipment/catalog/art-pencils-1920s.webp', '1930s': '/equipment/catalog/art-pencils-1930s.webp', '1940s': '/equipment/catalog/art-pencils-1940s.webp', '1980s': '/equipment/catalog/art-pencils-1980s.webp', 'modern': '/equipment/catalog/art-pencils-modern.webp', },
     name: "Ołówki i węgiel rysunkowy",
     aliases: ["Ołówki i węgiel", "Węgiel rysunkowy", "Zestaw ołówków", "Drawing Pencils & Charcoal"],
     category: 'personal',
@@ -1849,7 +1819,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.palette-brushes',
-    assetPaths: { '1890s': '/equipment/catalog/palette-brushes-1890s.webp', '1920s': '/equipment/catalog/palette-brushes-1920s.webp', '1930s': '/equipment/catalog/palette-brushes-1930s.webp', '1940s': '/equipment/catalog/palette-brushes-1940s.webp', '1980s': '/equipment/catalog/palette-brushes-1980s.webp', 'modern': '/equipment/catalog/palette-brushes-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/palette-brushes-1890s.webp', '1920s': '/equipment/catalog/palette-brushes-1920s.webp', '1930s': '/equipment/catalog/palette-brushes-1930s.webp', '1940s': '/equipment/catalog/palette-brushes-1940s.webp', '1980s': '/equipment/catalog/palette-brushes-1980s.webp', 'modern': '/equipment/catalog/palette-brushes-modern.webp', },
     name: "Paleta i pędzle malarskie",
     aliases: ["Paleta i pędzle", "Zestaw pędzli", "Paleta malarska", "Palette and Brushes"],
     category: 'personal',
@@ -1860,7 +1830,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.sports-gear',
-    assetPaths: { '1890s': '/equipment/catalog/sports-gear-1890s.webp', '1920s': '/equipment/catalog/sports-gear-1920s.webp', '1930s': '/equipment/catalog/sports-gear-1930s.webp', '1940s': '/equipment/catalog/sports-gear-1940s.webp', '1980s': '/equipment/catalog/sports-gear-1980s.webp', 'modern': '/equipment/catalog/sports-gear-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/sports-gear-1890s.webp', '1920s': '/equipment/catalog/sports-gear-1920s.webp', '1930s': '/equipment/catalog/sports-gear-1930s.webp', '1940s': '/equipment/catalog/sports-gear-1940s.webp', '1980s': '/equipment/catalog/sports-gear-1980s.webp', 'modern': '/equipment/catalog/sports-gear-modern.webp', },
     name: "Strój sportowy",
     aliases: ["Strój sportowy", "Strój gimnastyczny", "Kostium sportowy", "Athletic Wear"],
     category: 'personal',
@@ -1870,7 +1840,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.sports-bag',
-    assetPaths: { '1890s': '/equipment/catalog/sports-bag-1890s.webp', '1920s': '/equipment/catalog/sports-bag-1920s.webp', '1930s': '/equipment/catalog/sports-bag-1930s.webp', '1940s': '/equipment/catalog/sports-bag-1940s.webp', '1980s': '/equipment/catalog/sports-bag-1980s.webp', 'modern': '/equipment/catalog/sports-bag-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/sports-bag-1890s.webp', '1920s': '/equipment/catalog/sports-bag-1920s.webp', '1930s': '/equipment/catalog/sports-bag-1930s.webp', '1940s': '/equipment/catalog/sports-bag-1940s.webp', '1980s': '/equipment/catalog/sports-bag-1980s.webp', 'modern': '/equipment/catalog/sports-bag-modern.webp', },
     name: "Torba sportowa",
     aliases: ["Torba sportowa", "Duffle bag", "Gym Bag"],
     category: 'personal',
@@ -1880,7 +1850,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.towel',
-    assetPaths: { '1890s': '/equipment/catalog/towel-1890s.webp', '1920s': '/equipment/catalog/towel-1920s.webp', '1930s': '/equipment/catalog/towel-1930s.webp', '1940s': '/equipment/catalog/towel-1940s.webp', '1980s': '/equipment/catalog/towel-1980s.webp', 'modern': '/equipment/catalog/towel-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/towel-1890s.webp', '1920s': '/equipment/catalog/towel-1920s.webp', '1930s': '/equipment/catalog/towel-1930s.webp', '1940s': '/equipment/catalog/towel-1940s.webp', '1980s': '/equipment/catalog/towel-1980s.webp', 'modern': '/equipment/catalog/towel-modern.webp', },
     name: "Ręcznik bawełniany",
     aliases: ["Ręcznik", "Cotton Towel"],
     category: 'personal',
@@ -1890,7 +1860,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.musical-instrument',
-    assetPaths: { '1890s': '/equipment/catalog/musical-instrument-1890s.webp', '1920s': '/equipment/catalog/musical-instrument-1920s.webp', '1930s': '/equipment/catalog/musical-instrument-1930s.webp', '1940s': '/equipment/catalog/musical-instrument-1940s.webp', '1980s': '/equipment/catalog/musical-instrument-1980s.webp', 'modern': '/equipment/catalog/musical-instrument-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/musical-instrument-1890s.webp', '1920s': '/equipment/catalog/musical-instrument-1920s.webp', '1930s': '/equipment/catalog/musical-instrument-1930s.webp', '1940s': '/equipment/catalog/musical-instrument-1940s.webp', '1980s': '/equipment/catalog/musical-instrument-1980s.webp', 'modern': '/equipment/catalog/musical-instrument-modern.webp', },
     name: "Instrument muzyczny",
     aliases: ["Instrument", "Futerał z instrumentem", "Skrzypce", "Trąbka", "Klarnet", "Musical Instrument"],
     category: 'personal',
@@ -1901,7 +1871,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.makeup-kit',
-    assetPaths: { '1890s': '/equipment/catalog/makeup-kit-1890s.webp', '1920s': '/equipment/catalog/makeup-kit-1920s.webp', '1930s': '/equipment/catalog/makeup-kit-1930s.webp', '1940s': '/equipment/catalog/makeup-kit-1940s.webp', '1980s': '/equipment/catalog/makeup-kit-1980s.webp', 'modern': '/equipment/catalog/makeup-kit-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/makeup-kit-1890s.webp', '1920s': '/equipment/catalog/makeup-kit-1920s.webp', '1930s': '/equipment/catalog/makeup-kit-1930s.webp', '1940s': '/equipment/catalog/makeup-kit-1940s.webp', '1980s': '/equipment/catalog/makeup-kit-1980s.webp', 'modern': '/equipment/catalog/makeup-kit-modern.webp', },
     name: "Zestaw do charakteryzacji",
     aliases: ["Zestaw do charakteryzacji", "Kuferek charakteryzatorski", "Farby do charakteryzacji", "Disguise / Makeup Kit"],
     category: 'personal',
@@ -1912,7 +1882,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.overalls',
-    assetPaths: { '1890s': '/equipment/catalog/overalls-1890s.webp', '1920s': '/equipment/catalog/overalls-1920s.webp', '1930s': '/equipment/catalog/overalls-1930s.webp', '1940s': '/equipment/catalog/overalls-1940s.webp', '1980s': '/equipment/catalog/overalls-1980s.webp', 'modern': '/equipment/catalog/overalls-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/overalls-1890s.webp', '1920s': '/equipment/catalog/overalls-1920s.webp', '1930s': '/equipment/catalog/overalls-1930s.webp', '1940s': '/equipment/catalog/overalls-1940s.webp', '1980s': '/equipment/catalog/overalls-1980s.webp', 'modern': '/equipment/catalog/overalls-modern.webp', },
     name: "Kombinezon roboczy",
     aliases: ["Kombinezon", "Drelich roboczy", "Kombinezon mechanika", "Work Overalls"],
     category: 'personal',
@@ -1922,7 +1892,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'personal.blanket',
-    assetPaths: { '1890s': '/equipment/catalog/blanket-1890s.webp', '1920s': '/equipment/catalog/blanket-1920s.webp', '1930s': '/equipment/catalog/blanket-1930s.webp', '1940s': '/equipment/catalog/blanket-1940s.webp', '1980s': '/equipment/catalog/blanket-1980s.webp', 'modern': '/equipment/catalog/blanket-modern.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/blanket-1890s.webp', '1920s': '/equipment/catalog/blanket-1920s.webp', '1930s': '/equipment/catalog/blanket-1930s.webp', '1940s': '/equipment/catalog/blanket-1940s.webp', '1980s': '/equipment/catalog/blanket-1980s.webp', 'modern': '/equipment/catalog/blanket-modern.webp', },
     name: "Wełniany koc",
     aliases: ["Koc", "Koc wełniany", "Koc podróżny", "Woolen Blanket"],
     category: 'personal',
@@ -1947,6 +1917,53 @@ function matchesPhraseBoundary(text: string, phrase: string): boolean {
   return regex.test(text);
 }
 
+
+/**
+ * Deterministycznie rozwiązuje identyfikator wariantu epokowego dla przedmiotu (Issue #503).
+ * Przekształca bazowe ID (np. 'light.flashlight') w ID właściwe dla aktywnej epoki ('light.flashlight-1920s').
+ */
+export function resolveEraEquipmentId(
+  baseOrVariantId: string,
+  era: EquipmentVisualEra | string = '1920s'
+): string {
+  const visualEra = safeResolveVisualEra(era);
+  if (!baseOrVariantId) return '';
+  if (baseOrVariantId.endsWith(`-${visualEra}`) || baseOrVariantId.endsWith(`.${visualEra}`)) {
+    return baseOrVariantId;
+  }
+  const cleanBase = baseOrVariantId.replace(
+    /-(1890s|1920s|1930s|1940s|1950s|prl-1970s|prl|1980s|1990s|2000s|modern|shared)$/,
+    ''
+  );
+  return `${cleanBase}-${visualEra}`;
+}
+
+/**
+ * Zwraca katalog przedmiotów dostępnych wyłącznie w danej epoce historycznej z unikalnymi ID i dedykowanymi assetami (Issue #503).
+ */
+export function getEraEquipmentCatalog(
+  era: EquipmentVisualEra | string = '1920s'
+): EraEquipmentTemplate[] {
+  const visualEra = safeResolveVisualEra(era);
+  return EQUIPMENT_CATALOG.filter(
+    (template) => !template.availableIn || template.availableIn.includes(visualEra)
+  ).map((template) => ({
+    id: resolveEraEquipmentId(template.id, visualEra),
+    baseTemplateId: template.id,
+    era: visualEra,
+    name: template.name,
+    aliases: template.aliases,
+    category: template.category,
+    description: template.description,
+    visualTreatment: template.visualTreatment,
+    assetPath: resolveCatalogAsset(template, visualEra),
+    modifiers: template.modifiers,
+    combatProfile: template.combatProfile,
+    value: template.value,
+    weight: template.weight,
+  }));
+}
+
 export function findEquipmentTemplate(
   nameOrId: string | undefined,
   expectedCategory?: EquipmentCategory
@@ -1967,6 +1984,30 @@ export function findEquipmentTemplate(
       if (catMatch) return catMatch;
     }
     return exactMatches[0];
+  }
+
+  // 1b. Dopasowanie po ID wariantu epokowego (np. light.flashlight-1920s -> light.flashlight) (Issue #503)
+  const baseIdCandidate = nameOrId.replace(
+    /-(1890s|1920s|1930s|1940s|1950s|prl-1970s|prl|1980s|1990s|2000s|modern|shared)$/,
+    ''
+  );
+  if (baseIdCandidate !== nameOrId) {
+    const baseMatch = EQUIPMENT_CATALOG.find(
+      (t) =>
+        t.id === baseIdCandidate ||
+        t.id.toLowerCase() === baseIdCandidate.toLowerCase() ||
+        t.id.replace(
+          /-(1890s|1920s|1930s|1940s|1950s|prl-1970s|prl|1980s|1990s|2000s|modern|shared)$/,
+          ''
+        ) === baseIdCandidate
+    );
+    if (baseMatch) {
+      if (expectedCategory) {
+        if (baseMatch.category === expectedCategory) return baseMatch;
+      } else {
+        return baseMatch;
+      }
+    }
   }
 
   // 2. Elastyczne dopasowanie po pełnych słowach / granicach fraz (word boundary)
@@ -2020,7 +2061,7 @@ export function resolveCatalogAsset(
   if (template.availableIn && !template.availableIn.includes(visualEra)) {
     return undefined;
   }
-  return template.assetPaths?.[visualEra] ?? template.assetPaths?.shared;
+  return template.assetPaths?.[visualEra];
 }
 
 /** Oznacza istniejący przedmiot jako katalogowy, nie zmieniając jego ID egzemplarza. */
@@ -2032,9 +2073,12 @@ export function applyCatalogTemplate(
   const template = findEquipmentTemplate(item.templateId ?? item.name, item.category);
   if (!template) return item;
 
+  const visualEra = safeResolveVisualEra(era);
+  const eraVariantId = resolveEraEquipmentId(template.id, visualEra);
   const needle = normalize(item.templateId ?? item.name);
   const isExactNameOrIdMatch =
     template.id === (item.templateId ?? item.name) ||
+    eraVariantId === (item.templateId ?? item.name) ||
     normalize(template.name) === needle ||
     template.aliases.some((a) => normalize(a) === needle);
 
@@ -2050,13 +2094,18 @@ export function applyCatalogTemplate(
     }
   }
 
-  const visualEra = safeResolveVisualEra(era);
   // Zabezpieczenie epokowe: jeśli szablon nie jest dostępny w tej epoce, nie narzucaj go
   if (template.availableIn && !template.availableIn.includes(visualEra)) {
     return item;
   }
 
   const catalogAsset = resolveCatalogAsset(template, visualEra);
+  const isCustomDataImage = Boolean(item.imageUrl && item.imageUrl.startsWith('data:'));
+
+  const isCatalogManaged =
+    item.visualSource === 'catalog' ||
+    Boolean(item.imageUrl && item.imageUrl.startsWith('/equipment/catalog/'));
+
   const isSvgOrFallback =
     !item.imageUrl ||
     item.imageUrl.endsWith('.svg') ||
@@ -2069,19 +2118,27 @@ export function applyCatalogTemplate(
       ? template.category
       : item.category;
 
+  let resolvedImageUrl = item.imageUrl;
+  if (!isCustomDataImage) {
+    if (isCatalogManaged || isSvgOrFallback) {
+      resolvedImageUrl = catalogAsset ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory];
+    }
+  }
+
   const defaultCapacity = template.modifiers?.capacity ? Number(template.modifiers.capacity) : 6;
   const isFirearm = resolvedCategory === 'weapon' && Boolean(template.modifiers?.range || template.modifiers?.capacity);
 
   return {
     ...item,
     templateId: template.id,
+    eraVariantId: template.category === 'document' ? undefined : eraVariantId,
     category: resolvedCategory,
     description: item.description || template.description,
     modifiers: item.modifiers ?? template.modifiers,
     value: item.value ?? template.value,
-    visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'fallback'),
+    visualSource: isCustomDataImage ? (item.visualSource ?? 'fallback') : (catalogAsset ? 'catalog' : 'fallback'),
     visualTreatment: template.visualTreatment,
-    imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory]),
+    imageUrl: resolvedImageUrl ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory],
     currentAmmo: item.currentAmmo ?? (isFirearm ? (item.maxAmmo ?? defaultCapacity) : undefined),
     maxAmmo: item.maxAmmo ?? (isFirearm ? defaultCapacity : undefined),
     charges: item.charges ?? (resolvedCategory === 'medical' ? (item.quantity ?? 3) : undefined),

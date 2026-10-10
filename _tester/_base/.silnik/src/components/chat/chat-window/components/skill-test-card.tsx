@@ -307,10 +307,6 @@ export function SkillTestCard({
             <span className="text-brass">🎯</span>
             <span className="font-medium text-brass">{diceInstruction}</span>
           </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {t('orTypeInChat')}{' '}
-            <span className="font-mono text-foreground/80">{t('resultExample')}</span>
-          </div>
         </div>
       )}
 

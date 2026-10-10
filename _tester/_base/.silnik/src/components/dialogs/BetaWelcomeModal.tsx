@@ -186,6 +186,17 @@ export function BetaWelcomeModal({
                     </span>
                   </div>
                 </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-emerald-400 font-bold mt-0.5">✓</span>
+                  <div>
+                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
+                      {t('readyItem9Title')}
+                    </strong>
+                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
+                      {t('readyItem9Desc')}
+                    </span>
+                  </div>
+                </li>
               </ul>
             </div>
 
@@ -220,17 +231,6 @@ export function BetaWelcomeModal({
                     </strong>
                     <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
                       {t('inProgressItem2Desc')}
-                    </span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-amber-400 font-bold mt-0.5">🚧</span>
-                  <div>
-                    <strong className="text-foreground font-semibold text-sm md:text-base block mb-0.5">
-                      {t('inProgressItem3Title')}
-                    </strong>
-                    <span className="text-muted-foreground text-xs md:text-sm leading-relaxed block">
-                      {t('inProgressItem3Desc')}
                     </span>
                   </div>
                 </li>

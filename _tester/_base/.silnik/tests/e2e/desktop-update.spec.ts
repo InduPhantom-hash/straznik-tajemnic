@@ -21,6 +21,8 @@ for (const locale of ['pl', 'en'] as const) {
     });
     await page.route('**/api/desktop/update/start', async (route) => {
       startRequests += 1;
+      const origin = route.request().headers()['origin'];
+      expect(origin).toBeTruthy();
       await route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ started: true, pid: 123 }) });
     });
     await page.goto(`/${locale}/settings`);

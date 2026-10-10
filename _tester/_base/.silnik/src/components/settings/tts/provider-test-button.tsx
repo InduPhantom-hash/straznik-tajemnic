@@ -8,13 +8,13 @@ export function getActiveTestResult(
   provider: TTSProvider,
   testResults: TestResults
 ): boolean | null {
-  if (provider === 'gemini') return testResults.gemini;
-  return testResults.googleTTS;
+  if (provider === 'gemini') return testResults.tts ?? testResults.gemini ?? null;
+  return testResults.tts ?? testResults.googleTTS ?? null;
 }
 
 function resolveTestApiId(provider: TTSProvider): string {
-  if (provider === 'gemini') return 'gemini';
-  return 'googleTTS';
+  if (provider === 'gemini') return 'tts';
+  return 'tts';
 }
 
 interface ProviderTestButtonProps {

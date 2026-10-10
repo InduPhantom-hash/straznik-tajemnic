@@ -5,7 +5,6 @@ import { Button } from './button';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
 import { generateItemLore } from '@/lib/character/item-helpers';
-import { getEraImageFilter } from '@/lib/era-visual-style';
 import { Loader2, X, Maximize2, Minimize2, Play, Pause, RotateCcw, Disc } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { DiegeticDocumentViewer } from './diegetic-document-viewer';
@@ -363,7 +362,6 @@ export function EquipmentDetailDialog({
                       src={item.mapUrl || item.imageUrl}
                       alt={t('mapAlt', { name: item.name })}
                       className="max-w-full max-h-full object-contain"
-                      style={{ filter: getEraImageFilter(era) }}
                     />
                     <div className="absolute top-4 left-4 bg-brass/90 text-black text-[10px] font-bold font-special-elite uppercase px-2 py-0.5 shadow">
                       {t('mapBadge')}
@@ -376,7 +374,6 @@ export function EquipmentDetailDialog({
                       src={item.imageUrl}
                       alt={item.name}
                       className="w-full h-full object-cover"
-                      style={{ filter: getEraImageFilter(era) }}
                     />
                     <div className="absolute inset-2 pointer-events-none border border-brass/25" />
                     <div className="absolute inset-0 pointer-events-none border border-black/80" />

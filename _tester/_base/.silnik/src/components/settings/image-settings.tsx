@@ -83,7 +83,7 @@ export function ImageSettings({ settings, setSettings }: ImageSettingsProps) {
           enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'
         }`}
       >
-        {/* Lewa kolumna: Reżyseria kadrów (Częstotliwość i Styl) */}
+        {/* Lewa kolumna: Reżyseria kadrów (Częstotliwość i Limity) */}
         <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col gap-4">
           <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass">
             {t('frequencySectionTitle')}
@@ -107,48 +107,6 @@ export function ImageSettings({ settings, setSettings }: ImageSettingsProps) {
               <option value="rare">{t('frequencyRare')}</option>
               <option value="normal">{t('frequencyNormal')}</option>
               <option value="often">{t('frequencyOften')}</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-              {t('styleLabel')}
-              <HelpIcon content={t('styleHelp')} />
-            </label>
-            <select
-              value={rep.style}
-              onChange={(e) =>
-                updateRep({
-                  style: e.target.value as AISettings['replicateSettings']['style'],
-                })
-              }
-              className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-lg text-foreground focus:border-primary focus:outline-none"
-            >
-              <option value="realistic">{t('styleRealistic')}</option>
-              <option value="artistic">{t('styleArtistic')}</option>
-              <option value="horror">{t('styleHorror')}</option>
-              <option value="vintage">{t('styleVintage')}</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-              {t('qualityLabel')}
-              <HelpIcon content={t('qualityHelp')} />
-            </label>
-            <select
-              value={rep.quality}
-              onChange={(e) =>
-                updateRep({
-                  quality: e.target.value as AISettings['replicateSettings']['quality'],
-                })
-              }
-              className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-lg text-foreground focus:border-primary focus:outline-none"
-            >
-              <option value="low">{t('qualityLow')}</option>
-              <option value="medium">{t('qualityMedium')}</option>
-              <option value="high">{t('qualityHigh')}</option>
-              <option value="ultra">{t('qualityUltra')}</option>
             </select>
           </div>
 
@@ -201,23 +159,6 @@ export function ImageSettings({ settings, setSettings }: ImageSettingsProps) {
 
             {/* Przełączniki automatycznych kadrów */}
             <div className="space-y-3 pt-2">
-              <label className="flex items-center justify-between p-2.5 border border-brass/15 bg-[#1a1611] rounded hover:border-brass/30 cursor-pointer">
-                <span className="font-special-elite uppercase tracking-[0.08em] text-xs text-foreground flex items-center gap-2">
-                  {t('autoPortraitsLabel')}
-                  <HelpIcon content={t('autoPortraitsHelp')} />
-                </span>
-                <input
-                  type="checkbox"
-                  checked={rep.autoGeneratePortraits}
-                  onChange={(e) =>
-                    updateRep({
-                      autoGeneratePortraits: e.target.checked,
-                    })
-                  }
-                  className="w-4 h-4 accent-primary bg-[#1f1a14] border border-brass/30 rounded focus:ring-primary"
-                />
-              </label>
-
               <label className="flex items-center justify-between p-2.5 border border-brass/15 bg-[#1a1611] rounded hover:border-brass/30 cursor-pointer">
                 <span className="font-special-elite uppercase tracking-[0.08em] text-xs text-foreground flex items-center gap-2">
                   {t('autoNpcsLabel')}
