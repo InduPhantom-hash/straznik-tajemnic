@@ -7646,6 +7646,7 @@
     "mania_mythomania_description": "An irresistible urge to tell made-up stories"
   },
   "SessionJournal": {
+    "chroniclePending": "The recap of this scene is not available yet.",
     "titleEyebrow": "INVESTIGATION DOSSIER",
     "title": "SESSION JOURNAL",
     "titleFull": "SESSION JOURNAL / INVESTIGATION CHRONICLE",

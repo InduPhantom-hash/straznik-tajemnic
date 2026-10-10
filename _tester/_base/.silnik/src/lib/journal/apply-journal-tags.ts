@@ -20,6 +20,7 @@ import {
   sanitizeLocationName,
 } from '@/lib/parsers/event-parser';
 import { normalizeEntityTitle } from '@/lib/journal/entity-visual-resolver';
+import { cleanResponseText } from '@/lib/parsers/text-cleaner';
 import {
   ensureCharacterDossier,
   inferClueCategory,
@@ -292,6 +293,10 @@ export function processCharacterJournalAndDossier(
 
   let changed = false;
   let sceneSealedThisMessage = false;
+  const previousCard = existingSceneCards[existingSceneCards.length - 1];
+  const chronicleStartMessageId = activeScene.startMessageId
+    ?? previousCard?.endMessageId
+    ?? previousCard?.id.replace(/^scene-card-(?:auto-)?/, '');
 
   // Bramkowanie lokacji (anty-pixel-hunting) - oznaczenie w aktywnej scenie i dossier
   if (locationExhausted) {
@@ -364,6 +369,8 @@ export function processCharacterJournalAndDossier(
         inGameDate: sceneCard?.inGameDate || activeScene.inGameDate || charWithDossier.activeScene?.inGameDate,
         timestamp: new Date().toISOString(),
         people: [...sealedPeople],
+        startMessageId: chronicleStartMessageId,
+        endMessageId: messageId,
         findings: [...sealedFindings],
         keyTakeaways: [...sealedTakeaways],
         nextStep,
@@ -398,6 +405,7 @@ export function processCharacterJournalAndDossier(
         location: sanitizeLocationName(locationEntry!.title),
         startedAt: new Date().toISOString(),
         inGameDate: locationEntry!.inGameDate || activeScene.inGameDate,
+        startMessageId: messageId,
         people: [],
         findings: [],
         notes: [],
@@ -1081,6 +1089,8 @@ export function processCharacterJournalAndDossier(
         inGameDate: sceneCard?.inGameDate || activeScene.inGameDate || locationEntry?.inGameDate,
         timestamp: new Date().toISOString(),
         people: sealedPeople,
+        startMessageId: chronicleStartMessageId,
+        endMessageId: messageId,
         findings: sealedFindings,
         keyTakeaways: sealedTakeaways,
         nextStep,
@@ -1116,6 +1126,7 @@ export function processCharacterJournalAndDossier(
         location: sanitizeLocationName(sceneChange?.newLocation || 'Nowa lokacja'),
         startedAt: new Date().toISOString(),
         people: [],
+        startMessageId: messageId,
         findings: [],
         notes: [],
         isLocationExhausted: false,
@@ -1327,6 +1338,90 @@ export function appendJournalToParty(
     characters: nextCharacters,
     activeCharacter: nextActive,
     changed: changedAny,
+  };
+}
+
+/** Dopisuje podsumowanie do już zamkniętej sceny, bez zmiany jej faktów i bez duplikatów. */
+/** Message anchors survive save/load and do not depend on stream processing times. */
+export function buildSceneChronicleTranscript(
+  messages: Array<{ id: string; role: string; content: string }>,
+  scene: Pick<SceneCaseCard, 'startMessageId' | 'endMessageId'>
+): Array<{ role: string; content: string }> {
+  const start = scene.startMessageId
+    ? messages.findIndex((message) => message.id === scene.startMessageId)
+    : 0;
+  const end = messages.findIndex((message) => message.id === scene.endMessageId);
+  if (start < 0 || end < start) return [];
+  return messages.slice(start, end + 1).map((message) => {
+    let content = message.content;
+    const transition = /\[(?:ZMIANA_SCENY|SCENE_CHANGE):[^\]]*\]/i.exec(content);
+    if (transition) {
+      if (message.id === scene.startMessageId) {
+        content = content.slice(transition.index + transition[0].length);
+      } else if (message.id === scene.endMessageId) {
+        content = content.slice(0, transition.index);
+      }
+    }
+    return { role: message.role, content: message.role === 'assistant'
+      ? cleanResponseText(content) : content.trim() };
+  }).filter((message) => (message.role === 'assistant' || message.role === 'user') && message.content.length > 0);
+}
+
+export function appendSceneChronicleSummaryToParty(
+  characters: Character[],
+  activeCharacter: Character,
+  sceneCardId: string,
+  summaries: Partial<Record<'pl' | 'en', string>>
+): { characters: Character[]; activeCharacter: Character; changed: boolean } {
+  const normalizedSummaries = {
+    pl: typeof summaries.pl === 'string' ? summaries.pl.trim() : '',
+    en: typeof summaries.en === 'string' ? summaries.en.trim() : '',
+  };
+  if (!normalizedSummaries.pl || !normalizedSummaries.en) {
+    return { characters, activeCharacter, changed: false };
+  }
+
+  let changed = false;
+  const updateCharacter = (character: Character): Character => {
+    const sceneCards = character.sceneCards ?? [];
+    const sceneIndex = sceneCards.findIndex((scene) => scene.id === sceneCardId);
+    const existingSummaries = sceneCards[sceneIndex]?.chronicleSummaryByLocale;
+    if (
+      sceneIndex < 0 ||
+      (existingSummaries?.pl && existingSummaries.en)
+    ) {
+      return character;
+    }
+
+    const updatedScene = {
+      ...sceneCards[sceneIndex],
+      chronicleSummaryByLocale: normalizedSummaries,
+    };
+    const updatedSceneCards = [...sceneCards];
+    updatedSceneCards[sceneIndex] = updatedScene;
+    const journal = (character.journal ?? []).map((entry) =>
+      entry.sceneData?.id === sceneCardId
+        ? {
+            ...entry,
+            content: normalizedSummaries.pl,
+            sceneData: updatedScene,
+          }
+        : entry
+    );
+    changed = true;
+    return { ...character, sceneCards: updatedSceneCards, journal };
+  };
+
+  const updatedCharacters = characters.map(updateCharacter);
+  const activeFromList = updatedCharacters.find(
+    (character) => character.id === activeCharacter.id
+  );
+  const updatedActiveCharacter = activeFromList ?? updateCharacter(activeCharacter);
+
+  return {
+    characters: updatedCharacters,
+    activeCharacter: updatedActiveCharacter,
+    changed,
   };
 }
 

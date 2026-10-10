@@ -2,8 +2,54 @@ import type { AISettings } from './ai-settings';
 import type { HotSeatConfig, Character } from './types';
 import { FullGameSaveManager } from './full-game-save-manager';
 import type { WorldSetupBundleV1 } from './world-setup';
+import { PREDEFINED_CHARACTERS } from './immersion/predefined-characters';
 
 describe('FullGameSaveManager duet persistence', () => {
+  it('preserves scene chronicle text across a full save and load', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      id: 'char-chronicle',
+      sceneCards: [
+        {
+          id: 'scene-card-chronicle',
+          sceneNumber: 1,
+          location: 'Archiwum',
+          title: 'Wizyta w archiwum',
+          timestamp: '2026-10-10T10:00:00.000Z',
+          people: ['Stanisław'],
+          findings: ['Telegram'],
+          keyTakeaways: ['Stanisław wspomniał o dokach.'],
+          chronicleSummaryByLocale: {
+            pl: 'Stanisław twierdził, że list wysłano z doków.',
+            en: 'Stanisław claimed the letter came from the docks.',
+          },
+          isSealed: true,
+        },
+      ],
+    };
+    const save = FullGameSaveManager.createFullSave({
+      name: 'Chronicle roundtrip',
+      userId: 'local',
+      messages: [],
+      gameSettings: { aiSettings: {} as AISettings },
+      characters: [character],
+      campaigns: [],
+      npcs: [],
+      locations: [],
+    });
+
+    const loaded = FullGameSaveManager.decompressSave(
+      FullGameSaveManager.compressSave(save)
+    );
+
+    expect(
+      loaded?.characters[0].sceneCards?.[0].chronicleSummaryByLocale
+    ).toEqual({
+      pl: 'Stanisław twierdził, że list wysłano z doków.',
+      en: 'Stanisław claimed the letter came from the docks.',
+    });
+  });
+
   it('writes save version 2.1.0 and preserves campaign memory identity', () => {
     const campaignMemory = {
       schemaVersion: 1 as const,

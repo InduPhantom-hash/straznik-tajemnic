@@ -73,7 +73,11 @@ import {
 import { resolveImageLevel } from '@/lib/prompts/image-instructions';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import { directSceneIllustrations } from '@/lib/images/proactive-scene-director';
-import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
+import {
+  appendJournalToParty,
+  appendSceneChronicleSummaryToParty,
+  buildSceneChronicleTranscript,
+} from '@/lib/journal/apply-journal-tags';
 import { extractNpcTags } from '@/lib/parsers/journal-parser';
 import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
 import { applyEquipmentEventsToParty } from '@/lib/character/apply-equipment-events';
@@ -1960,13 +1964,68 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               }
             }
           );
-          if (j.changed || s.changed || eq.changed) {
-            setActiveCharacter(eq.activeCharacter);
-            setCharacters(eq.characters);
-            finalActiveChar = eq.activeCharacter;
-            finalCharacters = eq.characters;
+          let updatedActiveCharacter = eq.activeCharacter;
+          let updatedCharacters = eq.characters;
+          // A missing recap remains eligible on the next turn after a transient error.
+          const pendingScenes = (j.activeCharacter.sceneCards ?? []).filter(
+            (scene) => scene.isSealed && scene.endMessageId &&
+              !(scene.chronicleSummaryByLocale?.pl && scene.chronicleSummaryByLocale.en)
+          );
+
+          for (const pendingScene of pendingScenes) {
+            const transcript = buildSceneChronicleTranscript([
+              ...messages,
+              userMessage,
+              { id: assistantMessageId, role: 'assistant', content: fullText },
+            ], pendingScene);
+            if (transcript.length === 0) continue;
+
+            try {
+              const summaryResponse = await fetchWithApiKeys(
+                '/api/summarize-scene',
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    messages: transcript,
+                    sceneLocation: pendingScene.location,
+                    locale,
+                  }),
+                }
+              );
+              const summaryData = await summaryResponse.json();
+              const summaries = summaryData.summaries as
+                | Partial<Record<'pl' | 'en', string>>
+                | undefined;
+              if (
+                summaryResponse.ok &&
+                summaryData.success &&
+                summaries?.pl &&
+                summaries.en
+              ) {
+                const summaryUpdate = appendSceneChronicleSummaryToParty(
+                  updatedCharacters,
+                  updatedActiveCharacter,
+                  pendingScene.id,
+                  summaries
+                );
+                updatedCharacters = summaryUpdate.characters;
+                updatedActiveCharacter = summaryUpdate.activeCharacter;
+              } else {
+                console.warn('Scene chronicle summary was not saved.');
+              }
+            } catch (error) {
+              console.warn('Scene chronicle summary request failed:', error);
+            }
+          }
+
+          if (j.changed || s.changed || eq.changed || pendingScenes.length > 0) {
+            setActiveCharacter(updatedActiveCharacter);
+            setCharacters(updatedCharacters);
+            finalActiveChar = updatedActiveCharacter;
+            finalCharacters = updatedCharacters;
             if (typeof window !== 'undefined') {
-              persistCharacters(eq.characters);
+              persistCharacters(updatedCharacters);
             }
           }
         }

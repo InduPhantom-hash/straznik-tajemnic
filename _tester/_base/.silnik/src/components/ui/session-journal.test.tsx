@@ -202,6 +202,37 @@ describe('SessionJournal', () => {
     ).toBeInTheDocument();
   });
 
+  it('pokazuje podsumowanie sceny jako czysty tekst bez przycisku następnego kroku', () => {
+    const onQuote = jest.fn();
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [
+        {
+          ...sampleScene1,
+          chronicleSummaryByLocale: {
+            pl: 'Stanisław twierdził, że list wysłano z doków. Drużyna znalazła telegram.',
+            en: 'Stanisław claimed the letter came from the docks. The investigators found a telegram.',
+          },
+        },
+      ],
+    };
+
+    render(
+      <SessionJournal
+        character={character}
+        onClose={jest.fn()}
+        onQuoteToInput={onQuote}
+      />
+    );
+
+    expect(screen.getByTestId('scene-chronicle-summary')).toHaveTextContent(
+      'Stanisław twierdził, że list wysłano z doków. Drużyna znalazła telegram.'
+    );
+    expect(screen.queryByText('Cel / Następny krok śledztwa')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Cytuj do czatu/i })).toBeNull();
+    expect(onQuote).not.toHaveBeenCalled();
+  });
+
   it('układa sceny chronologicznie w lewej kolumnie z najnowszą na samej górze', () => {
     const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
@@ -251,10 +282,10 @@ describe('SessionJournal', () => {
     expect(screen.getByText(/Starożytny manuskrypt/i)).toBeInTheDocument();
 
     // Blok 4: Cel / Następny krok śledztwa
-    expect(screen.getByText('Cel / Następny krok śledztwa')).toBeInTheDocument();
+    expect(screen.queryByText('Cel / Następny krok śledztwa')).toBeNull();
     expect(
-      screen.getByText('Przeszukać piwnicę kamienicy przy Mokotowskiej.')
-    ).toBeInTheDocument();
+      screen.queryByText('Przeszukać piwnicę kamienicy przy Mokotowskiej.')
+    ).toBeNull();
   });
 
   it('umożliwia przełączenie na inną scenę po kliknięciu na liście', () => {
@@ -299,15 +330,9 @@ describe('SessionJournal', () => {
       />
     );
 
-    const quoteBtn = screen.getByRole('button', {
-      name: /Zacytuj i pytaj na czacie/i,
-    });
-    fireEvent.click(quoteBtn);
-
-    expect(onQuote).toHaveBeenCalledWith(
-      'Przeszukać piwnicę kamienicy przy Mokotowskiej.'
-    );
-    expect(onClose).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /Zacytuj i pytaj na czacie/i })).toBeNull();
+    expect(onQuote).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('poprawnie integruje scalony dziennik duetowy z nazwami uczestników', () => {
@@ -377,7 +402,7 @@ describe('SessionJournal', () => {
     expect(screen.getByText('Brak nowych osób')).toBeInTheDocument();
     expect(screen.getByText('Brak nowych poszlak ani rekwizytów')).toBeInTheDocument();
     expect(screen.getByText('Brak szczegółowych ustaleń dla tej sceny.')).toBeInTheDocument();
-    expect(screen.getByText('Brak zdefiniowanego kolejnego kroku.')).toBeInTheDocument();
+    expect(screen.queryByText('Brak zdefiniowanego kolejnego kroku.')).toBeNull();
   });
 
   it('umożliwia przełączenie na inną scenę po najechaniu myszą (mouseEnter) na liście', () => {
@@ -462,8 +487,8 @@ describe('SessionJournal', () => {
     expect(screen.queryByText(/Telefon komórkowy/i)).toBeNull();
     // Blok 4: Cel / Następny krok
     expect(
-      screen.getByText(/Kontynuuj badanie lokacji: Sanatorium w Arkham/i)
-    ).toBeInTheDocument();
+      screen.queryByText(/Kontynuuj badanie lokacji: Sanatorium w Arkham/i)
+    ).toBeNull();
   });
 
   it('umożliwia przełączanie między sceną w toku a scenami zapieczętowanymi', () => {
