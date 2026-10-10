@@ -1088,6 +1088,12 @@ export default function Home() {
         hasSessionZero={sessionZeroCompleted}
         hasStartedGame={hasStartedGame}
         onOpenApiKeys={() => setShowApiKeysModal(true)}
+        quoteActive={
+          !showApiKeysModal &&
+          !showHotSeatSetup &&
+          !showPredefinedSelector &&
+          !save.showFullSaveModal
+        }
         hotSeatConfig={hotSeat.config}
         isSessionEnded={chat.isSessionEnded}
         sessionEndStatus={chat.sessionEndStatus}

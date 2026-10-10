@@ -143,10 +143,13 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   // Quick-winy (read-only, po mount - unika hydration mismatch):
   const [gameYear, setGameYear] = useState<number | null>(null);
   const [recentSave, setRecentSave] = useState<RecentSave | null>(null);
-  const [hasKey, setHasKey] = useState<boolean>(true);
+  const [hasKey, setHasKey] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return hasRequiredKeys();
+  });
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
 
-  const isQuoteVisible = quoteActive && !isManualMode;
+  const isQuoteVisible = Boolean(quoteActive && hasKey && !isManualMode);
   const { displayedText, isTyping } = useTypewriterSound(quote.greeting, isQuoteVisible);
 
   const handleSetManualMode = useCallback((manual: boolean) => {
