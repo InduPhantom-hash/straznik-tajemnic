@@ -36,7 +36,7 @@ export const PRICING_VERSION = 1;
 export const PRICING_LAST_VERIFIED = '2026-05-25';
 
 /** Typ pojedynczego wpisu cennika Gemini (USD per 1M tokenów). */
-type GeminiPricingEntry = { input: number; output: number };
+type GeminiPricingEntry = { input: number; output: number; cachedInput?: number; imageOutput?: number; cacheStorage?: number };
 
 /** Tablica cen Gemini (model → { input, output }). */
 type GeminiPricingTable = Record<string, GeminiPricingEntry>;
@@ -65,7 +65,9 @@ export function getGeminiPricing(): GeminiPricingTable {
 function isSaneEntry(entry: GeminiPricingEntry | undefined): boolean {
   if (!entry) return false;
   const { input, output } = entry;
-  return input > 0 && input < 1000 && output > 0 && output < 1000;
+  return Number.isFinite(input) && input > 0 && input < 1000
+    && Number.isFinite(output) && output > 0 && output < 1000
+    && [entry.cachedInput, entry.imageOutput, entry.cacheStorage].every(rate => rate == null || (Number.isFinite(rate) && rate >= 0 && rate < 1000));
 }
 
 /**
@@ -88,7 +90,8 @@ export function applyGeminiPricingOverlay(
   if (entries.length === 0) return false;
   if (!entries.every(isSaneEntry)) return false;
 
-  activeGeminiPricing = { ...GEMINI_PRICING, ...fresh };
+  activeGeminiPricing = { ...GEMINI_PRICING };
+  for (const [model, entry] of Object.entries(fresh)) activeGeminiPricing[model] = { ...GEMINI_PRICING[model], ...entry };
   pricingSource = source;
   return true;
 }

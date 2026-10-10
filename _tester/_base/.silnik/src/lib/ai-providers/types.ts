@@ -111,6 +111,8 @@ export interface StreamChunk {
 }
 
 export interface CompletionUsage {
+  /** Charged reasoning tokens, separate from visible candidate output. */
+  thinkingTokens?: number;
   promptTokens?: number;
   completionTokens?: number;
   totalTokens: number;

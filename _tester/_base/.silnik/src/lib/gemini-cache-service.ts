@@ -7,7 +7,7 @@
  * Strategia:
  * - systemInstruction: pełny system prompt GM (stabilny per sesja dzięki OPT-04)
  * - contents: era rules + GM protocol (stabilne per sesja/próg tur)
- * - TTL: 2h domyślnie (OPT-C04: wydłużenie z 1h do 2h dla uniknięcia re-cache ~24k tokenów)
+ * - TTL: maksymalnie 15 minut; aktywna gra odnawia ważny cache
  * - Dynamiczne odnawianie (sliding window / touchGeminiCache przez ai.caches.update)
  * - Hash-based invalidation: md5(systemPrompt + stableInstructions + model)
  * - Pętla czyszczenia i automatyczne usuwanie wygasłych wpisów w pamięci procesu
@@ -20,6 +20,8 @@
 
 import { GoogleGenAI, type CachedContent } from '@google/genai';
 import crypto from 'crypto';
+import { getGeminiPricing } from './pricing/pricing-data';
+import { generateTraceId, logApiEvent } from './telemetry';
 // IND-275 T1: CACHEABLE_MODELS / MIN_CACHE_TOKENS scentralizowane w model-registry.
 import {
   CACHEABLE_MODELS,
@@ -29,13 +31,16 @@ import {
 
 // ─── Configuration ───────────────────────────────────────────────────
 
-/** Domyślny czas życia cache: 2 godziny (OPT-C04) */
-export const CACHE_TTL_SECONDS = 7200;
+/** Maksymalny czas przechowywania nieużywanego cache: 15 minut */
+export const CACHE_TTL_SECONDS = 900;
 export const DEFAULT_CACHE_TTL_SECONDS = CACHE_TTL_SECONDS;
 
 // ─── Internal state ──────────────────────────────────────────────────
 
 export interface CacheEntry {
+  modelName: string;
+  tokens: number;
+  tokenSource: string;
   cachedContent: CachedContent;
   contentHash: string;
   createdAt: number;
@@ -121,23 +126,36 @@ function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
+// Lease costs are estimates of the full retained interval, not a Google invoice.
+function recordCacheLease(model: string, tokens: number, seconds: number, creation: boolean, tokenSource: string) {
+  const pricing = getGeminiPricing()[model];
+  const storageCost = pricing?.cacheStorage == null ? undefined : tokens * pricing.cacheStorage * seconds / 3_600_000_000;
+  const inputCost = creation && pricing ? tokens * pricing.input / 1_000_000 : 0;
+  logApiEvent({ traceId: generateTraceId(), endpoint: creation ? '/api/cache/create' : '/api/cache/extend', provider: 'gemini', model,
+    status: 200, durationMs: 0, result: 'success', costUsd: storageCost == null ? undefined : inputCost + storageCost,
+    meta: { tokens, leaseSeconds: seconds, tokenSource, estimated: true, storageCostUsd: storageCost ?? null, inputCostUsd: inputCost, storageRateKnown: storageCost != null },
+  }).catch(() => {});
+}
+
 // ─── Public API ──────────────────────────────────────────────────────
 
 /**
  * Dynamiczne odnowienie TTL cache w Gemini API (OPT-C04).
- * Wydłuża TTL aktywnego cache o zadany czas (domyślnie 2h).
+ * Wydłuża TTL aktywnego cache o zadany czas (domyślnie 15 minut).
  */
 export async function touchGeminiCache(
   apiKey: string,
   cacheKeyOrName: string,
   ttlSeconds: number = CACHE_TTL_SECONDS
 ): Promise<CachedContent | null> {
-  const effectiveTTL = ttlSeconds > 0 ? ttlSeconds : CACHE_TTL_SECONDS;
+  const effectiveTTL = Number.isFinite(ttlSeconds) && ttlSeconds > 0
+    ? Math.min(CACHE_TTL_SECONDS, Math.max(1, Math.floor(ttlSeconds)))
+    : CACHE_TTL_SECONDS;
   let targetEntry: CacheEntry | undefined;
   let targetKey: string | undefined;
 
   for (const [key, entry] of cacheStore.entries()) {
-    if (key === cacheKeyOrName || entry.cachedContent.name === cacheKeyOrName) {
+    if (key.startsWith(`${crypto.createHash('sha256').update(apiKey).digest('hex')}_`) && (key === cacheKeyOrName || entry.cachedContent.name === cacheKeyOrName)) {
       targetEntry = entry;
       targetKey = key;
       break;
@@ -170,6 +188,7 @@ export async function touchGeminiCache(
       targetEntry.cachedContent = updated
         ? { ...targetEntry.cachedContent, ...updated }
         : targetEntry.cachedContent;
+      recordCacheLease(targetEntry.modelName, targetEntry.tokens, Math.max(0, (now + effectiveTTL * 1000 - targetEntry.expiresAt) / 1000), false, targetEntry.tokenSource);
       targetEntry.createdAt = now;
       targetEntry.lastAccessedAt = now;
       targetEntry.ttlSeconds = effectiveTTL;
@@ -195,7 +214,7 @@ export async function touchGeminiCache(
  * @param modelName    Nazwa modelu (np. 'gemini-2.5-flash')
  * @param systemPrompt Pełny system prompt GM (jako systemInstruction)
  * @param stableInstructions Połączone era rules + GM protocol
- * @param ttlSeconds   TTL cache w sekundach (domyślnie CACHE_TTL_SECONDS = 7200)
+ * @param ttlSeconds   TTL cache w sekundach (domyślnie CACHE_TTL_SECONDS = 900)
  * @returns CachedContent do użycia przez config.cachedContent w gemini-provider (IND-19),
  *          lub null jeśli cache nie jest możliwy/opłacalny
  */
@@ -226,11 +245,11 @@ export async function getOrCreateGeminiCache(
   }
 
   const effectiveTTL =
-    typeof ttlSeconds === 'number' && ttlSeconds > 0
-      ? ttlSeconds
+    typeof ttlSeconds === 'number' && Number.isFinite(ttlSeconds) && ttlSeconds > 0
+      ? Math.min(CACHE_TTL_SECONDS, Math.max(1, Math.floor(ttlSeconds)))
       : CACHE_TTL_SECONDS;
   const contentHash = hashContent(systemPrompt, stableInstructions, modelName);
-  const cacheKey = `${apiKey.slice(-8)}_${contentHash}`;
+  const cacheKey = `${crypto.createHash('sha256').update(apiKey).digest('hex')}_${contentHash}`;
 
   const existing = cacheStore.get(cacheKey);
   if (existing) {
@@ -267,6 +286,7 @@ export async function getOrCreateGeminiCache(
                     ...updated,
                   };
                 }
+                recordCacheLease(modelName, existing.cachedContent.usageMetadata?.totalTokenCount ?? totalTokens, Math.max(0, (Date.now() + effectiveTTL * 1000 - existing.expiresAt) / 1000), false, existing.cachedContent.usageMetadata ? 'provider' : 'estimated');
                 existing.createdAt = Date.now();
                 existing.ttlSeconds = effectiveTTL;
                 existing.expiresAt = Date.now() + effectiveTTL * 1000;
@@ -357,10 +377,14 @@ export async function getOrCreateGeminiCache(
         return null;
       }
 
+      recordCacheLease(modelName, cachedContent.usageMetadata?.totalTokenCount ?? totalTokens, effectiveTTL, true, cachedContent.usageMetadata ? 'provider' : 'estimated');
       const now = Date.now();
       // Store in local cache
       cacheStore.set(cacheKey, {
         cachedContent,
+        modelName,
+        tokens: cachedContent.usageMetadata?.totalTokenCount ?? totalTokens,
+        tokenSource: cachedContent.usageMetadata ? 'provider' : 'estimated',
         contentHash,
         createdAt: now,
         lastAccessedAt: now,

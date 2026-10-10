@@ -15,6 +15,8 @@ import {
 import { enrichImagePromptWithEraProps } from '@/lib/location-era-validator';
 
 import crypto from 'crypto';
+import { calculateGeminiImageCost } from '@/lib/ai-cost-tracker';
+import { stableStringify } from '@/lib/tts-cache-service';
 import { resolveUserId } from '@/lib/auth-user';
 import { recordUserUsage } from '@/lib/user-usage';
 import { generateTraceId, startTimer, logApiEvent } from '@/lib/telemetry';
@@ -61,7 +63,26 @@ function sanitizePrompt(prompt: string): string {
   return cleaned + NEGATIVE_SUFFIX;
 }
 
+// Process-local single flight. Failed attempts are removed so later retries can run.
+const inFlightImages = new Map<string, Promise<Response>>();
 export async function POST(request: NextRequest) {
+  let body: unknown;
+  try { body = await request.clone().json(); } catch { return generateImage(request); }
+  const owner = request.headers.get('X-Gemini-Api-Key')?.trim() || process.env.GEMINI_API_KEY?.trim() || '';
+  const key = crypto.createHash('sha256').update(stableStringify([owner, request.headers.get('X-Gemini-Tier'), DEFAULT_IMAGE_MODEL, body])).digest('hex');
+  const existing = inFlightImages.get(key);
+  if (existing) {
+    const response = (await existing).clone();
+    if (!response.ok) return response;
+    const result = await response.json();
+    return NextResponse.json({ ...result, cost: 0, metadata: { ...result.metadata, source: 'in-flight' } });
+  }
+  const pending = generateImage(request);
+  inFlightImages.set(key, pending);
+  try { return (await pending).clone(); } finally { inFlightImages.delete(key); }
+}
+
+async function generateImage(request: NextRequest) {
   // IND-257: telemetria obrazów - logApiEvent fire-and-forget przy każdym wyjściu
   // generacji (sukces z costUsd, błędy ze statusem). Wcześniej /api/imagen w ogóle
   // nie był logowany, więc liczby/kosztu obrazów nie dało się mierzyć z
@@ -83,9 +104,9 @@ export async function POST(request: NextRequest) {
       status,
       durationMs: timer.elapsed(),
       result,
-      costUsd: opts.costUsd,
+      costUsd: opts.cached ? 0 : undefined,
       errorMsg: opts.errorMsg,
-      meta: opts.cached != null ? { cached: opts.cached } : undefined,
+      meta: { cached: opts.cached ?? false, requestCostUsd: opts.costUsd ?? null, aggregate: true },
     }).catch(() => {});
 
   try {
@@ -149,35 +170,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Sprawdź cache. `seed` (opcjonalny) trafia do klucza: gdy klient go
-    // przekaże (np. "Generuj ponownie" portret z A5 - losowy nonce na każdy
-    // klik), hash jest inny → cache miss → świeży obraz. Bez `seed` zachowanie
-    // jest identyczne jak dotąd (sceny NIE wysyłają seed → cache działa normalnie).
-    const seedSuffix = seed != null && seed !== '' ? `-${String(seed)}` : '';
-    const cacheKey = crypto
-      .createHash('md5')
-      .update(`${scenePrompt}-${style}${seedSuffix}`)
-      .digest('hex');
-    const cached = imageCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log('🎯 Using cached image result');
-      logImagen(200, 'success', { costUsd: 0, cached: true });
-      return NextResponse.json({
-        success: true,
-        imageUrl: cached.url,
-        provider: `${cached.provider}-cached`,
-        cost: 0,
-        metadata: { source: 'cache' },
-      });
-    }
-
     let result: {
       success: boolean;
       imageUrl: string;
       provider: string;
       cost: number;
+      metadata?: { costEstimated: boolean };
     } | null = null;
     let lastError = '';
+    let totalCost = 0;
+    let costEstimated = false;
 
     // Zew-App-Local: jedyny provider obrazów to Gemini image (rodzina Gemini API,
     // ten sam klucz z Google AI Studio co czat / TTS / embeddingi). Zero fallbacków.
@@ -257,6 +259,29 @@ export async function POST(request: NextRequest) {
     }
 
 
+    // Sprawdź cache. `seed` (opcjonalny) trafia do klucza: gdy klient go
+    // przekaże (np. "Generuj ponownie" portret z A5 - losowy nonce na każdy
+    // klik), hash jest inny → cache miss → świeży obraz. Bez `seed` zachowanie
+    // zachowuje dotychczasowe ponowne użycie wyniku.
+    const seedSuffix = seed != null && seed !== '' ? `-${String(seed)}` : '';
+    const cacheKey = crypto
+      .createHash('sha256')
+      .update(stableStringify([crypto.createHash('sha256').update(apiKey).digest('hex'), DEFAULT_IMAGE_MODEL, enhancedPrompt, seedSuffix]))
+      .digest('hex');
+    const cached = imageCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('🎯 Using cached image result');
+      logImagen(200, 'success', { costUsd: 0, cached: true });
+      return NextResponse.json({
+        success: true,
+        imageUrl: cached.url,
+        provider: `${cached.provider}-cached`,
+        cost: 0,
+        metadata: { source: 'cache' },
+      });
+    }
+
+
     // IND-232: gemini-2.5-flash-image bywa flaky - czasem zwraca sam TEKST zamiast
     // obrazu (brak inlineData), co dawniej kończyło się twardym 500 przy losowych
     // turach. Ponawiamy do MAX_ATTEMPTS razy, gdy odpowiedź nie zawiera danych obrazu
@@ -265,8 +290,7 @@ export async function POST(request: NextRequest) {
     // klucz/prompt) przerywają pętlę od razu - nie ma sensu ich powtarzać.
     // 2026-06-28 (portable): flakiness jest LOSOWA, nie trwała - log pokazywał portret
     // padający 3/3 na samym tekście, a sąsiednie wywołania udawały się dopiero w próbie
-    // 2-3. Podniesiono 3→6, bo koszt nalicza się tylko na sukcesie (recordUserUsage na
-    // ścieżce 200), więc dodatkowe próby tekstowe nie obciążają budżetu.
+    // 2-3. Każda próba z usageMetadata jest płatna, także odpowiedź tekstowa.
     const MAX_ATTEMPTS = 6;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS && !result; attempt++) {
       try {
@@ -347,6 +371,17 @@ export async function POST(request: NextRequest) {
         } else {
           const data = await response.json();
           const candidates = data.candidates || [];
+          const hasImage = candidates.some((candidate: { content?: { parts?: Array<{ inlineData?: { mimeType?: string } }> } }) => candidate.content?.parts?.some(part => part.inlineData?.mimeType?.startsWith('image/')));
+          const usage = data.usageMetadata;
+          const attemptCost = usage ? calculateGeminiImageCost(activeModel, usage, hasImage) : hasImage ? 0.0672 : 0;
+          costEstimated ||= !usage || (hasImage && !usage.candidatesTokensDetails?.length);
+          totalCost += attemptCost;
+          logApiEvent({ traceId, endpoint: '/api/imagen/attempt', provider: 'gemini', model: activeModel,
+            status: 200, durationMs: timer.elapsed(), result: hasImage ? 'success' : 'error', costUsd: attemptCost,
+            tokensIn: usage?.promptTokenCount ?? 0, tokensOut: usage?.candidatesTokenCount ?? 0,
+            meta: { attempt, thinkingTokens: usage?.thoughtsTokenCount ?? 0, usageAvailable: Boolean(usage), estimated: !usage, estimatedModality: hasImage && !usage?.candidatesTokensDetails?.length },
+          }).catch(() => {});
+          if (usage || hasImage) resolveUserId('local').then(uid => recordUserUsage(uid, { type: 'image', cost: attemptCost })).catch(() => {});
 
           for (const candidate of candidates) {
             const parts = candidate.content?.parts || [];
@@ -357,7 +392,8 @@ export async function POST(request: NextRequest) {
                   success: true,
                   imageUrl,
                   provider: 'gemini',
-                  cost: 0.02,
+                  cost: totalCost,
+                  metadata: { costEstimated },
                 };
                 console.log(
                   `✅ Gemini succeeded (próba ${attempt}/${MAX_ATTEMPTS}, model: ${activeModel})`
@@ -396,7 +432,7 @@ export async function POST(request: NextRequest) {
     // Jeśli generacja nie zadziałała
     if (!result) {
       console.error(`❌ Gemini image generation failed: ${lastError}`);
-      logImagen(500, 'error', { errorMsg: lastError, model: activeModel });
+      logImagen(500, 'error', { errorMsg: lastError, model: activeModel, costUsd: totalCost });
       return NextResponse.json(
         {
           error: 'Image generation failed',
@@ -415,11 +451,7 @@ export async function POST(request: NextRequest) {
         provider: result.provider || 'unknown',
       });
 
-      // IND-168 Faza 6: licznik zużycia per-konto (fire-and-forget). Do wycięcia w Liście 2.
-      const imageCost = typeof result.cost === 'number' ? result.cost : 0.02;
-      resolveUserId('local')
-        .then((uid) => recordUserUsage(uid, { type: 'image', cost: imageCost }))
-        .catch(() => {});
+
     }
 
     logImagen(200, 'success', { costUsd: result.cost, cached: false });

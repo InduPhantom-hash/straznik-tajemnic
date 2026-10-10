@@ -87,17 +87,42 @@ export function calculateGeminiCost(
   model: string,
   inputTokens: number,
   outputTokens: number,
-  cachedTokens: number = 0
+  cachedTokens: number = 0,
+  thinkingTokens: number = 0
 ): number {
   const table = getGeminiPricing();
-  const pricing = table[model] || table['default'];
+  const basePricing = table[model] || table['default'];
+  const pricing = model === 'gemini-3.1-pro-preview' && inputTokens > 200000
+    ? { ...basePricing, input: 4, output: 18, cachedInput: 0.40 } : basePricing;
   // promptTokenCount zawiera cached - rozdziel na świeże (pełna stawka) + cached (rabat).
-  const freshInput = Math.max(0, inputTokens - cachedTokens);
+  const safeCachedTokens = Math.min(Math.max(0, cachedTokens), Math.max(0, inputTokens));
+  const freshInput = Math.max(0, inputTokens - safeCachedTokens);
   const inputCost =
     (freshInput / 1_000_000) * pricing.input +
-    (cachedTokens / 1_000_000) * pricing.input * CACHED_INPUT_RATE;
-  const outputCost = (outputTokens / 1_000_000) * pricing.output;
+    (safeCachedTokens / 1_000_000) * (pricing.cachedInput ?? pricing.input * CACHED_INPUT_RATE);
+  const outputCost = ((outputTokens + thinkingTokens) / 1_000_000) * pricing.output;
   return inputCost + outputCost;
+}
+
+/** Image and text output use different rates; thinking is text output. */
+export function calculateGeminiImageCost(model: string, usage: {
+  promptTokenCount?: number;
+  candidatesTokenCount?: number;
+  thoughtsTokenCount?: number;
+  candidatesTokensDetails?: Array<{ modality?: string; tokenCount?: number }>;
+}, hasImage: boolean): number {
+  const table = getGeminiPricing();
+  const pricing = table[model] || table.default;
+  const output = usage.candidatesTokenCount ?? 0;
+  const details = usage.candidatesTokensDetails;
+  // Missing modality breakdown: conservatively estimate image output separately.
+  const imageTokens = details?.length
+    ? details.filter(part => part.modality === 'IMAGE').reduce((sum, part) => sum + (part.tokenCount ?? 0), 0)
+    : hasImage ? output : 0;
+  const boundedImageTokens = Math.min(output, Math.max(0, imageTokens));
+  return ((usage.promptTokenCount ?? 0) * pricing.input
+    + (output - boundedImageTokens + (usage.thoughtsTokenCount ?? 0)) * pricing.output
+    + boundedImageTokens * (pricing.imageOutput ?? pricing.output)) / 1_000_000;
 }
 
 // ========================================

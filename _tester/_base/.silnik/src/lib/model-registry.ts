@@ -134,6 +134,7 @@ export const CACHEABLE_MODELS: ReadonlySet<string> = new Set([
 
 /** Minimalna liczba cached tokenów per model (poniżej = odrzucone przez API). */
 export const MIN_CACHE_TOKENS: Record<string, number> = {
+  'gemini-3.8-flash': 4096,
   'gemini-2.5-pro': 4096,
   'gemini-3-pro-preview': 4096,
   'gemini-3.1-pro-preview': 4096,
@@ -204,18 +205,18 @@ export const DEFAULT_TTS_MODEL: GeminiTtsModelId = 'gemini-2.5-flash-preview-tts
  * Cennik Gemini (input/output USD per 1M tokenów). Klucz `default` = fallback
  * dla nieznanych modeli. calculateGeminiCost() (ai-cost-tracker) używa tej mapy.
  */
-export const GEMINI_PRICING: Record<string, { input: number; output: number }> =
+export const GEMINI_PRICING: Record<string, { input: number; output: number; cachedInput?: number; imageOutput?: number; cacheStorage?: number }> =
   {
     'gemini-flash-latest': { input: 0.15, output: 0.60 },
     'gemini-flash-lite-latest': { input: 0.075, output: 0.30 },
     'gemini-pro-latest': { input: 2.0, output: 12.0 },
-    'gemini-3.8-flash': { input: 0.15, output: 0.60 },
+    'gemini-3.8-flash': { input: 0.75, output: 3.75, cachedInput: 0.075, cacheStorage: 0.50 },
     'gemini-3.7-flash': { input: 0.15, output: 0.60 },
     'gemini-3.6-flash': { input: 0.15, output: 0.60 },
     'gemini-3.5-flash': { input: 0.15, output: 0.60 },
-    'gemini-3.1-flash-lite': { input: 0.075, output: 0.30 },
+    'gemini-3.1-flash-lite': { input: 0.25, output: 1.50, cachedInput: 0.025, cacheStorage: 1.0 },
     'gemini-3.6-flash-preview': { input: 0.15, output: 0.60 },
-    'gemini-3.1-pro-preview': { input: 2.0, output: 12.0 },
+    'gemini-3.1-pro-preview': { input: 2.0, output: 12.0, cachedInput: 0.20, cacheStorage: 4.50 },
     'gemini-3-flash-preview': { input: 0.5, output: 3.0 },
     'gemini-3.1-pro': { input: 2.0, output: 12.0 }, // legacy
     'gemini-3-flash': { input: 0.5, output: 3.0 }, // legacy
@@ -224,9 +225,9 @@ export const GEMINI_PRICING: Record<string, { input: number; output: number }> =
     'gemini-2.5-flash-lite': { input: 0.075, output: 0.3 },
     'gemini-2.0-flash': { input: 0.075, output: 0.3 },
     'imagen-3.0-generate-002': { input: 0.0, output: 30.0 }, // legacy obrazów USD
-    'gemini-3.1-flash-image': { input: 0.075, output: 0.3 },
+    'gemini-3.1-flash-image': { input: 0.50, output: 3.0, imageOutput: 60.0 },
     'gemini-3.1-flash-lite-image': { input: 0.05, output: 0.2 },
-    'gemini-2.5-flash-image': { input: 0.075, output: 0.3 },
+    'gemini-2.5-flash-image': { input: 0.30, output: 2.50, imageOutput: 30.0 },
     'gemini-3-pro-image': { input: 0.25, output: 1.0 },
     'gemini-2.5-flash-preview-tts': { input: 0.50, output: 1.50 },
     default: { input: 0.15, output: 0.60 },
