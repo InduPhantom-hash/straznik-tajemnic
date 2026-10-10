@@ -9,10 +9,12 @@ describe('FullGameSaveManager duet persistence', () => {
     const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
       id: 'char-chronicle',
+      chronicleSession: { playthroughId: 'run', campaignDefinitionId: 'scenario', adventureId: 'archive', sessionId: 'session-1', sessionNumber: 1, closedByMessageId: 'end' },
       sceneCards: [
         {
           id: 'scene-card-chronicle',
           sceneNumber: 1,
+          chronicleChapter: { playthroughId: 'run', campaignDefinitionId: 'scenario', adventureId: 'archive', adventureTitle: 'Archiwum', sessionId: 'session-1', sessionNumber: 1 },
           location: 'Archiwum',
           title: 'Wizyta w archiwum',
           timestamp: '2026-10-10T10:00:00.000Z',
@@ -48,6 +50,8 @@ describe('FullGameSaveManager duet persistence', () => {
       pl: 'Stanisław twierdził, że list wysłano z doków.',
       en: 'Stanisław claimed the letter came from the docks.',
     });
+    expect(loaded?.characters[0].chronicleSession).toEqual(character.chronicleSession);
+    expect(loaded?.characters[0].sceneCards?.[0].chronicleChapter).toEqual(character.sceneCards?.[0].chronicleChapter);
   });
 
   it('writes save version 2.1.0 and preserves campaign memory identity', () => {

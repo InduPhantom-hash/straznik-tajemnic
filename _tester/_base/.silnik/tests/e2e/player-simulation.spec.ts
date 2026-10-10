@@ -50,8 +50,12 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     });
 
     const gmNarrations = [
-      'W archiwum Stanisław twierdzi, że list wysłano z doków. [LOKACJA: Archiwum: Regały pełne akt] [NPC: Stanisław: Archiwista]',
+      'Rozpoczyna się wasza historia.',
+      '[ZMIANA_SCENY: Archiwum] W archiwum Stanisław twierdzi, że list wysłano z doków. [NPC: Stanisław: Archiwista]',
       'Kończycie rozmowę i wychodzicie na korytarz. [ZMIANA_SCENY: Korytarz] Stanisław twierdził, że list wysłano z doków.',
+      'Stanisław powtarza, że usłyszał to od portiera.',
+      'Na korytarzu cichną kroki. [KONIEC_SESJI:POTWIERDZENIE]',
+      'Następnego spotkania wychodzicie na ulicę. [ZMIANA_SCENY: Ulica] Słychać dzwony.',
     ];
     let chatTurn = 0;
     let savedGame: Record<string, unknown> | undefined;
@@ -95,11 +99,11 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     let summaryAttempts = 0;
     await page.route('**/api/summarize-scene', async (route) => {
       const payload = route.request().postDataJSON() as { locale?: string; sceneLocation?: string; messages: Array<{ content: string }> };
-      summaryAttempts += 1;
       if (payload.sceneLocation === 'Archiwum') {
+        summaryAttempts += 1;
         expect(payload.messages.map((message) => message.content).join(' ')).toContain('W archiwum Stanisław twierdzi');
       }
-      if (summaryAttempts === 1) {
+      if (payload.sceneLocation === 'Archiwum' && summaryAttempts === 1) {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: false, error: 'Temporary model failure' }) });
         return;
       }
@@ -245,23 +249,31 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     const chatInput = page.locator('textarea[placeholder*="Mistrza Gry"], textarea[placeholder*="wiadomość"], textarea').first();
     await expect(chatInput).toBeVisible({ timeout: 20000 });
 
-    await chatInput.fill('Rozglądam się uważnie po pokoju i badam biurko.');
+    // Quick Start wysyła narrację otwierającą przed pierwszą turą gracza.
+    await expect(page.locator('body')).toContainText('Rozpoczyna się wasza historia.', { timeout: 15000 });
+    await expect(chatInput).toBeEnabled();
+    await chatInput.fill('Wchodzę do archiwum i rozglądam się po pokoju.');
     await chatInput.press('Enter');
-
-    // Odebranie narracji i otwarcie sceny w archiwum.
     await expect(page.locator('body')).toContainText('Stanisław twierdzi', { timeout: 15000 });
-    const summaryResponse = page.waitForResponse('**/api/summarize-scene');
+    await expect(chatInput).toBeEnabled();
+    const summaryResponse = page.waitForResponse((response) => response.url().includes('/api/summarize-scene') && response.request().postDataJSON().sceneLocation === 'Archiwum');
     await chatInput.fill('Pytam Stanisława o źródło tej informacji.');
     await chatInput.press('Enter');
     await expect(page.locator('body')).toContainText('wychodzicie na korytarz', { timeout: 15000 });
     await summaryResponse;
-    expect(summaryAttempts).toBeGreaterThanOrEqual(2);
+    expect(summaryAttempts).toBe(1);
+    await expect(chatInput).toBeEnabled();
+    await chatInput.fill('Dopytuję, kto przekazał tę wiadomość.');
+    await chatInput.press('Enter');
+    await expect(page.locator('body')).toContainText('usłyszał to od portiera');
+    await expect.poll(() => summaryAttempts).toBeGreaterThanOrEqual(2);
 
     // Zakończona scena trafia do Dziennika z zachowaną atrybucją plotki.
     await page.locator('[data-testid="btn-open-journal"]').click();
     let journal = page.locator('[data-testid="session-journal"]');
     await expect(journal).toBeVisible({ timeout: 10000 });
-    await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
+    await expect(journal.getByTestId('journal-session-header')).toContainText('Sesja 1');
+    await journal.getByRole('button', { name: /Scena #\d+ Archiwum/i }).click();
     await expect(journal.getByTestId('journal-entry').filter({ has: page.getByRole('heading', { name: 'Archiwum', exact: true }) }).getByTestId('scene-chronicle-summary')).toContainText(
       'Stanisław twierdził, że list wysłano z doków.'
     );
@@ -280,7 +292,7 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
         chronicleSummaryByLocale?: { pl?: string; en?: string };
       }>;
     }>;
-    expect(savedCharacters[0]?.sceneCards?.[0]?.chronicleSummaryByLocale).toEqual({
+    expect(savedCharacters[0]?.sceneCards?.find((scene) => scene.chronicleSummaryByLocale)?.chronicleSummaryByLocale).toEqual({
       pl: 'Stanisław twierdził, że list wysłano z doków.',
       en: 'Stanisław claimed the letter had been sent from the docks.',
     });
@@ -290,10 +302,35 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     await page.getByRole('button', { name: 'Wczytaj', exact: true }).last().click();
     await page.locator('[data-testid="btn-open-journal"]').click();
     journal = page.locator('[data-testid="session-journal"]');
-    await journal.getByRole('button', { name: /Scena #1 Archiwum/i }).click();
+    await journal.getByRole('button', { name: /Scena #\d+ Archiwum/i }).click();
     await expect(journal.getByTestId('journal-entry').filter({ has: page.getByRole('heading', { name: 'Archiwum', exact: true }) }).getByTestId('scene-chronicle-summary')).toContainText(
       'Stanisław twierdził, że list wysłano z doków.'
     );
+    await journal.getByRole('button', { name: 'Zamknij dziennik' }).click();
+
+    // Potwierdzony koniec domyka ostatnią scenę przed autozapisem.
+    await chatInput.fill('Kończymy dzisiejsze spotkanie.');
+    await chatInput.press('Enter');
+    await expect.poll(() => {
+      const characters = savedGame?.characters as Array<{ chronicleSession?: { closedByMessageId?: string } }> | undefined;
+      return Boolean(characters?.[0]?.chronicleSession?.closedByMessageId);
+    }).toBe(true);
+    const closedCharacters = savedGame?.characters as Array<{ chronicleSession: { sessionNumber: number }; sceneCards: Array<{ location: string; chronicleChapter: { sessionNumber: number } }> }>;
+    expect(closedCharacters[0].chronicleSession.sessionNumber).toBe(1);
+    expect(closedCharacters[0].sceneCards.some((scene) => scene.location === 'Korytarz' && scene.chronicleChapter.sessionNumber === 1)).toBe(true);
+    await page.getByRole('button', { name: 'Wczytaj', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Kronika testowa', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Wczytaj', exact: true }).last().click();
+    await chatInput.fill('Kontynuujemy naszą historię.');
+    await chatInput.press('Enter');
+    await expect.poll(() => page.evaluate(() => {
+      const characters = JSON.parse(localStorage.getItem('characters') ?? '[]');
+      return characters.find((character: { isActive?: boolean }) => character.isActive)?.chronicleSession?.sessionNumber;
+    })).toBe(2);
+    await page.getByTestId('btn-open-journal').click();
+    journal = page.getByTestId('session-journal');
+    await expect(journal.getByTestId('journal-session-header')).toHaveText(['Sesja 1', 'Sesja 2']);
+    await page.screenshot({ path: 'test-results/journal-chapters-pl.png' });
     await journal.getByRole('button', { name: 'Zamknij dziennik' }).click();
 
     // 6. Otwarcie panelu bocznego (Ekwipunek)
@@ -328,7 +365,8 @@ test.describe('Visual Player Simulation - Obowiązkowy Test Gracza E2E', () => {
     await expect(page).toHaveURL(/\/en/);
     await page.locator('[data-testid="btn-open-journal"]').click();
     journal = page.locator('[data-testid="session-journal"]');
-    await journal.getByRole('button', { name: /Scene #1 Archiwum/i }).click();
+    await expect(journal.getByTestId('journal-session-header')).toHaveText(['Session 1', 'Session 2']);
+    await journal.getByRole('button', { name: /Scene #\d+ Archiwum/i }).click();
     await expect(journal.getByTestId('journal-entry').filter({ has: page.getByRole('heading', { name: 'Archiwum', exact: true }) }).getByTestId('scene-chronicle-summary')).toContainText(
       'Stanisław claimed the letter had been sent from the docks.'
     );

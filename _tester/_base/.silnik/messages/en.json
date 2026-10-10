@@ -7664,6 +7664,8 @@
     "mania_mythomania_description": "An irresistible urge to tell made-up stories"
   },
   "SessionJournal": {
+    "readerAdventure": "Adventure",
+    "readerSession": "Session {number}",
     "readerEyebrow": "A record of our journey",
     "readerTitle": "Chronicle",
     "readerParty": "Party: {names}",

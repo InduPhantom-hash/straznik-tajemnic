@@ -7664,6 +7664,8 @@
     "mania_mythomania_description": "Nieodparta potrzeba opowiadania wymyślonych historii"
   },
   "SessionJournal": {
+    "readerAdventure": "Przygoda",
+    "readerSession": "Sesja {number}",
     "readerEyebrow": "Zapis naszej drogi",
     "readerTitle": "Kronika",
     "readerParty": "Drużyna: {names}",

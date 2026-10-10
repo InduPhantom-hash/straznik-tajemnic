@@ -362,6 +362,8 @@ export function processCharacterJournalAndDossier(
           : `Udać się do: ${locationEntry!.title}`);
 
       const sealedCard: SceneCaseCard = {
+        chronicleChapter: activeScene.chronicleChapter,
+        chronicleBoundaryKnown: activeScene.chronicleBoundaryKnown,
         id: cardId,
         sceneNumber: activeScene.sceneNumber,
         location: activeScene.location,
@@ -401,6 +403,8 @@ export function processCharacterJournalAndDossier(
       }
 
       activeScene = {
+        chronicleChapter: activeScene.chronicleChapter,
+        chronicleBoundaryKnown: true,
         sceneNumber: sealedCard.sceneNumber + 1,
         location: sanitizeLocationName(locationEntry!.title),
         startedAt: new Date().toISOString(),
@@ -1082,6 +1086,8 @@ export function processCharacterJournalAndDossier(
         (sceneChange?.newLocation ? `Udać się do: ${sceneChange.newLocation}` : undefined);
 
       const sealedCard: SceneCaseCard = {
+        chronicleChapter: activeScene.chronicleChapter,
+        chronicleBoundaryKnown: activeScene.chronicleBoundaryKnown,
         id: cardId,
         sceneNumber: activeScene.sceneNumber,
         location: cardLoc,
@@ -1122,6 +1128,8 @@ export function processCharacterJournalAndDossier(
 
       // Nowa aktywna scena po przejściu
       activeScene = {
+        chronicleChapter: activeScene.chronicleChapter,
+        chronicleBoundaryKnown: true,
         sceneNumber: sealedCard.sceneNumber + 1,
         location: sanitizeLocationName(sceneChange?.newLocation || 'Nowa lokacja'),
         startedAt: new Date().toISOString(),
@@ -1345,8 +1353,9 @@ export function appendJournalToParty(
 /** Message anchors survive save/load and do not depend on stream processing times. */
 export function buildSceneChronicleTranscript(
   messages: Array<{ id: string; role: string; content: string }>,
-  scene: Pick<SceneCaseCard, 'startMessageId' | 'endMessageId'>
+  scene: Pick<SceneCaseCard, 'startMessageId' | 'endMessageId' | 'chronicleBoundaryKnown'>
 ): Array<{ role: string; content: string }> {
+  if (scene.chronicleBoundaryKnown === false) return [];
   const start = scene.startMessageId
     ? messages.findIndex((message) => message.id === scene.startMessageId)
     : 0;
